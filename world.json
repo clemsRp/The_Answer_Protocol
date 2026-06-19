@@ -1,0 +1,33 @@
+[
+	{
+		"rooms": {
+			"entry": {
+				"items": [
+					"item1", "item2"
+				],
+				"npcs": [
+					"npc1", "npc2"
+				],
+				"neighbours": {
+					"north": "shop"
+				}
+			}
+		},
+		"items": {
+			"item1": {
+
+			},
+			"item2": {
+
+			}
+		},
+		"npcs": {
+			"npc1": {
+
+			},
+			"npc2": {
+				
+			}
+		}
+	}
+]
