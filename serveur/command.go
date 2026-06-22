@@ -5,6 +5,24 @@ import (
 	"fmt"
 )
 
+const (
+	CmdConnect   = "CONNECT"
+	CmdLook      = "LOOK"
+	CmdMove      = "MOVE"
+	CmdChat      = "CHAT"
+	CmdTake      = "TAKE"
+	CmdDrop      = "DROP"
+	CmdInventory = "INVENTORY"
+	CmdTalk      = "TALK"
+	CmdAttack    = "ATTACK"
+	CmdStatus    = "STATUS"
+	CmdQuest     = "QUEST"
+	CmdQuests    = "QUESTS"
+	CmdWho       = "WHO"
+	CmdGroup     = "GROUP"
+	CmdQuit      = "QUIT"
+)
+
 func handleCmdConnect(clients map[string]*Client, ip string, req []string) (string, error) {
 	// Check for invalid command
 	if len(req) != 2 {

@@ -7,10 +7,23 @@ import (
 	"strings"
 )
 
+type Request struct {
+	cli Client
+	msg string
+}
+
+type Response struct {
+	msg string
+	req Request
+}
+
+map_path := "world.json"
+
 var (
 	entering = make(chan Client)
 	leaving  = make(chan Client)
 	requests = make(chan Request)
+	map		 = get_map(map_path)
 )
 
 func main() {
