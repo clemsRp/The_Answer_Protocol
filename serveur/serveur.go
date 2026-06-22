@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"strings"
@@ -35,34 +36,43 @@ func main() {
 }
 
 func broadcaster() {
-	clients := make(map[Client]bool)
+	clients := make(map[string]*Client)
 
 	for {
 		select {
 		case req := <-requests:
-			handleRequest(req)
+			handleRequest(clients, req)
 
 		case cli := <-entering:
-			clients[cli] = true
+			clients[cli.ip] = &cli
 
 		case cli := <-leaving:
-			delete(clients, cli)
-			close(cli.ch)
+			if c, ok := clients[cli.ip]; ok {
+                delete(clients, cli.ip)
+                close(c.ch)
+            }
 		}
 	}
 }
 
-func handleRequest(request Request) {
+func handleRequest(clients map[string]*Client, request Request) {
 	req := strings.Split(request.msg, " ")
+
 	var res string
+	var err error
 
 	switch req[0] {
 	case CmdConnect:
-		res = handleCmdConnect(req)
+		res, err = handleCmdConnect(clients, request.cli.ip, req)
+	case CmdWho:
+		res, err = handleCmdWho(clients, req)
 
 	default:
-		res = "Error"
+		res, err = "", errors.New("Invalid command")
 	}
 
-	request.cli.ch <- Response{res}
+	if err != nil {
+		res = err.Error()
+	}
+	request.cli.ch <- Response{res, request}
 }

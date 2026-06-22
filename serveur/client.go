@@ -11,9 +11,9 @@ func handleClient(conn net.Conn) {
 	go clientWriter(conn, responses)
 
 	who := conn.RemoteAddr().String()
-	cli := Client{conn, responses, who}
+	cli := Client{conn, responses, who, "", false}
 
-	cli.ch <- Response{"[INFO]: You are connected as " + who}
+	cli.ch <- Response{"[INFO]: You are connected as " + who, Request{}}
 	entering <- cli
 
 	input := bufio.NewScanner(conn)

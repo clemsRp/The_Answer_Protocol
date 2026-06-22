@@ -29,10 +29,13 @@ type Request struct {
 
 type Response struct {
 	msg string
+	req Request
 }
 
 type Client struct {
-	conn net.Conn
-	ch   chan Response
-	name string
+	conn      net.Conn
+	ch        chan Response
+	ip        string
+	name      string
+	connected bool
 }
