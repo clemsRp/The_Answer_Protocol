@@ -13,8 +13,9 @@ type Request struct {
 }
 
 type Response struct {
-	msg string
-	req Request
+	msg   string
+	datas any
+	req   Request
 }
 
 var (
@@ -79,7 +80,7 @@ func handleRequest(clients map[string]*Client, request Request) {
 	req := strings.Split(request.msg, " ")
 
 	var res string
-	var datas Datas
+	var datas any
 	var err error
 
 	// Handle the command type
@@ -92,7 +93,7 @@ func handleRequest(clients map[string]*Client, request Request) {
 		res, datas, err = handleCmdLook(request, req)
 
 	default:
-		res, datas, err = "", Datas{}, errors.New("Invalid command")
+		res, datas, err = "", "", errors.New("Invalid command")
 	}
 
 	// Handle command errors

@@ -23,39 +23,34 @@ const (
 	CmdQuit      = "QUIT"
 )
 
-func handleCmdConnect(clients map[string]*Client, ip string, req []string) (string, error) {
+func handleCmdConnect(clients map[string]*Client, ip string, req []string) (string, any, error) {
 	// Check for invalid command
 	if len(req) != 2 {
-		return "", errors.New("ERR Invalid name: shouldn't contain space character")
+		return "", "", errors.New("ERR Invalid name: shouldn't contain space character")
 	}
 
 	//Check for duplicated commands
 	if clients[ip].connected {
-		return "", errors.New("ERR User already connected")
+		return "", "", errors.New("ERR User already connected")
 	}
 
 	// Check for name's presence
-	already_present := false
-	for cli := range clients {
-		if clients[cli].name == req[1] {
-			already_present = true
-			break
-		}
-	}
-	if already_present {
-		return "", errors.New("ERR 201 NAME_IN_USE")
+	for _, cli := range clients {
+	    if cli.name == req[1] {
+	        return "", "", errors.New("ERR 201 NAME_IN_USE")
+	    }
 	}
 
 	// Save user's name and connection state
 	clients[ip].name = req[1]
 	clients[ip].connected = true
-	return "OK connected", nil
+	return "OK connected", "", nil
 }
 
-func handleCmdWho(clients map[string]*Client, req []string) (string, error) {
+func handleCmdWho(clients map[string]*Client, req []string) (string, any, error) {
 	// Check for invalid command
 	if len(req) >= 2 {
-		return "", errors.New("ERR Invalid command")
+		return "", "", errors.New("ERR Invalid command")
 	}
 
 	// Get nb of connected clients
@@ -66,16 +61,14 @@ func handleCmdWho(clients map[string]*Client, req []string) (string, error) {
 		}
 	}
 
-	return fmt.Sprintf("OK players=%d", nb_clients), nil
+	return fmt.Sprintf("OK players=%d", nb_clients), "", nil
 }
 
-func handleCmdLook(request Request, req []string) (string, error) {
+func handleCmdLook(request Request, req []string) (string, any, error) {
 	// Check for invalid command
 	if len(req) >= 2 {
-		return "", errors.New("ERR Invalid command")
+		return "", "", errors.New("ERR Invalid command")
 	}
 
-	fmt.Println(world.Rooms[request.cli.datas.room])
-
-	return "OK", nil
+	return "OK", world.Rooms[request.cli.datas.room], nil
 }

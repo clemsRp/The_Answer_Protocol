@@ -33,7 +33,7 @@ func handleClient(conn net.Conn) {
 	cli := Client{conn, responses, who, "", false, Datas{"start", []string{}, "", 50, 50, "healthy"}}
 
 	// Start messages
-	cli.ch <- Response{"[INFO]: You are connected as " + who, Request{}}
+	cli.ch <- Response{"[INFO]: You are connected as " + who, "", Request{}}
 	entering <- cli
 
 	// Handle the input commands
@@ -51,5 +51,8 @@ func clientWriter(conn net.Conn, responses <-chan Response) {
 	// Write all the messages in the player terminal
 	for res := range responses {
 		fmt.Fprintln(conn, res.msg)
+		if res.datas != "" {
+			fmt.Fprintln(conn, res.datas)
+		}
 	}
 }
