@@ -30,7 +30,7 @@ func handleClient(conn net.Conn) {
 
 	// Init player
 	who := conn.RemoteAddr().String()
-	cli := Client{conn, responses, who, "", false}
+	cli := Client{conn, responses, who, "", false, Datas{"start", []string{}, "", 50, 50, "healthy"}}
 
 	// Start messages
 	cli.ch <- Response{"[INFO]: You are connected as " + who, Request{}}

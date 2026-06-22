@@ -68,3 +68,14 @@ func handleCmdWho(clients map[string]*Client, req []string) (string, error) {
 
 	return fmt.Sprintf("OK players=%d", nb_clients), nil
 }
+
+func handleCmdLook(request Request, req []string) (string, error) {
+	// Check for invalid command
+	if len(req) >= 2 {
+		return "", errors.New("ERR Invalid command")
+	}
+
+	fmt.Println(world.Rooms[request.cli.datas.room])
+
+	return "OK", nil
+}

@@ -1,33 +1,62 @@
 [
-	{
-		"rooms": {
-			"entry": {
-				"items": [
-					"item1", "item2"
-				],
-				"npcs": [
-					"npc1", "npc2"
-				],
-				"neighbours": {
-					"north": "shop"
-				}
-			}
-		},
-		"items": {
-			"item1": {
-
-			},
-			"item2": {
-
-			}
-		},
-		"npcs": {
-			"npc1": {
-
-			},
-			"npc2": {
-				
-			}
-		}
-	}
+  {
+    "rooms": {
+      "start": {
+        "name": "Village Square",
+        "description": "A bustling square with cobblestone paths.",
+        "exits": {
+          "north": "tavern",
+          "east": "shop"
+        },
+        "items": [],
+        "npcs": ["guard"]
+      },
+      "tavern": {
+        "name": "The Prancing Pony",
+        "description": "A cozy tavern filled with warmth and laughter.",
+        "exits": {
+          "south": "start"
+        },
+        "items": ["ale"],
+        "npcs": []
+      },
+      "shop": {
+        "name": "General Store",
+        "description": "Shelves lined with various goods and supplies.",
+        "exits": {
+          "west": "start"
+        },
+        "items": [],
+        "npcs": ["merchant"]
+      }
+    },
+    "items": {
+      "ale": {
+        "name": "Frothy Ale",
+        "description": "A refreshing drink that restores energy.",
+        "obtainable": true
+      }
+    },
+    "npcs": {
+      "guard": {
+        "name": "Village Guard",
+        "description": "A stern-looking guard watching over the square.",
+        "dialogue": ["Stay safe, traveler.", "The roads can be dangerous."],
+        "role": "dialogue",
+        "stats": {
+          "hp": 20
+        }
+      },
+      "merchant": {
+        "name": "Shop Keeper",
+        "description": "A friendly merchant eager to trade.",
+        "dialogue": ["Welcome to my shop!", "What can I get for you today?"],
+        "role": "dialogue",
+        "stats": {
+          "hp": 15
+        }
+      }
+    },
+    "quests": {}
+  }
 ]

@@ -17,27 +17,34 @@ type Response struct {
 	req Request
 }
 
-map_path := "world.json"
-
 var (
 	entering = make(chan Client)
 	leaving  = make(chan Client)
 	requests = make(chan Request)
-	map		 = get_map(map_path)
+	world    Map
 )
 
 func main() {
+	// Get the world
+	var err error
+	world, err = get_map("world.json")
+	if err != nil {
+		fmt.Println("[ERROR]:", err)
+		return
+	}
+
+	// Start the serveur
 	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		fmt.Println("[ERROR]: An error occured during the serveur connection:", err)
 		return
 	}
 	defer listener.Close()
-
 	fmt.Println("[INFO]: Connection established on :8080.")
 
 	go broadcaster()
 
+	// Handle new players
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
@@ -61,9 +68,9 @@ func broadcaster() {
 
 		case cli := <-leaving:
 			if c, ok := clients[cli.ip]; ok {
-                delete(clients, cli.ip)
-                close(c.ch)
-            }
+				delete(clients, cli.ip)
+				close(c.ch)
+			}
 		}
 	}
 }
@@ -72,20 +79,27 @@ func handleRequest(clients map[string]*Client, request Request) {
 	req := strings.Split(request.msg, " ")
 
 	var res string
+	var datas Datas
 	var err error
 
+	// Handle the command type
 	switch req[0] {
 	case CmdConnect:
-		res, err = handleCmdConnect(clients, request.cli.ip, req)
+		res, datas, err = handleCmdConnect(clients, request.cli.ip, req)
 	case CmdWho:
-		res, err = handleCmdWho(clients, req)
+		res, datas, err = handleCmdWho(clients, req)
+	case CmdLook:
+		res, datas, err = handleCmdLook(request, req)
 
 	default:
-		res, err = "", errors.New("Invalid command")
+		res, datas, err = "", Datas{}, errors.New("Invalid command")
 	}
 
+	// Handle command errors
 	if err != nil {
 		res = err.Error()
 	}
-	request.cli.ch <- Response{res, request}
+
+	// Return the response
+	request.cli.ch <- Response{res, datas, request}
 }
