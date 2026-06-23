@@ -58,6 +58,11 @@ func clientWriter(conn net.Conn, responses <-chan Response) {
 	for res := range responses {
 		fmt.Fprintln(conn, res.msg)
 
+		// Handle QUIT command
+		if res.msg == "OK bye" {
+			break
+		}
+
 		// Handle json datas
 		if res.datas != "" {
 			jsonBytes, err := json.Marshal(res.datas)
