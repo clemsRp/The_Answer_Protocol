@@ -8,43 +8,47 @@ import (
 )
 
 type Datas struct {
-	room      string
-	inventory []string
-	group     string
-	hp        int
-	max_hp    int
-	status    string
+	room       string
+	inventory  []string
+	group      string
+	invitation []string
+	hp         int
+	max_hp     int
+	status     string
+	connected  bool
 }
 
 type Client struct {
-	conn      net.Conn
-	ch        chan Response
-	ip        string
-	name      string
-	connected bool
-	group     string
-	datas     Datas
+	conn  net.Conn
+	ch    chan Response
+	ip    string
+	name  string
+	datas Datas
 }
 
 func handleClient(conn net.Conn) {
 	responses := make(chan Response)
 	go clientWriter(conn, responses)
 
-	// Init player
 	who := conn.RemoteAddr().String()
-	cli := Client{conn, responses, who, "", false, "", Datas{"start", []string{}, "", 50, 50, "healthy"}}
 
-	// Start messages
+	// Allocation sur le tas (Heap) via le symbole '&' pour figer l'instance en mémoire
+	cli := &Client{
+		conn:  conn,
+		ch:    responses,
+		ip:    who,
+		name:  "",
+		datas: Datas{"start", []string{}, "", []string{}, 50, 50, "healthy", false},
+	}
+
 	cli.ch <- Response{"[INFO]: You are connected as " + who, "", Request{}}
 	entering <- cli
 
-	// Handle the input commands
 	input := bufio.NewScanner(conn)
 	for input.Scan() {
 		requests <- Request{cli, input.Text()}
 	}
 
-	// End the player's session
 	leaving <- cli
 	conn.Close()
 }

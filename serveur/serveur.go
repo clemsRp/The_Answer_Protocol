@@ -8,7 +8,7 @@ import (
 )
 
 type Request struct {
-	cli Client
+	cli *Client
 	msg string
 }
 
@@ -19,9 +19,10 @@ type Response struct {
 }
 
 var (
-	entering = make(chan Client)
-	leaving  = make(chan Client)
+	entering = make(chan *Client)
+	leaving  = make(chan *Client)
 	requests = make(chan Request)
+	groups   map[string][]*Client
 	world    Map
 )
 
@@ -33,6 +34,8 @@ func main() {
 		fmt.Println("[ERROR]:", err)
 		return
 	}
+
+	groups = make(map[string][]*Client)
 
 	// Start the serveur
 	listener, err := net.Listen("tcp", ":8080")
@@ -65,7 +68,7 @@ func broadcaster() {
 			handleRequest(clients, req)
 
 		case cli := <-entering:
-			clients[cli.ip] = &cli
+			clients[cli.ip] = cli
 
 		case cli := <-leaving:
 			if c, ok := clients[cli.ip]; ok {
@@ -85,7 +88,7 @@ func handleRequest(clients map[string]*Client, request Request) {
 
 	activeCli, ok := clients[request.cli.ip]
 	if !ok {
-		activeCli = &request.cli
+		activeCli = request.cli
 	}
 
 	// Handle the command type
@@ -102,6 +105,8 @@ func handleRequest(clients map[string]*Client, request Request) {
 		res, datas, err = handleCmdMove(clients, activeCli, req)
 	case CmdChat:
 		res, datas, err = handleCmdChat(clients, activeCli, req)
+	case CmdGroup:
+		res, datas, err = handleCmdGroup(clients, activeCli, req)
 
 	default:
 		res, datas, err = "", "", errors.New("Invalid command")

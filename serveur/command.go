@@ -27,6 +27,11 @@ const (
 	RoomChat   = "ROOM"
 	GroupChat  = "GROUP"
 
+	CreateGroup = "CREATE"
+	InviteGroup = "INVITE"
+	JoinGroup   = "JOIN"
+	LeaveGroup  = "LEAVE"
+
 	South = "south"
 	North = "north"
 	East  = "east"
@@ -40,7 +45,7 @@ func handleCmdConnect(clients map[string]*Client, ip string, req []string) (stri
 	}
 
 	//Check for duplicated commands
-	if clients[ip].connected {
+	if clients[ip].datas.connected {
 		return "", "", errors.New("ERR User already connected")
 	}
 
@@ -53,7 +58,7 @@ func handleCmdConnect(clients map[string]*Client, ip string, req []string) (stri
 
 	// Save user's name and connection state
 	clients[ip].name = req[1]
-	clients[ip].connected = true
+	clients[ip].datas.connected = true
 	return "OK connected", "", nil
 }
 
@@ -75,7 +80,7 @@ func handleCmdWho(clients map[string]*Client, req []string) (string, any, error)
 	// Get nb of connected clients
 	nb_clients := 0
 	for cli := range clients {
-		if clients[cli].connected {
+		if clients[cli].datas.connected {
 			nb_clients++
 		}
 	}
@@ -96,7 +101,7 @@ func handleCmdLook(clients map[string]*Client, cli *Client, req []string) (strin
 
 	// Get the room players
 	for ip := range clients {
-		if clients[ip].datas.room == cli.datas.room && clients[ip].connected {
+		if clients[ip].datas.room == cli.datas.room && clients[ip].datas.connected {
 			players = append(players, clients[ip].name)
 		}
 	}
@@ -156,7 +161,7 @@ func handleCmdChat(clients map[string]*Client, cli *Client, req []string) (strin
 		if clients[ip].name != cli.name {
 			// Handle the scopes
 			is_global := scope == GlobalChat
-			is_group := scope == GroupChat && cli.group != "" && cli.group == clients[ip].group
+			is_group := scope == GroupChat && cli.datas.group != "" && cli.datas.group == clients[ip].datas.group
 			is_room := scope == RoomChat && cli.datas.room == clients[ip].datas.room
 
 			// Send chat message
@@ -168,4 +173,43 @@ func handleCmdChat(clients map[string]*Client, cli *Client, req []string) (strin
 	}
 
 	return "OK", "", nil
+}
+
+func handleCmdGroup(clients map[string]*Client, cli *Client, req []string) (string, any, error) {
+	var err error
+	var res string
+
+	scope := req[1]
+
+	// Check for invalid command
+	if (len(req) != 3 && scope != LeaveGroup) || (len(req) > 2 && scope == LeaveGroup) {
+		return "", "", errors.New("ERR Invalid command")
+	}
+
+	var arg string
+	if scope != LeaveGroup {
+		arg = req[2]
+	}
+
+	switch scope {
+	case CreateGroup:
+		res, err = create_group(cli, arg)
+	case InviteGroup:
+		res, err = invite_user_in_group(clients, cli, arg)
+	case JoinGroup:
+		res, err = join_group(cli, arg)
+	case LeaveGroup:
+		res, err = leave_group(cli)
+
+	default:
+		return "", "", errors.New("ERR Invalid scope")
+	}
+
+	if err != nil {
+		return "", "", err
+	}
+
+	fmt.Println(groups)
+
+	return res, "", nil
 }
