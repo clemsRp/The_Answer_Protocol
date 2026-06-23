@@ -213,3 +213,14 @@ func handleCmdGroup(clients map[string]*Client, cli *Client, req []string) (stri
 
 	return res, "", nil
 }
+
+func handleCmdStatus(cli *Client) (string, any, error) {
+	// Format status response
+	res := make(map[string]any)
+
+	res["status"] = cli.datas.status
+	res["max_hp"] = cli.datas.max_hp
+	res["hp"] = cli.datas.hp
+
+	return "OK", res, nil
+}

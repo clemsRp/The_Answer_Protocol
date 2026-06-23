@@ -107,6 +107,8 @@ func handleRequest(clients map[string]*Client, request Request) {
 		res, datas, err = handleCmdChat(clients, activeCli, req)
 	case CmdGroup:
 		res, datas, err = handleCmdGroup(clients, activeCli, req)
+	case CmdStatus:
+		res, datas, err = handleCmdStatus(activeCli)
 
 	default:
 		res, datas, err = "", "", errors.New("Invalid command")
