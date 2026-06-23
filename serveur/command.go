@@ -21,6 +21,11 @@ const (
 	CmdWho       = "WHO"
 	CmdGroup     = "GROUP"
 	CmdQuit      = "QUIT"
+
+	South	     = "south"
+	North	     = "north"
+	East	     = "east"
+	West	     = "west"
 )
 
 func handleCmdConnect(clients map[string]*Client, ip string, req []string) (string, any, error) {
@@ -47,6 +52,15 @@ func handleCmdConnect(clients map[string]*Client, ip string, req []string) (stri
 	return "OK connected", "", nil
 }
 
+func handleCmdQuit(clients map[string]*Client, cli *Client, req []string) (string, any, error) {
+	// Check for invalid command
+	if len(req) >= 2 {
+		return "", "", errors.New("ERR Invalid command")
+	}
+
+	return "OK bye", "", nil
+}
+
 func handleCmdWho(clients map[string]*Client, req []string) (string, any, error) {
 	// Check for invalid command
 	if len(req) >= 2 {
@@ -64,11 +78,60 @@ func handleCmdWho(clients map[string]*Client, req []string) (string, any, error)
 	return fmt.Sprintf("OK players=%d", nb_clients), "", nil
 }
 
-func handleCmdLook(request Request, req []string) (string, any, error) {
+func handleCmdLook(clients map[string]*Client, cli *Client, req []string) (string, any, error) {
 	// Check for invalid command
 	if len(req) >= 2 {
 		return "", "", errors.New("ERR Invalid command")
 	}
 
-	return "OK", world.Rooms[request.cli.datas.room], nil
+	// Initialize the datas map
+	res := make(map[string]any)
+	room := make(map[string]any)
+	players := make([]string, 0)
+
+	// Get the room players
+	for ip := range clients {
+	    if clients[ip].datas.room == cli.datas.room && clients[ip].connected {
+	        players = append(players, clients[ip].name)
+	    }
+	}
+
+	currentRoom := world.Rooms[cli.datas.room]
+	
+	// Format the datas
+	res["npcs"] = currentRoom.Npcs
+	res["items"] = currentRoom.Items
+	res["players"] = players
+	res["room"] = room
+	
+	room["id"] = "room." + cli.datas.room
+	room["exits"] = currentRoom.Exits
+	room["description"] = currentRoom.Description
+	room["name"] = currentRoom.Name
+
+	return "OK", res, nil
+}
+
+func handleCmdMove(clients map[string]*Client, cli *Client, req []string) (string, any, error) {
+	// Check for invalid command
+	if len(req) >= 3 {
+		return "", "", errors.New("ERR Invalid command")
+	}
+
+	direction := req[1]
+	currentRoom := world.Rooms[cli.datas.room]
+
+	// Handle No exit errors
+	nextRoom, exists := currentRoom.Exits[direction]
+	if !exists {
+		return "", "", errors.New("ERR 301 NO_EXIT")
+	}
+
+	// Move player
+	if cli, ok := clients[cli.ip]; ok {
+		cli.datas.room = nextRoom
+	}
+	cli.datas.room = nextRoom
+
+	return fmt.Sprintf("OK room=%s", nextRoom), "", nil
 }

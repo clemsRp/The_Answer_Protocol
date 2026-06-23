@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"encoding/json"
 )
 
 type Datas struct {
@@ -51,8 +52,15 @@ func clientWriter(conn net.Conn, responses <-chan Response) {
 	// Write all the messages in the player terminal
 	for res := range responses {
 		fmt.Fprintln(conn, res.msg)
+
+		// Handle json datas
 		if res.datas != "" {
-			fmt.Fprintln(conn, res.datas)
+			jsonBytes, err := json.Marshal(res.datas)
+			if err != nil {
+				fmt.Fprintln(conn, "ERR Internal server error during JSON parsing")
+			} else {
+				fmt.Fprintln(conn, string(jsonBytes))
+			}
 		}
 	}
 }

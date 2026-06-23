@@ -83,14 +83,23 @@ func handleRequest(clients map[string]*Client, request Request) {
 	var datas any
 	var err error
 
+	activeCli, ok := clients[request.cli.ip]
+    if !ok {
+        activeCli = &request.cli
+    }
+
 	// Handle the command type
 	switch req[0] {
 	case CmdConnect:
 		res, datas, err = handleCmdConnect(clients, request.cli.ip, req)
+	case CmdQuit:
+		res, datas, err = handleCmdQuit(clients, activeCli, req)
 	case CmdWho:
 		res, datas, err = handleCmdWho(clients, req)
 	case CmdLook:
-		res, datas, err = handleCmdLook(request, req)
+		res, datas, err = handleCmdLook(clients, activeCli, req)
+	case CmdMove:
+		res, datas, err = handleCmdMove(clients, activeCli, req)
 
 	default:
 		res, datas, err = "", "", errors.New("Invalid command")
@@ -102,5 +111,5 @@ func handleRequest(clients map[string]*Client, request Request) {
 	}
 
 	// Return the response
-	request.cli.ch <- Response{res, datas, request}
+	activeCli.ch <- Response{res, datas, request}
 }
