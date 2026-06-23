@@ -7,46 +7,46 @@ import (
 )
 
 type Stats struct {
-    Hp     int `json:"hp"`
-	Max_hp int `json:"max_hp"`
+	Hp     int    `json:"hp"`
+	Max_hp int    `json:"max_hp"`
 	Status string `json:"status"`
 }
 
 type Quest struct {
-    Name        string `json:"name"`
-    Description string `json:"description"`
-    Type        string `json:"type"`
-    Target      string `json:"target"`
-    Reward      string `json:"reward"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Type        string `json:"type"`
+	Target      string `json:"target"`
+	Reward      string `json:"reward"`
 }
 
 type Item struct {
-    Name        string `json:"name"`
-    Description string `json:"description"`
-    Obtainable  bool   `json:"obtainable"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Obtainable  bool   `json:"obtainable"`
 }
 
 type NPC struct {
-    Name        string   `json:"name"`
-    Description string   `json:"description"`
-    Dialogue    []string `json:"dialogue"`
-    Role        string   `json:"role"`
-    Stats       Stats    `json:"stats"`
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Dialogue    []string `json:"dialogue"`
+	Role        string   `json:"role"`
+	Stats       Stats    `json:"stats"`
 }
 
 type Room struct {
-    Name        string            `json:"name"`
-    Description string            `json:"description"`
-    Exits       map[string]string `json:"exits"`
-    Items       []string          `json:"items"`
-    Npcs        []string          `json:"npcs"`
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	Exits       map[string]string `json:"exits"`
+	Items       []string          `json:"items"`
+	Npcs        []string          `json:"npcs"`
 }
 
 type Map struct {
-    Rooms  map[string]Room  `json:"rooms"`
-    Items  map[string]Item  `json:"items"`
-    Npcs   map[string]NPC   `json:"npcs"`
-    Quests map[string]Quest `json:"quests"`
+	Rooms  map[string]Room  `json:"rooms"`
+	Items  map[string]Item  `json:"items"`
+	Npcs   map[string]NPC   `json:"npcs"`
+	Quests map[string]Quest `json:"quests"`
 }
 
 func get_map(map_path string) (Map, error) {

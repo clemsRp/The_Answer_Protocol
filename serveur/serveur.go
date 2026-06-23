@@ -84,9 +84,9 @@ func handleRequest(clients map[string]*Client, request Request) {
 	var err error
 
 	activeCli, ok := clients[request.cli.ip]
-    if !ok {
-        activeCli = &request.cli
-    }
+	if !ok {
+		activeCli = &request.cli
+	}
 
 	// Handle the command type
 	switch req[0] {
@@ -100,6 +100,8 @@ func handleRequest(clients map[string]*Client, request Request) {
 		res, datas, err = handleCmdLook(clients, activeCli, req)
 	case CmdMove:
 		res, datas, err = handleCmdMove(clients, activeCli, req)
+	case CmdChat:
+		res, datas, err = handleCmdChat(clients, activeCli, req)
 
 	default:
 		res, datas, err = "", "", errors.New("Invalid command")

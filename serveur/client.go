@@ -2,9 +2,9 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"net"
-	"encoding/json"
 )
 
 type Datas struct {
@@ -22,6 +22,7 @@ type Client struct {
 	ip        string
 	name      string
 	connected bool
+	group     string
 	datas     Datas
 }
 
@@ -31,7 +32,7 @@ func handleClient(conn net.Conn) {
 
 	// Init player
 	who := conn.RemoteAddr().String()
-	cli := Client{conn, responses, who, "", false, Datas{"start", []string{}, "", 50, 50, "healthy"}}
+	cli := Client{conn, responses, who, "", false, "", Datas{"start", []string{}, "", 50, 50, "healthy"}}
 
 	// Start messages
 	cli.ch <- Response{"[INFO]: You are connected as " + who, "", Request{}}
