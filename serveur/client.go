@@ -9,12 +9,12 @@ import (
 
 type Datas struct {
 	room       string
+	status     string
 	inventory  []string
-	group      string
 	invitation []string
+	group      string
 	hp         int
 	max_hp     int
-	status     string
 	connected  bool
 }
 
@@ -38,7 +38,7 @@ func handleClient(conn net.Conn) {
 		ch:    responses,
 		ip:    who,
 		name:  "",
-		datas: Datas{"start", []string{}, "", []string{}, 50, 50, "healthy", false},
+		datas: Datas{"start", "healthy", []string{}, []string{}, "", 50, 50, false},
 	}
 
 	cli.ch <- Response{"[INFO]: You are connected as " + who, "", Request{}}
@@ -56,7 +56,7 @@ func handleClient(conn net.Conn) {
 func clientWriter(conn net.Conn, responses <-chan Response) {
 	// Write all the messages in the player terminal
 	for res := range responses {
-		fmt.Fprintln(conn, res.msg)
+		fmt.Fprint(conn, res.msg)
 
 		// Handle QUIT command
 		if res.msg == "OK bye" {
@@ -67,10 +67,12 @@ func clientWriter(conn net.Conn, responses <-chan Response) {
 		if res.datas != "" {
 			jsonBytes, err := json.Marshal(res.datas)
 			if err != nil {
-				fmt.Fprintln(conn, "ERR Internal server error during JSON parsing")
+				fmt.Fprint(conn, " ERR Internal server error during JSON parsing")
 			} else {
-				fmt.Fprintln(conn, string(jsonBytes))
+				fmt.Fprint(conn, " " + string(jsonBytes))
 			}
 		}
+
+		fmt.Fprint(conn, "\n")
 	}
 }

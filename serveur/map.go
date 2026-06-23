@@ -43,10 +43,10 @@ type Room struct {
 }
 
 type Map struct {
-	Rooms  map[string]Room  `json:"rooms"`
-	Items  map[string]Item  `json:"items"`
-	Npcs   map[string]NPC   `json:"npcs"`
-	Quests map[string]Quest `json:"quests"`
+	Rooms  map[string]*Room  `json:"rooms"`
+	Items  map[string]*Item  `json:"items"`
+	Npcs   map[string]*NPC   `json:"npcs"`
+	Quests map[string]*Quest `json:"quests"`
 }
 
 func get_map(map_path string) (Map, error) {

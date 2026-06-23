@@ -224,3 +224,49 @@ func handleCmdStatus(cli *Client) (string, any, error) {
 
 	return "OK", res, nil
 }
+
+func handleCmdTake(cli *Client, req []string) (string, any, error) {
+	// Check for invalid command
+	if len(req) >= 3 {
+		return "", "", errors.New("ERR Invalid command")
+	}
+
+	object := req[1]
+	for obj_index, obj := range world.Rooms[cli.datas.room].Items {
+		if obj == object {
+			// Add object to user inventory
+			cli.datas.inventory = append(cli.datas.inventory, object)
+
+			// Remove object to map
+			world.Rooms[cli.datas.room].Items = append(world.Rooms[cli.datas.room].Items[:obj_index], world.Rooms[cli.datas.room].Items[obj_index+1:]...)
+
+			return "OK taken=" + object, "", nil
+		}
+	}
+
+	// Handle Invalid object
+	return "", "", errors.New("ERR 404 ITEM_NOT_FOUND")
+}
+
+func handleCmdDrop(cli *Client, req []string) (string, any, error) {
+	// Check for invalid command
+	if len(req) >= 3 {
+		return "", "", errors.New("ERR Invalid command")
+	}
+
+	object := req[1]
+	for obj_index, obj := range cli.datas.inventory {
+		if obj == object {
+			// Remove object to user inventory
+			cli.datas.inventory = append(cli.datas.inventory[:obj_index], cli.datas.inventory[obj_index + 1:]...)
+
+			// Add object to map
+			world.Rooms[cli.datas.room].Items = append(world.Rooms[cli.datas.room].Items, object)
+
+			return "OK dropped=" + object, "", nil
+		}
+	}
+
+	// Handle Invalid object
+	return "", "", errors.New("ERR 404 ITEM_NOT_IN_INVENTORY")
+}
