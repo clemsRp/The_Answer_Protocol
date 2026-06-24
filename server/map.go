@@ -84,19 +84,14 @@ func (m Map) IsValid() bool {
 
 func get_map(map_path string) (Map, error) {
 	// Get map file content
-	file, err := os.Open(map_path)
+	file, err := os.ReadFile(map_path)
 	if err != nil {
 		return Map{}, errors.New("Invalid file path: Permission denied or File doesn't exist")
 	}
 
 	// Convert the content in json object
 	var world []Map
-
-	// Handle additional fields
-	decoder := json.NewDecoder(file)
-	decoder.DisallowUnknownFields()
-
-	err = decoder.Decode(&world)
+	err = json.Unmarshal(file, &world)
 	if err != nil {
 		return Map{}, errors.New("Invalid world, doesn't respect world format")
 	}
