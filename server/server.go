@@ -91,31 +91,39 @@ func handleRequest(clients map[string]*Client, request Request) {
 		activeCli = request.cli
 	}
 
-	// Handle the command type
-	switch req[0] {
-	case CmdConnect:
-		res, datas, err = handleCmdConnect(clients, request.cli.ip, req)
-	case CmdQuit:
-		res, datas, err = handleCmdQuit(clients, activeCli, req)
-	case CmdWho:
-		res, datas, err = handleCmdWho(clients, req)
-	case CmdLook:
-		res, datas, err = handleCmdLook(clients, activeCli, req)
-	case CmdMove:
-		res, datas, err = handleCmdMove(clients, activeCli, req)
-	case CmdChat:
-		res, datas, err = handleCmdChat(clients, activeCli, req)
-	case CmdGroup:
-		res, datas, err = handleCmdGroup(clients, activeCli, req)
-	case CmdStatus:
-		res, datas, err = handleCmdStatus(activeCli)
-	case CmdTake:
-		res, datas, err = handleCmdTake(activeCli, req)
-	case CmdDrop:
-		res, datas, err = handleCmdDrop(activeCli, req)
+	// Force first command to be CONNECT
+	if req[0] != CmdConnect && !request.cli.datas.connected {
+		res, datas, err = "", "", errors.New("ERR CONNECT user first before doing any commands")
 
-	default:
-		res, datas, err = "", "", errors.New("Invalid command")
+	} else {
+		// Handle the command type
+		switch req[0] {
+		case CmdConnect:
+			res, datas, err = handleCmdConnect(clients, request.cli.ip, req)
+		case CmdQuit:
+			res, datas, err = handleCmdQuit(clients, activeCli, req)
+		case CmdWho:
+			res, datas, err = handleCmdWho(clients, req)
+		case CmdLook:
+			res, datas, err = handleCmdLook(clients, activeCli, req)
+		case CmdMove:
+			res, datas, err = handleCmdMove(clients, activeCli, req)
+		case CmdChat:
+			res, datas, err = handleCmdChat(clients, activeCli, req)
+		case CmdGroup:
+			res, datas, err = handleCmdGroup(clients, activeCli, req)
+		case CmdStatus:
+			res, datas, err = handleCmdStatus(activeCli)
+		case CmdTake:
+			res, datas, err = handleCmdTake(activeCli, req)
+		case CmdDrop:
+			res, datas, err = handleCmdDrop(activeCli, req)
+		case CmdInventory:
+			res, datas, err = handleCmdInventory(activeCli, req)
+
+		default:
+			res, datas, err = "", "", errors.New("Invalid command")
+		}
 	}
 
 	// Handle command errors

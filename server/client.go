@@ -38,10 +38,10 @@ func handleClient(conn net.Conn) {
 		ch:    responses,
 		ip:    who,
 		name:  "",
-		datas: Datas{"start", "healthy", []string{}, []string{}, "", 50, 50, false},
+		datas: Datas{"start", "healthy", []string{}, []string{}, "", 100, 100, false},
 	}
 
-	cli.ch <- Response{"[INFO]: You are connected as " + who, "", Request{}}
+	cli.ch <- Response{"OK hello proto=1", "", Request{}}
 	entering <- cli
 
 	input := bufio.NewScanner(conn)

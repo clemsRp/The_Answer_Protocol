@@ -49,18 +49,66 @@ type Map struct {
 	Quests map[string]*Quest `json:"quests"`
 }
 
+// Validate the map
+func (m Map) IsValid() bool {
+    for _, room := range m.Rooms {
+		// Check rooms
+        if room == nil {
+            return false
+        }
+
+        // Check exits
+        for _, targetRoomKey := range room.Exits {
+            if _, exists := m.Rooms[targetRoomKey]; !exists {
+                return false
+            }
+        }
+
+        // Check items
+        for _, itemKey := range room.Items {
+            if _, exists := m.Items[itemKey]; !exists {
+                return false
+            }
+        }
+
+        // Check npcs
+        for _, npcKey := range room.Npcs {
+            if _, exists := m.Npcs[npcKey]; !exists {
+                return false
+            }
+        }
+    }
+
+    return true
+}
+
 func get_map(map_path string) (Map, error) {
 	// Get map file content
-	file, err := os.ReadFile(map_path)
+	file, err := os.Open(map_path)
 	if err != nil {
 		return Map{}, errors.New("Invalid file path: Permission denied or File doesn't exist")
 	}
 
 	// Convert the content in json object
 	var world []Map
-	err = json.Unmarshal(file, &world)
+
+	// Handle additional fields
+	decoder := json.NewDecoder(file)
+	decoder.DisallowUnknownFields()
+
+	err = decoder.Decode(&world)
 	if err != nil {
 		return Map{}, errors.New("Invalid world, doesn't respect world format")
+	}
+
+	// Check there is only 1 map
+	if len(world) > 1 {
+		return Map{}, errors.New("Invalid map, too many maps")
+	}
+
+	// Check world exits, references ...
+	if !world[0].IsValid() {
+		return Map{}, errors.New("Invalid map, check that datas are consistents")
 	}
 
 	return world[0], nil

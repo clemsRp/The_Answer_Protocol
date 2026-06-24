@@ -1,3 +1,3 @@
-module tap
+module server
 
 go 1.18

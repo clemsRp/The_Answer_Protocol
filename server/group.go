@@ -52,6 +52,11 @@ func invite_user_in_group(clients map[string]*Client, cli *Client, user_name str
 		return "", errors.New("ERR Group doesn't exist yet")
 	}
 
+	// Check cli is group's leader
+	if groups[cli.datas.group][0].name != cli.name {
+		return "", errors.New("ERR User isn't group's leader")
+	}
+
 	// Handle users already in group
 	for _, user := range groups[cli.datas.group] {
 		if user.name == user_name {

@@ -270,3 +270,12 @@ func handleCmdDrop(cli *Client, req []string) (string, any, error) {
 	// Handle Invalid object
 	return "", "", errors.New("ERR 404 ITEM_NOT_IN_INVENTORY")
 }
+
+func handleCmdInventory(cli *Client, req []string) (string, any, error) {
+	// Check for invalid command
+	if len(req) >= 2 {
+		return "", "", errors.New("ERR Invalid command")
+	}
+
+	return "OK", cli.datas.inventory, nil
+}
