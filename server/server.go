@@ -128,7 +128,7 @@ func handleRequest(clients map[string]*Client, request Request) {
 
 	// Handle command errors
 	if err != nil {
-		res = err.Error()
+		res, datas = err.Error(), ""
 	}
 
 	// Return the response
