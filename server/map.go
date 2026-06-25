@@ -29,7 +29,7 @@ type NPC struct {
 	Description string   `json:"description"`
 	Dialogue    []string `json:"dialogue"`
 	Role        string   `json:"role"`
-	QuestId	    string   `json:"quest_id"`
+	QuestId     string   `json:"quest_id"`
 	Stats       Stats    `json:"stats"`
 }
 
@@ -50,35 +50,35 @@ type Map struct {
 
 // Validate the map
 func (m Map) IsValid() bool {
-    for _, room := range m.Rooms {
+	for _, room := range m.Rooms {
 		// Check rooms
-        if room == nil {
-            return false
-        }
+		if room == nil {
+			return false
+		}
 
-        // Check exits
-        for _, targetRoomKey := range room.Exits {
-            if _, exists := m.Rooms[targetRoomKey]; !exists {
-                return false
-            }
-        }
+		// Check exits
+		for _, targetRoomKey := range room.Exits {
+			if _, exists := m.Rooms[targetRoomKey]; !exists {
+				return false
+			}
+		}
 
-        // Check items
-        for _, itemKey := range room.Items {
-            if _, exists := m.Items[itemKey]; !exists {
-                return false
-            }
-        }
+		// Check items
+		for _, itemKey := range room.Items {
+			if _, exists := m.Items[itemKey]; !exists {
+				return false
+			}
+		}
 
-        // Check npcs
-        for _, npcKey := range room.Npcs {
-            if _, exists := m.Npcs[npcKey]; !exists {
-                return false
-            }
-        }
-    }
+		// Check npcs
+		for _, npcKey := range room.Npcs {
+			if _, exists := m.Npcs[npcKey]; !exists {
+				return false
+			}
+		}
+	}
 
-    return true
+	return true
 }
 
 func get_map(map_path string) (Map, error) {

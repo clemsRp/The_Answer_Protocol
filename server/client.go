@@ -69,7 +69,7 @@ func clientWriter(conn net.Conn, responses <-chan Response) {
 			if err != nil {
 				fmt.Fprint(conn, " ERR Internal server error during JSON parsing")
 			} else {
-				fmt.Fprint(conn, " " + string(jsonBytes))
+				fmt.Fprint(conn, " "+string(jsonBytes))
 			}
 		}
 

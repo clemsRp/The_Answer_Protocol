@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"time"
 )
 
 type Request struct {
@@ -22,8 +23,13 @@ var (
 	entering = make(chan *Client)
 	leaving  = make(chan *Client)
 	requests = make(chan Request)
-	groups   map[string][]*Client
-	world    Map
+
+	groups    map[string][]*Client
+	dialogues map[string]map[string]int
+
+	t_start = time.Now().Unix()
+
+	world Map
 )
 
 func main() {
@@ -36,6 +42,7 @@ func main() {
 	}
 
 	groups = make(map[string][]*Client)
+	dialogues = make(map[string]map[string]int)
 
 	// Start the serveur
 	listener, err := net.Listen("tcp", ":8080")
@@ -70,11 +77,21 @@ func broadcaster() {
 		case cli := <-entering:
 			clients[cli.ip] = cli
 
+			fmt.Printf("[INFO]: Start of connection at %s /", cli.ip)
+
+			timestamp := get_timestamp()
+			print_timestamp(timestamp)
+
 		case cli := <-leaving:
 			if c, ok := clients[cli.ip]; ok {
 				delete(clients, cli.ip)
 				close(c.ch)
 			}
+
+			fmt.Printf("[INFO]: End of connection at %s /", cli.ip)
+
+			timestamp := get_timestamp()
+			print_timestamp(timestamp)
 		}
 	}
 }
@@ -121,9 +138,13 @@ func handleRequest(clients map[string]*Client, request Request) {
 		case CmdInventory:
 			res, datas, err = handleCmdInventory(activeCli, req)
 		case CmdQuest:
-			res, datas, err = handleCmdQuest(req)
+			res, datas, err = handleCmdQuest(activeCli, req)
 		case CmdQuests:
 			res, datas, err = handleCmdQuests(req)
+		case CmdTalk:
+			res, datas, err = handleCmdTalk(activeCli, req)
+		case CmdAttack:
+			res, datas, err = handleCmdAttack(activeCli, req)
 
 		default:
 			res, datas, err = "", "", errors.New("Invalid command")

@@ -1,0 +1,10 @@
+
+- QUESTS:
+	-Adapt progress datas and
+
+- ATTACK:
+	- Check that npc is hostile
+	- Adapt combat damage
+	- Updat values after combat
+
+Server's logs

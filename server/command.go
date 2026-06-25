@@ -59,6 +59,10 @@ func handleCmdConnect(clients map[string]*Client, ip string, req []string) (stri
 	// Save user's name and connection state
 	clients[ip].name = req[1]
 	clients[ip].datas.connected = true
+
+	// Add player to npcs dialogues
+	dialogues[req[1]] = make(map[string]int)
+
 	return "OK connected", "", nil
 }
 
@@ -263,7 +267,7 @@ func handleCmdDrop(cli *Client, req []string) (string, any, error) {
 	for obj_index, obj := range cli.datas.inventory {
 		if obj == object {
 			// Remove object to user inventory
-			cli.datas.inventory = append(cli.datas.inventory[:obj_index], cli.datas.inventory[obj_index + 1:]...)
+			cli.datas.inventory = append(cli.datas.inventory[:obj_index], cli.datas.inventory[obj_index+1:]...)
 
 			// Add object to map
 			world.Rooms[cli.datas.room].Items = append(world.Rooms[cli.datas.room].Items, object)
@@ -285,7 +289,7 @@ func handleCmdInventory(cli *Client, req []string) (string, any, error) {
 	return "OK", cli.datas.inventory, nil
 }
 
-func handleCmdQuest(req []string) (string, any, error) {
+func handleCmdQuest(cli *Client, req []string) (string, any, error) {
 	// Check for invalid command
 	if len(req) != 2 {
 		return "", "", errors.New("ERR Invalid command")
@@ -296,22 +300,28 @@ func handleCmdQuest(req []string) (string, any, error) {
 	// Check that npc exist
 	for npc_name, npc_datas := range world.Npcs {
 		if npc_name == npc {
-			// Handle empty or validated quest
-			if npc_datas.QuestId == "" || world.Quests[npc_datas.QuestId].Status == "unavailable" {
-				return "", "", errors.New("ERR 406 NO_QUEST_AVAILABLE")
+			// Check npc room
+			for _, room_npc := range world.Rooms[cli.datas.room].Npcs {
+				if room_npc == npc {
+
+					// Handle empty or validated quest
+					if npc_datas.QuestId == "" || world.Quests[npc_datas.QuestId].Status == "unavailable" {
+						return "", "", errors.New("ERR 406 NO_QUEST_AVAILABLE")
+					}
+
+					quest := world.Quests[npc_datas.QuestId]
+
+					// Format datas
+					datas := make(map[string]any)
+
+					datas["status"] = quest.Status
+					datas["reward"] = quest.Reward
+					datas["description"] = quest.Description
+					datas["quest_id"] = npc_datas.QuestId
+
+					return "OK", datas, nil
+				}
 			}
-
-			quest := world.Quests[npc_datas.QuestId]
-
-			// Format datas
-			datas := make(map[string]any)
-
-			datas["status"] = quest.Status
-			datas["reward"] = quest.Reward
-			datas["description"] = quest.Description
-			datas["quest_id"] = npc_datas.QuestId
-
-			return "OK", datas, nil
 		}
 	}
 
@@ -346,4 +356,84 @@ func handleCmdQuests(req []string) (string, any, error) {
 	}
 
 	return "OK", res, nil
+}
+
+func handleCmdTalk(cli *Client, req []string) (string, any, error) {
+	// Check for invalid command
+	if len(req) != 2 {
+		return "", "", errors.New("ERR Invalid command")
+	}
+
+	npc := req[1]
+
+	// Check that npc exist
+	for npc_name, npc_datas := range world.Npcs {
+		if npc_name == npc {
+
+			// Check npc room
+			for _, room_npc := range world.Rooms[cli.datas.room].Npcs {
+				if room_npc == npc {
+
+					// Get the npc dialogue index
+					_, ok := dialogues[cli.name][npc_name]
+					if !ok {
+						dialogues[cli.name][npc_name] = 0
+					}
+					npc_index := dialogues[cli.name][npc_name]
+
+					// Get the npc text
+					datas := npc_datas.Dialogue[npc_index%len(npc_datas.Dialogue)]
+
+					// Update npc dialogue index
+					dialogues[cli.name][npc_name]++
+
+					return "OK", datas, nil
+				}
+			}
+		}
+	}
+
+	// Handle inexistant npc
+	return "", "", errors.New("ERR 404 NPC_NOT_FOUND")
+}
+
+func handleCmdAttack(cli *Client, req []string) (string, any, error) {
+	// Check for invalid command
+	if len(req) != 2 {
+		return "", "", errors.New("ERR Invalid command")
+	}
+
+	npc := req[1]
+
+	// Check that npc exist
+	for npc_name, npc_datas := range world.Npcs {
+		if npc_name == npc {
+
+			// Check that npc is hostile
+			/* if cond {
+				return "", "", errors.New("ERR 405 NPC_NOT_HOSTILE")
+			} */
+
+			// Check npc room
+			for _, room_npc := range world.Rooms[cli.datas.room].Npcs {
+				if room_npc == npc {
+
+					// Update values
+
+					// Format datas
+					datas := make(map[string]any)
+
+					datas["attacker_hp"] = cli.datas.hp
+					datas["target_hp"] = npc_datas.Stats.Hp
+					datas["damage"] = 10
+					datas["status"] = "combat"
+
+					return "OK", datas, nil
+				}
+			}
+		}
+	}
+
+	// Handle inexistant npc
+	return "", "", errors.New("ERR 404 NPC_NOT_FOUND")
 }
