@@ -43,6 +43,7 @@
         "description": "A stern-looking guard watching over the square.",
         "dialogue": ["Stay safe, traveler.", "The roads can be dangerous."],
         "role": "dialogue",
+		"quest_id": "",
         "stats": {
           "hp": 20
         }
@@ -51,12 +52,19 @@
         "name": "Shop Keeper",
         "description": "A friendly merchant eager to trade.",
         "dialogue": ["Welcome to my shop!", "What can I get for you today?"],
-        "role": "dialogue",
+        "role": "quest",
+		"quest_id": "fetch_herbs",
         "stats": {
           "hp": 15
         }
       }
     },
-    "quests": {}
+    "quests": {
+		"fetch_herbs": {
+			"description": "Bring me 3 healing herbs",
+			"reward": "gold_coin",
+			"status": "available"
+		}
+	}
   }
 ]

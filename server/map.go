@@ -13,11 +13,9 @@ type Stats struct {
 }
 
 type Quest struct {
-	Name        string `json:"name"`
 	Description string `json:"description"`
-	Type        string `json:"type"`
-	Target      string `json:"target"`
 	Reward      string `json:"reward"`
+	Status      string `json:"status"`
 }
 
 type Item struct {
@@ -31,6 +29,7 @@ type NPC struct {
 	Description string   `json:"description"`
 	Dialogue    []string `json:"dialogue"`
 	Role        string   `json:"role"`
+	QuestId	    string   `json:"quest_id"`
 	Stats       Stats    `json:"stats"`
 }
 

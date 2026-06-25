@@ -64,7 +64,7 @@ func handleCmdConnect(clients map[string]*Client, ip string, req []string) (stri
 
 func handleCmdQuit(clients map[string]*Client, cli *Client, req []string) (string, any, error) {
 	// Check for invalid command
-	if len(req) >= 2 {
+	if len(req) != 1 {
 		return "", "", errors.New("ERR Invalid command")
 	}
 
@@ -73,7 +73,7 @@ func handleCmdQuit(clients map[string]*Client, cli *Client, req []string) (strin
 
 func handleCmdWho(clients map[string]*Client, req []string) (string, any, error) {
 	// Check for invalid command
-	if len(req) >= 2 {
+	if len(req) != 1 {
 		return "", "", errors.New("ERR Invalid command")
 	}
 
@@ -90,7 +90,7 @@ func handleCmdWho(clients map[string]*Client, req []string) (string, any, error)
 
 func handleCmdLook(clients map[string]*Client, cli *Client, req []string) (string, any, error) {
 	// Check for invalid command
-	if len(req) >= 2 {
+	if len(req) != 1 {
 		return "", "", errors.New("ERR Invalid command")
 	}
 
@@ -214,7 +214,12 @@ func handleCmdGroup(clients map[string]*Client, cli *Client, req []string) (stri
 	return res, "", nil
 }
 
-func handleCmdStatus(cli *Client) (string, any, error) {
+func handleCmdStatus(cli *Client, req []string) (string, any, error) {
+	// Check for invalid command
+	if len(req) != 1 {
+		return "", "", errors.New("ERR Invalid command")
+	}
+
 	// Format status response
 	res := make(map[string]any)
 
@@ -227,7 +232,7 @@ func handleCmdStatus(cli *Client) (string, any, error) {
 
 func handleCmdTake(cli *Client, req []string) (string, any, error) {
 	// Check for invalid command
-	if len(req) >= 3 {
+	if len(req) != 2 {
 		return "", "", errors.New("ERR Invalid command")
 	}
 
@@ -250,7 +255,7 @@ func handleCmdTake(cli *Client, req []string) (string, any, error) {
 
 func handleCmdDrop(cli *Client, req []string) (string, any, error) {
 	// Check for invalid command
-	if len(req) >= 3 {
+	if len(req) != 2 {
 		return "", "", errors.New("ERR Invalid command")
 	}
 
@@ -273,9 +278,72 @@ func handleCmdDrop(cli *Client, req []string) (string, any, error) {
 
 func handleCmdInventory(cli *Client, req []string) (string, any, error) {
 	// Check for invalid command
-	if len(req) >= 2 {
+	if len(req) != 1 {
 		return "", "", errors.New("ERR Invalid command")
 	}
 
 	return "OK", cli.datas.inventory, nil
+}
+
+func handleCmdQuest(req []string) (string, any, error) {
+	// Check for invalid command
+	if len(req) != 2 {
+		return "", "", errors.New("ERR Invalid command")
+	}
+
+	npc := req[1]
+
+	// Check that npc exist
+	for npc_name, npc_datas := range world.Npcs {
+		if npc_name == npc {
+			// Handle empty or validated quest
+			if npc_datas.QuestId == "" || world.Quests[npc_datas.QuestId].Status == "unavailable" {
+				return "", "", errors.New("ERR 406 NO_QUEST_AVAILABLE")
+			}
+
+			quest := world.Quests[npc_datas.QuestId]
+
+			// Format datas
+			datas := make(map[string]any)
+
+			datas["status"] = quest.Status
+			datas["reward"] = quest.Reward
+			datas["description"] = quest.Description
+			datas["quest_id"] = npc_datas.QuestId
+
+			return "OK", datas, nil
+		}
+	}
+
+	// Handle inexistant npc
+	return "", "", errors.New("ERR 404 NPC_NOT_FOUND")
+}
+
+func handleCmdQuests(req []string) (string, any, error) {
+	// Check for invalid command
+	if len(req) != 1 {
+		return "", "", errors.New("ERR Invalid command")
+	}
+
+	// Initialize datas variables
+	res := make([]map[string]string, 0)
+	var datas map[string]string
+
+	for quest_id, quest := range world.Quests {
+		// Format quest datas
+		datas = make(map[string]string)
+
+		datas["quest_id"] = quest_id
+		datas["status"] = quest.Status
+
+		// Handle active quest
+		if quest.Status == "active" {
+			datas["progress"] = "1/3"
+		}
+
+		// Add quest datas to res
+		res = append(res, datas)
+	}
+
+	return "OK", res, nil
 }
