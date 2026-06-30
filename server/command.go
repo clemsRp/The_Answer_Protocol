@@ -149,7 +149,7 @@ func handleCmdMove(clients map[string]*Client, cli *Client, req []string) (strin
 
 	// Inform players of user LEAVING
 	inform_room(clients, cli, cli.datas.room, "EVT ROOM PRESENCE LEAVE")
-	
+
 	// Move player
 	if cli, ok := clients[cli.ip]; ok {
 		cli.datas.room = nextRoom
