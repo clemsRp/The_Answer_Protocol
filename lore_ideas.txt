@@ -1,0 +1,8 @@
+
+- Seek body of someone:
+	- rooms = organs
+	- npcs = neurons/cells/virus
+	- quest = treat a cold/
+	- items = medics/energy/coffee/food
+
+- 

@@ -8,3 +8,7 @@
 	- Updat values after combat
 
 Server's logs
+
+Map Validation
+
+QUIT Command

@@ -8,6 +8,10 @@ import (
 	"time"
 )
 
+type Log struct {
+	msg string
+}
+
 type Request struct {
 	cli *Client
 	msg string
@@ -20,9 +24,10 @@ type Response struct {
 }
 
 var (
+	requests = make(chan Request)
+	logs     = make(chan Log, 500)
 	entering = make(chan *Client)
 	leaving  = make(chan *Client)
-	requests = make(chan Request)
 
 	groups    map[string][]*Client
 	dialogues map[string]map[string]int
@@ -71,6 +76,9 @@ func broadcaster() {
 
 	for {
 		select {
+		case log := <-logs:
+			fmt.Println(log.msg)
+
 		case req := <-requests:
 			handleRequest(clients, req)
 
@@ -151,10 +159,27 @@ func handleRequest(clients map[string]*Client, request Request) {
 		}
 	}
 
-	// Handle command errors
+	// Handle command errors and log type
+	msg_type := "INFO"
 	if err != nil {
 		res, datas = err.Error(), ""
+		msg_type = "ERROR"
 	}
+
+	name := request.cli.name
+	if name == "" {
+		name = request.cli.ip
+	}
+
+	// Log command
+	log := fmt.Sprintf("[%s]: '%s' (%s)", msg_type, request.msg, name)
+
+	if err != nil {
+		log += " -> " + err.Error()
+	}
+
+	logs <- Log{log}
+	logs <- Log{fmt.Sprintf("[%s]: %s", msg_type, res)}
 
 	// Return the response
 	activeCli.ch <- Response{res, datas, request}

@@ -63,6 +63,9 @@ func handleCmdConnect(clients map[string]*Client, ip string, req []string) (stri
 	// Add player to npcs dialogues
 	dialogues[req[1]] = make(map[string]int)
 
+	// Inform player ROOM for the new player
+	inform_room(clients, clients[ip], clients[ip].datas.room, "EVT ROOM PRESENCE ENTER")
+
 	return "OK connected", "", nil
 }
 
@@ -71,6 +74,9 @@ func handleCmdQuit(clients map[string]*Client, cli *Client, req []string) (strin
 	if len(req) != 1 {
 		return "", "", errors.New("ERR Invalid command")
 	}
+
+	// Inform player ROOM for the quit of the player
+	inform_room(clients, cli, cli.datas.room, "EVT ROOM PRESENCE LEAVE")
 
 	return "OK bye", "", nil
 }
@@ -141,11 +147,17 @@ func handleCmdMove(clients map[string]*Client, cli *Client, req []string) (strin
 		return "", "", errors.New("ERR 301 NO_EXIT")
 	}
 
+	// Inform players of user LEAVING
+	inform_room(clients, cli, cli.datas.room, "EVT ROOM PRESENCE LEAVE")
+	
 	// Move player
 	if cli, ok := clients[cli.ip]; ok {
 		cli.datas.room = nextRoom
 	}
 	cli.datas.room = nextRoom
+
+	// Inform players of user ENTERING
+	inform_room(clients, cli, cli.datas.room, "EVT ROOM PRESENCE ENTER")
 
 	return fmt.Sprintf("OK room=%s", nextRoom), "", nil
 }
