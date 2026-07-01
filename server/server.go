@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"tap/server/parser"
 	"time"
 )
 
@@ -34,13 +35,13 @@ var (
 
 	t_start = time.Now().Unix()
 
-	world Map
+	world parser.Map
 )
 
 func main() {
 	// Get the world
 	var err error
-	world, err = get_map("world.json")
+	world, err = parser.Get_map("world.json")
 	if err != nil {
 		fmt.Println("[ERROR]:", err)
 		return

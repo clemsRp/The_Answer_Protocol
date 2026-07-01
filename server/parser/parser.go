@@ -1,4 +1,4 @@
-package main
+package parser
 
 import (
 	"encoding/json"
@@ -48,7 +48,7 @@ type Map struct {
 	Quests map[string]*Quest `json:"quests"`
 }
 
-func get_map(map_path string) (Map, error) {
+func Get_map(map_path string) (Map, error) {
 	// Get map file content
 	file, err := os.ReadFile(map_path)
 	if err != nil {
