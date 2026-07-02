@@ -9,6 +9,4 @@
 
 Server's logs
 
-Map Validation
-
 QUIT Command

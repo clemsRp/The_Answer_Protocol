@@ -5,8 +5,8 @@
         "name": "Village Square",
         "description": "A bustling square with cobblestone paths.",
         "exits": {
-          "north": "tavern",
-          "east": "shop"
+          "east": "shop",
+		  "north": "tavern"
         },
         "items": [],
         "npcs": ["guard"]
@@ -45,7 +45,9 @@
         "role": "dialogue",
 		"quest_id": "",
         "stats": {
-          "hp": 20
+          "hp": 20,
+          "max_hp": 20,
+		  "status": "healthy"
         }
       },
       "merchant": {
@@ -55,7 +57,9 @@
         "role": "quest",
 		"quest_id": "fetch_herbs",
         "stats": {
-          "hp": 15
+          "hp": 15,
+          "max_hp": 15,
+		  "status": "healthy"
         }
       }
     },

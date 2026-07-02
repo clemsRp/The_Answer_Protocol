@@ -8,7 +8,7 @@ import (
 
 type Stats struct {
 	Hp     int    `json:"hp"`
-	Max_hp int    `json:"max_hp"`
+	MaxHp int    `json:"max_hp"`
 	Status string `json:"status"`
 }
 
@@ -24,7 +24,7 @@ type Item struct {
 	Obtainable  bool   `json:"obtainable"`
 }
 
-type NPC struct {
+type Npc struct {
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
 	Dialogue    []string `json:"dialogue"`
@@ -44,7 +44,7 @@ type Room struct {
 type Map struct {
 	Rooms  map[string]*Room  `json:"rooms"`
 	Items  map[string]*Item  `json:"items"`
-	Npcs   map[string]*NPC   `json:"npcs"`
+	Npcs   map[string]*Npc   `json:"npcs"`
 	Quests map[string]*Quest `json:"quests"`
 }
 
@@ -66,6 +66,12 @@ func Get_map(map_path string) (Map, error) {
 	err = json.Unmarshal(file, &worlds)
 	if err != nil {
 		return Map{}, errors.New("Invalid file: JSON file must be parsable")
+	}
+
+	// Handle invalid values
+	err = worlds[0].IsValidMap()
+	if err != nil {
+		return Map{}, err
 	}
 
 	return worlds[0], nil

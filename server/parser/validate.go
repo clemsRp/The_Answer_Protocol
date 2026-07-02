@@ -6,9 +6,10 @@ import (
 )
 
 var (
-	room_names = make([]string, 0)
-	item_names = make([]string, 0)
-	npc_names  = make([]string, 0)
+	room_names  = make([]string, 0)
+	item_names  = make([]string, 0)
+	npc_names   = make([]string, 0)
+	quest_names = make([]string, 0)
 )
 
 func valid_map(file []byte) error {
@@ -19,12 +20,12 @@ func valid_map(file []byte) error {
 		return errors.New("Invalid file: JSON file must be parsable")
 	}
 
-	world_map := world[0]
-
 	// Valid raw map
 	if len(world) != 1 {
 		return errors.New("Invalid map: incorrect number of maps")
 	}
+	
+	world_map := world[0]
 
 	// Handle duplicates keys
 	err = IsValidKeys(file)
@@ -34,12 +35,6 @@ func valid_map(file []byte) error {
 
 	// Handle invalid fields / types
 	err = IsValidFields(world_map)
-	if err != nil {
-		return err
-	}
-
-	// Handle invalid values
-	err = IsValidValues(world_map)
 	if err != nil {
 		return err
 	}
