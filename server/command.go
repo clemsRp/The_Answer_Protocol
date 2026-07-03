@@ -158,6 +158,11 @@ func handleCmdMove(clients map[string]*Client, cli *Client, req []string) (strin
 
 	// Inform players of user ENTERING
 	inform_room(clients, cli, cli.datas.room, "EVT ROOM PRESENCE ENTER")
+	LogInfo("Player moved", map[string]any{
+		"player":    cli.name,
+		"prev_room": currentRoom,
+		"new_room":  nextRoom,
+	})
 
 	return fmt.Sprintf("OK room=%s", nextRoom), "", nil
 }
@@ -260,7 +265,12 @@ func handleCmdTake(cli *Client, req []string) (string, any, error) {
 
 			// Remove object to map
 			world.Rooms[cli.datas.room].Items = append(world.Rooms[cli.datas.room].Items[:obj_index], world.Rooms[cli.datas.room].Items[obj_index+1:]...)
-
+			LogInfo("Item taken", map[string]any{
+				"player":       cli.name,
+				"item":         object,
+				"room_items":   world.Rooms[cli.datas.room].Items,
+				"player_items": cli.datas.inventory,
+			})
 			return "OK taken=" + object, "", nil
 		}
 	}
@@ -283,7 +293,12 @@ func handleCmdDrop(cli *Client, req []string) (string, any, error) {
 
 			// Add object to map
 			world.Rooms[cli.datas.room].Items = append(world.Rooms[cli.datas.room].Items, object)
-
+			LogInfo("Item dropped", map[string]any{
+				"player":       cli.name,
+				"item":         object,
+				"room_items":   world.Rooms[cli.datas.room].Items,
+				"player_items": cli.datas.inventory,
+			})
 			return "OK dropped=" + object, "", nil
 		}
 	}
@@ -398,7 +413,11 @@ func handleCmdTalk(cli *Client, req []string) (string, any, error) {
 
 					// Update npc dialogue index
 					dialogues[cli.name][npc_name]++
-
+					LogInfo("Dialogue advanced", map[string]any{
+						"player":         cli.name,
+						"npc":            npc,
+						"dialogue_index": dialogues[cli.name][npc_name],
+					})
 					return "OK", datas, nil
 				}
 			}
@@ -439,7 +458,13 @@ func handleCmdAttack(cli *Client, req []string) (string, any, error) {
 					datas["target_hp"] = npc_datas.Stats.Hp
 					datas["damage"] = 10
 					datas["status"] = "combat"
-
+					LogInfo("Attack", map[string]any{
+						"player":      cli.name,
+						"target_npc":  npc,
+						"damage":      10,
+						"attacker_hp": cli.datas.hp,
+						"target_hp":   npc_datas.Stats.Hp,
+					})
 					return "OK", datas, nil
 				}
 			}

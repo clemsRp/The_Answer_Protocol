@@ -8,5 +8,13 @@
 	- Updat values after combat
 
 Server's logs
+- MESSAGE 'EVT ROOM PRESENCE ENTER {}' 
+sur les autres client lorsque quelqu'un se connecte alors que les autres clients ne sont pas connectes
+- 
 
+
+
+- COMMANDS:
+- command names must be case-insensitive (RFC protocol)
+- IF USER CTRL+C its connection is deleted / BUT IF CMD 'QUIT' its connection remains and USERNAME remains also
 QUIT Command

@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net"
 	"strings"
 	"tap/server/parser"
@@ -10,7 +9,10 @@ import (
 )
 
 type Log struct {
-	msg string
+	Timestamp string         `json:"timestamp"`
+	Level     string         `json:"level"`
+	Message   string         `json:"message"`
+	Datas     map[string]any `json:"datas,omitempty"`
 }
 
 type Request struct {
@@ -43,7 +45,7 @@ func main() {
 	var err error
 	world, err = parser.Get_map("world.json")
 	if err != nil {
-		fmt.Println("[ERROR]:", err)
+		LogError(err.Error(), nil)
 		return
 	}
 
@@ -53,11 +55,11 @@ func main() {
 	// Start the serveur
 	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
-		fmt.Println("[ERROR]: An error occured during the serveur connection:", err)
+		LogError("An error occured during the serveur connection:", nil)
 		return
 	}
 	defer listener.Close()
-	fmt.Println("[INFO]: Connection established on :8080.")
+	LogInfo("Connection established on :8080.", nil)
 
 	go broadcaster()
 
@@ -65,7 +67,9 @@ func main() {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			fmt.Println("[ERROR]: An error occured during a client's connection:", err)
+			LogError("An error occurred during a client's connection", map[string]any{
+				"error": err.Error(),
+			})
 			continue
 		}
 		go handleClient(conn)
@@ -78,29 +82,27 @@ func broadcaster() {
 	for {
 		select {
 		case log := <-logs:
-			fmt.Println(log.msg)
+			writeLog(log.Level, log.Message, log.Datas)
 
 		case req := <-requests:
 			handleRequest(clients, req)
 
 		case cli := <-entering:
 			clients[cli.ip] = cli
-
-			fmt.Printf("[INFO]: Start of connection at %s /", cli.ip)
-
-			timestamp := get_timestamp()
-			print_timestamp(timestamp)
+			LogInfo("Start of connection", map[string]any{
+				"ip":       cli.ip,
+				"duration": get_timestamp(),
+			})
 
 		case cli := <-leaving:
 			if c, ok := clients[cli.ip]; ok {
 				delete(clients, cli.ip)
 				close(c.ch)
 			}
-
-			fmt.Printf("[INFO]: End of connection at %s /", cli.ip)
-
-			timestamp := get_timestamp()
-			print_timestamp(timestamp)
+			LogInfo("End of connection", map[string]any{
+				"ip":       cli.ip,
+				"duration": get_timestamp(),
+			})
 		}
 	}
 }
@@ -159,12 +161,8 @@ func handleRequest(clients map[string]*Client, request Request) {
 			res, datas, err = "", "", errors.New("Invalid command")
 		}
 	}
-
-	// Handle command errors and log type
-	msg_type := "INFO"
 	if err != nil {
 		res, datas = err.Error(), ""
-		msg_type = "ERROR"
 	}
 
 	name := request.cli.name
@@ -172,16 +170,19 @@ func handleRequest(clients map[string]*Client, request Request) {
 		name = request.cli.ip
 	}
 
-	// Log command
-	log := fmt.Sprintf("[%s]: '%s' (%s)", msg_type, request.msg, name)
-
 	if err != nil {
-		log += " -> " + err.Error()
+		LogError("Command failed", map[string]any{
+			"player": name,
+			"cmd":    request.msg,
+			"error":  err.Error(),
+		})
+	} else {
+		LogInfo("Command success", map[string]any{
+			"player":   name,
+			"cmd":      request.msg,
+			"response": res,
+		})
 	}
 
-	logs <- Log{log}
-	logs <- Log{fmt.Sprintf("[%s]: %s", msg_type, res)}
-
-	// Return the response
 	activeCli.ch <- Response{res, datas, request}
 }
