@@ -230,8 +230,6 @@ func handleCmdGroup(clients map[string]*Client, cli *Client, req []string) (stri
 		return "", "", err
 	}
 
-	fmt.Println(groups)
-
 	return res, "", nil
 }
 

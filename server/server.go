@@ -102,6 +102,7 @@ func broadcaster() {
 			LogInfo("End of connection", map[string]any{
 				"ip":       cli.ip,
 				"duration": get_timestamp(),
+				"player": cli.name,
 			})
 		}
 	}
@@ -171,16 +172,18 @@ func handleRequest(clients map[string]*Client, request Request) {
 	}
 
 	if err != nil {
-		LogError("Command failed", map[string]any{
+		LogInfo("Command failed", map[string]any{
 			"player": name,
 			"cmd":    request.msg,
 			"error":  err.Error(),
+			"ip":     request.cli.ip,
 		})
 	} else {
 		LogInfo("Command success", map[string]any{
 			"player":   name,
 			"cmd":      request.msg,
 			"response": res,
+			"ip":       request.cli.ip,
 		})
 	}
 
