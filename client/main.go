@@ -16,11 +16,11 @@ func main() {
 	}
 	defer conn.Close()
 
-	app := NewMyApp()
+	/* app := NewMyApp()
 
 	if err := app.Run(); err != nil {
 		panic(fmt.Sprintf("Execution error: %v", err))
-	}
+	} */
 
 	// Print server responses in user output
 	go func() {

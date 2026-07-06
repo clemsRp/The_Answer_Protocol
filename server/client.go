@@ -62,6 +62,7 @@ func handleClient(conn net.Conn) {
 
 			if cli.datas.spam_warning > 3 {
 				fmt.Fprintln(conn, "ERR 900 CONNECTION_CLOSED_DUE_TO_SPAM")
+				cli.ch <- Response{"OK bye", Datas{}, Request{}}
 				break
 			}
 		}
@@ -79,7 +80,7 @@ func clientWriter(conn net.Conn, responses <-chan Response) {
 			jsonBytes, err := json.Marshal(res.datas)
 			if err != nil {
 				fmt.Fprint(conn, " ERR Internal server error during JSON parsing")
-			} else {
+			} else if string(jsonBytes) != "{}" {
 				fmt.Fprint(conn, " "+string(jsonBytes))
 			}
 		}

@@ -135,7 +135,7 @@ func handleRequest(clients map[string]*Client, request Request) {
 	}
 
 	// Force first command to be CONNECT
-	if err != nil && req[0] != CmdConnect && !request.cli.datas.connected {
+	if err == nil && req[0] != CmdConnect && !request.cli.datas.connected {
 		res, datas, err = "", "", errors.New("ERR 401 UNAUTHORIZED")
 
 	} else {
