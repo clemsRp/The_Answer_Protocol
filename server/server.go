@@ -102,7 +102,7 @@ func broadcaster() {
 			LogInfo("End of connection", map[string]any{
 				"ip":       cli.ip,
 				"duration": get_timestamp(),
-				"player": cli.name,
+				"player":   cli.name,
 			})
 		}
 	}
@@ -119,10 +119,20 @@ func handleRequest(clients map[string]*Client, request Request) {
 	if !ok {
 		activeCli = request.cli
 	}
+	name := activeCli.name
+	if name == "" {
+		name = activeCli.ip
+	}
+
+	logCtx := make(map[string]any)
+	logCtx["ip"] = request.cli.ip
+	logCtx["player"] = name
+	logCtx["cmd"] = req[0]
+	logCtx["full_msg"] = request.msg
 
 	// Force first command to be CONNECT
 	if req[0] != CmdConnect && !request.cli.datas.connected {
-		res, datas, err = "", "", errors.New("ERR CONNECT user first before doing any commands")
+		res, datas, err = "", "", errors.New("ERR 401 UNAUTHORIZED")
 
 	} else {
 		// Handle the command type
@@ -164,11 +174,6 @@ func handleRequest(clients map[string]*Client, request Request) {
 	}
 	if err != nil {
 		res, datas = err.Error(), ""
-	}
-
-	name := request.cli.name
-	if name == "" {
-		name = request.cli.ip
 	}
 
 	if err != nil {
