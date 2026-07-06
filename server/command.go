@@ -146,7 +146,7 @@ func handleCmdChat(clients map[string]*Client, cli *Client, req []string, logCtx
 	}
 
 	var chat string
-	scope := req[1]
+	scope := strings.ToUpper(req[1])
 	msg := strings.Join(req[2:], " ")
 
 	for ip := range clients {
@@ -167,7 +167,7 @@ func handleCmdChat(clients map[string]*Client, cli *Client, req []string, logCtx
 func handleCmdGroup(clients map[string]*Client, cli *Client, req []string, logCtx map[string]any) (string, any, error) {
 	var err error
 	var res string
-	scope := req[1]
+	scope := strings.ToUpper(req[1])
 
 	if (len(req) != 3 && scope != LeaveGroup) || (len(req) > 2 && scope == LeaveGroup) {
 		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")

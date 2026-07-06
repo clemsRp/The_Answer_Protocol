@@ -53,7 +53,8 @@ func main() {
 		return
 	}
 	defer conn.Close()
-
+	
+	app := NewMyApp()
 	
 	// Handle input
 	go func() {
@@ -77,12 +78,12 @@ func main() {
 			outputs <- res.Msg
 			
 			if res.Msg == "OK bye" {
+				app.app.Stop()
 				conn.Close()
 				os.Exit(0)
 			}
 		}
 		}()
-	app := NewMyApp()
 
 	if err := app.Run(); err != nil {
 		panic(fmt.Sprintf("Execution error: %v", err))

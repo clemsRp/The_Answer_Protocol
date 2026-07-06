@@ -135,12 +135,12 @@ func handleRequest(clients map[string]*Client, request Request) {
 	}
 
 	// Force first command to be CONNECT
-	if err == nil && req[0] != CmdConnect && !request.cli.datas.connected {
+	if err == nil && strings.ToUpper(req[0]) != CmdConnect && !request.cli.datas.connected {
 		res, datas, err = "", "", errors.New("ERR 401 UNAUTHORIZED")
 
 	} else {
 		// Handle the command type
-		switch req[0] {
+		switch strings.ToUpper(req[0]) {
 		case CmdConnect:
 			res, datas, err = handleCmdConnect(clients, request.cli.ip, req, logCtx)
 		case CmdQuit:
