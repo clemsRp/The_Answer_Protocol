@@ -48,31 +48,24 @@ func handleClient(conn net.Conn) {
 	entering <- cli
 
 	input := bufio.NewScanner(conn)
+	buf := make([]byte, 0, 1024)
+	input.Buffer(buf, 1024)
 	for input.Scan() {
 		now := time.Now()
-		if now.Sub(cli.datas.last_cmd_time) < 500*time.Millisecond {
+		if now.Sub(cli.datas.last_cmd_time) >= 1000*time.Millisecond {
+			cli.datas.spam_warning = 0
+			cli.datas.last_cmd_time = now
+			requests <- Request{cli, input.Text()}
+		} else {
 			cli.datas.spam_warning++
-			LogWarn("Abuse detected: Command flooding", map[string]any{
-				"ip":       cli.ip,
-				"player":   cli.name,
-				"warnings": cli.datas.spam_warning,
-			})
+			LogWarn("Abuse detected", map[string]any{"warnings": cli.datas.spam_warning, "ip": cli.ip, "player": cli.name})
+
 			if cli.datas.spam_warning > 3 {
-				LogWarn("Client disconnected due to spam", map[string]any{
-					"ip":       cli.ip,
-					"player":   cli.name,
-					"warnings": cli.datas.spam_warning,
-				})
 				fmt.Fprintln(conn, "ERR 900 CONNECTION_CLOSED_DUE_TO_SPAM")
 				break
 			}
-			continue
 		}
-		cli.datas.last_cmd_time = now
-		cli.datas.spam_warning = 0
-		requests <- Request{cli, input.Text()}
 	}
-
 	leaving <- cli
 	conn.Close()
 }

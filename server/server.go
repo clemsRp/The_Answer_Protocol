@@ -130,66 +130,72 @@ func handleRequest(clients map[string]*Client, request Request) {
 	logCtx["cmd"] = req[0]
 	logCtx["full_msg"] = request.msg
 
+	if len(request.msg) > 1024 {
+		res, datas, err = "", "", errors.New("ERR 413 REQUEST_ENTITY_TOO_LARGE")
+	}
+
 	// Force first command to be CONNECT
-	if req[0] != CmdConnect && !request.cli.datas.connected {
+	if err != nil && req[0] != CmdConnect && !request.cli.datas.connected {
 		res, datas, err = "", "", errors.New("ERR 401 UNAUTHORIZED")
 
 	} else {
 		// Handle the command type
 		switch req[0] {
 		case CmdConnect:
-			res, datas, err = handleCmdConnect(clients, request.cli.ip, req)
+			res, datas, err = handleCmdConnect(clients, request.cli.ip, req, logCtx)
 		case CmdQuit:
-			res, datas, err = handleCmdQuit(clients, activeCli, req)
+			res, datas, err = handleCmdQuit(clients, activeCli, req, logCtx)
 		case CmdWho:
-			res, datas, err = handleCmdWho(clients, req)
+			res, datas, err = handleCmdWho(clients, req, logCtx)
 		case CmdLook:
-			res, datas, err = handleCmdLook(clients, activeCli, req)
+			res, datas, err = handleCmdLook(clients, activeCli, req, logCtx)
 		case CmdMove:
-			res, datas, err = handleCmdMove(clients, activeCli, req)
+			res, datas, err = handleCmdMove(clients, activeCli, req, logCtx)
 		case CmdChat:
-			res, datas, err = handleCmdChat(clients, activeCli, req)
+			res, datas, err = handleCmdChat(clients, activeCli, req, logCtx)
 		case CmdGroup:
-			res, datas, err = handleCmdGroup(clients, activeCli, req)
+			res, datas, err = handleCmdGroup(clients, activeCli, req, logCtx)
 		case CmdStatus:
-			res, datas, err = handleCmdStatus(activeCli, req)
+			res, datas, err = handleCmdStatus(activeCli, req, logCtx)
 		case CmdTake:
-			res, datas, err = handleCmdTake(activeCli, req)
+			res, datas, err = handleCmdTake(activeCli, req, logCtx)
 		case CmdDrop:
-			res, datas, err = handleCmdDrop(activeCli, req)
+			res, datas, err = handleCmdDrop(activeCli, req, logCtx)
 		case CmdInventory:
-			res, datas, err = handleCmdInventory(activeCli, req)
+			res, datas, err = handleCmdInventory(activeCli, req, logCtx)
 		case CmdQuest:
-			res, datas, err = handleCmdQuest(activeCli, req)
+			res, datas, err = handleCmdQuest(activeCli, req, logCtx)
 		case CmdQuests:
-			res, datas, err = handleCmdQuests(req)
+			res, datas, err = handleCmdQuests(req, logCtx)
 		case CmdTalk:
-			res, datas, err = handleCmdTalk(activeCli, req)
+			res, datas, err = handleCmdTalk(activeCli, req, logCtx)
 		case CmdAttack:
-			res, datas, err = handleCmdAttack(activeCli, req)
+			res, datas, err = handleCmdAttack(activeCli, req, logCtx)
 
 		default:
 			res, datas, err = "", "", errors.New("Invalid command")
 		}
 	}
+	statusCode := "200"
 	if err != nil {
 		res, datas = err.Error(), ""
+
+		errParts := strings.Split(err.Error(), " ")
+		if len(errParts) >= 2 && errParts[0] == "ERR" {
+			statusCode = errParts[1]
+		} else {
+			statusCode = "500"
+		}
 	}
 
+	logCtx["status_code"] = statusCode
+	logCtx["response"] = res
+
 	if err != nil {
-		LogInfo("Command failed", map[string]any{
-			"player": name,
-			"cmd":    request.msg,
-			"error":  err.Error(),
-			"ip":     request.cli.ip,
-		})
+		logCtx["error"] = err.Error()
+		LogError("Command failed", logCtx)
 	} else {
-		LogInfo("Command success", map[string]any{
-			"player":   name,
-			"cmd":      request.msg,
-			"response": res,
-			"ip":       request.cli.ip,
-		})
+		LogInfo("Command success", logCtx)
 	}
 
 	activeCli.ch <- Response{res, datas, request}
