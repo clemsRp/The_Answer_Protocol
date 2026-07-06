@@ -8,5 +8,21 @@
 	- Updat values after combat
 
 Server's logs
+- MESSAGE 'EVT ROOM PRESENCE ENTER {}' 
+sur les autres client lorsque quelqu'un se connecte alors que les autres clients ne sont pas connectes
 
-QUIT Command
+
+
+
+- COMMANDS:
+- command names must be case-insensitive (RFC protocol)
+- QUIT command
+
+- Issue GROUP COMMAND (quand tu crees un groupe, 
+et qu'ensuite tu te reconnectes avec le meme nom d'user, 
+l'user a toujours un group mais ne peut pas quitter son groupe)
+
+
+- Pourquoi pas aussi faire en sorte que le player 
+qui recoit l'invitation de groupe
+recoit un message d'invitation du player.

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -19,13 +18,4 @@ func get_timestamp() map[string]int {
 	res["sec"] = int(timestamp % 60)
 
 	return res
-}
-
-func print_timestamp(timestamp map[string]int) {
-	for unit, duration := range timestamp {
-		if duration > 0 {
-			fmt.Printf(" %d %s", duration, unit)
-		}
-	}
-	fmt.Printf("\n")
 }

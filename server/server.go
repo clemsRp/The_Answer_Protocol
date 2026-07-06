@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net"
 	"strings"
 	"tap/server/parser"
@@ -10,7 +9,10 @@ import (
 )
 
 type Log struct {
-	msg string
+	Timestamp string         `json:"timestamp"`
+	Level     string         `json:"level"`
+	Message   string         `json:"message"`
+	Datas     map[string]any `json:"datas,omitempty"`
 }
 
 type Request struct {
@@ -43,7 +45,7 @@ func main() {
 	var err error
 	world, err = parser.Get_map("world.json")
 	if err != nil {
-		fmt.Println("[ERROR]:", err)
+		LogError(err.Error(), nil)
 		return
 	}
 
@@ -53,11 +55,11 @@ func main() {
 	// Start the serveur
 	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
-		fmt.Println("[ERROR]: An error occured during the serveur connection:", err)
+		LogError("An error occured during the serveur connection:", nil)
 		return
 	}
 	defer listener.Close()
-	fmt.Println("[INFO]: Connection established on :8080.")
+	LogInfo("Connection established on :8080.", nil)
 
 	go broadcaster()
 
@@ -65,7 +67,9 @@ func main() {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			fmt.Println("[ERROR]: An error occured during a client's connection:", err)
+			LogError("An error occurred during a client's connection", map[string]any{
+				"error": err.Error(),
+			})
 			continue
 		}
 		go handleClient(conn)
@@ -78,29 +82,28 @@ func broadcaster() {
 	for {
 		select {
 		case log := <-logs:
-			fmt.Println(log.msg)
+			writeLog(log.Level, log.Message, log.Datas)
 
 		case req := <-requests:
 			handleRequest(clients, req)
 
 		case cli := <-entering:
 			clients[cli.ip] = cli
-
-			fmt.Printf("[INFO]: Start of connection at %s /", cli.ip)
-
-			timestamp := get_timestamp()
-			print_timestamp(timestamp)
+			LogInfo("Start of connection", map[string]any{
+				"ip":       cli.ip,
+				"duration": get_timestamp(),
+			})
 
 		case cli := <-leaving:
 			if c, ok := clients[cli.ip]; ok {
 				delete(clients, cli.ip)
 				close(c.ch)
 			}
-
-			fmt.Printf("[INFO]: End of connection at %s /", cli.ip)
-
-			timestamp := get_timestamp()
-			print_timestamp(timestamp)
+			LogInfo("End of connection", map[string]any{
+				"ip":       cli.ip,
+				"duration": get_timestamp(),
+				"player":   cli.name,
+			})
 		}
 	}
 }
@@ -116,72 +119,84 @@ func handleRequest(clients map[string]*Client, request Request) {
 	if !ok {
 		activeCli = request.cli
 	}
+	name := activeCli.name
+	if name == "" {
+		name = activeCli.ip
+	}
+
+	logCtx := make(map[string]any)
+	logCtx["ip"] = request.cli.ip
+	logCtx["player"] = name
+	logCtx["cmd"] = req[0]
+	logCtx["full_msg"] = request.msg
+
+	if len(request.msg) > 1024 {
+		res, datas, err = "", "", errors.New("ERR 413 REQUEST_ENTITY_TOO_LARGE")
+	}
 
 	// Force first command to be CONNECT
-	if req[0] != CmdConnect && !request.cli.datas.connected {
-		res, datas, err = "", "", errors.New("ERR CONNECT user first before doing any commands")
+	if err != nil && req[0] != CmdConnect && !request.cli.datas.connected {
+		res, datas, err = "", "", errors.New("ERR 401 UNAUTHORIZED")
 
 	} else {
 		// Handle the command type
 		switch req[0] {
 		case CmdConnect:
-			res, datas, err = handleCmdConnect(clients, request.cli.ip, req)
+			res, datas, err = handleCmdConnect(clients, request.cli.ip, req, logCtx)
 		case CmdQuit:
-			res, datas, err = handleCmdQuit(clients, activeCli, req)
+			res, datas, err = handleCmdQuit(clients, activeCli, req, logCtx)
 		case CmdWho:
-			res, datas, err = handleCmdWho(clients, req)
+			res, datas, err = handleCmdWho(clients, req, logCtx)
 		case CmdLook:
-			res, datas, err = handleCmdLook(clients, activeCli, req)
+			res, datas, err = handleCmdLook(clients, activeCli, req, logCtx)
 		case CmdMove:
-			res, datas, err = handleCmdMove(clients, activeCli, req)
+			res, datas, err = handleCmdMove(clients, activeCli, req, logCtx)
 		case CmdChat:
-			res, datas, err = handleCmdChat(clients, activeCli, req)
+			res, datas, err = handleCmdChat(clients, activeCli, req, logCtx)
 		case CmdGroup:
-			res, datas, err = handleCmdGroup(clients, activeCli, req)
+			res, datas, err = handleCmdGroup(clients, activeCli, req, logCtx)
 		case CmdStatus:
-			res, datas, err = handleCmdStatus(activeCli, req)
+			res, datas, err = handleCmdStatus(activeCli, req, logCtx)
 		case CmdTake:
-			res, datas, err = handleCmdTake(activeCli, req)
+			res, datas, err = handleCmdTake(activeCli, req, logCtx)
 		case CmdDrop:
-			res, datas, err = handleCmdDrop(activeCli, req)
+			res, datas, err = handleCmdDrop(activeCli, req, logCtx)
 		case CmdInventory:
-			res, datas, err = handleCmdInventory(activeCli, req)
+			res, datas, err = handleCmdInventory(activeCli, req, logCtx)
 		case CmdQuest:
-			res, datas, err = handleCmdQuest(activeCli, req)
+			res, datas, err = handleCmdQuest(activeCli, req, logCtx)
 		case CmdQuests:
-			res, datas, err = handleCmdQuests(req)
+			res, datas, err = handleCmdQuests(req, logCtx)
 		case CmdTalk:
-			res, datas, err = handleCmdTalk(activeCli, req)
+			res, datas, err = handleCmdTalk(activeCli, req, logCtx)
 		case CmdAttack:
-			res, datas, err = handleCmdAttack(activeCli, req)
+			res, datas, err = handleCmdAttack(activeCli, req, logCtx)
 
 		default:
 			res, datas, err = "", "", errors.New("Invalid command")
 		}
 	}
-
-	// Handle command errors and log type
-	msg_type := "INFO"
+	statusCode := "200"
 	if err != nil {
 		res, datas = err.Error(), ""
-		msg_type = "ERROR"
+
+		errParts := strings.Split(err.Error(), " ")
+		if len(errParts) >= 2 && errParts[0] == "ERR" {
+			statusCode = errParts[1]
+		} else {
+			statusCode = "500"
+		}
 	}
 
-	name := request.cli.name
-	if name == "" {
-		name = request.cli.ip
-	}
-
-	// Log command
-	log := fmt.Sprintf("[%s]: '%s' (%s)", msg_type, request.msg, name)
+	logCtx["status_code"] = statusCode
+	logCtx["response"] = res
 
 	if err != nil {
-		log += " -> " + err.Error()
+		logCtx["error"] = err.Error()
+		LogError("Command failed", logCtx)
+	} else {
+		LogInfo("Command success", logCtx)
 	}
 
-	logs <- Log{log}
-	logs <- Log{fmt.Sprintf("[%s]: %s", msg_type, res)}
-
-	// Return the response
 	activeCli.ch <- Response{res, datas, request}
 }
