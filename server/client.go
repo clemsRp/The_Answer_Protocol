@@ -35,7 +35,6 @@ func handleClient(conn net.Conn) {
 
 	who := conn.RemoteAddr().String()
 
-	// Allocation sur le tas (Heap) via le symbole '&' pour figer l'instance en mémoire
 	cli := &Client{
 		conn:  conn,
 		ch:    responses,
@@ -71,20 +70,11 @@ func handleClient(conn net.Conn) {
 }
 
 func clientWriter(conn net.Conn, responses <-chan Response) {
-	// Write all the messages in the player terminal
+	encoder := json.NewEncoder(conn)
+
 	for res := range responses {
-		fmt.Fprint(conn, res.msg)
-
-		// Handle json datas
-		if res.datas != "" {
-			jsonBytes, err := json.Marshal(res.datas)
-			if err != nil {
-				fmt.Fprint(conn, " ERR Internal server error during JSON parsing")
-			} else if string(jsonBytes) != "{}" {
-				fmt.Fprint(conn, " "+string(jsonBytes))
-			}
+		if err := encoder.Encode(res); err != nil {
+			return
 		}
-
-		fmt.Fprint(conn, "\n")
 	}
 }

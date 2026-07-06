@@ -21,9 +21,9 @@ type Request struct {
 }
 
 type Response struct {
-	msg   string
-	datas any
-	req   Request
+	Msg   string
+	Datas any
+	Req   Request
 }
 
 var (
