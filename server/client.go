@@ -67,18 +67,12 @@ func handleClient(conn net.Conn) {
 		}
 	}
 	leaving <- cli
-	conn.Close()
 }
 
 func clientWriter(conn net.Conn, responses <-chan Response) {
 	// Write all the messages in the player terminal
 	for res := range responses {
 		fmt.Fprint(conn, res.msg)
-
-		// Handle QUIT command
-		if res.msg == "OK bye" {
-			break
-		}
 
 		// Handle json datas
 		if res.datas != "" {
