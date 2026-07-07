@@ -24,10 +24,7 @@ func NewChatComponent(app *tview.Application, pseudo string, inputs chan<- strin
 		SetWordWrap(true)
 	chat.History.SetBorder(true).SetTitle(" Chat History ")
 
-	chat.Scope = tview.NewDropDown().
-		SetLabel("Canal: ").
-		SetOptions([]string{"GLOBAL", "ROOM", "GROUP"}, nil).
-		SetCurrentOption(1)
+	chat.Scope = createSelectField("Canal: ", []string{"GLOBAL", "ROOM", "GROUP"}, 1)
 
 	chat.Input = tview.NewInputField().
 		SetLabel(" Message: ").
@@ -48,7 +45,7 @@ func NewChatComponent(app *tview.Application, pseudo string, inputs chan<- strin
 			fmt.Fprint(chat.History, formated_msg)
 
 			chat.Input.SetText("")
-			inputs <- fmt.Sprintf("[%s] %s", canal, text)
+			inputs <- fmt.Sprintf("%s %s", canal, text)
 		}
 	})
 
@@ -75,12 +72,12 @@ func NewChatComponent(app *tview.Application, pseudo string, inputs chan<- strin
 	return chat
 }
 
-func (c *ChatComponent) ListenOutputs(app *tview.Application, outputs <-chan ServerMessage) {
+func (c *ChatComponent) ListenOutputs(app *tview.Application, outputs <-chan string) {
 	go func() {
 		for msg := range outputs {
 
 			lineChat := fmt.Sprintf("[gray][%s] [yellow][%s] [green]%s: [white]%s\n",
-				msg.Heure, msg.Canal, msg.Pseudo, msg.Contenu)
+				msg, msg, msg, msg)
 
 			app.QueueUpdateDraw(func() {
 				fmt.Fprint(c.History, lineChat)

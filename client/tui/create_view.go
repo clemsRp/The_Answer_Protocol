@@ -1,4 +1,4 @@
-package tui
+package main
 
 import (
 	"github.com/gdamore/tcell/v2"
@@ -66,4 +66,14 @@ func createInputField(title string, hasBorder bool, label string, labelColor tce
 	}
 
 	return input
+}
+
+func createSelectField(label string, options []string, index int) *tview.DropDown {
+	s := tview.NewDropDown().
+		SetLabel(label).
+		SetOptions(options, nil)
+
+	s.SetCurrentOption(index)
+
+	return s
 }

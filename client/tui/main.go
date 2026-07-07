@@ -6,8 +6,6 @@ import (
 	"net"
 	"os"
 	"time"
-
-	"tap/client/tui"
 )
 
 type Datas struct {
@@ -54,7 +52,7 @@ func main() {
 	inputs := make(chan string)
 	outputs := make(chan string)
 
-	app := tui.NewMyApp(inputs, outputs)
+	app := NewMyApp(inputs, outputs)
 
 	// Handle input
 	go func() {
