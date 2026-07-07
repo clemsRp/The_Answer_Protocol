@@ -40,11 +40,6 @@ type Response struct {
 	Req   Request
 }
 
-var (
-	inputs  = make(chan string)
-	outputs = make(chan string)
-)
-
 func main() {
 	// Connect to server
 	conn, err := net.Dial("tcp", "localhost:8080")
@@ -53,9 +48,12 @@ func main() {
 		return
 	}
 	defer conn.Close()
-	
-	app := NewMyApp()
-	
+
+	inputs := make(chan string)
+	outputs := make(chan string)
+
+	app := NewMyApp(inputs, outputs)
+
 	// Handle input
 	go func() {
 		for input := range inputs {
@@ -66,24 +64,24 @@ func main() {
 	// Handle output
 	go func() {
 		decoder := json.NewDecoder(conn)
-		
+
 		for {
 			var res Response
-			
+
 			if err := decoder.Decode(&res); err != nil {
 				fmt.Print("An error occured during connection:", err)
 				os.Exit(0)
 			}
-			
+
 			outputs <- res.Msg
-			
+
 			if res.Msg == "OK bye" {
-				app.app.Stop()
+				app.Stop()
 				conn.Close()
 				os.Exit(0)
 			}
 		}
-		}()
+	}()
 
 	if err := app.Run(); err != nil {
 		panic(fmt.Sprintf("Execution error: %v", err))
