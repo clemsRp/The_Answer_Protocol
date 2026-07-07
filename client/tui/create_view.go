@@ -68,6 +68,18 @@ func createInputField(title string, hasBorder bool, label string, labelColor tce
 	return input
 }
 
+func createVerticalInputField(labelText string, inputField *tview.InputField) tview.Primitive {
+	label := tview.NewTextView().
+		SetText(labelText).
+		SetTextColor(tcell.ColorOrange)
+
+	container := tview.NewFlex().SetDirection(tview.FlexRow).
+		AddItem(label, 1, 1, false).
+		AddItem(inputField, 1, 1, true)
+
+	return container
+}
+
 func createSelectField(label string, options []string, index int) *tview.DropDown {
 	s := tview.NewDropDown().
 		SetLabel(label).

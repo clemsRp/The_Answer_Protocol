@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"time"
-
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -15,16 +14,18 @@ type ChatComponent struct {
 	Input   *tview.InputField
 }
 
-func NewChatComponent(app *tview.Application, pseudo string, inputs chan<- string) *ChatComponent {
+func NewChatComponent(app *tview.Application, pseudo string) *ChatComponent {
 	chat := &ChatComponent{}
 
 	chat.History = tview.NewTextView().
 		SetDynamicColors(true).
 		SetScrollable(true).
 		SetWordWrap(true)
-	chat.History.SetBorder(true).SetTitle(" Chat History ")
+	chat.History.
+		SetBorder(true).
+		SetTitle(" Chat History ")
 
-	chat.Scope = createSelectField("Canal: ", []string{"GLOBAL", "ROOM", "GROUP"}, 1)
+	chat.Scope = createSelectField("Canal: ", []string{"GLOBAL", "ROOM", "GROUP"}, 0)
 
 	chat.Input = tview.NewInputField().
 		SetLabel(" Message: ").
@@ -45,7 +46,7 @@ func NewChatComponent(app *tview.Application, pseudo string, inputs chan<- strin
 			fmt.Fprint(chat.History, formated_msg)
 
 			chat.Input.SetText("")
-			inputs <- fmt.Sprintf("%s %s", canal, text)
+			inputs <- fmt.Sprintf("CHAT %s %s", canal, text)
 		}
 	})
 
@@ -56,6 +57,7 @@ func NewChatComponent(app *tview.Application, pseudo string, inputs chan<- strin
 	chat.Layout = tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(chat.History, 0, 1, false).
 		AddItem(inputRow, 1, 1, true)
+
 
 	chat.Layout.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyTab {
