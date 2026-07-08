@@ -18,11 +18,7 @@ type ChatComponent struct {
 func NewChatComponent(app *tview.Application, pseudo string, inputs chan<- string) *ChatComponent {
 	chat := &ChatComponent{}
 
-	chat.History = tview.NewTextView().
-		SetDynamicColors(true).
-		SetScrollable(true).
-		SetWordWrap(true)
-	chat.History.SetBorder(true).SetTitle(" Chat History ")
+	chat.History = createTextView("", " Chat History ", true, Default, Black)
 
 	chat.Scope = createSelectField("Canal: ", []string{"GLOBAL", "ROOM", "GROUP"}, 1)
 
@@ -30,6 +26,23 @@ func NewChatComponent(app *tview.Application, pseudo string, inputs chan<- strin
 		SetLabel(" Message: ").
 		SetFieldWidth(0)
 
+	activeColor := tcell.ColorYellow
+	inactiveColor := tcell.ColorDimGray
+
+	chat.Input.SetFocusFunc(func() {
+		chat.Layout.SetBorderColor(activeColor)
+		chat.Layout.SetTitleColor(activeColor)
+
+		chat.Input.SetBorderColor(activeColor)
+		chat.Input.SetTitleColor(activeColor)
+	})
+	chat.Layout.SetBlurFunc(func() {
+		chat.Layout.SetBorderColor(inactiveColor)
+		chat.Layout.SetTitleColor(tcell.ColorWhite)
+
+		chat.Input.SetBorderColor(inactiveColor)
+		chat.Input.SetTitleColor(tcell.ColorWhite)
+	})
 	chat.Input.SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyEnter {
 			text := chat.Input.GetText()
@@ -72,9 +85,11 @@ func NewChatComponent(app *tview.Application, pseudo string, inputs chan<- strin
 	return chat
 }
 
-func (c *ChatComponent) ListenOutputs(app *tview.Application, outputs <-chan string) {
+func (c *ChatComponent) ListenOutputs(app *tview.Application, chatChan <-chan string) {
+	// TO CHANGE
+
 	go func() {
-		for msg := range outputs {
+		for msg := range chatChan {
 
 			lineChat := fmt.Sprintf("[gray][%s] [yellow][%s] [green]%s: [white]%s\n",
 				msg, msg, msg, msg)

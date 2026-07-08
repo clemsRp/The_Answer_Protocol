@@ -51,8 +51,8 @@ func main() {
 
 	inputs := make(chan string)
 	outputs := make(chan string)
-
-	app := NewMyApp(inputs, outputs)
+	router := NewRouter(inputs, outputs)
+	app := NewMyApp(router)
 
 	// Handle input
 	go func() {
@@ -82,8 +82,6 @@ func main() {
 			}
 		}
 	}()
-
-	
 
 	if err := app.Run(); err != nil {
 		panic(fmt.Sprintf("Execution error: %v", err))

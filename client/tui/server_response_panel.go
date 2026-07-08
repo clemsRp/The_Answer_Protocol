@@ -14,12 +14,7 @@ type ServerResponseComponent struct {
 func NewServerResponseComponent(app *tview.Application) *ServerResponseComponent {
 	src := &ServerResponseComponent{}
 
-	src.History = tview.NewTextView().
-		SetDynamicColors(true).
-		SetScrollable(true).
-		SetWordWrap(true)
-
-	src.History.SetBorder(true).SetTitle(" Server Responses ")
+	src.History = createTextView("", " Server Responses ", true, Default, Black)
 
 	src.Layout = tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(src.History, 0, 1, false)
@@ -27,9 +22,11 @@ func NewServerResponseComponent(app *tview.Application) *ServerResponseComponent
 	return src
 }
 
-func (c *ServerResponseComponent) ListenOutputs(app *tview.Application, outputs <-chan string) {
+func (c *ServerResponseComponent) ListenOutputs(app *tview.Application, ServerChan <-chan string) {
+	// TO CHANGE
+
 	go func() {
-		for msg := range outputs {
+		for msg := range ServerChan {
 
 			lineChat := fmt.Sprintf("[gray][%s] [yellow][%s] [green]%s: [white]%s\n",
 				msg, msg, msg, msg)
