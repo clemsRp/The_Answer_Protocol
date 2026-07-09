@@ -51,8 +51,8 @@ func main() {
 
 	inputs := make(chan string)
 	outputs := make(chan string)
-
-	app := NewMyApp(inputs, outputs)
+	router := NewRouter(inputs, outputs)
+	app := NewMyApp(router)
 
 	// Handle input
 	go func() {
@@ -70,6 +70,7 @@ func main() {
 
 			if err := decoder.Decode(&res); err != nil {
 				fmt.Print("An error occured during connection:", err)
+				app.Stop()
 				os.Exit(0)
 			}
 

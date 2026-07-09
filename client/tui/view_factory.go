@@ -5,6 +5,7 @@ import (
 	"github.com/rivo/tview"
 )
 
+
 func createTextView(text string, title string, hasBorder bool, textColor tcell.Color, backgroundColor tcell.Color) *tview.TextView {
 	tv := tview.NewTextView()
 
@@ -16,23 +17,46 @@ func createTextView(text string, title string, hasBorder bool, textColor tcell.C
 	if title != "" {
 		tv.SetTitle(title)
 	}
+	inactiveColor := tcell.ColorDimGray
+	activeColor := tcell.ColorYellow
+	tv.SetBorderColor(inactiveColor)
+	tv.SetFocusFunc(func() {
+		tv.SetBorderColor(activeColor)
+		tv.SetTitleColor(activeColor)
+	})
+	tv.SetBlurFunc(func() {
+		tv.SetBorderColor(inactiveColor)
+		tv.SetTitleColor(tcell.ColorWhite)
+	})
 
 	return tv
 }
 
-func createListView(title string, hasBorder bool, mainColor tcell.Color, shortcutColor tcell.Color, selectedBgColor tcell.Color, backgroundColor tcell.Color) *tview.List {
+func createListView(title string, hasBorder bool, mainColor tcell.Color, shortcutColor tcell.Color, selectedBgColor tcell.Color, backgroundColor tcell.Color, highlightFullLine bool, showSecondaryText bool) *tview.List {
 	l := tview.NewList()
 
 	l.SetMainTextColor(mainColor)
 	l.SetShortcutColor(shortcutColor)
 	l.SetSelectedBackgroundColor(selectedBgColor)
 	l.SetBackgroundColor(backgroundColor)
-
+	l.ShowSecondaryText(showSecondaryText)
+	l.SetHighlightFullLine(highlightFullLine)
 	l.SetBorder(hasBorder)
 	if title != "" {
 		l.SetTitle(title)
 	}
+	inactiveColor := tcell.ColorDimGray
+	activeColor := tcell.ColorYellow
+	l.SetBorderColor(inactiveColor)
 
+	l.SetFocusFunc(func() {
+		l.SetBorderColor(activeColor)
+		l.SetTitleColor(activeColor)
+	})
+	l.SetBlurFunc(func() {
+		l.SetBorderColor(inactiveColor)
+		l.SetTitleColor(tcell.ColorWhite)
+	})
 	return l
 }
 
@@ -43,11 +67,22 @@ func createFormView(title string, hasBorder bool, labelColor tcell.Color, button
 	f.SetButtonTextColor(buttonColor)
 	f.SetButtonBackgroundColor(buttonBgColor)
 	f.SetBackgroundColor(backgroundColor)
-
 	f.SetBorder(hasBorder)
+	inactiveColor := tcell.ColorDimGray
+	activeColor := tcell.ColorYellow
+	f.SetBorderColor(inactiveColor)
 	if title != "" {
 		f.SetTitle(title)
 	}
+
+	f.SetFocusFunc(func() {
+		f.SetBorderColor(activeColor)
+		f.SetTitleColor(activeColor)
+	})
+	f.SetBlurFunc(func() {
+		f.SetBorderColor(inactiveColor)
+		f.SetTitleColor(tcell.ColorWhite)
+	})
 
 	return f
 }
