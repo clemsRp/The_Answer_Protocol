@@ -30,6 +30,8 @@ type MyApp struct {
 }
 
 func NewMyApp(router *Router) *MyApp {
+	tview.Styles.PrimitiveBackgroundColor = Black
+
 	m := &MyApp{
 		app:     tview.NewApplication(),
 		grid:    tview.NewGrid().SetRows(0, 0, 0, 0).SetColumns(0, 0, 0, 0),
@@ -37,6 +39,9 @@ func NewMyApp(router *Router) *MyApp {
 		connect: tview.NewGrid().SetRows(-1, 5, 20).SetColumns(-1, -1, -1, -1),
 		router:  router,
 	}
+
+	m.connect.SetBackgroundColor(Black)
+
 	m.setupComponents(router)
 	m.setupGrid()
 	m.setupMatrix()
@@ -48,14 +53,6 @@ func NewMyApp(router *Router) *MyApp {
 
 	m.pages.AddPage("Game", m.grid, true, false)
 
-	go func() {
-		for output := range outputs {
-			if output == "OK connected" {
-				m.pages.SwitchToPage("Game")
-				m.Draw()
-			}
-		}
-	}()
 	m.app.SetRoot(m.pages, true)
 	return m
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"time"
+
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -14,13 +15,10 @@ type ChatComponent struct {
 	Input   *tview.InputField
 }
 
-func NewChatComponent(app *tview.Application, pseudo string, inputs chan<-string) *ChatComponent {
+func NewChatComponent(app *tview.Application, pseudo string, inputs chan<- string) *ChatComponent {
 	chat := &ChatComponent{}
 
-	chat.History = tview.NewTextView().
-		SetDynamicColors(true).
-		SetScrollable(true).
-		SetWordWrap(true)
+	chat.History = createTextView("", "", true, Default, Black)
 	chat.History.
 		SetBorder(true).
 		SetTitle(" Chat History ")

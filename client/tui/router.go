@@ -31,10 +31,15 @@ func NewRouter(inputs chan<- string, outputs <-chan string) *Router {
 	}
 }
 
-func (r *Router) Start() {
+func (r *Router) Start(m *MyApp) {
 	go func() {
 		for msg := range r.Outputs {
 			switch {
+			case msg == "OK connected":
+				m.app.QueueUpdateDraw(func() {
+					m.pages.SwitchToPage("Game")
+					m.app.SetFocus(m.Chat.Input)
+				})
 			case strings.HasPrefix(msg, "CHAT:"):
 				r.ChatChan <- strings.TrimPrefix(msg, "CHAT:")
 			case strings.HasPrefix(msg, "SERVER:"):

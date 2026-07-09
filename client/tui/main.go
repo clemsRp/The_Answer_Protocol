@@ -54,10 +54,9 @@ func main() {
 	}
 	defer conn.Close()
 
-	inputs := make(chan string)
-	outputs := make(chan string)
 	router := NewRouter(inputs, outputs)
 	app := NewMyApp(router)
+	router.Start(app)
 
 	// Handle input
 	go func() {

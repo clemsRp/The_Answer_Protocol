@@ -5,14 +5,13 @@ import (
 	"github.com/rivo/tview"
 )
 
-
 func createTextView(text string, title string, hasBorder bool, textColor tcell.Color, backgroundColor tcell.Color) *tview.TextView {
 	tv := tview.NewTextView()
 
 	tv.SetText(text)
 	tv.SetTextColor(textColor)
 	tv.SetBackgroundColor(backgroundColor)
-
+	tv.SetDynamicColors(true)
 	tv.SetBorder(hasBorder)
 	if title != "" {
 		tv.SetTitle(title)
@@ -40,6 +39,7 @@ func createListView(title string, hasBorder bool, mainColor tcell.Color, shortcu
 	l.SetSelectedBackgroundColor(selectedBgColor)
 	l.SetBackgroundColor(backgroundColor)
 	l.ShowSecondaryText(showSecondaryText)
+
 	l.SetHighlightFullLine(highlightFullLine)
 	l.SetBorder(hasBorder)
 	if title != "" {
@@ -67,6 +67,7 @@ func createFormView(title string, hasBorder bool, labelColor tcell.Color, button
 	f.SetButtonTextColor(buttonColor)
 	f.SetButtonBackgroundColor(buttonBgColor)
 	f.SetBackgroundColor(backgroundColor)
+
 	f.SetBorder(hasBorder)
 	inactiveColor := tcell.ColorDimGray
 	activeColor := tcell.ColorYellow
