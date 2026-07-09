@@ -6,8 +6,8 @@ func (m *MyApp) moveFocusSpatial(dRow, dCol int) {
 	currentFocus := m.app.GetFocus()
 	startRow, startCol := -1, -1
 
-	for r := 0; r < 4; r++ {
-		for c := 0; c < 4; c++ {
+	for r := range 4 {
+		for c := range 4 {
 			if m.navMatrix[r][c] == currentFocus {
 				startRow, startCol = r, c
 				break
@@ -65,6 +65,3 @@ func (m *MyApp) SetupFocusManager() {
 		return event
 	})
 }
-
-
-

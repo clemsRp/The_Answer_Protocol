@@ -70,6 +70,7 @@ func main() {
 
 			if err := decoder.Decode(&res); err != nil {
 				fmt.Print("An error occured during connection:", err)
+				app.Stop()
 				os.Exit(0)
 			}
 
