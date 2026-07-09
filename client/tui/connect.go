@@ -1,50 +1,88 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
-	"os"
 	"io"
-	"fmt"
+	"os"
+	"strings"
+	"unicode"
 )
 
-func NewConnectComponent(m *MyApp) *tview.InputField {
-	connect := createInputField(" Connect ", true, "", Default, Default, Black)
+var (
+	pseudo = ""
+)
+
+func SetInputText(input *tview.InputField, text string) {
+	_, _, width, _ := input.GetRect()
+	nb_spaces := (width - len(text)) / 2
+	if nb_spaces < 0 {
+		nb_spaces = 0
+	}
+	spaces := strings.Repeat(" ", nb_spaces)
+	input.SetText(spaces + text)
+}
+
+func NewConnectComponent(m *MyApp) tview.Primitive {
+	connect := createInputField(" Connect ", false, "", tcell.ColorGreen, tcell.ColorGreen, tcell.NewRGBColor(0, 0, 0))
+
+	connect.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyRune {
+			r := event.Rune()
+			if unicode.IsLetter(r) || unicode.IsDigit(r) {
+				return event
+			}
+			return nil
+		}
+		return event
+	})
+
+	connect.SetDrawFunc(func(screen tcell.Screen, x, y, width, height int) (int, int, int, int) {
+		currentText := connect.GetText()
+		cleanText := strings.TrimSpace(currentText)
+		
+		nb_spaces := (width - len(cleanText)) / 2
+		if nb_spaces < 0 {
+			nb_spaces = 0
+		}
+		spaces := strings.Repeat(" ", nb_spaces)
+		
+		if currentText != spaces+cleanText {
+			connect.SetText(spaces + cleanText)
+		}
+		return connect.GetInnerRect()
+	})
 
 	connect.SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyEnter {
-			pseudo := connect.GetText()
-			if pseudo == "" {
+			texteSaisi := strings.TrimSpace(connect.GetText())
+			if texteSaisi == "" {
 				return
 			}
 
-			connect.SetText("")
+			pseudo = texteSaisi
+			SetInputText(connect, "")
 			inputs <- "CONNECT " + pseudo
 		}
 	})
 
-	return connect
+	input := createVerticalInputField("\t\t\t\t\t   ENTER PSEUDO", tcell.ColorGreen, connect)
+	return input
 }
 
-func NewImageComponent(m *MyApp) (*tview.TextView, *tview.TextView) {
-    imgView := tview.NewTextView().
-        SetDynamicColors(true).
-        SetWordWrap(false)
-    imgView.SetBorder(true).SetTitle(" [ Front Entrance ] ")
+func NewImageComponent(m *MyApp, img_path string) *tview.TextView {
+	imgView := tview.NewTextView().
+		SetDynamicColors(true).
+		SetWordWrap(false)
 
-    file, err := os.Open("shopfront.ans")
-    if err != nil {
-        fmt.Fprintf(imgView, "Error loading image: %v", err)
-    } else {
-        defer file.Close()
-        _, _ = io.Copy(tview.ANSIWriter(imgView), file)
-    }
-
-    inputField := tview.NewInputField().SetLabel("Command: ").SetFieldWidth(30)
-    inputField.SetBorder(true).SetTitle(" [ Actions ] ")
-
-    logView := tview.NewTextView().SetText("Welcome to Old Assault Party!\nType 'enter' to crash the doors.")
-    logView.SetBorder(true).SetTitle(" [ Game Log ] ")
-
-    return imgView, logView
+	file, err := os.Open(img_path)
+	if err != nil {
+		fmt.Fprintf(imgView, "Error loading image: %v", err)
+		return imgView
+	}
+	defer file.Close()
+	
+	_, _ = io.Copy(tview.ANSIWriter(imgView), file)
+	return imgView
 }

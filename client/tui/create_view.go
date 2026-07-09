@@ -59,6 +59,7 @@ func createInputField(title string, hasBorder bool, label string, labelColor tce
 	input.SetLabelColor(labelColor)
 	input.SetFieldTextColor(fieldColor)
 	input.SetBackgroundColor(backgroundColor)
+	input.SetFieldBackgroundColor(backgroundColor)
 
 	input.SetBorder(hasBorder)
 	if title != "" {
@@ -68,10 +69,10 @@ func createInputField(title string, hasBorder bool, label string, labelColor tce
 	return input
 }
 
-func createVerticalInputField(labelText string, inputField *tview.InputField) tview.Primitive {
+func createVerticalInputField(labelText string, labelColor tcell.Color, inputField *tview.InputField) tview.Primitive {
 	label := tview.NewTextView().
 		SetText(labelText).
-		SetTextColor(tcell.ColorOrange)
+		SetTextColor(labelColor)
 
 	container := tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(label, 1, 1, false).

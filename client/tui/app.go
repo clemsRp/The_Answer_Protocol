@@ -23,7 +23,7 @@ func NewMyApp(inputs chan<- string, outputs <-chan string) *MyApp {
 	m := &MyApp{
 		app:     tview.NewApplication(),
 		pages:   tview.NewPages(),
-		connect: tview.NewGrid().SetRows(0, 5).SetColumns(32, 0), // Modifié ici
+		connect: tview.NewGrid().SetRows(-1, 5, 20).SetColumns(-1, -1, -1, -1),
 		grid:    tview.NewGrid().SetRows(0).SetColumns(0),
 	}
 
@@ -58,16 +58,15 @@ func (m *MyApp) InitGrid() {
 
 func (m *MyApp) InitConnect() {
 	input := NewConnectComponent(m)
-	imgView, logView := NewImageComponent(m)
+	logoView := NewImageComponent(m, "assets/logo.ans")
+	shopView := NewImageComponent(m, "assets/shopfront.ans")
 
-	// L'image prend toute la ligne du haut (Ligne 0, s'étale sur 2 colonnes)
-	m.connect.AddItem(imgView, 0, 0, 1, 2, 0, 0, false)
+	m.connect.AddItem(logoView, 0, 0, 1, 5, 0, 0, false)
+	m.connect.AddItem(shopView, 2, 0, 2, 5, 0, 0, false)
 
-	// L'input va en bas à gauche (Ligne 1, Colonne 0)
-	m.connect.AddItem(input, 1, 0, 1, 1, 0, 0, true)
+	m.connect.AddItem(input, 1, 2, 1, 1, 0, 0, true)
 
-	// Le Log va en bas à droite (Ligne 1, Colonne 1)
-	m.connect.AddItem(logView, 1, 1, 1, 1, 0, 0, false)
+	// m.connect.AddItem(logView, , false)
 }
 
 func (m *MyApp) Run() error {
