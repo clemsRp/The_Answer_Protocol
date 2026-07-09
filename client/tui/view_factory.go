@@ -5,6 +5,7 @@ import (
 	"github.com/rivo/tview"
 )
 
+
 func createTextView(text string, title string, hasBorder bool, textColor tcell.Color, backgroundColor tcell.Color) *tview.TextView {
 	tv := tview.NewTextView()
 
@@ -19,10 +20,6 @@ func createTextView(text string, title string, hasBorder bool, textColor tcell.C
 	inactiveColor := tcell.ColorDimGray
 	activeColor := tcell.ColorYellow
 	tv.SetBorderColor(inactiveColor)
-	if title != "" {
-		tv.SetTitle(title)
-	}
-
 	tv.SetFocusFunc(func() {
 		tv.SetBorderColor(activeColor)
 		tv.SetTitleColor(activeColor)

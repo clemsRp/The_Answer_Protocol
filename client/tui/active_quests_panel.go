@@ -37,7 +37,7 @@ func (c *QuestComponent) ListenOutputs(app *tview.Application, questChan <-chan 
 
 				quests := strings.Split(msg, ",")
 				for _, quest := range quests {
-					q := quest // Capture variable
+					q := quest
 					c.List.AddItem(q, "", 0, func() {
 						inputs <- "TRACK_QUEST:" + q
 					})

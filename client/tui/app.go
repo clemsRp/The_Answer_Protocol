@@ -5,6 +5,11 @@ import (
 	"github.com/rivo/tview"
 )
 
+var (
+	Black   = tcell.NewRGBColor(0, 0, 0)
+	Default = tcell.ColorDefault
+)
+
 type MyApp struct {
 	app    *tview.Application
 	grid   *tview.Grid
@@ -22,18 +27,23 @@ type MyApp struct {
 	navMatrix   [4][4]tview.Primitive
 }
 
-var (
-	Black   = tcell.NewRGBColor(0, 0, 0)
-	Default = tcell.ColorDefault
-)
-
 func NewMyApp(router *Router) *MyApp {
 	m := &MyApp{
 		app:    tview.NewApplication(),
 		grid:   tview.NewGrid().SetRows(0, 0, 0, 0).SetColumns(0, 0, 0, 0),
 		router: router,
 	}
+	m.setupComponents(router)
+	m.setupGrid()
+	m.setupMatrix()
+	m.StartListeners()
+	m.SetupFocusManager()
+	m.app.EnableMouse(true)
+	m.app.SetRoot(m.grid, true)
+	return m
+}
 
+func (m *MyApp) setupComponents(router *Router) {
 	m.Chat = NewChatComponent(m.app, "Player1", router.Inputs)
 	m.Server = NewServerResponseComponent(m.app)
 	m.Navigation = NewNavigationComponent(m.app)
@@ -44,18 +54,15 @@ func NewMyApp(router *Router) *MyApp {
 	m.ItemsInRoom = NewItemsRoomComponent(m.app)
 	m.Navigation = NewNavigationComponent(m.app)
 	m.Info = NewInfoComponent(m.app)
-	m.setupGrid()
+}
+
+func (m *MyApp) setupMatrix() {
 	m.navMatrix = [4][4]tview.Primitive{
 		{m.Navigation.Navigation, m.PlayersNPC.List, m.Dialogue.View, m.Chat.Input},
 		{m.ItemsInRoom.Items, m.PlayersNPC.List, m.Dialogue.View, m.Chat.Input},
 		{m.Info.View, m.Quest.List, m.Inventory.List, m.Chat.Input},
 		{m.Server.History, m.Server.History, m.Server.History, m.Chat.Input},
 	}
-	m.SetupFocusManager()
-
-	m.app.EnableMouse(true)
-	m.app.SetRoot(m.grid, true)
-	return m
 }
 
 func (m *MyApp) setupGrid() {
@@ -80,70 +87,6 @@ func (m *MyApp) StartListeners() {
 	m.Quest.ListenOutputs(m.app, m.router.QuestChan, m.router.Inputs)
 	m.ItemsInRoom.ListenOutputs(m.app, m.router.ItemsChan, m.router.Inputs)
 	m.Navigation.ListenOutputs(m.app, m.router.NavChan, m.router.Inputs)
-}
-
-func (m *MyApp) moveFocusSpatial(dRow, dCol int) {
-	currentFocus := m.app.GetFocus()
-	startRow, startCol := -1, -1
-
-	for r := 0; r < 4; r++ {
-		for c := 0; c < 4; c++ {
-			if m.navMatrix[r][c] == currentFocus {
-				startRow, startCol = r, c
-				break
-			}
-		}
-	}
-
-	if startRow == -1 {
-		return
-	}
-
-	targetRow, targetCol := startRow, startCol
-
-	for {
-		targetRow += dRow
-		targetCol += dCol
-
-		if targetRow < 0 || targetRow >= 4 || targetCol < 0 || targetCol >= 4 {
-			return
-		}
-
-		nextComponent := m.navMatrix[targetRow][targetCol]
-
-		if nextComponent != currentFocus && nextComponent != nil {
-			m.app.SetFocus(nextComponent)
-			return
-		}
-	}
-}
-
-func (m *MyApp) SetupFocusManager() {
-
-	m.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Modifiers() == tcell.ModShift {
-			switch event.Key() {
-
-			case tcell.KeyUp:
-				m.moveFocusSpatial(-1, 0)
-				return nil
-
-			case tcell.KeyDown:
-				m.moveFocusSpatial(1, 0)
-				return nil
-
-			case tcell.KeyLeft:
-				m.moveFocusSpatial(0, -1)
-				return nil
-
-			case tcell.KeyRight:
-				m.moveFocusSpatial(0, 1)
-				return nil
-			}
-		}
-
-		return event
-	})
 }
 
 func (m *MyApp) Run() error {
