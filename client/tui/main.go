@@ -40,6 +40,11 @@ type Response struct {
 	Req   Request
 }
 
+var (
+	inputs  = make(chan string)
+	outputs = make(chan string)
+)
+
 func main() {
 	// Connect to server
 	conn, err := net.Dial("tcp", "localhost:8080")

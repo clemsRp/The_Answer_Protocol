@@ -11,9 +11,11 @@ var (
 )
 
 type MyApp struct {
-	app    *tview.Application
-	grid   *tview.Grid
-	router *Router
+	app     *tview.Application
+	pages   *tview.Pages
+	connect *tview.Grid
+	grid    *tview.Grid
+	router  *Router
 
 	Chat        *ChatComponent
 	Server      *ServerResponseComponent
@@ -29,9 +31,11 @@ type MyApp struct {
 
 func NewMyApp(router *Router) *MyApp {
 	m := &MyApp{
-		app:    tview.NewApplication(),
-		grid:   tview.NewGrid().SetRows(0, 0, 0, 0).SetColumns(0, 0, 0, 0),
-		router: router,
+		app:     tview.NewApplication(),
+		grid:    tview.NewGrid().SetRows(0, 0, 0, 0).SetColumns(0, 0, 0, 0),
+		pages:   tview.NewPages(),
+		connect: tview.NewGrid().SetRows(0, 0, 0, 0).SetColumns(0, 0, 0, 0),
+		router:  router,
 	}
 	m.setupComponents(router)
 	m.setupGrid()
@@ -87,6 +91,34 @@ func (m *MyApp) StartListeners() {
 	m.Quest.ListenOutputs(m.app, m.router.QuestChan, m.router.Inputs)
 	m.ItemsInRoom.ListenOutputs(m.app, m.router.ItemsChan, m.router.Inputs)
 	m.Navigation.ListenOutputs(m.app, m.router.NavChan, m.router.Inputs)
+
+	m.InitConnect()
+	m.pages.AddPage("Connexion", m.connect, true, true)
+
+	m.pages.AddPage("Game", m.grid, true, false)
+
+	go func() {
+		for output := range outputs {
+			if output == "OK connected" {
+				m.pages.SwitchToPage("Game")
+				m.Draw()
+			}
+		}
+	}()
+	m.app.SetRoot(m.pages, true)
+}
+
+func (m *MyApp) InitConnect() {
+	input := NewConnectComponent(m)
+	logoView := NewImageComponent(m, "assets/logo.ans")
+	shopView := NewImageComponent(m, "assets/shopfront.ans")
+
+	m.connect.AddItem(logoView, 0, 0, 1, 5, 0, 0, false)
+	m.connect.AddItem(shopView, 2, 0, 2, 5, 0, 0, false)
+
+	m.connect.AddItem(input, 1, 2, 1, 1, 0, 0, true)
+
+	// m.connect.AddItem(logView, , false)
 }
 
 func (m *MyApp) Run() error {
@@ -95,4 +127,8 @@ func (m *MyApp) Run() error {
 
 func (m *MyApp) Stop() {
 	m.app.Stop()
+}
+
+func (m *MyApp) Draw() {
+	m.app.Draw()
 }
