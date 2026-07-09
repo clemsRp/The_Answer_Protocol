@@ -34,7 +34,7 @@ func NewMyApp(router *Router) *MyApp {
 		app:     tview.NewApplication(),
 		grid:    tview.NewGrid().SetRows(0, 0, 0, 0).SetColumns(0, 0, 0, 0),
 		pages:   tview.NewPages(),
-		connect: tview.NewGrid().SetRows(0, 0, 0, 0).SetColumns(0, 0, 0, 0),
+		connect: tview.NewGrid().SetRows(-1, 5, 20).SetColumns(-1, -1, -1, -1),
 		router:  router,
 	}
 	m.setupComponents(router)
@@ -43,6 +43,20 @@ func NewMyApp(router *Router) *MyApp {
 	m.StartListeners()
 	m.SetupFocusManager()
 	m.app.EnableMouse(true)
+	m.InitConnect()
+	m.pages.AddPage("Connexion", m.connect, true, true)
+
+	m.pages.AddPage("Game", m.grid, true, false)
+
+	go func() {
+		for output := range outputs {
+			if output == "OK connected" {
+				m.pages.SwitchToPage("Game")
+				m.Draw()
+			}
+		}
+	}()
+	m.app.SetRoot(m.pages, true)
 	return m
 }
 
@@ -90,21 +104,6 @@ func (m *MyApp) StartListeners() {
 	m.Quest.ListenOutputs(m.app, m.router.QuestChan, m.router.Inputs)
 	m.ItemsInRoom.ListenOutputs(m.app, m.router.ItemsChan, m.router.Inputs)
 	m.Navigation.ListenOutputs(m.app, m.router.NavChan, m.router.Inputs)
-
-	m.InitConnect()
-	m.pages.AddPage("Connexion", m.connect, true, true)
-
-	m.pages.AddPage("Game", m.grid, true, false)
-
-	go func() {
-		for output := range outputs {
-			if output == "OK connected" {
-				m.pages.SwitchToPage("Game")
-				m.Draw()
-			}
-		}
-	}()
-	m.app.SetRoot(m.pages, true)
 }
 
 func (m *MyApp) InitConnect() {
@@ -116,8 +115,6 @@ func (m *MyApp) InitConnect() {
 	m.connect.AddItem(shopView, 2, 0, 2, 5, 0, 0, false)
 
 	m.connect.AddItem(input, 1, 2, 1, 1, 0, 0, true)
-
-	// m.connect.AddItem(logView, , false)
 }
 
 func (m *MyApp) Run() error {
