@@ -43,7 +43,6 @@ func NewMyApp(router *Router) *MyApp {
 	m.StartListeners()
 	m.SetupFocusManager()
 	m.app.EnableMouse(true)
-	m.app.SetRoot(m.grid, true)
 	return m
 }
 
