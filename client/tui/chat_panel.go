@@ -18,16 +18,25 @@ type ChatComponent struct {
 func NewChatComponent(app *tview.Application, pseudo string, inputs chan<- string) *ChatComponent {
 	chat := &ChatComponent{}
 
-	chat.History = createTextView("", " Chat History ", true, Default, Black)
+	chat.History = createTextView("", "", false, Default, Black)
 
 	chat.Scope = createSelectField("Canal: ", []string{"GLOBAL", "ROOM", "GROUP"}, 1)
 
 	chat.Input = tview.NewInputField().
 		SetLabel(" Message: ").
 		SetFieldWidth(0)
+	inputRow := tview.NewFlex().SetDirection(tview.FlexColumn).
+		AddItem(chat.Scope, 17, 1, false).
+		AddItem(chat.Input, 0, 1, true)
+
+	chat.Layout = tview.NewFlex().SetDirection(tview.FlexRow).
+		AddItem(chat.History, 0, 1, false).
+		AddItem(inputRow, 1, 1, true)
+	chat.Layout.SetBorder(true).SetTitle(" Chat")
 
 	activeColor := tcell.ColorYellow
 	inactiveColor := tcell.ColorDimGray
+	chat.Layout.SetBorderColor(inactiveColor)
 
 	chat.Input.SetFocusFunc(func() {
 		chat.Layout.SetBorderColor(activeColor)
@@ -36,13 +45,22 @@ func NewChatComponent(app *tview.Application, pseudo string, inputs chan<- strin
 		chat.Input.SetBorderColor(activeColor)
 		chat.Input.SetTitleColor(activeColor)
 	})
-	chat.Layout.SetBlurFunc(func() {
+	chat.Input.SetBlurFunc(func() {
 		chat.Layout.SetBorderColor(inactiveColor)
 		chat.Layout.SetTitleColor(tcell.ColorWhite)
 
 		chat.Input.SetBorderColor(inactiveColor)
 		chat.Input.SetTitleColor(tcell.ColorWhite)
 	})
+	chat.Scope.SetFocusFunc(func() {
+		chat.Layout.SetBorderColor(activeColor)
+		chat.Layout.SetTitleColor(activeColor)
+	})
+	chat.Scope.SetBlurFunc(func() {
+		chat.Layout.SetBorderColor(inactiveColor)
+		chat.Layout.SetTitleColor(tcell.ColorWhite)
+	})
+
 	chat.Input.SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyEnter {
 			text := chat.Input.GetText()
@@ -61,14 +79,6 @@ func NewChatComponent(app *tview.Application, pseudo string, inputs chan<- strin
 			inputs <- fmt.Sprintf("%s %s", canal, text)
 		}
 	})
-
-	inputRow := tview.NewFlex().SetDirection(tview.FlexColumn).
-		AddItem(chat.Scope, 17, 1, false).
-		AddItem(chat.Input, 0, 1, true)
-
-	chat.Layout = tview.NewFlex().SetDirection(tview.FlexRow).
-		AddItem(chat.History, 0, 1, false).
-		AddItem(inputRow, 1, 1, true)
 
 	chat.Layout.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyTab {
