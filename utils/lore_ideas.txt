@@ -1,10 +1,5 @@
 
-FIRST:
-	- Seek body of someone:
-		- rooms = organs
-		- npcs = neurons/cells/virus
-		- quest = treat a cold/
-		- items = medics/energy/coffee/food
+CHOOSEN ONE:
 
 	- Supermarket with old people:
 		- rooms = rayon / étal de marché
@@ -12,12 +7,24 @@ FIRST:
 		- quest = Buy dentier using thousands of coins / Run to be the first to buy suppo/couches
 		- items = IN PROGRESS
 
+-------------------------------------------------------------------------------------------------------
+
+FIRST:
+
+	- Seek body of someone:
+		- rooms = organs
+		- npcs = neurons/cells/virus
+		- quest = treat a cold/
+		- items = medics/energy/coffee/food
+
 	- Policier / Criminel:
 		- description = Assiste a une scene de crime/delit, traquer le criminel
 		- rooms = places/rues etc. ville connue?
 		- npcs = refs a des personnages celebres/ pnjs de collegues
 		- quests = Adelina en camionette nous propose de l'aide 
 		- items = menottes
+
+-------------------------------------------------------------------------------------------------------
 
 SECOND:
 	- Administration:
