@@ -1,10 +1,11 @@
 package main
 
 import (
+	parser "tap/server/parser"
+
 	"errors"
 	"net"
 	"strings"
-	"tap/server/parser"
 	"time"
 )
 
@@ -45,7 +46,7 @@ func main() {
 	var err error
 	world, err = parser.Get_map("world.json")
 	if err != nil {
-		LogError(err.Error(), nil)
+		writeLog("ERROR", err.Error(), nil)
 		return
 	}
 

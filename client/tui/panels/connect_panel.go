@@ -1,13 +1,14 @@
-package main
+package panel
 
 import (
 	"fmt"
-	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
 	"io"
 	"os"
 	"strings"
 	"unicode"
+
+	"github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
 )
 
 var (
@@ -24,7 +25,7 @@ func SetInputText(input *tview.InputField, text string) {
 	input.SetText(spaces + text)
 }
 
-func NewConnectComponent(m *MyApp) tview.Primitive {
+func NewConnectComponent(inputs chan string) tview.Primitive {
 	connect := createInputField(" Connect ", false, "", tcell.ColorGreen, tcell.ColorGreen, tcell.NewRGBColor(0, 0, 0))
 
 	connect.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
@@ -41,13 +42,13 @@ func NewConnectComponent(m *MyApp) tview.Primitive {
 	connect.SetDrawFunc(func(screen tcell.Screen, x, y, width, height int) (int, int, int, int) {
 		currentText := connect.GetText()
 		cleanText := strings.TrimSpace(currentText)
-		
+
 		nb_spaces := (width - len(cleanText)) / 2
 		if nb_spaces < 0 {
 			nb_spaces = 0
 		}
 		spaces := strings.Repeat(" ", nb_spaces)
-		
+
 		if currentText != spaces+cleanText {
 			connect.SetText(spaces + cleanText)
 		}
@@ -71,7 +72,7 @@ func NewConnectComponent(m *MyApp) tview.Primitive {
 	return input
 }
 
-func NewImageComponent(m *MyApp, img_path string) *tview.TextView {
+func NewImageComponent(img_path string) *tview.TextView {
 	imgView := tview.NewTextView().
 		SetDynamicColors(true).
 		SetWordWrap(false)
@@ -82,7 +83,7 @@ func NewImageComponent(m *MyApp, img_path string) *tview.TextView {
 		return imgView
 	}
 	defer file.Close()
-	
+
 	_, _ = io.Copy(tview.ANSIWriter(imgView), file)
 	return imgView
 }

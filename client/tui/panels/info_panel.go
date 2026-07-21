@@ -1,4 +1,4 @@
-package main
+package panel
 
 import (
 	"github.com/rivo/tview"

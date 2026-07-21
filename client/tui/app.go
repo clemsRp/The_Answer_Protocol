@@ -1,13 +1,9 @@
 package main
 
 import (
-	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
-)
+	panel "tap/client/tui/panels"
 
-var (
-	Black   = tcell.NewRGBColor(0, 0, 0)
-	Default = tcell.ColorDefault
+	"github.com/rivo/tview"
 )
 
 type MyApp struct {
@@ -17,20 +13,20 @@ type MyApp struct {
 	grid    *tview.Grid
 	router  *Router
 
-	Chat        *ChatComponent
-	Server      *ServerResponseComponent
-	Navigation  *NavigationComponent
-	PlayersNPC  *PlayersNPCComponent
-	Dialogue    *DialogueComponent
-	Inventory   *InventoryComponent
-	Quest       *QuestComponent
-	ItemsInRoom *ItemsComponent
-	Info        *InfoComponent
+	Chat        *panel.ChatComponent
+	Server      *panel.ServerResponseComponent
+	Navigation  *panel.NavigationComponent
+	PlayersNPC  *panel.PlayersNPCComponent
+	Dialogue    *panel.DialogueComponent
+	Inventory   *panel.InventoryComponent
+	Quest       *panel.QuestComponent
+	ItemsInRoom *panel.ItemsComponent
+	Info        *panel.InfoComponent
 	navMatrix   [4][4]tview.Primitive
 }
 
 func NewMyApp(router *Router) *MyApp {
-	tview.Styles.PrimitiveBackgroundColor = Black
+	tview.Styles.PrimitiveBackgroundColor = panel.Black
 
 	m := &MyApp{
 		app:     tview.NewApplication(),
@@ -40,7 +36,7 @@ func NewMyApp(router *Router) *MyApp {
 		router:  router,
 	}
 
-	m.connect.SetBackgroundColor(Black)
+	m.connect.SetBackgroundColor(panel.Black)
 
 	m.setupComponents(router)
 	m.setupGrid()
@@ -58,16 +54,16 @@ func NewMyApp(router *Router) *MyApp {
 }
 
 func (m *MyApp) setupComponents(router *Router) {
-	m.Chat = NewChatComponent(m.app, "Player1", router.Inputs)
-	m.Server = NewServerResponseComponent(m.app)
-	m.Navigation = NewNavigationComponent(m.app)
-	m.PlayersNPC = NewPlayersNPCComponent(m.app)
-	m.Dialogue = NewDialogueComponent(m.app)
-	m.Inventory = NewInventoryComponent(m.app)
-	m.Quest = NewQuestComponent(m.app)
-	m.ItemsInRoom = NewItemsRoomComponent(m.app)
-	m.Navigation = NewNavigationComponent(m.app)
-	m.Info = NewInfoComponent(m.app)
+	m.Chat = panel.NewChatComponent(m.app, "Player1", router.Inputs)
+	m.Server = panel.NewServerResponseComponent(m.app)
+	m.Navigation = panel.NewNavigationComponent(m.app)
+	m.PlayersNPC = panel.NewPlayersNPCComponent(m.app)
+	m.Dialogue = panel.NewDialogueComponent(m.app)
+	m.Inventory = panel.NewInventoryComponent(m.app)
+	m.Quest = panel.NewQuestComponent(m.app)
+	m.ItemsInRoom = panel.NewItemsRoomComponent(m.app)
+	m.Navigation = panel.NewNavigationComponent(m.app)
+	m.Info = panel.NewInfoComponent(m.app)
 }
 
 func (m *MyApp) setupMatrix() {
@@ -104,9 +100,9 @@ func (m *MyApp) StartListeners() {
 }
 
 func (m *MyApp) InitConnect() {
-	input := NewConnectComponent(m)
-	logoView := NewImageComponent(m, "assets/logo.ans")
-	shopView := NewImageComponent(m, "assets/shopfront.ans")
+	input := panel.NewConnectComponent(inputs)
+	logoView := panel.NewImageComponent("assets/logo.ans")
+	shopView := panel.NewImageComponent("assets/shopfront.ans")
 
 	m.connect.AddItem(logoView, 0, 0, 1, 5, 0, 0, false)
 	m.connect.AddItem(shopView, 2, 0, 2, 5, 0, 0, false)
