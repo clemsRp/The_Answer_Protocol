@@ -61,7 +61,7 @@ func main() {
 	// Handle input
 	go func() {
 		for input := range inputs {
-			fmt.Fprintf(conn, input+"\n")
+			fmt.Fprint(conn, input+"\n")
 		}
 	}()
 

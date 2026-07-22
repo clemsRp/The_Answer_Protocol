@@ -101,8 +101,8 @@ func (m *MyApp) StartListeners() {
 
 func (m *MyApp) InitConnect() {
 	input := panel.NewConnectComponent(inputs)
-	logoView := panel.NewImageComponent("assets/logo.ans")
-	shopView := panel.NewImageComponent("assets/shopfront.ans")
+	logoView := panel.NewImageComponent("client/tui/assets/logo.ans")
+	shopView := panel.NewImageComponent("client/tui/assets/shopfront.ans")
 
 	m.connect.AddItem(logoView, 0, 0, 1, 5, 0, 0, false)
 	m.connect.AddItem(shopView, 2, 0, 2, 5, 0, 0, false)
