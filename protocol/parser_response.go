@@ -1,5 +1,6 @@
 package protocol
 
+/*
 import (
 	"encoding/json"
 	"fmt"
@@ -72,3 +73,4 @@ func (response *ServerResponse) ConvertToString() string {
 	}
 	return fmt.Sprintf("ERR %d %s\n", response.Code, response.Message)
 }
+*/

@@ -57,12 +57,11 @@ func NewConnectComponent(inputs chan string) tview.Primitive {
 
 	connect.SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyEnter {
-			texteSaisi := strings.TrimSpace(connect.GetText())
-			if texteSaisi == "" {
+			pseudo := strings.TrimSpace(connect.GetText())
+			if pseudo == "" {
 				return
 			}
 
-			pseudo = texteSaisi
 			SetInputText(connect, "")
 			inputs <- "CONNECT " + pseudo
 		}

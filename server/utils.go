@@ -1,9 +1,13 @@
 package main
 
-func inform_room(clients map[string]*Client, cli *Client, room string, msg string) {
+import (
+	pr "tap/protocol"
+)
+
+func inform_room(clients map[string]*pr.Client, cli *pr.Client, room string, msg string) {
 	for ip := range clients {
-		if clients[ip].datas.connected && clients[ip].datas.room == room && clients[ip].name != cli.name {
-			clients[ip].ch <- Response{msg, Datas{}, Request{}}
+		if clients[ip].Datas.Connected && clients[ip].Datas.Room == room && clients[ip].Name != cli.Name {
+			clients[ip].Ch <- pr.Response{Msg: msg}
 		}
 	}
 }

@@ -16,7 +16,7 @@ type Router struct {
 	ItemsChan     chan string
 }
 
-func NewRouter(inputs chan<- string, outputs <-chan string) *Router {
+func NewRouter(inputs chan string, outputs <-chan string) *Router {
 	return &Router{
 		Inputs:        inputs,
 		Outputs:       outputs,
@@ -35,11 +35,6 @@ func (r *Router) Start(m *MyApp) {
 	go func() {
 		for msg := range r.Outputs {
 			switch {
-			case msg == "OK connected":
-				m.app.QueueUpdateDraw(func() {
-					m.pages.SwitchToPage("Game")
-					m.app.SetFocus(m.Chat.Input)
-				})
 			case strings.HasPrefix(msg, "CHAT:"):
 				r.ChatChan <- strings.TrimPrefix(msg, "CHAT:")
 			case strings.HasPrefix(msg, "SERVER:"):

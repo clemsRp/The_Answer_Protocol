@@ -2,13 +2,14 @@ package main
 
 import (
 	"errors"
+	pr "tap/protocol"
 )
 
-func remove_user_in_group(cli *Client, group []*Client) []*Client {
+func remove_user_in_group(cli *pr.Client, group []*pr.Client) []*pr.Client {
 	// Get user index inside group
 	cli_index := -1
 	for i, user := range group {
-		if user.name == cli.name {
+		if user.Name == cli.Name {
 			cli_index = i
 			break
 		}
@@ -22,7 +23,7 @@ func remove_user_in_group(cli *Client, group []*Client) []*Client {
 	return group
 }
 
-func create_group(cli *Client, group_name string) (string, error) {
+func create_group(cli *pr.Client, group_name string) (string, error) {
 	// Handle existing group
 	_, ok := groups[group_name]
 	if ok {
@@ -32,53 +33,53 @@ func create_group(cli *Client, group_name string) (string, error) {
 	// Check user already in a group
 	for _, group := range groups {
 		for _, user := range group {
-			if user.name == cli.name {
+			if user.Name == cli.Name {
 				return "", errors.New("ERR user already inside a group")
 			}
 		}
 	}
 
 	// Set group
-	groups[group_name] = []*Client{cli}
-	cli.datas.group = group_name
+	groups[group_name] = []*pr.Client{cli}
+	cli.Datas.Group = group_name
 
 	return "OK group=" + group_name, nil
 }
 
-func invite_user_in_group(clients map[string]*Client, cli *Client, user_name string) (string, error) {
+func invite_user_in_group(clients map[string]*pr.Client, cli *pr.Client, user_name string) (string, error) {
 	// Handle non existant groups
-	_, ok := groups[cli.datas.group]
+	_, ok := groups[cli.Datas.Group]
 	if !ok {
 		return "", errors.New("ERR Group doesn't exist yet")
 	}
 
 	// Check cli is group's leader
-	if groups[cli.datas.group][0].name != cli.name {
+	if groups[cli.Datas.Group][0].Name != cli.Name {
 		return "", errors.New("ERR User isn't group's leader")
 	}
 
 	// Handle users already in group
-	for _, user := range groups[cli.datas.group] {
-		if user.name == user_name {
+	for _, user := range groups[cli.Datas.Group] {
+		if user.Name == user_name {
 			return "", errors.New("ERR player already in group")
 		}
 	}
 
 	// Get user
-	var new_cli *Client
+	var new_cli *pr.Client
 	for ip := range clients {
-		if clients[ip].name == user_name {
+		if clients[ip].Name == user_name {
 			new_cli = clients[ip]
 
 			// Check that invitation isn't already present
-			for _, invite := range new_cli.datas.invitation {
-				if invite == cli.datas.group {
+			for _, invite := range new_cli.Datas.Invitation {
+				if invite == cli.Datas.Group {
 					return "", errors.New("ERR Invitation already send")
 				}
 			}
 
 			// Add invitation to user
-			new_cli.datas.invitation = append(new_cli.datas.invitation, cli.datas.group)
+			new_cli.Datas.Invitation = append(new_cli.Datas.Invitation, cli.Datas.Group)
 
 			return "OK", nil
 		}
@@ -87,7 +88,7 @@ func invite_user_in_group(clients map[string]*Client, cli *Client, user_name str
 	return "", errors.New("ERR new user not find")
 }
 
-func join_group(cli *Client, group_name string) (string, error) {
+func join_group(cli *pr.Client, group_name string) (string, error) {
 	// Handle non existant groups
 	_, ok := groups[group_name]
 	if !ok {
@@ -97,7 +98,7 @@ func join_group(cli *Client, group_name string) (string, error) {
 	// Handle users already in group
 	for _, group := range groups {
 		for _, user := range group {
-			if user.name == cli.name {
+			if user.Name == cli.Name {
 				return "", errors.New("ERR player already in group")
 			}
 		}
@@ -105,7 +106,7 @@ func join_group(cli *Client, group_name string) (string, error) {
 
 	// Check that user is invited
 	invited := false
-	for _, invite := range cli.datas.invitation {
+	for _, invite := range cli.Datas.Invitation {
 		if invite == group_name {
 			invited = true
 			break
@@ -117,11 +118,11 @@ func join_group(cli *Client, group_name string) (string, error) {
 
 	// Add user in group
 	groups[group_name] = append(groups[group_name], cli)
-	cli.datas.group = group_name
+	cli.Datas.Group = group_name
 
 	// Delete invitation
 	invite_index := -1
-	for i, invite := range cli.datas.invitation {
+	for i, invite := range cli.Datas.Invitation {
 		if invite == group_name {
 			invite_index = i
 			break
@@ -129,30 +130,30 @@ func join_group(cli *Client, group_name string) (string, error) {
 	}
 
 	if invite_index != -1 {
-		cli.datas.invitation = append(cli.datas.invitation[:invite_index], cli.datas.invitation[invite_index+1:]...)
+		cli.Datas.Invitation = append(cli.Datas.Invitation[:invite_index], cli.Datas.Invitation[invite_index+1:]...)
 	}
 
 	return "OK group=" + group_name, nil
 }
 
-func leave_group(cli *Client) (string, error) {
+func leave_group(cli *pr.Client) (string, error) {
 	// Check user is inside the group
-	if cli.datas.group == "" {
+	if cli.Datas.Group == "" {
 		return "", errors.New("ERR User isn't inside a group")
 	}
 
 	// Remove user from his current group
-	groupSlice := groups[cli.datas.group]
+	groupSlice := groups[cli.Datas.Group]
 	groupSlice = remove_user_in_group(cli, groupSlice)
-	groups[cli.datas.group] = groupSlice
+	groups[cli.Datas.Group] = groupSlice
 
 	// Remove group if needed
 	if len(groupSlice) == 0 {
-		delete(groups, cli.datas.group)
+		delete(groups, cli.Datas.Group)
 	}
 
 	// Re initialize his group value
-	cli.datas.group = ""
+	cli.Datas.Group = ""
 
 	return "OK", nil
 }

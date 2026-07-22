@@ -110,6 +110,13 @@ func (m *MyApp) InitConnect() {
 	m.connect.AddItem(input, 1, 2, 1, 1, 0, 0, true)
 }
 
+func (m *MyApp) ShowGamePage() {
+	m.app.QueueUpdateDraw(func() {
+		m.pages.SwitchToPage("Game")
+		m.app.SetFocus(m.Chat.Input)
+	})
+}
+
 func (m *MyApp) Run() error {
 	return m.app.Run()
 }

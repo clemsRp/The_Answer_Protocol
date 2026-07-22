@@ -78,12 +78,18 @@ func main() {
 				os.Exit(0)
 			}
 
+			fmt.Printf("'%s'", res.Msg)
 			outputs <- res.Msg
 
 			if res.Msg == "OK bye" {
 				app.Stop()
 				conn.Close()
 				os.Exit(0)
+			}
+			if res.Msg == "OK connected" {
+				app.ShowGamePage()
+				app.Draw()
+
 			}
 		}
 	}()

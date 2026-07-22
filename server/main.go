@@ -1,6 +1,7 @@
 package main
 
 import (
+	pr "tap/protocol"
 	parser "tap/server/parser"
 
 	"errors"
@@ -16,24 +17,24 @@ type Log struct {
 	Datas     map[string]any `json:"datas,omitempty"`
 }
 
-type Request struct {
-	cli *Client
-	msg string
-}
+// type Request struct {
+// 	cli *pr.Client
+// 	msg string
+// }
 
-type Response struct {
-	Msg   string
-	Datas any
-	Req   Request
-}
+// type Response struct {
+// 	Msg   string
+// 	Datas any
+// 	Req   Request
+// }
 
 var (
-	requests = make(chan Request)
+	requests = make(chan pr.Request)
 	logs     = make(chan Log, 500)
-	entering = make(chan *Client)
-	leaving  = make(chan *Client)
+	entering = make(chan *pr.Client)
+	leaving  = make(chan *pr.Client)
 
-	groups    map[string][]*Client
+	groups    map[string][]*pr.Client
 	dialogues map[string]map[string]int
 
 	t_start = time.Now().Unix()
@@ -50,7 +51,7 @@ func main() {
 		return
 	}
 
-	groups = make(map[string][]*Client)
+	groups = make(map[string][]*pr.Client)
 	dialogues = make(map[string]map[string]int)
 
 	// Start the serveur
@@ -78,7 +79,7 @@ func main() {
 }
 
 func broadcaster() {
-	clients := make(map[string]*Client)
+	clients := make(map[string]*pr.Client)
 
 	for {
 		select {
@@ -89,61 +90,61 @@ func broadcaster() {
 			handleRequest(clients, req)
 
 		case cli := <-entering:
-			clients[cli.ip] = cli
+			clients[cli.Ip] = cli
 			LogInfo("Start of connection", map[string]any{
-				"ip":       cli.ip,
+				"ip":       cli.Ip,
 				"duration": get_timestamp(),
 			})
 
 		case cli := <-leaving:
-			if c, ok := clients[cli.ip]; ok {
-				delete(clients, cli.ip)
-				close(c.ch)
+			if c, ok := clients[cli.Ip]; ok {
+				delete(clients, cli.Ip)
+				close(c.Ch)
 			}
 			LogInfo("End of connection", map[string]any{
-				"ip":       cli.ip,
+				"ip":       cli.Ip,
 				"duration": get_timestamp(),
-				"player":   cli.name,
+				"player":   cli.Name,
 			})
 		}
 	}
 }
 
-func handleRequest(clients map[string]*Client, request Request) {
-	req := strings.Split(request.msg, " ")
+func handleRequest(clients map[string]*pr.Client, request pr.Request) {
+	req := strings.Split(request.Msg, " ")
 
 	var res string
 	var datas any
 	var err error
 
-	activeCli, ok := clients[request.cli.ip]
+	activeCli, ok := clients[request.Cli.Ip]
 	if !ok {
-		activeCli = request.cli
+		activeCli = request.Cli
 	}
-	name := activeCli.name
+	name := activeCli.Name
 	if name == "" {
-		name = activeCli.ip
+		name = activeCli.Ip
 	}
 
 	logCtx := make(map[string]any)
-	logCtx["ip"] = request.cli.ip
+	logCtx["ip"] = request.Cli.Ip
 	logCtx["player"] = name
 	logCtx["cmd"] = req[0]
-	logCtx["full_msg"] = request.msg
+	logCtx["full_msg"] = request.Msg
 
-	if len(request.msg) > 1024 {
+	if len(request.Msg) > 1024 {
 		res, datas, err = "", "", errors.New("ERR 413 REQUEST_ENTITY_TOO_LARGE")
 	}
 
 	// Force first command to be CONNECT
-	if err == nil && strings.ToUpper(req[0]) != CmdConnect && !request.cli.datas.connected {
+	if err == nil && strings.ToUpper(req[0]) != CmdConnect && !request.Cli.Datas.Connected {
 		res, datas, err = "", "", errors.New("ERR 401 UNAUTHORIZED")
 
 	} else {
 		// Handle the command type
 		switch strings.ToUpper(req[0]) {
 		case CmdConnect:
-			res, datas, err = handleCmdConnect(clients, request.cli.ip, req, logCtx)
+			res, datas, err = handleCmdConnect(clients, request.Cli.Ip, req, logCtx)
 		case CmdQuit:
 			res, datas, err = handleCmdQuit(clients, activeCli, req, logCtx)
 		case CmdWho:
@@ -199,5 +200,5 @@ func handleRequest(clients map[string]*Client, request Request) {
 		LogInfo("Command success", logCtx)
 	}
 
-	activeCli.ch <- Response{res, datas, request}
+	activeCli.Ch <- pr.Response{Msg: res, Datas: datas, Req: request}
 }

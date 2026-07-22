@@ -1,8 +1,9 @@
 package protocol
 
-import "strings"
+/* import "strings"
 
 func ConvertStringToEvent(s string) (*ServerEvent, error) {
 	s = strings.TrimSpace(s)
 
 }
+*/

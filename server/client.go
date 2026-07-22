@@ -5,45 +5,31 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	pr "tap/protocol"
 	"time"
 )
 
-type Datas struct {
-	room          string
-	status        string
-	inventory     []string
-	invitation    []string
-	group         string
-	hp            int
-	max_hp        int
-	connected     bool
-	last_cmd_time time.Time
-	spam_warning  int
-}
-
-type Client struct {
-	conn  net.Conn
-	ch    chan Response
-	ip    string
-	name  string
-	datas Datas
-}
-
 func handleClient(conn net.Conn) {
-	responses := make(chan Response)
+	responses := make(chan pr.Response)
 	go clientWriter(conn, responses)
 
 	who := conn.RemoteAddr().String()
 
-	cli := &Client{
-		conn:  conn,
-		ch:    responses,
-		ip:    who,
-		name:  "",
-		datas: Datas{"start", "healthy", []string{}, []string{}, "", 100, 100, false, time.Now(), 0},
+	cli := &pr.Client{
+		Conn: conn,
+		Ch:   responses,
+		Ip:   who,
+		Datas: pr.Datas{
+			Room:          "entrance",
+			Status:        "healthy",
+			Hp:            100,
+			Max_hp:        100,
+			Connected:     false,
+			Last_cmd_time: time.Now(),
+		},
 	}
 
-	cli.ch <- Response{"OK hello proto=1", "", Request{}}
+	cli.Ch <- pr.Response{Msg: "OK hello proto=1"}
 	entering <- cli
 
 	input := bufio.NewScanner(conn)
@@ -51,17 +37,17 @@ func handleClient(conn net.Conn) {
 	input.Buffer(buf, 1024)
 	for input.Scan() {
 		now := time.Now()
-		if now.Sub(cli.datas.last_cmd_time) >= 1000*time.Millisecond {
-			cli.datas.spam_warning = 0
-			cli.datas.last_cmd_time = now
-			requests <- Request{cli, input.Text()}
+		if now.Sub(cli.Datas.Last_cmd_time) >= 1000*time.Millisecond {
+			cli.Datas.Spam_warning = 0
+			cli.Datas.Last_cmd_time = now
+			requests <- pr.Request{Cli: cli, Msg: input.Text()}
 		} else {
-			cli.datas.spam_warning++
-			LogWarn("Abuse detected", map[string]any{"warnings": cli.datas.spam_warning, "ip": cli.ip, "player": cli.name})
+			cli.Datas.Spam_warning++
+			LogWarn("Abuse detected", map[string]any{"warnings": cli.Datas.Spam_warning, "ip": cli.Ip, "player": cli.Name})
 
-			if cli.datas.spam_warning > 3 {
+			if cli.Datas.Spam_warning > 3 {
 				fmt.Fprintln(conn, "ERR 900 CONNECTION_CLOSED_DUE_TO_SPAM")
-				cli.ch <- Response{"OK bye", Datas{}, Request{}}
+				cli.Ch <- pr.Response{Msg: "OK bye"}
 				break
 			}
 		}
@@ -69,7 +55,7 @@ func handleClient(conn net.Conn) {
 	leaving <- cli
 }
 
-func clientWriter(conn net.Conn, responses <-chan Response) {
+func clientWriter(conn net.Conn, responses <-chan pr.Response) {
 	encoder := json.NewEncoder(conn)
 
 	for res := range responses {

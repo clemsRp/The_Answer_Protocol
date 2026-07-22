@@ -1,5 +1,10 @@
 package protocol
 
+import (
+	"net"
+	"time"
+)
+
 const (
 	CategoryRoom   = "ROOM"
 	CategoryGlobal = "GLOBAL"
@@ -23,9 +28,41 @@ type ServerEvent struct {
 	Data     string
 }
 
-type ServerResponse struct {
-	Success bool
-	Code    int
-	Message string
-	Data    string
+// type ServerResponse struct {
+// 	Success bool
+// 	Code    int
+// 	Message string
+// 	Data    string
+// }
+
+type Datas struct {
+	Room          string
+	Status        string
+	Inventory     []string
+	Invitation    []string
+	Group         string
+	Hp            int
+	Max_hp        int
+	Connected     bool
+	Last_cmd_time time.Time
+	Spam_warning  int
+}
+
+type Client struct {
+	Conn  net.Conn      `json:"-"`
+	Ch    chan Response `json:"-"`
+	Ip    string
+	Name  string
+	Datas Datas
+}
+
+type Request struct {
+	Cli *Client `json:"-"`
+	Msg string
+}
+
+type Response struct {
+	Msg   string
+	Datas any
+	Req   Request
 }

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	pr "tap/protocol"
 )
 
 const (
@@ -38,99 +39,99 @@ const (
 	West  = "west"
 )
 
-func handleCmdConnect(clients map[string]*Client, ip string, req []string, logCtx map[string]any) (string, any, error) {
+func handleCmdConnect(clients map[string]*pr.Client, ip string, req []string, logCtx map[string]any) (string, any, error) {
 	if len(req) != 2 {
 		return "", "", errors.New("ERR 400 Invalid name: shouldn't contain space character")
 	}
-	if clients[ip].datas.connected {
+	if clients[ip].Datas.Connected {
 		return "", "", errors.New("ERR 403 User already connected")
 	}
 	for _, cli := range clients {
-		if cli.name == req[1] {
+		if cli.Name == req[1] {
 			return "", "", errors.New("ERR 201 NAME_IN_USE")
 		}
 	}
 
-	clients[ip].name = req[1]
-	clients[ip].datas.connected = true
+	clients[ip].Name = req[1]
+	clients[ip].Datas.Connected = true
 	dialogues[req[1]] = make(map[string]int)
-	inform_room(clients, clients[ip], clients[ip].datas.room, "EVT ROOM PRESENCE ENTER")
+	inform_room(clients, clients[ip], clients[ip].Datas.Room, "EVT ROOM PRESENCE ENTER")
 
 	logCtx["action"] = "player_connected"
 
 	return "OK connected", "", nil
 }
 
-func handleCmdQuit(clients map[string]*Client, cli *Client, req []string, logCtx map[string]any) (string, any, error) {
+func handleCmdQuit(clients map[string]*pr.Client, cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	if len(req) != 1 {
 		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
 	}
-	inform_room(clients, cli, cli.datas.room, "EVT ROOM PRESENCE LEAVE")
+	inform_room(clients, cli, cli.Datas.Room, "EVT ROOM PRESENCE LEAVE")
 	return "OK bye", "", nil
 }
 
-func handleCmdWho(clients map[string]*Client, req []string, logCtx map[string]any) (string, any, error) {
+func handleCmdWho(clients map[string]*pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	if len(req) != 1 {
 		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
 	}
 	nb_clients := 0
 	for cli := range clients {
-		if clients[cli].datas.connected {
+		if clients[cli].Datas.Connected {
 			nb_clients++
 		}
 	}
 	return fmt.Sprintf("OK players=%d", nb_clients), "", nil
 }
 
-func handleCmdLook(clients map[string]*Client, cli *Client, req []string, logCtx map[string]any) (string, any, error) {
+func handleCmdLook(clients map[string]*pr.Client, cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	if len(req) != 1 {
 		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
 	}
 
 	res := make(map[string]any)
-	room := make(map[string]any)
+	Room := make(map[string]any)
 	players := make([]string, 0)
 
 	for ip := range clients {
-		if clients[ip].datas.room == cli.datas.room && clients[ip].datas.connected {
-			players = append(players, clients[ip].name)
+		if clients[ip].Datas.Room == cli.Datas.Room && clients[ip].Datas.Connected {
+			players = append(players, clients[ip].Name)
 		}
 	}
 
-	currentRoom := world.Rooms[cli.datas.room]
+	currentRoom := world.Rooms[cli.Datas.Room]
 	res["npcs"] = currentRoom.Npcs
 	res["items"] = currentRoom.Items
 	res["players"] = players
-	res["room"] = room
-	room["id"] = "room." + cli.datas.room
-	room["exits"] = currentRoom.Exits
-	room["description"] = currentRoom.Description
-	room["name"] = currentRoom.Name
+	res["room"] = Room
+	Room["id"] = "room." + cli.Datas.Room
+	Room["exits"] = currentRoom.Exits
+	Room["description"] = currentRoom.Description
+	Room["Name"] = currentRoom.Name
 
 	return "OK", res, nil
 }
 
-func handleCmdMove(clients map[string]*Client, cli *Client, req []string, logCtx map[string]any) (string, any, error) {
+func handleCmdMove(clients map[string]*pr.Client, cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	if len(req) != 2 {
 		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
 	}
 
 	direction := req[1]
-	currentRoom := world.Rooms[cli.datas.room]
+	currentRoom := world.Rooms[cli.Datas.Room]
 
 	nextRoom, exists := currentRoom.Exits[direction]
 	if !exists {
 		return "", "", errors.New("ERR 301 NO_EXIT")
 	}
 
-	inform_room(clients, cli, cli.datas.room, "EVT ROOM PRESENCE LEAVE")
+	inform_room(clients, cli, cli.Datas.Room, "EVT ROOM PRESENCE LEAVE")
 
-	if cli, ok := clients[cli.ip]; ok {
-		cli.datas.room = nextRoom
+	if cli, ok := clients[cli.Ip]; ok {
+		cli.Datas.Room = nextRoom
 	}
-	cli.datas.room = nextRoom
+	cli.Datas.Room = nextRoom
 
-	inform_room(clients, cli, cli.datas.room, "EVT ROOM PRESENCE ENTER")
+	inform_room(clients, cli, cli.Datas.Room, "EVT ROOM PRESENCE ENTER")
 
 	// Enrichissement du contexte de log
 	logCtx["action"] = "player_moved"
@@ -140,7 +141,7 @@ func handleCmdMove(clients map[string]*Client, cli *Client, req []string, logCtx
 	return fmt.Sprintf("OK room=%s", nextRoom), "", nil
 }
 
-func handleCmdChat(clients map[string]*Client, cli *Client, req []string, logCtx map[string]any) (string, any, error) {
+func handleCmdChat(clients map[string]*pr.Client, cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	if len(req) < 3 {
 		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
 	}
@@ -150,21 +151,21 @@ func handleCmdChat(clients map[string]*Client, cli *Client, req []string, logCtx
 	msg := strings.Join(req[2:], " ")
 
 	for ip := range clients {
-		if clients[ip].name != cli.name {
+		if clients[ip].Name != cli.Name {
 			is_global := scope == GlobalChat
-			is_group := scope == GroupChat && cli.datas.group != "" && cli.datas.group == clients[ip].datas.group
-			is_room := scope == RoomChat && cli.datas.room == clients[ip].datas.room
+			is_group := scope == GroupChat && cli.Datas.Group != "" && cli.Datas.Group == clients[ip].Datas.Group
+			is_room := scope == RoomChat && cli.Datas.Room == clients[ip].Datas.Room
 
 			if is_global || is_group || is_room {
-				chat = "[CHAT] " + cli.name + ": " + msg
-				clients[ip].ch <- Response{chat, "", Request{}}
+				chat = "[CHAT] " + cli.Name + ": " + msg
+				clients[ip].Ch <- pr.Response{Msg: chat, Req: pr.Request{}}
 			}
 		}
 	}
 	return "OK", "", nil
 }
 
-func handleCmdGroup(clients map[string]*Client, cli *Client, req []string, logCtx map[string]any) (string, any, error) {
+func handleCmdGroup(clients map[string]*pr.Client, cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	var err error
 	var res string
 	scope := strings.ToUpper(req[1])
@@ -201,27 +202,27 @@ func handleCmdGroup(clients map[string]*Client, cli *Client, req []string, logCt
 	return res, "", nil
 }
 
-func handleCmdStatus(cli *Client, req []string, logCtx map[string]any) (string, any, error) {
+func handleCmdStatus(cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	if len(req) != 1 {
 		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
 	}
 	res := make(map[string]any)
-	res["status"] = cli.datas.status
-	res["max_hp"] = cli.datas.max_hp
-	res["hp"] = cli.datas.hp
+	res["status"] = cli.Datas.Status
+	res["max_hp"] = cli.Datas.Max_hp
+	res["hp"] = cli.Datas.Hp
 	return "OK", res, nil
 }
 
-func handleCmdTake(cli *Client, req []string, logCtx map[string]any) (string, any, error) {
+func handleCmdTake(cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	if len(req) != 2 {
 		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
 	}
 
 	object := req[1]
-	for obj_index, obj := range world.Rooms[cli.datas.room].Items {
+	for obj_index, obj := range world.Rooms[cli.Datas.Room].Items {
 		if obj == object {
-			cli.datas.inventory = append(cli.datas.inventory, object)
-			world.Rooms[cli.datas.room].Items = append(world.Rooms[cli.datas.room].Items[:obj_index], world.Rooms[cli.datas.room].Items[obj_index+1:]...)
+			cli.Datas.Inventory = append(cli.Datas.Inventory, object)
+			world.Rooms[cli.Datas.Room].Items = append(world.Rooms[cli.Datas.Room].Items[:obj_index], world.Rooms[cli.Datas.Room].Items[obj_index+1:]...)
 
 			// Enrichissement du contexte de log
 			logCtx["action"] = "item_taken"
@@ -234,16 +235,16 @@ func handleCmdTake(cli *Client, req []string, logCtx map[string]any) (string, an
 	return "", "", errors.New("ERR 404 ITEM_NOT_FOUND")
 }
 
-func handleCmdDrop(cli *Client, req []string, logCtx map[string]any) (string, any, error) {
+func handleCmdDrop(cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	if len(req) != 2 {
 		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
 	}
 
 	object := req[1]
-	for obj_index, obj := range cli.datas.inventory {
+	for obj_index, obj := range cli.Datas.Inventory {
 		if obj == object {
-			cli.datas.inventory = append(cli.datas.inventory[:obj_index], cli.datas.inventory[obj_index+1:]...)
-			world.Rooms[cli.datas.room].Items = append(world.Rooms[cli.datas.room].Items, object)
+			cli.Datas.Inventory = append(cli.Datas.Inventory[:obj_index], cli.Datas.Inventory[obj_index+1:]...)
+			world.Rooms[cli.Datas.Room].Items = append(world.Rooms[cli.Datas.Room].Items, object)
 
 			// Enrichissement du contexte de log
 			logCtx["action"] = "item_dropped"
@@ -256,14 +257,14 @@ func handleCmdDrop(cli *Client, req []string, logCtx map[string]any) (string, an
 	return "", "", errors.New("ERR 404 ITEM_NOT_IN_INVENTORY")
 }
 
-func handleCmdInventory(cli *Client, req []string, logCtx map[string]any) (string, any, error) {
+func handleCmdInventory(cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	if len(req) != 1 {
 		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
 	}
-	return "OK", cli.datas.inventory, nil
+	return "OK", cli.Datas.Inventory, nil
 }
 
-func handleCmdQuest(cli *Client, req []string, logCtx map[string]any) (string, any, error) {
+func handleCmdQuest(cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	if len(req) != 2 {
 		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
 	}
@@ -271,18 +272,18 @@ func handleCmdQuest(cli *Client, req []string, logCtx map[string]any) (string, a
 	npc := req[1]
 	for npc_name, npc_datas := range world.Npcs {
 		if npc_name == npc {
-			for _, room_npc := range world.Rooms[cli.datas.room].Npcs {
+			for _, room_npc := range world.Rooms[cli.Datas.Room].Npcs {
 				if room_npc == npc {
 					if npc_datas.QuestId == "" || world.Quests[npc_datas.QuestId].Status == "unavailable" {
 						return "", "", errors.New("ERR 406 NO_QUEST_AVAILABLE")
 					}
 					quest := world.Quests[npc_datas.QuestId]
-					datas := make(map[string]any)
-					datas["status"] = quest.Status
-					datas["reward"] = quest.Reward
-					datas["description"] = quest.Description
-					datas["quest_id"] = npc_datas.QuestId
-					return "OK", datas, nil
+					Datas := make(map[string]any)
+					Datas["status"] = quest.Status
+					Datas["reward"] = quest.Reward
+					Datas["description"] = quest.Description
+					Datas["quest_id"] = npc_datas.QuestId
+					return "OK", Datas, nil
 				}
 			}
 		}
@@ -297,17 +298,17 @@ func handleCmdQuests(req []string, logCtx map[string]any) (string, any, error) {
 
 	res := make([]map[string]string, 0)
 	for quest_id, quest := range world.Quests {
-		datas := make(map[string]string)
-		datas["quest_id"] = quest_id
-		datas["status"] = quest.Status
+		Datas := make(map[string]string)
+		Datas["quest_id"] = quest_id
+		Datas["status"] = quest.Status
 		if quest.Status == "active" {
-			datas["progress"] = "1/3"
+			Datas["progress"] = "1/3"
 		}
-		res = append(res, datas)
+		res = append(res, Datas)
 	}
 	return "OK", res, nil
 }
-func handleCmdTalk(cli *Client, req []string, logCtx map[string]any) (string, any, error) {
+func handleCmdTalk(cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	if len(req) != 2 {
 		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
 	}
@@ -315,22 +316,22 @@ func handleCmdTalk(cli *Client, req []string, logCtx map[string]any) (string, an
 	npc := req[1]
 	for npc_name, npc_datas := range world.Npcs {
 		if npc_name == npc {
-			for _, room_npc := range world.Rooms[cli.datas.room].Npcs {
+			for _, room_npc := range world.Rooms[cli.Datas.Room].Npcs {
 				if room_npc == npc {
-					_, ok := dialogues[cli.name][npc_name]
+					_, ok := dialogues[cli.Name][npc_name]
 					if !ok {
-						dialogues[cli.name][npc_name] = 0
+						dialogues[cli.Name][npc_name] = 0
 					}
-					npc_index := dialogues[cli.name][npc_name]
-					datas := npc_datas.Dialogue[npc_index%len(npc_datas.Dialogue)]
-					dialogues[cli.name][npc_name]++
+					npc_index := dialogues[cli.Name][npc_name]
+					Datas := npc_datas.Dialogue[npc_index%len(npc_datas.Dialogue)]
+					dialogues[cli.Name][npc_name]++
 
 					// Enrichissement du contexte de log
 					logCtx["action"] = "dialogue_advanced"
 					logCtx["npc"] = npc
-					logCtx["dialogue_index"] = dialogues[cli.name][npc_name]
+					logCtx["dialogue_index"] = dialogues[cli.Name][npc_name]
 
-					return "OK", datas, nil
+					return "OK", Datas, nil
 				}
 			}
 		}
@@ -339,7 +340,7 @@ func handleCmdTalk(cli *Client, req []string, logCtx map[string]any) (string, an
 	return "", "", errors.New("ERR 404 NPC_NOT_FOUND")
 }
 
-func handleCmdAttack(cli *Client, req []string, logCtx map[string]any) (string, any, error) {
+func handleCmdAttack(cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	if len(req) != 2 {
 		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
 	}
@@ -347,22 +348,22 @@ func handleCmdAttack(cli *Client, req []string, logCtx map[string]any) (string, 
 	npc := req[1]
 	for npc_name, npc_datas := range world.Npcs {
 		if npc_name == npc {
-			for _, room_npc := range world.Rooms[cli.datas.room].Npcs {
+			for _, room_npc := range world.Rooms[cli.Datas.Room].Npcs {
 				if room_npc == npc {
-					datas := make(map[string]any)
-					datas["attacker_hp"] = cli.datas.hp
-					datas["target_hp"] = npc_datas.Stats.Hp
-					datas["damage"] = 10
-					datas["status"] = "combat"
+					Datas := make(map[string]any)
+					Datas["attacker_hp"] = cli.Datas.Hp
+					Datas["target_hp"] = npc_datas.Stats.Hp
+					Datas["damage"] = 10
+					Datas["status"] = "combat"
 
 					// Enrichissement du contexte de log
 					logCtx["action"] = "attack"
 					logCtx["target_npc"] = npc
 					logCtx["damage"] = 10
-					logCtx["attacker_hp"] = cli.datas.hp
+					logCtx["attacker_hp"] = cli.Datas.Hp
 					logCtx["target_hp"] = npc_datas.Stats.Hp
 
-					return "OK", datas, nil
+					return "OK", Datas, nil
 				}
 			}
 		}
