@@ -1,10 +1,12 @@
 package main
 
-import "strings"
+import (
+	pr "tap/protocol"
+)
 
 type Router struct {
 	Inputs  chan<- string
-	Outputs <-chan string
+	Outputs <-chan pr.Response
 
 	ChatChan      chan string
 	ServerChan    chan string
@@ -14,9 +16,10 @@ type Router struct {
 	InventoryChan chan string
 	QuestChan     chan string
 	ItemsChan     chan string
+	LastCommand   string
 }
 
-func NewRouter(inputs chan string, outputs <-chan string) *Router {
+func NewRouter(inputs chan string, outputs <-chan pr.Response) *Router {
 	return &Router{
 		Inputs:        inputs,
 		Outputs:       outputs,
@@ -28,29 +31,21 @@ func NewRouter(inputs chan string, outputs <-chan string) *Router {
 		InventoryChan: make(chan string),
 		QuestChan:     make(chan string),
 		ItemsChan:     make(chan string),
+		LastCommand:   "",
 	}
 }
 
 func (r *Router) Start(m *MyApp) {
 	go func() {
-		for msg := range r.Outputs {
+
+		for res := range r.Outputs {
 			switch {
-			case strings.HasPrefix(msg, "CHAT:"):
-				r.ChatChan <- strings.TrimPrefix(msg, "CHAT:")
-			case strings.HasPrefix(msg, "SERVER:"):
-				r.ServerChan <- strings.TrimPrefix(msg, "SERVER:")
-			case strings.HasPrefix(msg, "NAV:"):
-				r.NavChan <- strings.TrimPrefix(msg, "NAV:")
-			case strings.HasPrefix(msg, "PLAYERS:"):
-				r.PlayersChan <- strings.TrimPrefix(msg, "PLAYERS:")
-			case strings.HasPrefix(msg, "DIALOGUE:"):
-				r.DialogueChan <- strings.TrimPrefix(msg, "DIALOGUE:")
-			case strings.HasPrefix(msg, "INVENTORY:"):
-				r.InventoryChan <- strings.TrimPrefix(msg, "INVENTORY:")
-			case strings.HasPrefix(msg, "QUEST:"):
-				r.QuestChan <- strings.TrimPrefix(msg, "QUEST:")
+			// TO DO
+			// case strings.HasPrefix(res.Msg, "ERR"):
+
+			// case strings.HasPrefix(res.Msg, "EVT"):
 			default:
-				r.ServerChan <- "Unknown format: " + msg
+				r.ServerChan <- "Unknown format: " + res.Msg
 			}
 		}
 	}()

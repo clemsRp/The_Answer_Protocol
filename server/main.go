@@ -137,41 +137,41 @@ func handleRequest(clients map[string]*pr.Client, request pr.Request) {
 	}
 
 	// Force first command to be CONNECT
-	if err == nil && strings.ToUpper(req[0]) != CmdConnect && !request.Cli.Datas.Connected {
+	if err == nil && strings.ToUpper(req[0]) != pr.CmdConnect && !request.Cli.Datas.Connected {
 		res, datas, err = "", "", errors.New("ERR 401 UNAUTHORIZED")
 
 	} else {
 		// Handle the command type
 		switch strings.ToUpper(req[0]) {
-		case CmdConnect:
+		case pr.CmdConnect:
 			res, datas, err = handleCmdConnect(clients, request.Cli.Ip, req, logCtx)
-		case CmdQuit:
+		case pr.CmdQuit:
 			res, datas, err = handleCmdQuit(clients, activeCli, req, logCtx)
-		case CmdWho:
+		case pr.CmdWho:
 			res, datas, err = handleCmdWho(clients, req, logCtx)
-		case CmdLook:
+		case pr.CmdLook:
 			res, datas, err = handleCmdLook(clients, activeCli, req, logCtx)
-		case CmdMove:
+		case pr.CmdMove:
 			res, datas, err = handleCmdMove(clients, activeCli, req, logCtx)
-		case CmdChat:
+		case pr.CmdChat:
 			res, datas, err = handleCmdChat(clients, activeCli, req, logCtx)
-		case CmdGroup:
+		case pr.CmdGroup:
 			res, datas, err = handleCmdGroup(clients, activeCli, req, logCtx)
-		case CmdStatus:
+		case pr.CmdStatus:
 			res, datas, err = handleCmdStatus(activeCli, req, logCtx)
-		case CmdTake:
+		case pr.CmdTake:
 			res, datas, err = handleCmdTake(activeCli, req, logCtx)
-		case CmdDrop:
+		case pr.CmdDrop:
 			res, datas, err = handleCmdDrop(activeCli, req, logCtx)
-		case CmdInventory:
+		case pr.CmdInventory:
 			res, datas, err = handleCmdInventory(activeCli, req, logCtx)
-		case CmdQuest:
+		case pr.CmdQuest:
 			res, datas, err = handleCmdQuest(activeCli, req, logCtx)
-		case CmdQuests:
+		case pr.CmdQuests:
 			res, datas, err = handleCmdQuests(req, logCtx)
-		case CmdTalk:
+		case pr.CmdTalk:
 			res, datas, err = handleCmdTalk(activeCli, req, logCtx)
-		case CmdAttack:
+		case pr.CmdAttack:
 			res, datas, err = handleCmdAttack(activeCli, req, logCtx)
 
 		default:
