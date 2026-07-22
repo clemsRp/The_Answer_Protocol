@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 )
@@ -23,6 +24,9 @@ type Server struct {
 	quitChan       chan struct{}
 	messageChan    chan Message
 	timeoutSeconds int
+	maxConnections int
+	stopOnce       sync.Once
+	wg             sync.WaitGroup
 }
 
 func NewServer(listenAddr string) *Server {
@@ -30,7 +34,8 @@ func NewServer(listenAddr string) *Server {
 		listenAddr:     listenAddr,
 		quitChan:       make(chan struct{}),
 		messageChan:    make(chan Message),
-		timeoutSeconds: 5,
+		timeoutSeconds: timeout_seconds,
+		maxConnections: max_connections,
 	}
 }
 
@@ -39,23 +44,31 @@ func (s *Server) Start() error {
 	if err != nil {
 		return err
 	}
-	defer ln.Close()
 	s.ln = ln
 	fmt.Println("Server started on the port :8080")
+	s.wg.Add(1)
 	go s.acceptLoop()
 
+	// loops infinitely while no close signal via quitChan
 	<-s.quitChan
+
+	fmt.Println("Waiting for all connections to close...")
+	s.wg.Wait()
+	close(s.messageChan)
 	return nil
 }
 
 func (s *Server) Stop() {
-	close(s.quitChan)
-	if s.ln != nil {
-		s.ln.Close()
-	}
+	s.stopOnce.Do(func() {
+		close(s.quitChan)
+		if s.ln != nil {
+			s.ln.Close()
+		}
+	})
 }
 
 func (s *Server) acceptLoop() {
+	defer s.wg.Done()
 	for {
 		conn, err := s.ln.Accept()
 		if err != nil {
@@ -72,12 +85,13 @@ func (s *Server) acceptLoop() {
 			Conn:    conn,
 			timeout: time.Duration(s.timeoutSeconds) * time.Second,
 		}
-
+		s.wg.Add(1)
 		go s.readLoop(wrappedConn)
 	}
 }
 
 func (s *Server) readLoop(conn *TimeoutConn) {
+	defer s.wg.Done()
 	defer conn.Close()
 
 	scanner := bufio.NewScanner(conn)
@@ -94,6 +108,7 @@ func (s *Server) readLoop(conn *TimeoutConn) {
 	if err := scanner.Err(); err != nil {
 		if os.IsTimeout(err) {
 			fmt.Printf("Client disconnected due to inactivity (timeout of %v seconds): %s\n", conn.timeout.Seconds(), conn.RemoteAddr())
+			fmt.Fprintf(conn, "Disconnected of the game due to inactivity (timeout of %v seconds)\n", conn.timeout.Seconds())
 		} else {
 			fmt.Println("Client connection dropped:", err)
 		}
