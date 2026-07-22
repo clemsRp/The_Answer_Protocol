@@ -8,31 +8,6 @@ import (
 )
 
 const (
-	CmdConnect   = "CONNECT"
-	CmdLook      = "LOOK"
-	CmdMove      = "MOVE"
-	CmdChat      = "CHAT"
-	CmdTake      = "TAKE"
-	CmdDrop      = "DROP"
-	CmdInventory = "INVENTORY"
-	CmdTalk      = "TALK"
-	CmdAttack    = "ATTACK"
-	CmdStatus    = "STATUS"
-	CmdQuest     = "QUEST"
-	CmdQuests    = "QUESTS"
-	CmdWho       = "WHO"
-	CmdGroup     = "GROUP"
-	CmdQuit      = "QUIT"
-
-	GlobalChat = "GLOBAL"
-	RoomChat   = "ROOM"
-	GroupChat  = "GROUP"
-
-	CreateGroup = "CREATE"
-	InviteGroup = "INVITE"
-	JoinGroup   = "JOIN"
-	LeaveGroup  = "LEAVE"
-
 	South = "south"
 	North = "north"
 	East  = "east"
@@ -152,9 +127,9 @@ func handleCmdChat(clients map[string]*pr.Client, cli *pr.Client, req []string, 
 
 	for ip := range clients {
 		if clients[ip].Name != cli.Name {
-			is_global := scope == GlobalChat
-			is_group := scope == GroupChat && cli.Datas.Group != "" && cli.Datas.Group == clients[ip].Datas.Group
-			is_room := scope == RoomChat && cli.Datas.Room == clients[ip].Datas.Room
+			is_global := scope == pr.GlobalChat
+			is_group := scope == pr.GroupChat && cli.Datas.Group != "" && cli.Datas.Group == clients[ip].Datas.Group
+			is_room := scope == pr.RoomChat && cli.Datas.Room == clients[ip].Datas.Room
 
 			if is_global || is_group || is_room {
 				chat = "[CHAT] " + cli.Name + ": " + msg
@@ -170,23 +145,23 @@ func handleCmdGroup(clients map[string]*pr.Client, cli *pr.Client, req []string,
 	var res string
 	scope := strings.ToUpper(req[1])
 
-	if (len(req) != 3 && scope != LeaveGroup) || (len(req) > 2 && scope == LeaveGroup) {
+	if (len(req) != 3 && scope != pr.LeaveGroup) || (len(req) > 2 && scope == pr.LeaveGroup) {
 		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
 	}
 
 	var arg string
-	if scope != LeaveGroup {
+	if scope != pr.LeaveGroup {
 		arg = req[2]
 	}
 
 	switch scope {
-	case CreateGroup:
+	case pr.CreateGroup:
 		res, err = create_group(cli, arg)
-	case InviteGroup:
+	case pr.InviteGroup:
 		res, err = invite_user_in_group(clients, cli, arg)
-	case JoinGroup:
+	case pr.JoinGroup:
 		res, err = join_group(cli, arg)
-	case LeaveGroup:
+	case pr.LeaveGroup:
 		res, err = leave_group(cli)
 	default:
 		return "", "", errors.New("ERR 400 Invalid scope")

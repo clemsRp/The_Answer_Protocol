@@ -5,44 +5,12 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"time"
+	pr "tap/protocol"
 )
-
-type Datas struct {
-	room          string
-	status        string
-	inventory     []string
-	invitation    []string
-	group         string
-	hp            int
-	max_hp        int
-	connected     bool
-	last_cmd_time time.Time
-	spam_warning  int
-}
-
-type Client struct {
-	conn  net.Conn
-	ch    chan Response
-	ip    string
-	name  string
-	datas Datas
-}
-
-type Request struct {
-	cli *Client
-	msg string
-}
-
-type Response struct {
-	Msg   string
-	Datas any
-	Req   Request
-}
 
 var (
 	inputs  = make(chan string)
-	outputs = make(chan string)
+	outputs = make(chan pr.Response)
 )
 
 func main() {
@@ -70,7 +38,7 @@ func main() {
 		decoder := json.NewDecoder(conn)
 
 		for {
-			var res Response
+			var res pr.Response
 
 			if err := decoder.Decode(&res); err != nil {
 				fmt.Print("An error occured during connection:", err)
@@ -78,8 +46,7 @@ func main() {
 				os.Exit(0)
 			}
 
-			fmt.Printf("'%s'", res.Msg)
-			outputs <- res.Msg
+			outputs <- res
 
 			if res.Msg == "OK bye" {
 				app.Stop()
@@ -89,7 +56,6 @@ func main() {
 			if res.Msg == "OK connected" {
 				app.ShowGamePage()
 				app.Draw()
-
 			}
 		}
 	}()
