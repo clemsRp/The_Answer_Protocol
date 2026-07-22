@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 	pr "tap/protocol"
 )
 
@@ -29,6 +30,7 @@ func main() {
 	// Handle input
 	go func() {
 		for input := range inputs {
+			router.LastCommand = strings.Split(input, " ")[0]
 			fmt.Fprint(conn, input+"\n")
 		}
 	}()

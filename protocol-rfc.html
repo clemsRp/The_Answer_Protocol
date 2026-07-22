@@ -265,7 +265,7 @@ event-data = 1*VCHAR
 <h3>5.1 Core Commands</h3>
 
 <h4>5.1.1 CONNECT Command</h4>
-<p><strong>Syntax:</strong> <code>CONNECT <username></code></p>
+<p><strong>Syntax:</strong> <code>CONNECT &lt;username&gt;</code></p>
 <p><strong>Purpose:</strong> Establish player identity for the session</p>
 <p><strong>Responses:</strong></p>
 <ul>
@@ -276,7 +276,7 @@ event-data = 1*VCHAR
 <h4>5.1.2 LOOK Command</h4>
 <p><strong>Syntax:</strong> <code>LOOK</code></p>
 <p><strong>Purpose:</strong> Retrieve current room state as JSON</p>
-<p><strong>Response:</strong> <code>OK <json-data></code></p>
+<p><strong>Response:</strong> <code>OK &lt;json-data&gt;</code></p>
 <p><strong>JSON Structure:</strong></p>
 <pre>
 {
@@ -301,11 +301,11 @@ Server → Client: OK { "room": { "id": "loc.bakery", "name": "Village Bakery", 
 </pre>
 
 <h4>5.1.3 MOVE Command</h4>
-<p><strong>Syntax:</strong> <code>MOVE <direction></code></p>
+<p><strong>Syntax:</strong> <code>MOVE &lt;direction&gt;</code></p>
 <p><strong>Purpose:</strong> Move player to adjacent room</p>
 <p><strong>Responses:</strong></p>
 <ul>
-<li><code>OK room=<room-id></code> - Movement successful</li>
+<li><code>OK room=&lt;room-id&gt;</code> - Movement successful</li>
 <li><code>ERR 301 NO_EXIT</code> - Invalid direction</li>
 </ul>
 
@@ -317,7 +317,7 @@ Server → Client: OK { "room": { "id": "loc.bakery", "name": "Village Bakery", 
 <h3>5.2 Communication Commands</h3>
 
 <h4>5.2.1 CHAT Command</h4>
-<p><strong>Syntax:</strong> <code>CHAT <scope> <message></code></p>
+<p><strong>Syntax:</strong> <code>CHAT &lt;scope&gt; &lt;message&gt;</code></p>
 <p><strong>Purpose:</strong> Send chat message to specified scope</p>
 <p><strong>Scopes:</strong> GLOBAL, ROOM, GROUP</p>
 <p><strong>Response:</strong> <code>OK</code></p>
@@ -325,24 +325,24 @@ Server → Client: OK { "room": { "id": "loc.bakery", "name": "Village Bakery", 
 <h4>5.2.2 WHO Command</h4>
 <p><strong>Syntax:</strong> <code>WHO</code></p>
 <p><strong>Purpose:</strong> Query total player count</p>
-<p><strong>Response:</strong> <code>OK players=<count></code></p>
+<p><strong>Response:</strong> <code>OK players=&lt;count&gt;</code></p>
 
 <h3>5.3 Group Management Commands</h3>
 
 <h4>5.3.1 GROUP CREATE Command</h4>
 <p><strong>Syntax:</strong> <code>GROUP CREATE</code></p>
 <p><strong>Purpose:</strong> Create a new player group</p>
-<p><strong>Response:</strong> <code>OK group=<group-id></code></p>
+<p><strong>Response:</strong> <code>OK group=&lt;group-id&gt;</code></p>
 
 <h4>5.3.2 GROUP INVITE Command</h4>
-<p><strong>Syntax:</strong> <code>GROUP INVITE <username></code></p>
+<p><strong>Syntax:</strong> <code>GROUP INVITE &lt;username&gt;</code></p>
 <p><strong>Purpose:</strong> Invite player to current group</p>
 <p><strong>Response:</strong> <code>OK</code></p>
 
 <h4>5.3.3 GROUP JOIN Command</h4>
-<p><strong>Syntax:</strong> <code>GROUP JOIN <leader-name></code></p>
+<p><strong>Syntax:</strong> <code>GROUP JOIN &lt;leader-name&gt;</code></p>
 <p><strong>Purpose:</strong> Join an existing group</p>
-<p><strong>Response:</strong> <code>OK group=<group-id></code></p>
+<p><strong>Response:</strong> <code>OK group=&lt;group-id&gt;</code></p>
 
 <h4>5.3.4 GROUP LEAVE Command</h4>
 <p><strong>Syntax:</strong> <code>GROUP LEAVE</code></p>
@@ -352,11 +352,11 @@ Server → Client: OK { "room": { "id": "loc.bakery", "name": "Village Bakery", 
 <h3>5.4 Resource Interaction Commands</h3>
 
 <h4>5.4.1 TAKE Command</h4>
-<p><strong>Syntax:</strong> <code>TAKE <item-identifier></code></p>
+<p><strong>Syntax:</strong> <code>TAKE &lt;item-identifier&gt;</code></p>
 <p><strong>Purpose:</strong> Acquire item from current room</p>
 <p><strong>Responses:</strong></p>
 <ul>
-<li><code>OK taken=<item-id></code> - Item acquired successfully</li>
+<li><code>OK taken=&lt;item-id&gt;</code> - Item acquired successfully</li>
 <li><code>ERR 404 ITEM_NOT_FOUND</code> - Item not available</li>
 </ul>
 <p><strong>Example:</strong></p>
@@ -370,11 +370,11 @@ Server → Client: OK { "room": { ... }, "items":[], ... }
 </pre>
 
 <h4>5.4.2 DROP Command</h4>
-<p><strong>Syntax:</strong> <code>DROP <item-identifier></code></p>
+<p><strong>Syntax:</strong> <code>DROP &lt;item-identifier&gt;</code></p>
 <p><strong>Purpose:</strong> Release item to current room</p>
 <p><strong>Responses:</strong></p>
 <ul>
-<li><code>OK dropped=<item-id></code> - Item released successfully</li>
+<li><code>OK dropped=&lt;item-id&gt;</code> - Item released successfully</li>
 <li><code>ERR 404 ITEM_NOT_IN_INVENTORY</code> - Item not in inventory</li>
 </ul>
 <p><strong>Example:</strong></p>
@@ -388,7 +388,7 @@ Server → Client: OK { "room": { ... }, "items":["item.herbs"], ... }
 <h4>5.4.3 INVENTORY Command</h4>
 <p><strong>Syntax:</strong> <code>INVENTORY</code></p>
 <p><strong>Purpose:</strong> List player's current items as JSON array</p>
-<p><strong>Response:</strong> <code>OK [<json-item-list>]</code></p>
+<p><strong>Response:</strong> <code>OK [&lt;json-item-list&gt;]</code></p>
 <p><strong>Example:</strong></p>
 <pre>
 Client → Server: INVENTORY
@@ -396,11 +396,11 @@ Server → Client: OK ["item.herbs", "item.loaf_bread"]
 </pre>
 
 <h4>5.4.4 TALK Command</h4>
-<p><strong>Syntax:</strong> <code>TALK <npc-name></code></p>
+<p><strong>Syntax:</strong> <code>TALK &lt;npc-name&gt;</code></p>
 <p><strong>Purpose:</strong> Interact with non-player character</p>
 <p><strong>Responses:</strong></p>
 <ul>
-<li><code>OK <dialogue></code> - Interaction successful</li>
+<li><code>OK &lt;dialogue&gt;</code> - Interaction successful</li>
 <li><code>ERR 404 NPC_NOT_FOUND</code> - NPC not present</li>
 </ul>
 <p><strong>Example:</strong></p>
@@ -410,11 +410,11 @@ Server → Client: OK Welcome to my bakery!
 </pre>
 
 <h4>5.4.5 ATTACK Command</h4>
-<p><strong>Syntax:</strong> <code>ATTACK <npc-name></code></p>
+<p><strong>Syntax:</strong> <code>ATTACK &lt;npc-name&gt;</code></p>
 <p><strong>Purpose:</strong> Initiate combat with an enemy NPC</p>
 <p><strong>Responses:</strong></p>
 <ul>
-<li><code>OK <combat-result></code> - Attack successful, returns combat status</li>
+<li><code>OK &lt;combat-result&gt;</code> - Attack successful, returns combat status</li>
 <li><code>ERR 404 NPC_NOT_FOUND</code> - NPC not present</li>
 <li><code>ERR 405 NPC_NOT_HOSTILE</code> - NPC cannot be attacked</li>
 </ul>
@@ -427,7 +427,7 @@ Server → Client: OK {"attacker_hp": 80, "target_hp": 15, "damage": 10, "status
 <h4>5.4.6 STATUS Command</h4>
 <p><strong>Syntax:</strong> <code>STATUS</code></p>
 <p><strong>Purpose:</strong> Get player's current health and combat status</p>
-<p><strong>Response:</strong> <code>OK {"hp": <current-hp>, "max_hp": <max-hp>, "status": "<status>"}</code></p>
+<p><strong>Response:</strong> <code>OK {"hp": &lt;current-hp&gt;, "max_hp": &lt;max-hp&gt;, "status": "&lt;status&gt;"}</code></p>
 <p><strong>Example:</strong></p>
 <pre>
 Client → Server: STATUS
@@ -435,11 +435,11 @@ Server → Client: OK {"hp": 80, "max_hp": 100, "status": "healthy"}
 </pre>
 
 <h4>5.4.7 QUEST Command</h4>
-<p><strong>Syntax:</strong> <code>QUEST <npc-name></code></p>
+<p><strong>Syntax:</strong> <code>QUEST &lt;npc-name&gt;</code></p>
 <p><strong>Purpose:</strong> Request quest from quest-giver NPC</p>
 <p><strong>Responses:</strong></p>
 <ul>
-<li><code>OK <quest-data></code> - Quest available, returns quest information</li>
+<li><code>OK &lt;quest-data&gt;</code> - Quest available, returns quest information</li>
 <li><code>ERR 404 NPC_NOT_FOUND</code> - NPC not present</li>
 <li><code>ERR 406 NO_QUEST_AVAILABLE</code> - NPC has no quests or quest already completed</li>
 </ul>
@@ -452,7 +452,7 @@ Server → Client: OK {"quest_id": "fetch_herbs", "description": "Bring me 3 hea
 <h4>5.4.8 QUESTS Command</h4>
 <p><strong>Syntax:</strong> <code>QUESTS</code></p>
 <p><strong>Purpose:</strong> List all player's active and completed quests</p>
-<p><strong>Response:</strong> <code>OK <quest-list></code></p>
+<p><strong>Response:</strong> <code>OK &lt;quest-list&gt;</code></p>
 <p><strong>Example:</strong></p>
 <pre>
 Client → Server: QUESTS
@@ -493,44 +493,44 @@ Server → Client: OK [{"quest_id": "fetch_herbs", "status": "active", "progress
 <h3>7.1 Event Message Format</h3>
 <p>Events are asynchronous messages that inform clients of world state changes. All events follow the format:</p>
 
-<pre>EVT <category> <type> <data></pre>
+<pre>EVT &lt;category&gt; &lt;type&gt; &lt;data&gt;</pre>
 
 <h3>6.2 Event Categories</h3>
 
 <h4>6.2.1 ROOM Events</h4>
 <table>
 <tr><th>Event Type</th><th>Format</th><th>Description</th></tr>
-<tr><td>PRESENCE ENTER</td><td>EVT ROOM PRESENCE ENTER <username></td><td>Player entered current room</td></tr>
-<tr><td>PRESENCE LEAVE</td><td>EVT ROOM PRESENCE LEAVE <username></td><td>Player left current room</td></tr>
-<tr><td>CHAT</td><td>EVT ROOM CHAT <username> <message></td><td>Room-scoped chat message</td></tr>
+<tr><td>PRESENCE ENTER</td><td>EVT ROOM PRESENCE ENTER &lt;username&gt;</td><td>Player entered current room</td></tr>
+<tr><td>PRESENCE LEAVE</td><td>EVT ROOM PRESENCE LEAVE &lt;username&gt;</td><td>Player left current room</td></tr>
+<tr><td>CHAT</td><td>EVT ROOM CHAT &lt;username&gt; &lt;message&gt;</td><td>Room-scoped chat message</td></tr>
 </table>
 
 <h4>6.2.2 GLOBAL Events</h4>
 <table>
 <tr><th>Event Type</th><th>Format</th><th>Description</th></tr>
-<tr><td>CHAT</td><td>EVT GLOBAL CHAT <username> <message></td><td>Server-wide chat message</td></tr>
+<tr><td>CHAT</td><td>EVT GLOBAL CHAT &lt;username&gt; &lt;message&gt;</td><td>Server-wide chat message</td></tr>
 </table>
 
 <h4>6.2.3 GROUP Events</h4>
 <table>
 <tr><th>Event Type</th><th>Format</th><th>Description</th></tr>
-<tr><td>INVITE</td><td>EVT GROUP INVITE <leader></td><td>Group invitation received</td></tr>
-<tr><td>JOIN</td><td>EVT GROUP JOIN <username></td><td>Player joined group</td></tr>
-<tr><td>LEAVE</td><td>EVT GROUP LEAVE <username></td><td>Player left group</td></tr>
-<tr><td>CHAT</td><td>EVT GROUP CHAT <username> <message></td><td>Group-scoped chat message</td></tr>
+<tr><td>INVITE</td><td>EVT GROUP INVITE &lt;leader&gt;</td><td>Group invitation received</td></tr>
+<tr><td>JOIN</td><td>EVT GROUP JOIN &lt;username&gt;</td><td>Player joined group</td></tr>
+<tr><td>LEAVE</td><td>EVT GROUP LEAVE &lt;username&gt;</td><td>Player left group</td></tr>
+<tr><td>CHAT</td><td>EVT GROUP CHAT &lt;username&gt; &lt;message&gt;</td><td>Group-scoped chat message</td></tr>
 </table>
 
 <h4>6.2.4 STATS Events</h4>
 <table>
 <tr><th>Event Type</th><th>Format</th><th>Description</th></tr>
-<tr><td>PLAYERS</td><td>EVT STATS players=<count></td><td>Updated player count</td></tr>
+<tr><td>PLAYERS</td><td>EVT STATS players=&lt;count&gt;</td><td>Updated player count</td></tr>
 </table>
 
 <h2>8. Error Handling</h2>
 
 <h3>8.1 Error Response Format</h3>
 <p>Error responses follow the format:</p>
-<pre>ERR <code> <message></pre>
+<pre>ERR &lt;code&gt; &lt;message&gt;</pre>
 
 <h3>8.2 Standard Error Codes</h3>
 <table>

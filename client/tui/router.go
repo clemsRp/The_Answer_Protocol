@@ -17,6 +17,7 @@ type Router struct {
 	InventoryChan chan string
 	QuestChan     chan string
 	ItemsChan     chan string
+	LastCommand   string
 }
 
 func NewRouter(inputs chan string, outputs <-chan pr.Response) *Router {
@@ -31,17 +32,20 @@ func NewRouter(inputs chan string, outputs <-chan pr.Response) *Router {
 		InventoryChan: make(chan string),
 		QuestChan:     make(chan string),
 		ItemsChan:     make(chan string),
+		LastCommand:   "",
 	}
 }
 
 func (r *Router) Start(m *MyApp) {
 	go func() {
+
 		for res := range r.Outputs {
 			switch {
 			case strings.HasPrefix(res.Msg, "OK"):
-			case strings.HasPrefix(res.Msg, "ERR"):
-			case strings.HasPrefix(res.Msg, "EVT"):
-				
+				pr.IsValidResponse(res.Msg)
+			// case strings.HasPrefix(res.Msg, "ERR"):
+
+			// case strings.HasPrefix(res.Msg, "EVT"):
 			default:
 				r.ServerChan <- "Unknown format: " + res.Msg
 			}
