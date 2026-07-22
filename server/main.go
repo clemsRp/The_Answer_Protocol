@@ -157,6 +157,7 @@ func (s *Server) readLoop(conn *TimeoutConn) {
 		}
 	} else {
 		fmt.Println("Client disconnected gracefully:", conn.RemoteAddr())
+		fmt.Fprintln(conn, "Disconnected gracefully.")
 	}
 }
 
