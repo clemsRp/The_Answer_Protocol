@@ -1,16 +1,94 @@
 [
-  {
-    "rooms": {
-		
-	},
-    "items": {
-	  
-    },
-    "npcs": {
-
-	},
-	"quests": {
-		
-	}
-  }
+    {
+        "rooms": {
+            "entrance": {
+                "name": "Supermarket Entrance",
+                "description": "The main entrance with shopping carts. Tension is high as senior citizens stretch their calves.",
+                "exits": {
+                    "north": "health_aisle",
+                    "east": "fresh_section"
+                },
+                "items": [],
+                "npcs": ["granny_jeanine"]
+            },
+            "health_aisle": {
+                "name": "Health & Pharmacy Aisle",
+                "description": "The epicenter of today's special offers. A crowd of octogenarians clusters in front of the shelves.",
+                "exits": {
+                    "south": "entrance"
+                },
+                "items": ["gold_denture", "suppository_box"],
+                "npcs": ["grandpa_gaston"]
+            },
+            "fresh_section": {
+                "name": "Meat & Deli Counter",
+                "description": "It smells like cured meats and nostalgia.",
+                "exits": {
+                    "west": "entrance"
+                },
+                "items": ["coin_bag"],
+                "npcs": []
+            }
+        },
+        "items": {
+            "gold_denture": {
+                "name": "Solid Gold Denture",
+                "description": "A premium set of false teeth, perfect for chewing tough meat.",
+                "obtainable": true
+            },
+            "suppository_box": {
+                "name": "Discounted Suppository Box",
+                "description": "The very last pack on the shelf. Everyone is fighting for it.",
+                "obtainable": true
+            },
+            "coin_bag": {
+                "name": "Bag of Small Coins",
+                "description": "A heavy bag filled with thousands of tiny copper coins.",
+                "obtainable": true
+            }
+        },
+        "npcs": {
+            "granny_jeanine": {
+                "name": "Granny Jeanine",
+                "description": "An elderly lady in a hurry who pays exclusively in 1-cent coins.",
+                "dialogue": [
+                    "Out of my way, youngster!",
+                    "If you want that denture, you'll need to bring me thousands of coins!"
+                ],
+                "role": "quest",
+                "quest_id": "buy_denture",
+                "stats": {
+                    "hp": 15,
+                    "max_hp": 15,
+                    "status": "healthy"
+                }
+            },
+            "grandpa_gaston": {
+                "name": "Grandpa Gaston",
+                "description": "A veteran sprinter ready to do anything to snag the best discounts.",
+                "dialogue": [
+                    "First come, first served on the diapers and suppositories!"
+                ],
+                "role": "dialogue",
+                "quest_id": "",
+                "stats": {
+                    "hp": 10,
+                    "max_hp": 10,
+                    "status": "healthy"
+                }
+            }
+        },
+        "quests": {
+            "buy_denture": {
+                "description": "Buy the gold denture using thousands of small coins.",
+                "reward": "gold_denture",
+                "status": "available"
+            },
+            "run_for_suppos": {
+                "description": "Sprint to the health aisle to grab the suppository box before Grandpa Gaston.",
+                "reward": "suppository_box",
+                "status": "available"
+            }
+        }
+    }
 ]

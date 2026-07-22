@@ -1,8 +1,13 @@
-package main
+package panel
 
 import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+)
+
+var (
+	Black   = tcell.NewRGBColor(0, 0, 0)
+	Default = tcell.ColorDefault
 )
 
 func createTextView(text string, title string, hasBorder bool, textColor tcell.Color, backgroundColor tcell.Color) *tview.TextView {
@@ -31,10 +36,10 @@ func createTextView(text string, title string, hasBorder bool, textColor tcell.C
 	return tv
 }
 
-func createListView(title string, hasBorder bool, mainColor tcell.Color, shortcutColor tcell.Color, selectedBgColor tcell.Color, backgroundColor tcell.Color, highlightFullLine bool, showSecondaryText bool) *tview.List {
+func createListView(title string, hasBorder bool, panelColor tcell.Color, shortcutColor tcell.Color, selectedBgColor tcell.Color, backgroundColor tcell.Color, highlightFullLine bool, showSecondaryText bool) *tview.List {
 	l := tview.NewList()
 
-	l.SetMainTextColor(mainColor)
+	l.SetMainTextColor(panelColor)
 	l.SetShortcutColor(shortcutColor)
 	l.SetSelectedBackgroundColor(selectedBgColor)
 	l.SetBackgroundColor(backgroundColor)
