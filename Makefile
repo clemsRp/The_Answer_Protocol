@@ -6,7 +6,7 @@ client:
 	go run ./client/tui
 
 server:
-	go run ./server
+	go run ./cmd/server
 
 test-fragmented-packets:
 	(echo -n "say hello " ; sleep 2 ; echo -n "to eve" ; \
