@@ -8,10 +8,24 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
 )
+
+type Player struct {
+	Name     string
+	Location string
+	Hp       int
+	HpMax    int
+}
+
+type Client struct {
+	conn       net.Conn
+	player     *Player
+	isLoggedIn bool
+}
 
 type Message struct {
 	from    string
@@ -24,9 +38,17 @@ type Server struct {
 	quitChan       chan struct{}
 	messageChan    chan Message
 	timeoutSeconds int
-	maxConnections int
-	stopOnce       sync.Once
-	wg             sync.WaitGroup
+	maxClients     int
+	maxPlayers     int
+
+	muClients sync.Mutex
+	clients   map[net.Conn]*Client
+
+	muPlayers sync.Mutex
+	players   map[string]*Player
+
+	stopOnce sync.Once
+	wg       sync.WaitGroup
 }
 
 func NewServer(listenAddr string) *Server {
@@ -35,7 +57,8 @@ func NewServer(listenAddr string) *Server {
 		quitChan:       make(chan struct{}),
 		messageChan:    make(chan Message),
 		timeoutSeconds: timeout_seconds,
-		maxConnections: max_connections,
+		maxClients:     max_clients,
+		maxPlayers:     max_players,
 	}
 }
 
@@ -79,6 +102,20 @@ func (s *Server) acceptLoop() {
 			time.Sleep(1 * time.Second)
 			continue
 		}
+
+		s.muClients.Lock()
+
+		if len(s.clients) >= s.maxClients {
+			s.muClients.Unlock()
+
+			fmt.Println("Server full, rejecting connection:", conn.RemoteAddr())
+			fmt.Fprintf(conn, "The server is currenty full. Try again later.\n")
+			conn.Close()
+			continue
+		}
+		s.clients[conn] = &Client{conn: conn, player: nil, isLoggedIn: false}
+		s.muClients.Unlock()
+
 		fmt.Println("new connection to the server:", conn.RemoteAddr())
 
 		wrappedConn := &TimeoutConn{
@@ -93,6 +130,12 @@ func (s *Server) acceptLoop() {
 func (s *Server) readLoop(conn *TimeoutConn) {
 	defer s.wg.Done()
 	defer conn.Close()
+
+	defer func() {
+		s.muClients.Lock()
+		delete(s.clients, conn)
+		s.muClients.Unlock()
+	}()
 
 	scanner := bufio.NewScanner(conn)
 
@@ -120,7 +163,12 @@ func (s *Server) readLoop(conn *TimeoutConn) {
 func (s *Server) messageLoop() {
 
 	for msg := range s.messageChan {
-		fmt.Printf("received message from connection (%s): %s\n", msg.from, string(msg.payload))
+		payload := strings.TrimSpace(string(msg.payload))
+		// parts := strings.Split(payload, " ")
+		fmt.Printf("received message from connection (%s): %s\n", msg.from, payload)
+		// if strings.HasPrefix(payload, "CONNECT") && len(parts) == 2 {
+
+		// }
 	}
 }
 

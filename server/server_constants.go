@@ -1,6 +1,7 @@
 package main
 
 const (
-	timeout_seconds = 5
-	max_connections = 3
+	timeout_seconds = 30
+	max_clients     = 2
+	max_players     = 1
 )
