@@ -20,7 +20,7 @@ func main() {
 
 	errch := make(chan error, 1)
 	go server.SafeStart(errch)
-
+	go engine.Run()
 	// The only way to stop the server is by CTRL+C or KILL command
 	// then it stops gracefully.
 	sigch := make(chan os.Signal, 1)

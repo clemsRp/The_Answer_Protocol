@@ -33,8 +33,8 @@ func (s *Server) readLoop(conn *TimeoutConn) {
 		text := scanner.Text()
 
 		s.InChan <- IncomingEvent{
-			from:    conn.RemoteAddr().String(),
-			payload: []byte(text),
+			ClientID: "helo",
+			Payload:  text,
 		}
 	}
 
