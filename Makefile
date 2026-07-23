@@ -3,7 +3,7 @@
 
 
 client:
-	go run ./client/tui
+	nc localhost 8080
 
 server:
 	go run ./cmd/server

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 	"sync/atomic"
 )
 
@@ -21,8 +22,11 @@ func (s *Server) clientReadLoop(client *Client) {
 	scanner := bufio.NewScanner(client.conn)
 
 	for scanner.Scan() {
-		text := scanner.Text()
-
+		text := strings.TrimSpace(scanner.Text())
+		// no spam to the channel if text is empty
+		if text == "" {
+			continue
+		}
 		s.InChan <- IncomingEvent{
 			ClientID: client.id,
 			Payload:  text,
