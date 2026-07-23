@@ -9,6 +9,16 @@ import (
 	"time"
 )
 
+type IncomingEvent struct {
+	ClientID string
+	Payload  string
+}
+
+type OutgoingEvent struct {
+	ClientID string
+	Payload  string
+}
+
 type Server struct {
 	listenAddr     string
 	ln             net.Listener
@@ -23,13 +33,18 @@ type Server struct {
 
 	stopOnce sync.Once
 	wg       sync.WaitGroup
+	InChan   chan<- IncomingEvent // server sends commands from the clients ->
+	// to the game
+	OutChan <-chan OutgoingEvent // server receives events from game, ->
+	// and sends them to clients
 }
 
-func NewServer(listenAddr string) *Server {
+func NewServer(listenAddr string, in chan<- IncomingEvent, out <-chan OutgoingEvent) *Server {
 	return &Server{
 		listenAddr:     listenAddr,
 		quitChan:       make(chan struct{}),
-		messageChan:    make(chan Message),
+		InChan:         in,
+		OutChan:        out,
 		timeoutSeconds: timeout_seconds,
 		maxClients:     max_clients,
 		maxPlayers:     max_players,

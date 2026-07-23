@@ -32,7 +32,7 @@ func (s *Server) readLoop(conn *TimeoutConn) {
 	for scanner.Scan() {
 		text := scanner.Text()
 
-		s.messageChan <- Message{
+		s.InChan <- IncomingEvent{
 			from:    conn.RemoteAddr().String(),
 			payload: []byte(text),
 		}
