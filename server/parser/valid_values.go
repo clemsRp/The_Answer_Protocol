@@ -3,21 +3,22 @@ package parser
 import (
 	"errors"
 	"fmt"
+	pr "tap/protocol"
 )
 
 var (
 	exits = []string{
-		"north",
-		"south",
-		"east",
-		"west",
+		pr.North,
+		pr.South,
+		pr.East,
+		pr.West,
 	}
 
 	directions = map[string]string{
-		"north": "south",
-		"south": "north",
-		"west":  "east",
-		"east":  "west",
+		pr.North: pr.South,
+		pr.South: pr.North,
+		pr.West:  pr.East,
+		pr.East:  pr.West,
 	}
 
 	roles = []string{

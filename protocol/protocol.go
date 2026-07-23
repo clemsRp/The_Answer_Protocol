@@ -92,4 +92,9 @@ const (
 	InviteGroup = "INVITE"
 	JoinGroup   = "JOIN"
 	LeaveGroup  = "LEAVE"
+
+	South = "south"
+	North = "north"
+	East  = "east"
+	West  = "west"
 )

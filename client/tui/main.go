@@ -30,8 +30,11 @@ func main() {
 	// Handle input
 	go func() {
 		for input := range inputs {
-			router.LastCommand = strings.Split(input, " ")[0]
+			// Send command to the server
 			fmt.Fprint(conn, input+"\n")
+
+			// Save the last command to handle server returns
+			router.LastCommand = strings.Split(input, " ")[0]
 		}
 	}()
 
@@ -50,6 +53,7 @@ func main() {
 
 			outputs <- res
 
+			// Handle Login/Logout
 			if res.Msg == "OK bye" {
 				app.Stop()
 				conn.Close()

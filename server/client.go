@@ -10,9 +10,11 @@ import (
 )
 
 func handleClient(conn net.Conn) {
+	// Send server responses to client terminal
 	responses := make(chan pr.Response)
 	go clientWriter(conn, responses)
 
+	// Init client
 	who := conn.RemoteAddr().String()
 
 	cli := &pr.Client{
@@ -29,18 +31,24 @@ func handleClient(conn net.Conn) {
 		},
 	}
 
+	// Log player connection
 	cli.Ch <- pr.Response{Msg: "OK hello proto=1"}
 	entering <- cli
 
+	// Handle player commands user buffers
 	input := bufio.NewScanner(conn)
 	buf := make([]byte, 0, 1024)
 	input.Buffer(buf, 1024)
+
 	for input.Scan() {
+		// Handle command spams
 		now := time.Now()
 		if now.Sub(cli.Datas.Last_cmd_time) >= 1000*time.Millisecond {
 			cli.Datas.Spam_warning = 0
 			cli.Datas.Last_cmd_time = now
 			requests <- pr.Request{Cli: cli, Msg: input.Text()}
+
+			// Handle valid commands
 		} else {
 			cli.Datas.Spam_warning++
 			LogWarn("Abuse detected", map[string]any{"warnings": cli.Datas.Spam_warning, "ip": cli.Ip, "player": cli.Name})
@@ -52,6 +60,7 @@ func handleClient(conn net.Conn) {
 			}
 		}
 	}
+
 	leaving <- cli
 }
 

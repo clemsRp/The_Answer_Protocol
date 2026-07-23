@@ -17,17 +17,6 @@ type Log struct {
 	Datas     map[string]any `json:"datas,omitempty"`
 }
 
-// type Request struct {
-// 	cli *pr.Client
-// 	msg string
-// }
-
-// type Response struct {
-// 	Msg   string
-// 	Datas any
-// 	Req   Request
-// }
-
 var (
 	requests = make(chan pr.Request)
 	logs     = make(chan Log, 500)
@@ -83,12 +72,15 @@ func broadcaster() {
 
 	for {
 		select {
+		// Print server logs
 		case log := <-logs:
 			writeLog(log.Level, log.Message, log.Datas)
 
+		// Handle a client command
 		case req := <-requests:
 			handleRequest(clients, req)
 
+		// Handle the start of the a client connection
 		case cli := <-entering:
 			clients[cli.Ip] = cli
 			LogInfo("Start of connection", map[string]any{
@@ -96,6 +88,7 @@ func broadcaster() {
 				"duration": get_timestamp(),
 			})
 
+		// Handle the end of the a client connection
 		case cli := <-leaving:
 			if c, ok := clients[cli.Ip]; ok {
 				delete(clients, cli.Ip)
@@ -111,12 +104,14 @@ func broadcaster() {
 }
 
 func handleRequest(clients map[string]*pr.Client, request pr.Request) {
+	// Get commands
 	req := strings.Split(request.Msg, " ")
 
 	var res string
 	var datas any
 	var err error
 
+	// Get "true" client
 	activeCli, ok := clients[request.Cli.Ip]
 	if !ok {
 		activeCli = request.Cli
@@ -178,6 +173,8 @@ func handleRequest(clients map[string]*pr.Client, request pr.Request) {
 			res, datas, err = "", "", errors.New("Invalid command")
 		}
 	}
+
+	// Handle command errors and status codes
 	statusCode := "200"
 	if err != nil {
 		res, datas = err.Error(), ""
@@ -200,5 +197,6 @@ func handleRequest(clients map[string]*pr.Client, request pr.Request) {
 		LogInfo("Command success", logCtx)
 	}
 
+	// Send server response to the client
 	activeCli.Ch <- pr.Response{Msg: res, Datas: datas, Req: request}
 }

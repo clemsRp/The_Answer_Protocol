@@ -34,6 +34,7 @@ func IsValidKeys(file []byte) error {
         if delim, ok := t.(json.Delim); ok {
             if delim == '{' {
                 stack = append(stack, make(map[string]bool))
+
             } else if delim == '}' {
                 if len(stack) > 0 {
                     stack = stack[:len(stack)-1]
@@ -90,6 +91,7 @@ func skipNextValue(dec *json.Decoder, currentToken json.Token) error {
         if delim, ok := t.(json.Delim); ok {
             if delim == '{' || delim == '[' {
                 depth++
+
             } else if delim == '}' || delim == ']' {
                 depth--
             }

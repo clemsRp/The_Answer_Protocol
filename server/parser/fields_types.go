@@ -12,11 +12,11 @@ type Field struct {
 }
 
 var typeRegistry = map[string]reflect.Type{
-	"string": reflect.TypeOf(""),
-	"int":    reflect.TypeOf(0.0),
-	"bool":   reflect.TypeOf(true),
-	"map":    reflect.TypeOf(map[string]any{}),
-	"list":   reflect.TypeOf([]any{}),
+	"string": reflect.TypeFor[string](),
+	"int":    reflect.TypeFor[float64](),
+	"bool":   reflect.TypeFor[bool](),
+	"map":    reflect.TypeFor[map[string]any](),
+	"list":   reflect.TypeFor[[]any](),
 }
 
 var (
@@ -52,33 +52,31 @@ var (
 		{"status", "string"},
 	}
 	StatsFieldTypes = []Field{
-        {"hp", "int"},
-        {"max_hp", "int"},
-        {"status", "string"},
-    }
+		{"hp", "int"},
+		{"max_hp", "int"},
+		{"status", "string"},
+	}
 )
 
 func check_fields_and_types(datas map[string]any, fields []Field) error {
 	for _, field := range fields {
 		// Handle missing key
 		if _, ok := datas[field.f_name]; !ok {
-			return errors.New(fmt.Sprintf("Invalid map: missing key '%s'", field.f_name))
+			return fmt.Errorf("Invalid map: missing key '%s'", field.f_name)
 
-		// Handle any type
+			// Handle any type
 		} else if field.f_type == "any" {
 			continue
 
-		// Handle empty strings
+			// Handle empty strings
 		} else if field.f_type == "string" && field.f_name != "quest_id" && datas[field.f_name] == "" {
-			return errors.New(fmt.Sprintf("Invalid map: '%s' field shouldn't be an empty string", field.f_name))
+			return fmt.Errorf("Invalid map: '%s' field shouldn't be an empty string", field.f_name)
 
-		// Handle other types
+			// Handle other types
 		} else if reflect.TypeOf(datas[field.f_name]) != typeRegistry[field.f_type] {
-			return errors.New(
-				fmt.Sprintf(
-					"Invalid type '%s': expected '%s' got '%s'",
-					field.f_name, typeRegistry[field.f_type], reflect.TypeOf(datas[field.f_name]),
-				),
+			return fmt.Errorf(
+				"Invalid type '%s': expected '%s' got '%s'",
+				field.f_name, typeRegistry[field.f_type], reflect.TypeOf(datas[field.f_name]),
 			)
 		}
 	}
@@ -91,20 +89,20 @@ func check_fields_and_types(datas map[string]any, fields []Field) error {
 }
 
 func check_exits(exitsData map[string]any, field_name string) error {
-    for exitDir, exitDest := range exitsData {
-        if reflect.TypeOf(exitDest) != typeRegistry["string"] {
-            return errors.New(fmt.Sprintf("Invalid type for exit '%s' in room '%s': expected 'string'", exitDir, field_name))
-        }
-    }
+	for exitDir, exitDest := range exitsData {
+		if reflect.TypeOf(exitDest) != typeRegistry["string"] {
+			return fmt.Errorf("Invalid type for exit '%s' in room '%s': expected 'string'", exitDir, field_name)
+		}
+	}
 
 	return nil
 }
 
 func check_stats(statsData map[string]any) error {
 	err := check_fields_and_types(statsData, StatsFieldTypes)
-    if err != nil {
-        return err
-    }
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -163,7 +161,7 @@ func IsValidFields(world_map map[string]any) error {
 						}
 					}
 				}
-				
+
 				// Check stats
 				if major_field == "npcs" {
 					if statsData, ok := fieldMap["stats"].(map[string]any); ok {
