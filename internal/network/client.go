@@ -15,39 +15,16 @@ type Client struct {
 	isLoggedIn bool
 }
 
-func (s *Server) clientReadLoop(client *Client) {
-	defer s.wg.Done()
-	defer client.conn.Close()
-	defer s.removeClientByMutex(client.conn)
-	scanner := bufio.NewScanner(client.conn)
-
-	for scanner.Scan() {
-		text := strings.TrimSpace(scanner.Text())
-		// no spam to the channel if text is empty
-		if text == "" {
-			continue
-		}
-		s.InChan <- IncomingEvent{
-			ClientID: client.id,
-			Payload:  text,
-		}
-	}
-
-	s.handleClientDisconnectMessages(client, scanner.Err())
-
-}
-
 func (s *Server) handleClientDisconnectMessages(client *Client, err error) {
 	if err == nil {
-		fmt.Println("Client disconnected gracefully:", client.conn.RemoteAddr())
-		fmt.Fprintln(client.conn, "Disconnected gracefully.")
-
+		// the client cut the connection if err == nil from scanner.Scan().
+		fmt.Println("\nClient disconnected gracefully:", client.conn.RemoteAddr())
 	} else {
 		if os.IsTimeout(err) {
-			fmt.Printf("Client disconnected due to inactivity (timeout of %v seconds): %s\n", client.conn.timeout.Seconds(), client.conn.RemoteAddr())
-			fmt.Fprintf(client.conn, "Disconnected of the game due to inactivity (timeout of %v seconds)\n", client.conn.timeout.Seconds())
+			fmt.Printf("Client disconnected due to inactivity (timeout of %v seconds): %s", client.conn.timeout.Seconds(), client.conn.RemoteAddr())
+			fmt.Fprintf(client.conn, "\nDisconnected of the game due to inactivity (timeout of %v seconds)\n", client.conn.timeout.Seconds())
 		} else {
-			fmt.Println("Client connection dropped:", err)
+			fmt.Println("\nClient connection dropped:", err)
 		}
 	}
 }
@@ -89,4 +66,26 @@ func (s *Server) isMaxClientLimitByMutex() bool {
 		return true
 	}
 	return false
+}
+
+func (s *Server) clientReadLoop(client *Client) {
+	defer s.wg.Done()
+	defer client.conn.Close()
+	defer s.removeClientByMutex(client.conn)
+	scanner := bufio.NewScanner(client.conn)
+
+	for scanner.Scan() {
+		text := strings.TrimSpace(scanner.Text())
+		// no spam to the channel if text is empty
+		if text == "" {
+			continue
+		}
+		s.InChan <- IncomingEvent{
+			ClientID: client.id,
+			Payload:  text,
+		}
+	}
+
+	s.handleClientDisconnectMessages(client, scanner.Err())
+
 }

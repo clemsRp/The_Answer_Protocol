@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"sync"
 	"time"
 )
@@ -37,28 +38,25 @@ type Server struct {
 	// to the game
 	OutChan <-chan OutgoingEvent // server receives events from game, ->
 	// and sends them to clients
+	ErrChan chan error // Channel to listen for listen error of server, to quit gracefully
+	SigChan chan os.Signal
 }
 
 func NewServer(listenAddr string, in chan<- IncomingEvent, out <-chan OutgoingEvent) *Server {
 	return &Server{
-		listenAddr:     listenAddr,
-		quitChan:       make(chan struct{}),
-		InChan:         in,
-		OutChan:        out,
+		listenAddr: listenAddr,
+		InChan:     in,
+		OutChan:    out,
+
+		quitChan: make(chan struct{}),
+		ErrChan:  make(chan error, 1),
+		SigChan:  make(chan os.Signal, 1),
+
 		timeoutSeconds: timeout_seconds,
 		maxClients:     max_clients,
 		maxPlayers:     max_players,
 		clients:        make(map[*TimeoutConn]*Client),
 	}
-}
-
-func (s *Server) Stop() {
-	s.stopOnce.Do(func() {
-		close(s.quitChan)
-		if s.ln != nil {
-			s.ln.Close()
-		}
-	})
 }
 
 func (s *Server) acceptLoop() {
@@ -100,14 +98,41 @@ func (s *Server) run() error {
 	// loops infinitely while no close signal via quitChan
 	<-s.quitChan
 
-	fmt.Println("\nWaiting for all connections to close...")
-	s.wg.Wait()
 	return nil
 }
 
-func (s *Server) Start(errch chan<- error) {
-	if err := s.run(); err != nil {
-		log.Println("Server error:", err)
-		errch <- err
+func (s *Server) Start() {
+
+	s.wg.Add(1)
+
+	go func() {
+		defer s.wg.Done()
+		if err := s.run(); err != nil {
+			log.Println("Server error:", err)
+			s.ErrChan <- err
+		}
+	}()
+}
+
+func (s *Server) disconnectAllClientsByMutex() {
+	fmt.Println("\nClosing all connections to clients...")
+
+	s.muClients.Lock()
+	for conn := range s.clients {
+		conn.Close()
 	}
+	s.muClients.Unlock()
+}
+
+func (s *Server) Stop() {
+	s.stopOnce.Do(func() {
+		close(s.quitChan)
+		if s.ln != nil {
+			s.ln.Close()
+		}
+		s.disconnectAllClientsByMutex()
+	})
+	s.wg.Wait()
+	fmt.Println("\nServer stopped graciously.")
+
 }

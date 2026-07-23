@@ -16,11 +16,11 @@ type Engine struct {
 	wg           sync.WaitGroup
 }
 
-func NewEngine(in <-chan network.IncomingEvent, out chan<- network.OutgoingEvent, stop_game_chan chan struct{}) *Engine {
+func NewEngine(in <-chan network.IncomingEvent, out chan<- network.OutgoingEvent) *Engine {
 	return &Engine{
 		InChan:       in,
 		OutChan:      out,
-		stopGameChan: stop_game_chan,
+		stopGameChan: make(chan struct{}),
 		players:      make(map[string]*Player),
 	}
 }
@@ -46,7 +46,6 @@ func (e *Engine) runLoop() {
 			}
 
 		case <-e.stopGameChan:
-			fmt.Println("[Game] Engine stopped.")
 			return
 		}
 	}
@@ -57,4 +56,5 @@ func (e *Engine) Stop() {
 		close(e.stopGameChan)
 	})
 	e.wg.Wait()
+	fmt.Println("[Game] Engine stopped.")
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"os/signal"
 	"syscall"
 	"tap/internal/game"
@@ -12,27 +11,23 @@ import (
 func main() {
 	inChan := make(chan network.IncomingEvent, 100)
 	outChan := make(chan network.OutgoingEvent, 100)
-	stopGameChan := make(chan struct{})
 
 	server := network.NewServer(":8080", inChan, outChan)
-	engine := game.NewEngine(inChan, outChan, stopGameChan)
+	engine := game.NewEngine(inChan, outChan)
 	// to wait for an error at the launch of the server same way as sigch.
 
-	errch := make(chan error, 1)
-	server.Start(errch)
+	server.Start()
 	engine.Start()
 	// The only way to stop the server is by CTRL+C or KILL command
 	// then it stops gracefully.
-	sigch := make(chan os.Signal, 1)
-	signal.Notify(sigch, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(server.SigChan, syscall.SIGINT, syscall.SIGTERM)
 	select {
-	case sig := <-sigch:
+	case sig := <-server.SigChan:
 		fmt.Printf("\nStop signal received (%v), closing the server...", sig)
-	case err := <-errch:
+	case err := <-server.ErrChan:
 		fmt.Printf("\nCritical error from server: %v", err)
 	}
-
 	server.Stop()
 	engine.Stop()
-	fmt.Println("\nServer stopped graciously.")
+
 }
