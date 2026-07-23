@@ -6,7 +6,6 @@ import (
 	"log"
 	"net"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -75,30 +74,16 @@ func (s *Server) acceptLoop() {
 			continue
 		}
 
-		s.muClients.Lock()
-		if len(s.clients) >= s.maxClients {
-			s.muClients.Unlock()
-
+		if s.isMaxClientLimitByMutex() {
 			fmt.Println("Server full, rejecting connection:", conn.RemoteAddr())
 			fmt.Fprintf(conn, "The server is currenty full. Try again later.\n")
 			conn.Close()
 			continue
-
 		}
-		wrappedConn := &TimeoutConn{
-			Conn:    conn,
-			timeout: time.Duration(s.timeoutSeconds) * time.Second,
-		}
-		newID := atomic.AddUint64(&s.clientCounter, 1)
-		clientIDStr := fmt.Sprintf("client-%d", newID)
-		newClient := &Client{conn: wrappedConn, id: clientIDStr, isLoggedIn: false}
-		s.clients[wrappedConn] = newClient
-		s.muClients.Unlock()
-
-		fmt.Println("new connection to the server:", conn.RemoteAddr())
-
+		newClient := s.createNewClient(conn)
+		s.addNewClientByMutex(newClient)
 		s.wg.Add(1)
-		go s.readLoop(newClient)
+		go s.clientReadLoop(newClient)
 	}
 }
 
@@ -115,7 +100,7 @@ func (s *Server) start() error {
 	// loops infinitely while no close signal via quitChan
 	<-s.quitChan
 
-	fmt.Println("Waiting for all connections to close...")
+	fmt.Println("\nWaiting for all connections to close...")
 	s.wg.Wait()
 	return nil
 }

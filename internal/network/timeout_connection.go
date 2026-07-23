@@ -19,3 +19,10 @@ func (c *TimeoutConn) Read(b []byte) (int, error) {
 	}
 	return c.Conn.Read(b)
 }
+
+func (s *Server) createTimeoutConn(conn net.Conn) *TimeoutConn {
+	return &TimeoutConn{
+		Conn:    conn,
+		timeout: time.Duration(s.timeoutSeconds) * time.Second,
+	}
+}
