@@ -51,6 +51,10 @@ func (e *Engine) runLoop() {
 	}
 }
 
+// func (e *Engine) processEvent(request string) {
+
+// }
+
 func (e *Engine) Stop() {
 	e.stopOnce.Do(func() {
 		close(e.stopGameChan)

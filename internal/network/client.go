@@ -10,9 +10,8 @@ import (
 )
 
 type Client struct {
-	conn       *TimeoutConn
-	id         string
-	isLoggedIn bool
+	conn *TimeoutConn
+	id   string
 }
 
 func (s *Server) handleClientDisconnectMessages(client *Client, err error) {
@@ -24,7 +23,7 @@ func (s *Server) handleClientDisconnectMessages(client *Client, err error) {
 			fmt.Printf("Client disconnected due to inactivity (timeout of %v seconds): %s", client.conn.timeout.Seconds(), client.conn.RemoteAddr())
 			fmt.Fprintf(client.conn, "\nDisconnected of the game due to inactivity (timeout of %v seconds)\n", client.conn.timeout.Seconds())
 		} else {
-			fmt.Println("\nClient connection dropped:", err)
+			fmt.Println("\nServer disconnected.")
 		}
 	}
 }
@@ -39,7 +38,7 @@ func (s *Server) createClientID() string {
 func (s *Server) createNewClient(conn net.Conn) *Client {
 	timeoutConn := s.createTimeoutConn(conn)
 	clientIDStr := s.createClientID()
-	newClient := &Client{conn: timeoutConn, id: clientIDStr, isLoggedIn: false}
+	newClient := &Client{conn: timeoutConn, id: clientIDStr}
 	return newClient
 }
 
@@ -80,6 +79,7 @@ func (s *Server) clientReadLoop(client *Client) {
 		if text == "" {
 			continue
 		}
+		// here maybe serialize deserialize etc. PARSING
 		s.InChan <- IncomingEvent{
 			ClientID: client.id,
 			Payload:  text,
