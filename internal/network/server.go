@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -23,13 +24,13 @@ type Server struct {
 	listenAddr     string
 	ln             net.Listener
 	quitChan       chan struct{}
-	messageChan    chan Message
 	timeoutSeconds int
 	maxClients     int
 	maxPlayers     int
+	clientCounter  uint64
 
 	muClients sync.Mutex
-	clients   map[net.Conn]*Client
+	clients   map[*TimeoutConn]*Client
 
 	stopOnce sync.Once
 	wg       sync.WaitGroup
@@ -48,27 +49,8 @@ func NewServer(listenAddr string, in chan<- IncomingEvent, out <-chan OutgoingEv
 		timeoutSeconds: timeout_seconds,
 		maxClients:     max_clients,
 		maxPlayers:     max_players,
-		clients:        make(map[net.Conn]*Client),
+		clients:        make(map[*TimeoutConn]*Client),
 	}
-}
-
-func (s *Server) start() error {
-	ln, err := net.Listen("tcp", s.listenAddr)
-	if err != nil {
-		return err
-	}
-	s.ln = ln
-	fmt.Println("Server started on the port :8080")
-	s.wg.Add(1)
-	go s.acceptLoop()
-
-	// loops infinitely while no close signal via quitChan
-	<-s.quitChan
-
-	fmt.Println("Waiting for all connections to close...")
-	s.wg.Wait()
-	close(s.messageChan)
-	return nil
 }
 
 func (s *Server) Stop() {
@@ -94,7 +76,6 @@ func (s *Server) acceptLoop() {
 		}
 
 		s.muClients.Lock()
-
 		if len(s.clients) >= s.maxClients {
 			s.muClients.Unlock()
 
@@ -102,19 +83,41 @@ func (s *Server) acceptLoop() {
 			fmt.Fprintf(conn, "The server is currenty full. Try again later.\n")
 			conn.Close()
 			continue
+
 		}
-		s.clients[conn] = &Client{conn: conn, isLoggedIn: false}
-		s.muClients.Unlock()
-
-		fmt.Println("new connection to the server:", conn.RemoteAddr())
-
 		wrappedConn := &TimeoutConn{
 			Conn:    conn,
 			timeout: time.Duration(s.timeoutSeconds) * time.Second,
 		}
+		newID := atomic.AddUint64(&s.clientCounter, 1)
+		clientIDStr := fmt.Sprintf("client-%d", newID)
+		newClient := &Client{conn: wrappedConn, id: clientIDStr, isLoggedIn: false}
+		s.clients[wrappedConn] = newClient
+		s.muClients.Unlock()
+
+		fmt.Println("new connection to the server:", conn.RemoteAddr())
+
 		s.wg.Add(1)
-		go s.readLoop(wrappedConn)
+		go s.readLoop(newClient)
 	}
+}
+
+func (s *Server) start() error {
+	ln, err := net.Listen("tcp", s.listenAddr)
+	if err != nil {
+		return err
+	}
+	s.ln = ln
+	fmt.Println("Server started on the port :8080")
+	s.wg.Add(1)
+	go s.acceptLoop()
+
+	// loops infinitely while no close signal via quitChan
+	<-s.quitChan
+
+	fmt.Println("Waiting for all connections to close...")
+	s.wg.Wait()
+	return nil
 }
 
 func (s *Server) SafeStart(errch chan<- error) {
