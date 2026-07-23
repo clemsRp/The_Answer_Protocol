@@ -88,20 +88,30 @@ func invite_user_in_group(clients map[string]*pr.Client, cli *pr.Client, user_na
 	return "", errors.New("ERR new user not find")
 }
 
-func join_group(cli *pr.Client, group_name string) (string, error) {
-	// Handle non existant groups
-	_, ok := groups[group_name]
-	if !ok {
-		return "", errors.New("ERR Group doesn't exist yet")
-	}
+func join_group(clients map[string]*pr.Client, cli *pr.Client, leader_name string) (string, error) {
+	group_name := ""
 
 	// Handle users already in group
-	for _, group := range groups {
+	for group_id, group := range groups {
+		// Find leader group
+		if group[0].Name == leader_name {
+			group_name = group_id
+		}
+
 		for _, user := range group {
 			if user.Name == cli.Name {
 				return "", errors.New("ERR player already in group")
 			}
 		}
+	}
+
+	// Handle non existant groups
+	if group_name == "" {
+		return "", errors.New("ERR Invalid leader name")
+	}
+	_, ok := groups[group_name]
+	if !ok {
+		return "", errors.New("ERR Group doesn't exist yet")
 	}
 
 	// Check that user is invited

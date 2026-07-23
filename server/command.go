@@ -173,7 +173,7 @@ func handleCmdGroup(clients map[string]*pr.Client, cli *pr.Client, req []string,
 	case pr.InviteGroup:
 		res, err = invite_user_in_group(clients, cli, arg)
 	case pr.JoinGroup:
-		res, err = join_group(cli, arg)
+		res, err = join_group(clients, cli, arg)
 	case pr.LeaveGroup:
 		res, err = leave_group(cli)
 	default:
