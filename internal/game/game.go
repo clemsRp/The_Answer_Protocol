@@ -3,17 +3,20 @@ package game
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"tap/internal/network"
 )
 
 type Engine struct {
 	InChan       <-chan network.IncomingEvent
 	OutChan      chan<- network.OutgoingEvent
-	stopGameChan <-chan struct{}
+	stopGameChan chan struct{}
 	players      map[string]*Player
+	stopOnce     sync.Once
+	wg           sync.WaitGroup
 }
 
-func NewEngine(in <-chan network.IncomingEvent, out chan<- network.OutgoingEvent, stop_game_chan <-chan struct{}) *Engine {
+func NewEngine(in <-chan network.IncomingEvent, out chan<- network.OutgoingEvent, stop_game_chan chan struct{}) *Engine {
 	return &Engine{
 		InChan:       in,
 		OutChan:      out,
@@ -21,8 +24,13 @@ func NewEngine(in <-chan network.IncomingEvent, out chan<- network.OutgoingEvent
 		players:      make(map[string]*Player),
 	}
 }
+func (e *Engine) Start() {
+	e.wg.Add(1)
+	go e.runLoop()
+}
 
-func (e *Engine) Run() {
+func (e *Engine) runLoop() {
+	defer e.wg.Done()
 	fmt.Println("[Game] Engine started.")
 	for {
 		select {
@@ -42,4 +50,11 @@ func (e *Engine) Run() {
 			return
 		}
 	}
+}
+
+func (e *Engine) Stop() {
+	e.stopOnce.Do(func() {
+		close(e.stopGameChan)
+	})
+	e.wg.Wait()
 }

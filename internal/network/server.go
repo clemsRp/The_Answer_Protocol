@@ -87,7 +87,7 @@ func (s *Server) acceptLoop() {
 	}
 }
 
-func (s *Server) start() error {
+func (s *Server) run() error {
 	ln, err := net.Listen("tcp", s.listenAddr)
 	if err != nil {
 		return err
@@ -105,8 +105,8 @@ func (s *Server) start() error {
 	return nil
 }
 
-func (s *Server) SafeStart(errch chan<- error) {
-	if err := s.start(); err != nil {
+func (s *Server) Start(errch chan<- error) {
+	if err := s.run(); err != nil {
 		log.Println("Server error:", err)
 		errch <- err
 	}

@@ -19,8 +19,8 @@ func main() {
 	// to wait for an error at the launch of the server same way as sigch.
 
 	errch := make(chan error, 1)
-	go server.SafeStart(errch)
-	go engine.Run()
+	server.Start(errch)
+	engine.Start()
 	// The only way to stop the server is by CTRL+C or KILL command
 	// then it stops gracefully.
 	sigch := make(chan os.Signal, 1)
@@ -33,5 +33,6 @@ func main() {
 	}
 
 	server.Stop()
+	engine.Stop()
 	fmt.Println("\nServer stopped graciously.")
 }
