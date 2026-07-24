@@ -7,22 +7,37 @@
 	- Adapt combat damage
 	- Updat values after combat
 
-Server's logs
-- MESSAGE 'EVT ROOM PRESENCE ENTER {}' 
-sur les autres client lorsque quelqu'un se connecte alors que les autres clients ne sont pas connectes
-
-
-
 
 - COMMANDS:
-- command names must be case-insensitive (RFC protocol)
 - QUIT command
 
 - Issue GROUP COMMAND (quand tu crees un groupe, 
 et qu'ensuite tu te reconnectes avec le meme nom d'user, 
 l'user a toujours un group mais ne peut pas quitter son groupe)
 
+------------------------------------------------------------------------------------------------------------------
 
-- Pourquoi pas aussi faire en sorte que le player 
-qui recoit l'invitation de groupe
-recoit un message d'invitation du player.
+IDEAS:
+
+	- Add possibility of change leader group (GROUP PROMOTE / GROUP ACCEPT)
+
+		5.3.5 GROUP PROMOTE Command
+			Syntax: GROUP PROMOTE <username>
+			Purpose: Offer the group leadership to another member
+			Response: OK pending_leader=<username>
+			Event: EVT GROUP PROMOTE <target-username> <from-username>
+
+		5.3.6 GROUP ACCEPT Command
+			Syntax: GROUP ACCEPT
+			Purpose: Accept a pending group leadership offer
+			Response: OK new_leader=<username>
+			Event: EVT GROUP PROMOTE_ACCEPTED <new-leader>
+
+		5.3.7 GROUP DECLINE Command
+			Syntax: GROUP DECLINE
+			Purpose: Decline a pending group leadership offer
+			Response: OK
+			Event: EVT GROUP PROMOTE_DECLINED <username>
+
+
+	- Add possibility of CLI inside TUI (Input/Output panel)

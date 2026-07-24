@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	pr "tap/protocol"
+
+	"github.com/google/uuid"
 )
 
 func remove_user_in_group(cli *pr.Client, group []*pr.Client) []*pr.Client {
@@ -23,9 +25,12 @@ func remove_user_in_group(cli *pr.Client, group []*pr.Client) []*pr.Client {
 	return group
 }
 
-func create_group(cli *pr.Client, group_name string) (string, error) {
+func create_group(cli *pr.Client) (string, error) {
+	// Create group ID
+	group_id := uuid.New().String()
+
 	// Handle existing group
-	_, ok := groups[group_name]
+	_, ok := groups[group_id]
 	if ok {
 		return "", errors.New("ERR Group already exist")
 	}
@@ -40,17 +45,17 @@ func create_group(cli *pr.Client, group_name string) (string, error) {
 	}
 
 	// Set group
-	groups[group_name] = []*pr.Client{cli}
-	cli.Datas.Group = group_name
+	groups[group_id] = []*pr.Client{cli}
+	cli.Datas.Group = group_id
 
-	return "OK group=" + group_name, nil
+	return "OK group=" + group_id, nil
 }
 
 func invite_user_in_group(clients map[string]*pr.Client, cli *pr.Client, user_name string) (string, error) {
 	// Handle non existant groups
 	_, ok := groups[cli.Datas.Group]
 	if !ok {
-		return "", errors.New("ERR Group doesn't exist yet")
+		return "", errors.New("ERR 401 NOT_IN_GROUP")
 	}
 
 	// Check cli is group's leader
@@ -61,7 +66,7 @@ func invite_user_in_group(clients map[string]*pr.Client, cli *pr.Client, user_na
 	// Handle users already in group
 	for _, user := range groups[cli.Datas.Group] {
 		if user.Name == user_name {
-			return "", errors.New("ERR player already in group")
+			return "", errors.New("ERR 402 ALREADY_IN_GROUP")
 		}
 	}
 
@@ -80,6 +85,7 @@ func invite_user_in_group(clients map[string]*pr.Client, cli *pr.Client, user_na
 
 			// Add invitation to user
 			new_cli.Datas.Invitation = append(new_cli.Datas.Invitation, cli.Datas.Group)
+			clients[ip].Ch <- pr.Response{Msg: "EVT GROUP INVITE " + cli.Name}
 
 			return "OK", nil
 		}
@@ -129,6 +135,7 @@ func join_group(clients map[string]*pr.Client, cli *pr.Client, leader_name strin
 	// Add user in group
 	groups[group_name] = append(groups[group_name], cli)
 	cli.Datas.Group = group_name
+	inform_group(clients, cli, group_name, "EVT GROUP JOIN "+cli.Name)
 
 	// Delete invitation
 	invite_index := -1
@@ -146,16 +153,18 @@ func join_group(clients map[string]*pr.Client, cli *pr.Client, leader_name strin
 	return "OK group=" + group_name, nil
 }
 
-func leave_group(cli *pr.Client) (string, error) {
+func leave_group(clients map[string]*pr.Client, cli *pr.Client) (string, error) {
 	// Check user is inside the group
 	if cli.Datas.Group == "" {
-		return "", errors.New("ERR User isn't inside a group")
+		return "", errors.New("ERR 401 NOT_IN_GROUP")
 	}
 
 	// Remove user from his current group
 	groupSlice := groups[cli.Datas.Group]
 	groupSlice = remove_user_in_group(cli, groupSlice)
 	groups[cli.Datas.Group] = groupSlice
+
+	inform_group(clients, cli, cli.Datas.Group, "EVT GROUP LEAVE "+cli.Name)
 
 	// Remove group if needed
 	if len(groupSlice) == 0 {
