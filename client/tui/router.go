@@ -52,18 +52,31 @@ func (r *Router) Start(m *MyApp) {
 	go func() {
 
 		for res := range r.Outputs {
+			color := "white"
 			switch {
-			// case strings.HasPrefix(res.Msg, "OK"):
+			case strings.HasPrefix(res.Msg, "OK"):
+				color = "green"
 
 			// TO DO
-			// case strings.HasPrefix(res.Msg, "ERR"):
+			case strings.HasPrefix(res.Msg, "ERR"):
+				color = "red"
 
 			case strings.HasPrefix(res.Msg, "EVT"):
+				color = "orange"
 				r.HandleEvents(res)
-
-			default:
-				r.ServerChan <- "Unknown format: " + res.Msg
 			}
+
+			msg_type := res.Msg
+			msg_text := ""
+
+			if strings.ContainsRune(res.Msg, ' ') {
+				split_msg := strings.SplitN(res.Msg, " ", 2)
+
+				msg_type = split_msg[0]
+				msg_text = split_msg[1]
+			}
+
+			r.ServerChan <- fmt.Sprintf("[%s]%s [white]%s", color, msg_type, msg_text)
 		}
 	}()
 }

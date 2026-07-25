@@ -28,11 +28,8 @@ func (c *ServerResponseComponent) ListenOutputs(app *tview.Application, ServerCh
 	go func() {
 		for msg := range ServerChan {
 
-			lineChat := fmt.Sprintf("[gray][%s] [yellow][%s] [green]%s: [white]%s\n",
-				msg, msg, msg, msg)
-
 			app.QueueUpdateDraw(func() {
-				fmt.Fprint(c.History, lineChat)
+				fmt.Fprint(c.History, msg+"\n")
 			})
 		}
 	}()
