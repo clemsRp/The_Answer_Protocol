@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	pr "tap/protocol"
 )
 
@@ -35,6 +36,16 @@ func NewRouter(inputs chan string, outputs <-chan pr.Response) *Router {
 	}
 }
 
+func (r *Router) HandleEvents(res pr.Response) {
+	// Handle CHAT responses
+	global := strings.HasPrefix(res.Msg, "EVT GLOBAL CHAT")
+	room := strings.HasPrefix(res.Msg, "EVT ROOM CHAT")
+	group := strings.HasPrefix(res.Msg, "EVT GROUP CHAT")
+	if global || room || group {
+		r.ChatChan <- strings.Split(res.Msg, "CHAT ")[1]
+	}
+}
+
 func (r *Router) Start(m *MyApp) {
 	go func() {
 
@@ -45,7 +56,9 @@ func (r *Router) Start(m *MyApp) {
 			// TO DO
 			// case strings.HasPrefix(res.Msg, "ERR"):
 
-			// case strings.HasPrefix(res.Msg, "EVT"):
+			case strings.HasPrefix(res.Msg, "EVT"):
+				r.HandleEvents(res)
+
 			default:
 				r.ServerChan <- "Unknown format: " + res.Msg
 			}

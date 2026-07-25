@@ -2,7 +2,7 @@ package panel
 
 import (
 	"fmt"
-	"time"
+	"strings"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -15,7 +15,7 @@ type ChatComponent struct {
 	Input   *tview.InputField
 }
 
-func NewChatComponent(app *tview.Application, pseudo string, inputs chan<- string) *ChatComponent {
+func NewChatComponent(app *tview.Application, inputs chan<- string) *ChatComponent {
 	chat := &ChatComponent{}
 
 	chat.History = createTextView("", "", true, Default, Black)
@@ -72,9 +72,8 @@ func NewChatComponent(app *tview.Application, pseudo string, inputs chan<- strin
 			}
 
 			_, canal := chat.Scope.GetCurrentOption()
-			hour := time.Now().Format("15:04")
 
-			formated_msg := fmt.Sprintf("[gray][%s] [yellow][%s] [green]%s: [white]%s\n", hour, canal, pseudo, text)
+			formated_msg := fmt.Sprintf("[green]%s: [white]%s\n", pseudo, text)
 
 			fmt.Fprint(chat.History, formated_msg)
 
@@ -99,13 +98,15 @@ func NewChatComponent(app *tview.Application, pseudo string, inputs chan<- strin
 }
 
 func (c *ChatComponent) ListenOutputs(app *tview.Application, chatChan <-chan string) {
-	// TO CHANGE
-
 	go func() {
 		for msg := range chatChan {
 
-			lineChat := fmt.Sprintf("[gray][%s] [yellow][%s] [green]%s: [white]%s\n",
-				msg, msg, msg, msg)
+			split_msg := strings.SplitN(msg, " ", 2)
+
+			user := split_msg[0]
+			message := split_msg[1]
+
+			lineChat := fmt.Sprintf("[green]%s: [white]%s\n", user, message)
 
 			app.QueueUpdateDraw(func() {
 				fmt.Fprint(c.History, lineChat)

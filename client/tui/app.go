@@ -54,7 +54,7 @@ func NewMyApp(router *Router) *MyApp {
 }
 
 func (m *MyApp) setupComponents(router *Router) {
-	m.Chat = panel.NewChatComponent(m.app, "Player1", router.Inputs)
+	m.Chat = panel.NewChatComponent(m.app, router.Inputs)
 	m.Server = panel.NewServerResponseComponent(m.app)
 	m.Navigation = panel.NewNavigationComponent(m.app)
 	m.PlayersNPC = panel.NewPlayersNPCComponent(m.app)
