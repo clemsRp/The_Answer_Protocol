@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 	pr "tap/protocol"
 )
@@ -42,7 +43,8 @@ func (r *Router) HandleEvents(res pr.Response) {
 	room := strings.HasPrefix(res.Msg, "EVT ROOM CHAT")
 	group := strings.HasPrefix(res.Msg, "EVT GROUP CHAT")
 	if global || room || group {
-		r.ChatChan <- strings.Split(res.Msg, "CHAT ")[1]
+		split_msg := strings.SplitN(res.Msg, " ", 5)
+		r.ChatChan <- fmt.Sprintf("%s %s %s", split_msg[1], split_msg[3], split_msg[4])
 	}
 }
 
