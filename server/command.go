@@ -165,7 +165,12 @@ func handleCmdGroup(clients map[string]*pr.Client, cli *pr.Client, req []string,
 	scope := strings.ToUpper(req[1])
 
 	// Handle invalid command
-	contains := slices.Contains([]string{pr.CreateGroup, pr.LeaveGroup}, scope)
+	contains_commands := []string{
+		pr.CreateGroup,
+		pr.LeaveGroup,
+		pr.AcceptPromoteGroup,
+	}
+	contains := slices.Contains(contains_commands, scope)
 	if (len(req) != 3 && !contains) || (len(req) > 2 && contains) {
 		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
 	}
@@ -185,6 +190,12 @@ func handleCmdGroup(clients map[string]*pr.Client, cli *pr.Client, req []string,
 		res, err = join_group(clients, cli, arg)
 	case pr.LeaveGroup:
 		res, err = leave_group(clients, cli)
+	case pr.PromoteGroup:
+		res, err = promote_user(clients, cli, arg)
+	case pr.AcceptPromoteGroup:
+		res, err = accept_promotion(clients, cli)
+	case pr.DeclinePromoteGroup:
+		res, err = decline_promotion(clients, cli)
 	default:
 		return "", "", errors.New("ERR 400 Invalid scope")
 	}

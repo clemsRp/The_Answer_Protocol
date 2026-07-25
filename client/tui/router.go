@@ -1,7 +1,6 @@
 package main
 
 import (
-	"strings"
 	pr "tap/protocol"
 )
 
@@ -41,8 +40,7 @@ func (r *Router) Start(m *MyApp) {
 
 		for res := range r.Outputs {
 			switch {
-			case strings.HasPrefix(res.Msg, "OK"):
-				
+			// case strings.HasPrefix(res.Msg, "OK"):
 
 			// TO DO
 			// case strings.HasPrefix(res.Msg, "ERR"):

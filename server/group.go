@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"fmt"
+	"slices"
 	pr "tap/protocol"
 
 	"github.com/google/uuid"
@@ -159,6 +161,9 @@ func leave_group(clients map[string]*pr.Client, cli *pr.Client) (string, error) 
 		return "", errors.New("ERR 401 NOT_IN_GROUP")
 	}
 
+	// Delete promotion
+	cli.Datas.Promotion = false
+
 	// Remove user from his current group
 	groupSlice := groups[cli.Datas.Group]
 	groupSlice = remove_user_in_group(cli, groupSlice)
@@ -173,6 +178,80 @@ func leave_group(clients map[string]*pr.Client, cli *pr.Client) (string, error) 
 
 	// Re initialize his group value
 	cli.Datas.Group = ""
+
+	return "OK", nil
+}
+
+func promote_user(clients map[string]*pr.Client, cli *pr.Client, new_leader string) (string, error) {
+	// Handle invalid command
+	if cli.Datas.Group == "" {
+		return "", errors.New("ERR 401 NOT_IN_GROUP")
+	}
+
+	// Find the group
+	group_users := groups[cli.Datas.Group]
+
+	// Handle invalid rights
+	if group_users[0].Name != cli.Name {
+		return "", errors.New("ERR You are not the leader of the group")
+
+	} else if cli.Name == new_leader {
+		return "", errors.New("ERR You are already the leader of the group")
+	}
+
+	// Find new_leader
+	for _, client := range clients {
+		if client.Name == new_leader {
+
+			// Check new_leader is inside group
+			if !slices.Contains(group_users, client) {
+				return "", errors.New("ERR 401 NOT_IN_GROUP")
+			}
+
+			// Send promotion
+			client.Datas.Promotion = true
+			inform_user(clients, new_leader, "EVT GROUP PROMOTE "+new_leader)
+
+			return "OK pending_leader=" + cli.Name, nil
+		}
+	}
+
+	// Handle invalid new_leader
+	return "", fmt.Errorf("ERR 404 USER_NOT_FOUND")
+}
+
+func accept_promotion(clients map[string]*pr.Client, cli *pr.Client) (string, error) {
+	// Check user have a group promotion
+	if cli.Datas.Group == "" {
+		return "", errors.New("ERR 401 NOT_IN_GROUP")
+	} else if !cli.Datas.Promotion {
+		return "", errors.New("ERR You don't have promotion")
+	}
+
+	// Update promotion and leadership
+	cli.Datas.Promotion = false
+	new_leader_index := GetElementIndex(groups[cli.Datas.Group], cli)
+	MoveElement(groups[cli.Datas.Group], new_leader_index, 0)
+
+	inform_group(clients, cli, cli.Datas.Group, "EVT GROUP PROMOTE ACCEPTED "+cli.Name)
+	inform_group_invitations(clients, cli, cli.Datas.Group, "EVT GROUP PROMOTE ACCEPTED "+cli.Name)
+
+	return "OK new_leader=" + cli.Name, nil
+}
+
+func decline_promotion(clients map[string]*pr.Client, cli *pr.Client) (string, error) {
+	// Check user have a group promotion
+	if cli.Datas.Group == "" {
+		return "", errors.New("ERR 401 NOT_IN_GROUP")
+	} else if !cli.Datas.Promotion {
+		return "", errors.New("ERR You don't have promotion")
+	}
+
+	// Update promotion
+	cli.Datas.Promotion = false
+
+	inform_group(clients, cli, cli.Datas.Group, "EVT GROUP PROMOTE DECLINED "+cli.Name)
+	inform_group_invitations(clients, cli, cli.Datas.Group, "EVT GROUP PROMOTE DECLINED "+cli.Name)
 
 	return "OK", nil
 }
