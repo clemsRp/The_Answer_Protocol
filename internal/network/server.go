@@ -3,7 +3,6 @@ package network
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"sync"
@@ -42,9 +41,15 @@ type Server struct {
 	SigChan chan os.Signal
 }
 
-func NewServer(listenAddr string, in chan<- IncomingEvent, out <-chan OutgoingEvent) *Server {
+func NewServer(listenAddr string, in chan<- IncomingEvent, out <-chan OutgoingEvent) (*Server, error) {
+	listener, err := net.Listen("tcp", listenAddr)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't start the TCP server: %w", err)
+	}
+	fmt.Printf("Server started on %s\n", listener.Addr().String())
 	return &Server{
 		listenAddr: listenAddr,
+		ln:         listener,
 		InChan:     in,
 		OutChan:    out,
 
@@ -56,7 +61,7 @@ func NewServer(listenAddr string, in chan<- IncomingEvent, out <-chan OutgoingEv
 		maxClients:     max_clients,
 		maxPlayers:     max_players,
 		clients:        make(map[*TimeoutConn]*Client),
-	}
+	}, nil
 }
 
 func (s *Server) acceptLoop() {
@@ -64,14 +69,11 @@ func (s *Server) acceptLoop() {
 	for {
 		conn, err := s.ln.Accept()
 		if err != nil {
-			if errors.Is(err, net.ErrClosed) {
+			if s.handleAcceptError(err) {
 				return
 			}
-			fmt.Println("acceptLoop temporary error:", err)
-			time.Sleep(1 * time.Second)
 			continue
 		}
-
 		if s.isMaxClientLimitByMutex() {
 			fmt.Println("Server full, rejecting connection:", conn.RemoteAddr())
 			fmt.Fprintf(conn, "The server is currenty full. Try again later.\n")
@@ -81,37 +83,32 @@ func (s *Server) acceptLoop() {
 		newClient := s.createNewClient(conn)
 		s.addNewClientByMutex(newClient)
 		s.wg.Add(1)
-		go s.clientReadLoop(newClient)
+		go s.handleConnection(newClient)
 	}
 }
 
-func (s *Server) run() error {
-	ln, err := net.Listen("tcp", s.listenAddr)
-	if err != nil {
-		return err
+func (s *Server) handleAcceptError(err error) bool {
+	if errors.Is(err, net.ErrClosed) {
+		return true
+	} else if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+		fmt.Println("acceptLoop temporary error:", err)
+		time.Sleep(1 * time.Second)
+		return false
+	} else {
+		// server crash PROBABLY
+		s.ErrChan <- fmt.Errorf("fatal error from server: %w", err)
+		return true
 	}
-	s.ln = ln
-	fmt.Println("Server started on the port :8080")
-	s.wg.Add(1)
-	go s.acceptLoop()
+}
 
-	// loops infinitely while no close signal via quitChan
-	<-s.quitChan
-
-	return nil
+func (s *Server) GetAddress() string {
+	return s.ln.Addr().String()
 }
 
 func (s *Server) Start() {
 
 	s.wg.Add(1)
-
-	go func() {
-		defer s.wg.Done()
-		if err := s.run(); err != nil {
-			log.Println("Server error:", err)
-			s.ErrChan <- err
-		}
-	}()
+	go s.acceptLoop()
 }
 
 func (s *Server) disconnectAllClientsByMutex() {

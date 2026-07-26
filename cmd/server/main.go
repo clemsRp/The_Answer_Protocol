@@ -12,7 +12,11 @@ func main() {
 	inChan := make(chan network.IncomingEvent, 100)
 	outChan := make(chan network.OutgoingEvent, 100)
 
-	server := network.NewServer(":8080", inChan, outChan)
+	server, err := network.NewServer(":8080", inChan, outChan)
+	if err != nil {
+		fmt.Println(err)
+		syscall.Exit(1)
+	}
 	engine := game.NewEngine(inChan, outChan)
 	// to wait for an error at the launch of the server same way as sigch.
 

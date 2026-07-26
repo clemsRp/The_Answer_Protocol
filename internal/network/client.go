@@ -67,7 +67,7 @@ func (s *Server) isMaxClientLimitByMutex() bool {
 	return false
 }
 
-func (s *Server) clientReadLoop(client *Client) {
+func (s *Server) handleConnection(client *Client) {
 	defer s.wg.Done()
 	defer client.conn.Close()
 	defer s.removeClientByMutex(client.conn)
