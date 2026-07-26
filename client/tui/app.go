@@ -76,13 +76,34 @@ func (m *MyApp) setupComponents(router *Router) {
 			if cli_visible {
 				m.grid.RemoveItem(m.CommandLine.Layout)
 				m.grid.AddItem(m.Server.Layout, 3, 0, 1, 4, 0, 0, false)
+
+				m.navMatrix = [4][4]tview.Primitive{
+					{m.Navigation.Navigation, m.PlayersNPC.List, m.Dialogue.View, m.Chat.Input},
+					{m.Navigation.Navigation, m.PlayersNPC.List, m.Dialogue.View, m.Chat.Input},
+					{m.Datas.View, m.Datas.View, m.Datas.View, m.Chat.Input},
+					{m.Server.History, m.Server.History, m.Server.History, m.Server.History},
+				}
+
 				cli_visible = false
 
 			} else {
 				m.grid.AddItem(m.CommandLine.Layout, 3, 0, 1, 2, 0, 0, false)
 				m.grid.AddItem(m.Server.Layout, 3, 2, 1, 2, 0, 0, false)
+
+				m.navMatrix = [4][4]tview.Primitive{
+					{m.Navigation.Navigation, m.PlayersNPC.List, m.Dialogue.View, m.Chat.Input},
+					{m.Navigation.Navigation, m.PlayersNPC.List, m.Dialogue.View, m.Chat.Input},
+					{m.Datas.View, m.Datas.View, m.Datas.View, m.Chat.Input},
+					{m.CommandLine.Input, m.CommandLine.Input, m.Server.History, m.Server.History},
+				}
+
 				cli_visible = true
 			}
+		})
+
+	m.Server.QuitBtn.
+		SetSelectedFunc(func() {
+			inputs <- "QUIT"
 		})
 }
 
@@ -91,7 +112,7 @@ func (m *MyApp) setupMatrix() {
 		{m.Navigation.Navigation, m.PlayersNPC.List, m.Dialogue.View, m.Chat.Input},
 		{m.Navigation.Navigation, m.PlayersNPC.List, m.Dialogue.View, m.Chat.Input},
 		{m.Datas.View, m.Datas.View, m.Datas.View, m.Chat.Input},
-		{m.CommandLine.Input, m.CommandLine.Input, m.Server.History, m.Server.History},
+		{m.Server.History, m.Server.History, m.Server.History, m.Server.History},
 	}
 }
 
