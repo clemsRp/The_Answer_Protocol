@@ -8,15 +8,19 @@ import (
 
 type ServerResponseComponent struct {
 	Layout  *tview.Flex
+	CliBtn  *tview.Button
 	History *tview.TextView
 }
 
 func NewServerResponseComponent(app *tview.Application) *ServerResponseComponent {
 	src := &ServerResponseComponent{}
 
+	src.CliBtn = tview.NewButton("CLI")
+
 	src.History = createTextView("", " Server Responses ", true, Default, Black)
 
 	src.Layout = tview.NewFlex().SetDirection(tview.FlexRow).
+		AddItem(src.CliBtn, 1, 1, false).
 		AddItem(src.History, 0, 1, false)
 
 	return src

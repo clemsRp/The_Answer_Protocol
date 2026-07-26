@@ -38,7 +38,7 @@ func handleCmdConnect(clients map[string]*pr.Client, ip string, req []string, lo
 func handleCmdQuit(clients map[string]*pr.Client, cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	inform_room(clients, cli, cli.Datas.Room, "EVT ROOM PRESENCE LEAVE "+cli.Name)
@@ -49,7 +49,7 @@ func handleCmdQuit(clients map[string]*pr.Client, cli *pr.Client, req []string, 
 func handleCmdWho(clients map[string]*pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	// Calculate number of players
@@ -66,7 +66,7 @@ func handleCmdWho(clients map[string]*pr.Client, req []string, logCtx map[string
 func handleCmdLook(clients map[string]*pr.Client, cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	res := make(map[string]any)
@@ -97,7 +97,7 @@ func handleCmdLook(clients map[string]*pr.Client, cli *pr.Client, req []string, 
 func handleCmdMove(clients map[string]*pr.Client, cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	direction := req[1]
@@ -129,7 +129,7 @@ func handleCmdMove(clients map[string]*pr.Client, cli *pr.Client, req []string, 
 func handleCmdChat(clients map[string]*pr.Client, cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) < 3 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	var chat string
@@ -138,7 +138,7 @@ func handleCmdChat(clients map[string]*pr.Client, cli *pr.Client, req []string, 
 
 	// Check scope exist
 	if !slices.Contains([]string{pr.GlobalChat, pr.RoomChat, pr.GroupChat}, scope) {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	for ip := range clients {
@@ -172,7 +172,7 @@ func handleCmdGroup(clients map[string]*pr.Client, cli *pr.Client, req []string,
 	}
 	contains := slices.Contains(contains_commands, scope)
 	if (len(req) != 3 && !contains) || (len(req) > 2 && contains) {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	var arg string
@@ -213,7 +213,7 @@ func handleCmdGroup(clients map[string]*pr.Client, cli *pr.Client, req []string,
 func handleCmdStatus(cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	// Format response
@@ -228,7 +228,7 @@ func handleCmdStatus(cli *pr.Client, req []string, logCtx map[string]any) (strin
 func handleCmdTake(cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	object := req[1]
@@ -250,7 +250,7 @@ func handleCmdTake(cli *pr.Client, req []string, logCtx map[string]any) (string,
 func handleCmdDrop(cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	object := req[1]
@@ -272,7 +272,7 @@ func handleCmdDrop(cli *pr.Client, req []string, logCtx map[string]any) (string,
 func handleCmdInventory(cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 	return "OK", cli.Datas.Inventory, nil
 }
@@ -280,7 +280,7 @@ func handleCmdInventory(cli *pr.Client, req []string, logCtx map[string]any) (st
 func handleCmdQuest(cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	npc := req[1]
@@ -311,7 +311,7 @@ func handleCmdQuest(cli *pr.Client, req []string, logCtx map[string]any) (string
 func handleCmdQuests(req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	res := make([]map[string]string, 0)
@@ -331,7 +331,7 @@ func handleCmdQuests(req []string, logCtx map[string]any) (string, any, error) {
 func handleCmdTalk(cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	npc := req[1]
@@ -366,7 +366,7 @@ func handleCmdTalk(cli *pr.Client, req []string, logCtx map[string]any) (string,
 func handleCmdAttack(cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	npc := req[1]

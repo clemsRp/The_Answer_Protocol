@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	pr "tap/protocol"
@@ -10,30 +11,28 @@ type Router struct {
 	Inputs  chan<- string
 	Outputs <-chan pr.Response
 
-	ChatChan      chan string
-	ServerChan    chan string
-	NavChan       chan string
-	PlayersChan   chan string
-	DialogueChan  chan string
-	InventoryChan chan string
-	QuestChan     chan string
-	ItemsChan     chan string
-	LastCommand   string
+	ChatChan        chan string
+	CommandLineChan chan string
+	ServerChan      chan string
+	NavChan         chan string
+	PlayersChan     chan string
+	DialogueChan    chan string
+	DatasChan       chan string
+	LastCommand     string
 }
 
 func NewRouter(inputs chan string, outputs <-chan pr.Response) *Router {
 	return &Router{
-		Inputs:        inputs,
-		Outputs:       outputs,
-		ChatChan:      make(chan string),
-		ServerChan:    make(chan string),
-		NavChan:       make(chan string),
-		PlayersChan:   make(chan string),
-		DialogueChan:  make(chan string),
-		InventoryChan: make(chan string),
-		QuestChan:     make(chan string),
-		ItemsChan:     make(chan string),
-		LastCommand:   "",
+		Inputs:          inputs,
+		Outputs:         outputs,
+		ChatChan:        make(chan string),
+		CommandLineChan: make(chan string),
+		ServerChan:      make(chan string),
+		NavChan:         make(chan string),
+		PlayersChan:     make(chan string),
+		DialogueChan:    make(chan string),
+		DatasChan:       make(chan string),
+		LastCommand:     "",
 	}
 }
 
@@ -77,6 +76,14 @@ func (r *Router) Start(m *MyApp) {
 			}
 
 			r.ServerChan <- fmt.Sprintf("[%s]%s [white]%s", color, msg_type, msg_text)
+
+			datas_json, _ := json.Marshal(res.Datas)
+			datas := string(datas_json)
+
+			if datas == "\"\"" || datas == "null" || datas == "nil" {
+				datas = ""
+			}
+			r.CommandLineChan <- res.Msg + datas
 		}
 	}()
 }
