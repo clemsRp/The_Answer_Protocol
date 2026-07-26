@@ -12,10 +12,10 @@ type NavigationComponent struct {
 	Navigation *tview.List
 }
 
-func NewNavigationComponent(app *tview.Application) *NavigationComponent {
+func NewNavigationComponent(app *tview.Application, onSelect func()) *NavigationComponent {
 	src := &NavigationComponent{}
 
-	src.Navigation = createListView(" Rooms ", true, Default, Default, tcell.ColorBlue, Black, false, true)
+	src.Navigation = createListView(" Actions ", true, Default, Default, tcell.ColorBlue, Black, false, true)
 	src.Layout = tview.NewFlex().SetDirection(tview.FlexRow).AddItem(src.Navigation, 0, 1, false)
 
 	exits := map[string]string{
@@ -25,8 +25,14 @@ func NewNavigationComponent(app *tview.Application) *NavigationComponent {
 
 	index := 1
 	for dir, room := range exits {
+		action := func() {
+			if onSelect != nil {
+				onSelect()
+			}
+		}
+
 		src.Navigation.
-			AddItem(dir+" : "+room, "", rune('0'+index), nil)
+			AddItem(dir+" : "+room, "", rune('0'+index), action)
 		index++
 	}
 	return src

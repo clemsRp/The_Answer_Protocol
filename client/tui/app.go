@@ -3,6 +3,7 @@ package main
 import (
 	panel "tap/client/tui/panels"
 
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
@@ -11,6 +12,7 @@ type MyApp struct {
 	pages   *tview.Pages
 	connect *tview.Grid
 	grid    *tview.Grid
+	popup   *tview.Grid
 	router  *Router
 
 	Chat        *panel.ChatComponent
@@ -35,6 +37,7 @@ func NewMyApp(router *Router) *MyApp {
 		grid:    tview.NewGrid().SetRows(0, 0, 0, 0).SetColumns(0, 0, 0, 0),
 		pages:   tview.NewPages(),
 		connect: tview.NewGrid().SetRows(-1, 5, 20).SetColumns(-1, -1, -1, -1),
+		popup:   tview.NewGrid().SetRows(0, 25, 0).SetColumns(0, 15, 0),
 		router:  router,
 	}
 
@@ -47,9 +50,12 @@ func NewMyApp(router *Router) *MyApp {
 	m.SetupFocusManager()
 	m.app.EnableMouse(true)
 	m.InitConnect()
-	m.pages.AddPage("Connexion", m.connect, true, true)
 
+	m.InitPopup()
+
+	m.pages.AddPage("Connexion", m.connect, true, true)
 	m.pages.AddPage("Game", m.grid, true, false)
+	m.pages.AddPage("Popup", m.popup, true, false)
 
 	m.app.SetRoot(m.pages, true)
 	return m
@@ -59,11 +65,10 @@ func (m *MyApp) setupComponents(router *Router) {
 	m.Chat = panel.NewChatComponent(m.app, router.Inputs)
 	m.CommandLine = panel.NewCommandLineComponent(m.app, router.Inputs)
 	m.Server = panel.NewServerResponseComponent(m.app)
-	m.Navigation = panel.NewNavigationComponent(m.app)
+	m.Navigation = panel.NewNavigationComponent(m.app, m.ShowPopupPage)
 	m.PlayersNPC = panel.NewPlayersNPCComponent(m.app)
 	m.Dialogue = panel.NewDialogueComponent(m.app)
 	m.Datas = panel.NewDatasComponent(m.app)
-	m.Navigation = panel.NewNavigationComponent(m.app)
 
 	m.Server.CliBtn.
 		SetSelectedFunc(func() {
@@ -121,11 +126,28 @@ func (m *MyApp) InitConnect() {
 	m.connect.AddItem(input, 1, 2, 1, 1, 0, 0, true)
 }
 
+func (m *MyApp) InitPopup() {
+	m.popup.SetBackgroundColor(tcell.GetColor("#dd1a1a"))
+
+	popup := tview.NewTextView().SetBackgroundColor(tcell.GetColor("#dd1a1a"))
+
+	m.popup.AddItem(popup, 1, 1, 1, 1, 0, 0, true)
+}
+
 func (m *MyApp) ShowGamePage() {
 	m.app.QueueUpdateDraw(func() {
 		m.pages.SwitchToPage("Game")
 		m.app.SetFocus(m.Chat.Input)
 	})
+}
+
+func (m *MyApp) ShowPopupPage() {
+	go func() {
+		m.app.QueueUpdateDraw(func() {
+			m.pages.ShowPage("Popup")
+			m.app.SetFocus(m.popup)
+		})
+	}()
 }
 
 func (m *MyApp) Run() error {
