@@ -2,36 +2,42 @@ package main
 
 import (
 	"fmt"
-	"os/signal"
-	"syscall"
-	"tap/internal/game"
-	network "tap/internal/network"
+	"tap/engine"
+	"tap/engine/parser"
+	pr "tap/protocol"
+	"tap/server"
+	"time"
+)
+
+var (
+	t_start        = time.Now().Unix()
+	update_clients = make(chan map[string]*pr.Client, 10)
+	world          parser.Map
 )
 
 func main() {
-	inChan := make(chan network.IncomingEvent, 100)
-	outChan := make(chan network.OutgoingEvent, 100)
-
-	server, err := network.NewServer(":8080", inChan, outChan)
+	// Get the world
+	serverInput := make(chan pr.ServerRequest, 100)
+	serverOutput := make(chan pr.EngineResponse, 100)
+	var err error
+	world, err = parser.Get_map("world.json")
 	if err != nil {
-		fmt.Println(err)
-		syscall.Exit(1)
+		fmt.Println("ERROR", err.Error())
+		return
 	}
-	engine := game.NewEngine(inChan, outChan)
-	// to wait for an error at the launch of the server same way as sigch.
 
-	server.Start()
-	engine.Start()
-	// The only way to stop the server is by CTRL+C or KILL command
-	// then it stops gracefully.
-	signal.Notify(server.SigChan, syscall.SIGINT, syscall.SIGTERM)
-	select {
-	case sig := <-server.SigChan:
-		fmt.Printf("\nStop signal received (%v), closing the server...", sig)
-	case err := <-server.ErrChan:
-		fmt.Printf("\nCritical error from server: %v", err)
+	// Initialize server
+	var s *server.Server
+	s, err = server.NewServer("8080", serverInput, serverOutput, update_clients)
+	if err != nil {
+		fmt.Println("Server couldn't start")
+		return
 	}
-	server.Stop()
-	engine.Stop()
 
+	// Initialize and start engine
+	e := engine.NewEngine(world, serverInput, serverOutput, update_clients)
+	e.Start()
+
+	// Start the serveur
+	s.Start()
 }

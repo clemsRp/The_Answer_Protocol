@@ -8,7 +8,7 @@ import (
 
 type Stats struct {
 	Hp     int    `json:"hp"`
-	MaxHp int    `json:"max_hp"`
+	MaxHp  int    `json:"max_hp"`
 	Status string `json:"status"`
 }
 

@@ -11,7 +11,7 @@ import (
 
 var (
 	inputs  = make(chan string)
-	outputs = make(chan pr.Response)
+	outputs = make(chan pr.ServerResponse)
 )
 
 func main() {
@@ -43,7 +43,7 @@ func main() {
 		decoder := json.NewDecoder(conn)
 
 		for {
-			var res pr.Response
+			var res pr.ServerResponse
 
 			if err := decoder.Decode(&res); err != nil {
 				fmt.Print("An error occured during connection:", err)

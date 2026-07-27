@@ -1,13 +1,13 @@
-package main
+package server
 
 import (
 	"time"
 )
 
-func get_timestamp() map[string]int {
+func (s *Server) get_timestamp() map[string]int {
 	// Get timestamp value
 	time := time.Now().Unix()
-	timestamp := time - t_start
+	timestamp := time - s.t_start
 
 	// Convert it and stock it inside a map
 	res := make(map[string]int)

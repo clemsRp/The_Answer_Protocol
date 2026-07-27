@@ -1,4 +1,4 @@
-package main
+package engine
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func remove_user_in_group(cli *pr.Client, group []*pr.Client) []*pr.Client {
+func (e *Engine) remove_user_in_group(cli *pr.Client, group []*pr.Client) []*pr.Client {
 	// Get user index inside group
 	cli_index := -1
 	for i, user := range group {
@@ -27,18 +27,18 @@ func remove_user_in_group(cli *pr.Client, group []*pr.Client) []*pr.Client {
 	return group
 }
 
-func create_group(cli *pr.Client) (string, error) {
+func (e *Engine) create_group(cli *pr.Client) (string, error) {
 	// Create group ID
 	group_id := uuid.New().String()
 
 	// Handle existing group
-	_, ok := groups[group_id]
+	_, ok := e.groups[group_id]
 	if ok {
 		return "", errors.New("ERR Group already exist")
 	}
 
 	// Check user already in a group
-	for _, group := range groups {
+	for _, group := range e.groups {
 		for _, user := range group {
 			if user.Name == cli.Name {
 				return "", errors.New("ERR user already inside a group")
@@ -47,26 +47,26 @@ func create_group(cli *pr.Client) (string, error) {
 	}
 
 	// Set group
-	groups[group_id] = []*pr.Client{cli}
+	e.groups[group_id] = []*pr.Client{cli}
 	cli.Datas.Group = group_id
 
 	return "OK group=" + group_id, nil
 }
 
-func invite_user_in_group(clients map[string]*pr.Client, cli *pr.Client, user_name string) (string, error) {
-	// Handle non existant groups
-	_, ok := groups[cli.Datas.Group]
+func (e *Engine) invite_user_in_group(cli *pr.Client, user_name string) (string, error) {
+	// Handle non existant e.groups
+	_, ok := e.groups[cli.Datas.Group]
 	if !ok {
 		return "", errors.New("ERR 401 NOT_IN_GROUP")
 	}
 
 	// Check cli is group's leader
-	if groups[cli.Datas.Group][0].Name != cli.Name {
+	if e.groups[cli.Datas.Group][0].Name != cli.Name {
 		return "", errors.New("ERR User isn't group's leader")
 	}
 
 	// Handle users already in group
-	for _, user := range groups[cli.Datas.Group] {
+	for _, user := range e.groups[cli.Datas.Group] {
 		if user.Name == user_name {
 			return "", errors.New("ERR 402 ALREADY_IN_GROUP")
 		}
@@ -74,9 +74,9 @@ func invite_user_in_group(clients map[string]*pr.Client, cli *pr.Client, user_na
 
 	// Get user
 	var new_cli *pr.Client
-	for ip := range clients {
-		if clients[ip].Name == user_name {
-			new_cli = clients[ip]
+	for ip := range e.clients {
+		if e.clients[ip].Name == user_name {
+			new_cli = e.clients[ip]
 
 			// Check that invitation isn't already present
 			for _, invite := range new_cli.Datas.Invitation {
@@ -87,7 +87,7 @@ func invite_user_in_group(clients map[string]*pr.Client, cli *pr.Client, user_na
 
 			// Add invitation to user
 			new_cli.Datas.Invitation = append(new_cli.Datas.Invitation, cli.Datas.Group)
-			clients[ip].Ch <- pr.Response{Msg: "EVT GROUP INVITE " + cli.Name}
+			e.clients[ip].Ch <- pr.ServerResponse{Msg: "EVT GROUP INVITE " + cli.Name}
 
 			return "OK", nil
 		}
@@ -96,11 +96,11 @@ func invite_user_in_group(clients map[string]*pr.Client, cli *pr.Client, user_na
 	return "", errors.New("ERR new user not find")
 }
 
-func join_group(clients map[string]*pr.Client, cli *pr.Client, leader_name string) (string, error) {
+func (e *Engine) join_group(cli *pr.Client, leader_name string) (string, error) {
 	group_name := ""
 
 	// Handle users already in group
-	for group_id, group := range groups {
+	for group_id, group := range e.groups {
 		// Find leader group
 		if group[0].Name == leader_name {
 			group_name = group_id
@@ -113,11 +113,11 @@ func join_group(clients map[string]*pr.Client, cli *pr.Client, leader_name strin
 		}
 	}
 
-	// Handle non existant groups
+	// Handle non existant e.groups
 	if group_name == "" {
 		return "", errors.New("ERR Invalid leader name")
 	}
-	_, ok := groups[group_name]
+	_, ok := e.groups[group_name]
 	if !ok {
 		return "", errors.New("ERR Group doesn't exist yet")
 	}
@@ -135,9 +135,9 @@ func join_group(clients map[string]*pr.Client, cli *pr.Client, leader_name strin
 	}
 
 	// Add user in group
-	groups[group_name] = append(groups[group_name], cli)
+	e.groups[group_name] = append(e.groups[group_name], cli)
 	cli.Datas.Group = group_name
-	inform_group(clients, cli, group_name, "EVT GROUP JOIN "+cli.Name)
+	e.inform_group(cli, group_name, "EVT GROUP JOIN "+cli.Name)
 
 	// Delete invitation
 	invite_index := -1
@@ -155,7 +155,7 @@ func join_group(clients map[string]*pr.Client, cli *pr.Client, leader_name strin
 	return "OK group=" + group_name, nil
 }
 
-func leave_group(clients map[string]*pr.Client, cli *pr.Client) (string, error) {
+func (e *Engine) leave_group(cli *pr.Client) (string, error) {
 	// Check user is inside the group
 	if cli.Datas.Group == "" {
 		return "", errors.New("ERR 401 NOT_IN_GROUP")
@@ -165,15 +165,15 @@ func leave_group(clients map[string]*pr.Client, cli *pr.Client) (string, error) 
 	cli.Datas.Promotion = false
 
 	// Remove user from his current group
-	groupSlice := groups[cli.Datas.Group]
-	groupSlice = remove_user_in_group(cli, groupSlice)
-	groups[cli.Datas.Group] = groupSlice
+	groupSlice := e.groups[cli.Datas.Group]
+	groupSlice = e.remove_user_in_group(cli, groupSlice)
+	e.groups[cli.Datas.Group] = groupSlice
 
-	inform_group(clients, cli, cli.Datas.Group, "EVT GROUP LEAVE "+cli.Name)
+	e.inform_group(cli, cli.Datas.Group, "EVT GROUP LEAVE "+cli.Name)
 
 	// Remove group if needed
 	if len(groupSlice) == 0 {
-		delete(groups, cli.Datas.Group)
+		delete(e.groups, cli.Datas.Group)
 	}
 
 	// Re initialize his group value
@@ -182,14 +182,14 @@ func leave_group(clients map[string]*pr.Client, cli *pr.Client) (string, error) 
 	return "OK", nil
 }
 
-func promote_user(clients map[string]*pr.Client, cli *pr.Client, new_leader string) (string, error) {
+func (e *Engine) promote_user(cli *pr.Client, new_leader string) (string, error) {
 	// Handle invalid command
 	if cli.Datas.Group == "" {
 		return "", errors.New("ERR 401 NOT_IN_GROUP")
 	}
 
 	// Find the group
-	group_users := groups[cli.Datas.Group]
+	group_users := e.groups[cli.Datas.Group]
 
 	// Handle invalid rights
 	if group_users[0].Name != cli.Name {
@@ -200,7 +200,7 @@ func promote_user(clients map[string]*pr.Client, cli *pr.Client, new_leader stri
 	}
 
 	// Find new_leader
-	for _, client := range clients {
+	for _, client := range e.clients {
 		if client.Name == new_leader {
 
 			// Check new_leader is inside group
@@ -210,7 +210,7 @@ func promote_user(clients map[string]*pr.Client, cli *pr.Client, new_leader stri
 
 			// Send promotion
 			client.Datas.Promotion = true
-			inform_user(clients, new_leader, "EVT GROUP PROMOTE "+new_leader)
+			e.inform_user(new_leader, "EVT GROUP PROMOTE "+new_leader)
 
 			return "OK pending_leader=" + cli.Name, nil
 		}
@@ -220,7 +220,7 @@ func promote_user(clients map[string]*pr.Client, cli *pr.Client, new_leader stri
 	return "", fmt.Errorf("ERR 404 USER_NOT_FOUND")
 }
 
-func accept_promotion(clients map[string]*pr.Client, cli *pr.Client) (string, error) {
+func (e *Engine) accept_promotion(cli *pr.Client) (string, error) {
 	// Check user have a group promotion
 	if cli.Datas.Group == "" {
 		return "", errors.New("ERR 401 NOT_IN_GROUP")
@@ -230,16 +230,16 @@ func accept_promotion(clients map[string]*pr.Client, cli *pr.Client) (string, er
 
 	// Update promotion and leadership
 	cli.Datas.Promotion = false
-	new_leader_index := GetElementIndex(groups[cli.Datas.Group], cli)
-	MoveElement(groups[cli.Datas.Group], new_leader_index, 0)
+	new_leader_index := GetElementIndex(e.groups[cli.Datas.Group], cli)
+	MoveElement(e.groups[cli.Datas.Group], new_leader_index, 0)
 
-	inform_group(clients, cli, cli.Datas.Group, "EVT GROUP PROMOTE ACCEPTED "+cli.Name)
-	inform_group_invitations(clients, cli, cli.Datas.Group, "EVT GROUP PROMOTE ACCEPTED "+cli.Name)
+	e.inform_group(cli, cli.Datas.Group, "EVT GROUP PROMOTE ACCEPTED "+cli.Name)
+	e.inform_group_invitations(cli, cli.Datas.Group, "EVT GROUP PROMOTE ACCEPTED "+cli.Name)
 
 	return "OK new_leader=" + cli.Name, nil
 }
 
-func decline_promotion(clients map[string]*pr.Client, cli *pr.Client) (string, error) {
+func (e *Engine) decline_promotion(cli *pr.Client) (string, error) {
 	// Check user have a group promotion
 	if cli.Datas.Group == "" {
 		return "", errors.New("ERR 401 NOT_IN_GROUP")
@@ -250,8 +250,8 @@ func decline_promotion(clients map[string]*pr.Client, cli *pr.Client) (string, e
 	// Update promotion
 	cli.Datas.Promotion = false
 
-	inform_group(clients, cli, cli.Datas.Group, "EVT GROUP PROMOTE DECLINED "+cli.Name)
-	inform_group_invitations(clients, cli, cli.Datas.Group, "EVT GROUP PROMOTE DECLINED "+cli.Name)
+	e.inform_group(cli, cli.Datas.Group, "EVT GROUP PROMOTE DECLINED "+cli.Name)
+	e.inform_group_invitations(cli, cli.Datas.Group, "EVT GROUP PROMOTE DECLINED "+cli.Name)
 
 	return "OK", nil
 }

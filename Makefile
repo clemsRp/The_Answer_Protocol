@@ -1,11 +1,8 @@
 
-
-
+server:
+	go run ./cmd/server
 
 client:
 	go run ./client/tui
-
-server:
-	go run ./server
 
 .PHONY: client server

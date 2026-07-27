@@ -50,22 +50,38 @@ type Datas struct {
 }
 
 type Client struct {
-	Conn  net.Conn      `json:"-"`
-	Ch    chan Response `json:"-"`
+	Conn  net.Conn            `json:"-"`
+	Ch    chan ServerResponse `json:"-"`
 	Ip    string
 	Name  string
 	Datas Datas
 }
 
-type Request struct {
+// Link client/server
+type ClientRequest struct {
 	Cli *Client `json:"-"`
 	Msg string
 }
 
-type Response struct {
+type ServerResponse struct {
 	Msg   string
 	Datas any
-	Req   Request
+	Req   ClientRequest
+}
+
+// Link server/engine
+type ServerRequest struct {
+	Cli *Client
+	Msg string
+	Req ClientRequest
+}
+
+type EngineResponse struct {
+	Cli   *Client
+	Msg   string
+	Datas any
+	Err   error
+	Req   ServerRequest
 }
 
 const (

@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func writeLog(level string, message string, datas map[string]any) {
+func (s *Server) writeLog(level string, message string, datas map[string]any) {
 	entry := Log{
 		Timestamp: time.Now().Format(time.RFC3339Nano),
 		Level:     level,
@@ -28,12 +28,12 @@ func writeLog(level string, message string, datas map[string]any) {
 	}
 }
 
-func LogInfo(msg string, datas map[string]any) {
-	logs <- Log{Level: "INFO", Message: msg, Datas: datas}
+func (s *Server) LogInfo(msg string, datas map[string]any) {
+	s.logs <- Log{Level: "INFO", Message: msg, Datas: datas}
 }
-func LogWarn(msg string, datas map[string]any) {
-	logs <- Log{Level: "WARN", Message: msg, Datas: datas}
+func (s *Server) LogWarn(msg string, datas map[string]any) {
+	s.logs <- Log{Level: "WARN", Message: msg, Datas: datas}
 }
-func LogError(msg string, datas map[string]any) {
-	logs <- Log{Level: "ERROR", Message: msg, Datas: datas}
+func (s *Server) LogError(msg string, datas map[string]any) {
+	s.logs <- Log{Level: "ERROR", Message: msg, Datas: datas}
 }

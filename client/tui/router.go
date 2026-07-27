@@ -9,7 +9,7 @@ import (
 
 type Router struct {
 	Inputs  chan<- string
-	Outputs <-chan pr.Response
+	Outputs <-chan pr.ServerResponse
 
 	ChatChan        chan string
 	CommandLineChan chan string
@@ -21,7 +21,7 @@ type Router struct {
 	LastCommand     string
 }
 
-func NewRouter(inputs chan string, outputs <-chan pr.Response) *Router {
+func NewRouter(inputs chan string, outputs <-chan pr.ServerResponse) *Router {
 	return &Router{
 		Inputs:          inputs,
 		Outputs:         outputs,
@@ -36,7 +36,7 @@ func NewRouter(inputs chan string, outputs <-chan pr.Response) *Router {
 	}
 }
 
-func (r *Router) HandleEvents(res pr.Response) {
+func (r *Router) HandleEvents(res pr.ServerResponse) {
 	// Handle CHAT responses
 	global := strings.HasPrefix(res.Msg, "EVT GLOBAL CHAT")
 	room := strings.HasPrefix(res.Msg, "EVT ROOM CHAT")
