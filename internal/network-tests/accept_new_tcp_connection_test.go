@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func TestServerSendsProtocolGreeting(t *testing.T) {
+func TestServerSendsGreeting(t *testing.T) {
 	_, realAddress := setupTestServer(t)
 
 	clientConn, err := net.DialTimeout("tcp", realAddress, 2*time.Second)
@@ -32,7 +32,7 @@ func TestServerSendsProtocolGreeting(t *testing.T) {
 	}
 }
 
-func TestServerLogsConnectionInternally(t *testing.T) {
+func TestServerLogsNewConnection(t *testing.T) {
 	var buf bytes.Buffer
 	log.SetOutput(&buf)
 	defer log.SetOutput(nil)
