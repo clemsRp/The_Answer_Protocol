@@ -24,6 +24,7 @@ func handleClient(conn net.Conn) {
 		Datas: pr.Datas{
 			Room:          "entrance",
 			Status:        "healthy",
+			Promotion:     false,
 			Hp:            100,
 			Max_hp:        100,
 			Connected:     false,

@@ -170,7 +170,7 @@ func handleRequest(clients map[string]*pr.Client, request pr.Request) {
 			res, datas, err = handleCmdAttack(activeCli, req, logCtx)
 
 		default:
-			res, datas, err = "", "", errors.New("Invalid command")
+			res, datas, err = "", "", errors.New("ERR 400 BAD_REQUEST")
 		}
 	}
 

@@ -1,7 +1,6 @@
 package panel
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/gdamore/tcell/v2"
@@ -13,14 +12,29 @@ type NavigationComponent struct {
 	Navigation *tview.List
 }
 
-func NewNavigationComponent(app *tview.Application) *NavigationComponent {
+func NewNavigationComponent(app *tview.Application, onSelect func()) *NavigationComponent {
 	src := &NavigationComponent{}
 
-	src.Navigation = createListView(" Navigation ", true, Default, Default, tcell.ColorBlue, Black, false, true)
+	src.Navigation = createListView(" Actions ", true, Default, Default, tcell.ColorBlue, Black, false, true)
 	src.Layout = tview.NewFlex().SetDirection(tview.FlexRow).AddItem(src.Navigation, 0, 1, false)
-	src.Navigation.
-		AddItem("NORTH : room3", "", 'n', nil).
-		AddItem("EAST : room1", "", 'e', func() { fmt.Printf("hello") })
+
+	exits := map[string]string{
+		"north": "health_aisle",
+		"east":  "fresh_section",
+	}
+
+	index := 1
+	for dir, room := range exits {
+		action := func() {
+			if onSelect != nil {
+				onSelect()
+			}
+		}
+
+		src.Navigation.
+			AddItem(dir+" : "+room, "", rune('0'+index), action)
+		index++
+	}
 	return src
 }
 

@@ -2,28 +2,43 @@ package panel
 
 import (
 	"fmt"
-	"time"
+	"strings"
+
+	pr "tap/protocol"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
 type ChatComponent struct {
-	Layout  *tview.Flex
-	History *tview.TextView
-	Scope   *tview.DropDown
-	Input   *tview.InputField
+	Layout    *tview.Flex
+	History   *tview.Pages
+	Histories map[string]*tview.TextView
+	Scope     *tview.DropDown
+	Input     *tview.InputField
 }
 
-func NewChatComponent(app *tview.Application, pseudo string, inputs chan<- string) *ChatComponent {
+func NewChatComponent(app *tview.Application, inputs chan<- string) *ChatComponent {
 	chat := &ChatComponent{}
 
-	chat.History = createTextView("", "", true, Default, Black)
-	chat.History.
-		SetBorder(true).
-		SetTitle(" Chat History ")
+	// Init Scope Histories
+	chat.History = tview.NewPages()
 
-	chat.Scope = createSelectField("Canal: ", []string{"GLOBAL", "ROOM", "GROUP"}, 0)
+	chat.Histories = map[string]*tview.TextView{
+		pr.RoomChat:   NewHistoryComponent(pr.RoomChat),
+		pr.GroupChat:  NewHistoryComponent(pr.GroupChat),
+		pr.GlobalChat: NewHistoryComponent(pr.GlobalChat),
+	}
+
+	for scope, history := range chat.Histories {
+		focus := false
+		if scope == pr.GlobalChat {
+			focus = true
+		}
+		chat.History.AddPage(scope, history, true, focus)
+	}
+
+	chat.Scope = createSelectField("Canal: ", []string{pr.GlobalChat, pr.RoomChat, pr.GroupChat}, 0)
 
 	chat.Input = tview.NewInputField().
 		SetLabel(" Message: ").
@@ -55,6 +70,10 @@ func NewChatComponent(app *tview.Application, pseudo string, inputs chan<- strin
 		chat.Input.SetBorderColor(inactiveColor)
 		chat.Input.SetTitleColor(tcell.ColorWhite)
 	})
+
+	chat.Scope.SetSelectedFunc(func(scope string, index int) {
+		chat.History.SwitchToPage(scope)
+	})
 	chat.Scope.SetFocusFunc(func() {
 		chat.Layout.SetBorderColor(activeColor)
 		chat.Layout.SetTitleColor(activeColor)
@@ -72,11 +91,10 @@ func NewChatComponent(app *tview.Application, pseudo string, inputs chan<- strin
 			}
 
 			_, canal := chat.Scope.GetCurrentOption()
-			hour := time.Now().Format("15:04")
 
-			formated_msg := fmt.Sprintf("[gray][%s] [yellow][%s] [green]%s: [white]%s\n", hour, canal, pseudo, text)
+			formated_msg := fmt.Sprintf("[green]%s: [white]%s\n", pseudo, text)
 
-			fmt.Fprint(chat.History, formated_msg)
+			fmt.Fprint(chat.Histories[canal], formated_msg)
 
 			chat.Input.SetText("")
 			inputs <- fmt.Sprintf("CHAT %s %s", canal, text)
@@ -98,17 +116,31 @@ func NewChatComponent(app *tview.Application, pseudo string, inputs chan<- strin
 	return chat
 }
 
-func (c *ChatComponent) ListenOutputs(app *tview.Application, chatChan <-chan string) {
-	// TO CHANGE
+func NewHistoryComponent(scope string) *tview.TextView {
+	history := createTextView("", "", true, Default, Black)
+	history.
+		SetBorder(true).
+		SetTitle(fmt.Sprintf(" %s ", scope))
 
+	return history
+}
+
+func (c *ChatComponent) ListenOutputs(app *tview.Application, chatChan <-chan string) {
 	go func() {
 		for msg := range chatChan {
 
-			lineChat := fmt.Sprintf("[gray][%s] [yellow][%s] [green]%s: [white]%s\n",
-				msg, msg, msg, msg)
+			split_msg := strings.SplitN(msg, " ", 3)
+
+			scope := split_msg[0]
+			user := split_msg[1]
+			message := split_msg[2]
+
+			lineChat := fmt.Sprintf("[green]%s: [white]%s\n", user, message)
 
 			app.QueueUpdateDraw(func() {
-				fmt.Fprint(c.History, lineChat)
+				if historyView, ok := c.Histories[scope]; ok {
+					fmt.Fprint(historyView, lineChat)
+				}
 			})
 		}
 	}()

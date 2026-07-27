@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	pr "tap/protocol"
 )
@@ -26,7 +27,8 @@ func handleCmdConnect(clients map[string]*pr.Client, ip string, req []string, lo
 	clients[ip].Name = req[1]
 	clients[ip].Datas.Connected = true
 	dialogues[req[1]] = make(map[string]int)
-	inform_room(clients, clients[ip], clients[ip].Datas.Room, "EVT ROOM PRESENCE ENTER")
+	inform_all(clients, clients[ip], fmt.Sprintf("EVT STATS players=%d", get_nb_connected_players(clients)))
+	inform_room(clients, clients[ip], clients[ip].Datas.Room, "EVT ROOM PRESENCE ENTER "+clients[ip].Name)
 
 	logCtx["action"] = "player_connected"
 
@@ -36,17 +38,18 @@ func handleCmdConnect(clients map[string]*pr.Client, ip string, req []string, lo
 func handleCmdQuit(clients map[string]*pr.Client, cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
-	inform_room(clients, cli, cli.Datas.Room, "EVT ROOM PRESENCE LEAVE")
+	inform_room(clients, cli, cli.Datas.Room, "EVT ROOM PRESENCE LEAVE "+cli.Name)
+	inform_all(clients, cli, fmt.Sprintf("EVT STATS players=%d", get_nb_connected_players(clients)-1))
 	return "OK bye", "", nil
 }
 
 func handleCmdWho(clients map[string]*pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	// Calculate number of players
@@ -63,7 +66,7 @@ func handleCmdWho(clients map[string]*pr.Client, req []string, logCtx map[string
 func handleCmdLook(clients map[string]*pr.Client, cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	res := make(map[string]any)
@@ -94,7 +97,7 @@ func handleCmdLook(clients map[string]*pr.Client, cli *pr.Client, req []string, 
 func handleCmdMove(clients map[string]*pr.Client, cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	direction := req[1]
@@ -106,7 +109,7 @@ func handleCmdMove(clients map[string]*pr.Client, cli *pr.Client, req []string, 
 		return "", "", errors.New("ERR 301 NO_EXIT")
 	}
 
-	inform_room(clients, cli, cli.Datas.Room, "EVT ROOM PRESENCE LEAVE")
+	inform_room(clients, cli, cli.Datas.Room, "EVT ROOM PRESENCE LEAVE "+cli.Name)
 
 	// Change the player room variable
 	if cli, ok := clients[cli.Ip]; ok {
@@ -114,7 +117,7 @@ func handleCmdMove(clients map[string]*pr.Client, cli *pr.Client, req []string, 
 	}
 	cli.Datas.Room = nextRoom
 
-	inform_room(clients, cli, cli.Datas.Room, "EVT ROOM PRESENCE ENTER")
+	inform_room(clients, cli, cli.Datas.Room, "EVT ROOM PRESENCE ENTER "+cli.Name)
 
 	logCtx["action"] = "player_moved"
 	logCtx["prev_room"] = currentRoom.Name
@@ -126,12 +129,17 @@ func handleCmdMove(clients map[string]*pr.Client, cli *pr.Client, req []string, 
 func handleCmdChat(clients map[string]*pr.Client, cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) < 3 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	var chat string
 	scope := strings.ToUpper(req[1])
 	msg := strings.Join(req[2:], " ")
+
+	// Check scope exist
+	if !slices.Contains([]string{pr.GlobalChat, pr.RoomChat, pr.GroupChat}, scope) {
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
+	}
 
 	for ip := range clients {
 		if clients[ip].Name != cli.Name {
@@ -143,7 +151,7 @@ func handleCmdChat(clients map[string]*pr.Client, cli *pr.Client, req []string, 
 
 			// Send chat to player
 			if is_global || is_group || is_room {
-				chat = "[CHAT] " + cli.Name + ": " + msg
+				chat = fmt.Sprintf("EVT %s CHAT %s %s", scope, cli.Name, msg)
 				clients[ip].Ch <- pr.Response{Msg: chat, Req: pr.Request{}}
 			}
 		}
@@ -157,25 +165,37 @@ func handleCmdGroup(clients map[string]*pr.Client, cli *pr.Client, req []string,
 	scope := strings.ToUpper(req[1])
 
 	// Handle invalid command
-	if (len(req) != 3 && scope != pr.LeaveGroup) || (len(req) > 2 && scope == pr.LeaveGroup) {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+	contains_commands := []string{
+		pr.CreateGroup,
+		pr.LeaveGroup,
+		pr.AcceptPromoteGroup,
+	}
+	contains := slices.Contains(contains_commands, scope)
+	if (len(req) != 3 && !contains) || (len(req) > 2 && contains) {
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	var arg string
-	if scope != pr.LeaveGroup {
+	if !contains {
 		arg = req[2]
 	}
 
 	// Handle group scopes
 	switch scope {
 	case pr.CreateGroup:
-		res, err = create_group(cli, arg)
+		res, err = create_group(cli)
 	case pr.InviteGroup:
 		res, err = invite_user_in_group(clients, cli, arg)
 	case pr.JoinGroup:
-		res, err = join_group(cli, arg)
+		res, err = join_group(clients, cli, arg)
 	case pr.LeaveGroup:
-		res, err = leave_group(cli)
+		res, err = leave_group(clients, cli)
+	case pr.PromoteGroup:
+		res, err = promote_user(clients, cli, arg)
+	case pr.AcceptPromoteGroup:
+		res, err = accept_promotion(clients, cli)
+	case pr.DeclinePromoteGroup:
+		res, err = decline_promotion(clients, cli)
 	default:
 		return "", "", errors.New("ERR 400 Invalid scope")
 	}
@@ -193,7 +213,7 @@ func handleCmdGroup(clients map[string]*pr.Client, cli *pr.Client, req []string,
 func handleCmdStatus(cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	// Format response
@@ -208,7 +228,7 @@ func handleCmdStatus(cli *pr.Client, req []string, logCtx map[string]any) (strin
 func handleCmdTake(cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	object := req[1]
@@ -230,7 +250,7 @@ func handleCmdTake(cli *pr.Client, req []string, logCtx map[string]any) (string,
 func handleCmdDrop(cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	object := req[1]
@@ -252,7 +272,7 @@ func handleCmdDrop(cli *pr.Client, req []string, logCtx map[string]any) (string,
 func handleCmdInventory(cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 	return "OK", cli.Datas.Inventory, nil
 }
@@ -260,7 +280,7 @@ func handleCmdInventory(cli *pr.Client, req []string, logCtx map[string]any) (st
 func handleCmdQuest(cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	npc := req[1]
@@ -291,7 +311,7 @@ func handleCmdQuest(cli *pr.Client, req []string, logCtx map[string]any) (string
 func handleCmdQuests(req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	res := make([]map[string]string, 0)
@@ -311,7 +331,7 @@ func handleCmdQuests(req []string, logCtx map[string]any) (string, any, error) {
 func handleCmdTalk(cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	npc := req[1]
@@ -346,7 +366,7 @@ func handleCmdTalk(cli *pr.Client, req []string, logCtx map[string]any) (string,
 func handleCmdAttack(cli *pr.Client, req []string, logCtx map[string]any) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST Invalid command")
+		return "", "", errors.New("ERR 400 BAD_REQUEST")
 	}
 
 	npc := req[1]

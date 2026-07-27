@@ -41,6 +41,7 @@ type Datas struct {
 	Inventory     []string
 	Invitation    []string
 	Group         string
+	Promotion     bool
 	Hp            int
 	Max_hp        int
 	Connected     bool
@@ -88,10 +89,13 @@ const (
 	RoomChat   = "ROOM"
 	GroupChat  = "GROUP"
 
-	CreateGroup = "CREATE"
-	InviteGroup = "INVITE"
-	JoinGroup   = "JOIN"
-	LeaveGroup  = "LEAVE"
+	CreateGroup         = "CREATE"
+	InviteGroup         = "INVITE"
+	JoinGroup           = "JOIN"
+	LeaveGroup          = "LEAVE"
+	PromoteGroup        = "PROMOTE"
+	AcceptPromoteGroup  = "ACCEPT"
+	DeclinePromoteGroup = "DECLINE"
 
 	South = "south"
 	North = "north"
