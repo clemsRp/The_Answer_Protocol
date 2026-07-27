@@ -40,7 +40,7 @@ func (r *Router) HandleEvents(res pr.Response) {
 	// Handle CHAT responses
 	global := strings.HasPrefix(res.Msg, "EVT GLOBAL CHAT")
 	room := strings.HasPrefix(res.Msg, "EVT ROOM CHAT")
-	group := strings.HasPrefix(res.Msg, "EVT GROUP CHAT")
+	group := strings.HasPrefix(res.Msg, "EVT GROUP CHAT alice ca va ?")
 	if global || room || group {
 		split_msg := strings.SplitN(res.Msg, " ", 5)
 		r.ChatChan <- fmt.Sprintf("%s %s %s", split_msg[1], split_msg[3], split_msg[4])
