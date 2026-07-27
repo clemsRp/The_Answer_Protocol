@@ -2,6 +2,7 @@ package networktests
 
 import (
 	"bufio"
+	"encoding/json"
 	"io"
 	"log"
 	"net"
@@ -14,28 +15,97 @@ type CommandTest struct {
 	name          string
 	command       string
 	expectedReply string
+	expectsJSON   bool
 }
 
-func GetCommands() []CommandTest {
-
+func GetMoveTestCommands(t *testing.T) []CommandTest {
+	t.Helper()
 	return []CommandTest{
 		{
-			name:          "Connexion valide",
-			command:       "CONNECT alice",
-			expectedReply: "OK connected",
-		},
-		{
-			name:          "Connexion avec un nom déjà pris",
-			command:       "CONNECT alice",
-			expectedReply: "ERR 201 NAME_IN_USE",
-		},
-		{
-			name:          "Mouvement invalide",
+			name:          "Invalid movement",
 			command:       "MOVE nowhere",
 			expectedReply: "ERR 301 NO_EXIT",
+			expectsJSON:   false,
+		},
+		{
+			name:          "Valid movement",
+			command:       "MOVE east",
+			expectedReply: "OK room=",
+			expectsJSON:   false,
+		},
+		{
+			name:          "Valid movement",
+			command:       "MOVE west",
+			expectedReply: "OK room=",
+			expectsJSON:   false,
+		},
+		{
+			name:          "Valid movement",
+			command:       "MOVE north",
+			expectedReply: "OK room=",
+			expectsJSON:   false,
+		},
+		{
+			name:          "Valid movement",
+			command:       "MOVE south",
+			expectedReply: "OK room=",
+			expectsJSON:   false,
+		}}
+}
+
+func GetTestChatCommands(t *testing.T) []CommandTest {
+	return []CommandTest{
+		{
+			name:          "Global chat command valid",
+			command:       "CHAT GLOBAL",
+			expectedReply: "OK",
+			expectsJSON:   false,
+		},
+		{
+			name:          "Room chat command valid",
+			command:       "CHAT ROOM",
+			expectedReply: "OK",
+			expectsJSON:   false,
+		},
+		{
+			name:          "Group chat command valid",
+			command:       "CHAT GROUP",
+			expectedReply: "OK",
+			expectsJSON:   false,
 		},
 	}
+}
 
+func GetTestCommands(t *testing.T) []CommandTest {
+	t.Helper()
+	moveCommands := GetMoveTestCommands(t)
+	chatCommands := GetTestChatCommands()
+	return []CommandTest{
+		{
+			name:          "Valid connection",
+			command:       "CONNECT alice",
+			expectedReply: "OK connected",
+			expectsJSON:   false,
+		},
+		{
+			name:          "Invalid connection: name already used",
+			command:       "CONNECT alice",
+			expectedReply: "ERR 201 NAME_IN_USE",
+			expectsJSON:   false,
+		},
+		{
+			name:          "Look command valid",
+			command:       "LOOK alice",
+			expectedReply: "OK",
+			expectsJSON:   true,
+		},
+		{
+			name:          "Quitting the game",
+			command:       "QUIT",
+			expectedReply: "OK bye",
+			expectsJSON:   false,
+		},
+	}
 }
 
 func TestTAPProtocolCommands(t *testing.T) {
@@ -45,20 +115,35 @@ func TestTAPProtocolCommands(t *testing.T) {
 
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
-		t.Fatalf("Impossible de se connecter: %v", err)
+		t.Fatalf("Impossible to connect: %v", err)
 	}
 	defer conn.Close()
 
 	bufio.NewReader(conn).ReadString('\n')
 
-	tests := GetCommands()
+	tests := GetCommands(t)
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			response := sendCommand(t, conn, tc.command)
+	for _, c := range tests {
+		t.Run(c.name, func(t *testing.T) {
+			response := sendCommand(t, conn, c.command)
 
-			if !strings.HasPrefix(response, tc.expectedReply) {
-				t.Errorf("Commande %q -> Attendu: %q..., Reçu: %q", tc.command, tc.expectedReply, response)
+			if c.expectsJSON {
+
+				jsonPart := strings.TrimPrefix(response, c.expectedReply+" ")
+				jsonPart = strings.TrimSpace(jsonPart)
+
+				if !strings.HasPrefix(response, c.expectedReply) {
+					t.Errorf("Command %q -> Expected prefix: %q, Received: %q", c.command, c.expectedReply, response)
+				}
+
+				if !json.Valid([]byte(jsonPart)) {
+					t.Errorf("Command %q -> Response doesn't contain valid JSON. Received payload: %s", c.command, jsonPart)
+				}
+
+			} else {
+				if !strings.HasPrefix(response, c.expectedReply) {
+					t.Errorf("Command %q -> Expected: %q..., Received: %q", c.command, c.expectedReply, response)
+				}
 			}
 		})
 	}

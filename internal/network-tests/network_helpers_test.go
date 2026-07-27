@@ -31,13 +31,13 @@ func sendCommand(t *testing.T, conn net.Conn, cmd string) string {
 
 	_, err := fmt.Fprintf(conn, "%s\n", cmd)
 	if err != nil {
-		t.Fatalf("Erreur d'envoi: %v", err)
+		t.Fatalf("Send error: %v", err)
 	}
 
 	reader := bufio.NewReader(conn)
 	response, err := reader.ReadString('\n')
 	if err != nil {
-		t.Fatalf("Erreur de lecture: %v", err)
+		t.Fatalf("Read error: %v", err)
 	}
 
 	return strings.TrimSpace(response)
