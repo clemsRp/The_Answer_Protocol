@@ -7,7 +7,7 @@ import (
 	pr "tap/protocol"
 )
 
-func (e *Engine) handleCommands(request pr.ServerRequest) (*pr.Client, string, pr.Datas, error) {
+func (e *Engine) handleCommands(request pr.ServerRequest) (*pr.Client, string, any, error) {
 	var res string
 	var datas any
 	var err error
@@ -69,18 +69,5 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (*pr.Client, string, p
 		}
 	}
 
-	fmt.Println(datas)
-
-	// Cast any to pr.Datas
-	var final_datas pr.Datas
-
-	if datas != nil {
-		switch d := datas.(type) {
-		case pr.Datas:
-			final_datas = d
-		case string:
-		}
-	}
-
-	return activeCli, res, final_datas, err
+	return activeCli, res, datas, err
 }

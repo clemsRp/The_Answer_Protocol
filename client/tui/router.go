@@ -77,13 +77,13 @@ func (r *Router) Start(m *MyApp) {
 
 			r.ServerChan <- fmt.Sprintf("[%s]%s [white]%s", color, msg_type, msg_text)
 
-			datas_json, _ := json.Marshal(res.Datas)
-			datas := string(datas_json)
+			b, _ := json.Marshal(res.Datas)
+			datas := string(b)
 
-			if datas == "\"\"" || datas == "null" || datas == "nil" {
+			if datas == "\"\"" || datas == "null" || datas == "<nil>" {
 				datas = ""
 			}
-			r.CommandLineChan <- res.Msg + datas
+			r.CommandLineChan <- fmt.Sprintf("%s %+v", res.Msg, datas)
 		}
 	}()
 }
