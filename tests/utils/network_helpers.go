@@ -1,4 +1,4 @@
-package networktests
+package utils
 
 import (
 	"bufio"
@@ -14,7 +14,7 @@ import (
 	"testing"
 )
 
-func setupTestServerEngine(t *testing.T) *server.Server {
+func SetupTestServerEngine(t *testing.T) *server.Server {
 	// t.Helper() tells to testing module that it is a helper and not a test!
 
 	t.Helper()
@@ -24,7 +24,7 @@ func setupTestServerEngine(t *testing.T) *server.Server {
 
 	var err error
 	var world parser.Map
-	world, err = parser.Get_map("../../world.json")
+	world, err = parser.Get_map("../world.json")
 	if err != nil {
 		t.Fatalf("ERROR parsing: %v", err.Error())
 	}
@@ -38,16 +38,20 @@ func setupTestServerEngine(t *testing.T) *server.Server {
 
 	// Initialize and start engine
 	e := engine.NewEngine(world, serverInput, serverOutput, updateClients)
-	e.Start()
+	go e.Start()
 
 	// Start the serveur
-	s.Start()
+	go s.Start()
+	t.Cleanup(func() {
+		s.Stop()
+		e.Stop()
+	})
 	log.SetOutput(io.Discard)
 
 	return s
 }
 
-func sendCommand(t *testing.T, conn net.Conn, cmd string) string {
+func SendCommand(t *testing.T, conn net.Conn, cmd string) string {
 	t.Helper()
 
 	_, err := fmt.Fprintf(conn, "%s\n", cmd)
@@ -62,4 +66,13 @@ func sendCommand(t *testing.T, conn net.Conn, cmd string) string {
 	}
 
 	return strings.TrimSpace(response)
+}
+
+func SendScenarioCommand(t *testing.T, conn net.Conn, cmd string) {
+	t.Helper()
+
+	_, err := fmt.Fprintf(conn, "%s\n", cmd)
+	if err != nil {
+		t.Fatalf("Send error: %v", err)
+	}
 }

@@ -1,13 +1,14 @@
-package networktests
+package tests
 
 import (
 	"net"
+	"tap/tests/utils"
 	"testing"
 	"time"
 )
 
 func TestClientNormalDeconnection(t *testing.T) {
-	s := setupTestServerEngine(t)
+	s := utils.SetupTestServerEngine(t)
 
 	clientConn1, err := net.DialTimeout("tcp", s.GetAddress(), 2*time.Second)
 	if err != nil {
