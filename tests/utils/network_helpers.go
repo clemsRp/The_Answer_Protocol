@@ -11,12 +11,12 @@ import (
 	"tap/engine/parser"
 	pr "tap/protocol"
 	"tap/server"
+	sc "tap/tests/scenarios"
 	"testing"
+	"time"
 )
 
 func SetupTestServerEngine(t *testing.T) *server.Server {
-	// t.Helper() tells to testing module that it is a helper and not a test!
-
 	t.Helper()
 	serverInput := make(chan pr.ServerRequest, 100)
 	serverOutput := make(chan pr.EngineResponse, 100)
@@ -74,5 +74,32 @@ func SendScenarioCommand(t *testing.T, conn net.Conn, cmd string) {
 	_, err := fmt.Fprintf(conn, "%s\n", cmd)
 	if err != nil {
 		t.Fatalf("Send error: %v", err)
+	}
+}
+
+func EstablishConnection(t *testing.T, s *server.Server, scenario sc.ScenariosCommandTest, connections map[string]net.Conn, readers map[string]*bufio.Reader) {
+	t.Helper()
+	user := scenario.TestOnConnection
+
+	if _, exists := connections[user]; exists {
+		return
+	}
+
+	conn, err := net.DialTimeout("tcp", s.GetAddress(), 2*time.Second)
+	if err != nil {
+		t.Fatalf("%s failed to connect: %v", user, err)
+	}
+
+	connections[user] = conn
+	readers[user] = bufio.NewReader(conn)
+
+	conn.SetReadDeadline(time.Now().Add(1 * time.Second))
+	res, err := readers[user].ReadString('\n')
+	if err != nil {
+		t.Fatalf("Read error during greeting for %s: %v", user, err)
+	}
+
+	if !strings.HasPrefix(res, "OK hello proto=") {
+		t.Error(FormatMismatch(scenario.Command, "OK hello proto=", res))
 	}
 }

@@ -2,26 +2,7 @@ package scenarios
 
 import (
 	"tap/server"
-	"testing"
 )
-
-type Reply struct {
-	Msg  string
-	User string
-}
-
-type ScenariosCommandTest struct {
-	Name             string
-	Command          string
-	ExpectedReplies  []Reply
-	ExpectsJSON      bool
-	TestOnConnection string
-}
-
-type ScenarioGroup struct {
-	GroupName string
-	Function  func(t *testing.T) []ScenariosCommandTest
-}
 
 var ConnectAlice = ScenariosCommandTest{
 	Name:    "CONNECT user",
@@ -211,4 +192,12 @@ var AliceQuits = ScenariosCommandTest{
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "alice",
+}
+
+var AliceTakesItem = ScenariosCommandTest{
+	Name:    "Alice takes an item in map",
+	Command: "TAKE sword",
+	ExpectedReplies: []Reply{
+		{"OK taken=", "alice"},
+	},
 }

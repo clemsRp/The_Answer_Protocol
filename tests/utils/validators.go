@@ -1,38 +1,14 @@
 package utils
 
 import (
+	"bufio"
 	"encoding/json"
-	"fmt"
+	"net"
 	"strings"
+	sc "tap/tests/scenarios"
 	"testing"
+	"time"
 )
-
-const (
-	colorReset = "\033[0m"
-	colorRed   = "\033[31m"
-	colorGreen = "\033[32m"
-	colorCyan  = "\033[36m"
-)
-
-func Truncate(s string) string {
-	max := 40
-	if len(s) > max {
-		return s[:max] + "..."
-	}
-	return s
-}
-
-func FormatMismatch(Command, wanted, got string) string {
-	return fmt.Sprintf("\n\t%s📡 COMMAND :%s %s\n\t%s🎯 WANTED  :%s %s\n\t%s❌ GOT     :%s %s\n",
-		colorCyan, colorReset, Command,
-		colorGreen, colorReset, wanted,
-		colorRed, colorReset, Truncate(got))
-}
-
-func FormatInvalidJSON(got string) string {
-	return fmt.Sprintf("\n\t%s⚠️  JSON INVALID%s\n\t%s❌ GOT     :%s %s\n",
-		colorRed, colorReset, colorRed, colorReset, Truncate(got))
-}
 
 func AssertResponse(t *testing.T, command, wanted, got string, expectsJSON bool) {
 	t.Helper()
@@ -49,6 +25,27 @@ func AssertResponse(t *testing.T, command, wanted, got string, expectsJSON bool)
 	} else {
 		if !strings.HasPrefix(got, wanted) {
 			t.Error(FormatMismatch(command, wanted, got))
+		}
+	}
+}
+
+func VerifyExpectedReplies(t *testing.T, scenario sc.ScenariosCommandTest, connections map[string]net.Conn, readers map[string]*bufio.Reader) {
+	t.Helper()
+
+	for _, reply := range scenario.ExpectedReplies {
+		conn, exists := connections[reply.User]
+		if !exists {
+			t.Fatalf("Test setup error: No connection found for user '%s' to receive message '%s'", reply.User, reply.Msg)
+		}
+
+		conn.SetReadDeadline(time.Now().Add(1 * time.Second))
+		res, err := readers[reply.User].ReadString('\n')
+		if err != nil {
+			t.Fatalf("Read error (timeout) for %s: %v", reply.User, err)
+		}
+
+		if !strings.HasPrefix(res, reply.Msg) {
+			t.Error(FormatMismatch(scenario.Command, reply.Msg, res))
 		}
 	}
 }
