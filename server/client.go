@@ -44,33 +44,41 @@ func (s *Server) handleClient(conn net.Conn) {
 	for input.Scan() {
 		// Handle valid commands
 		now := time.Now()
-		if now.Sub(cli.Datas.Last_cmd_time) >= 1000*time.Millisecond {
-			cli.Datas.Spam_warning = 0
-			cli.Datas.Last_cmd_time = now
-			s.requests <- pr.ClientRequest{Cli: cli, Msg: input.Text()}
+		// if now.Sub(cli.Datas.Last_cmd_time) >= 200*time.Millisecond {
+		cli.Datas.Spam_warning = 0
+		cli.Datas.Last_cmd_time = now
+		s.requests <- pr.ClientRequest{Cli: cli, Msg: input.Text()}
 
-			// Handle command spams
-		} else {
-			cli.Datas.Spam_warning++
-			s.LogWarn("Abuse detected", map[string]any{"warnings": cli.Datas.Spam_warning, "ip": cli.Ip, "player": cli.Name})
+		// Handle command spams
+		// }
+		//  else {
+		// 	cli.Datas.Spam_warning++
+		// 	cli.Datas.Last_cmd_time = now
 
-			if cli.Datas.Spam_warning > 3 {
-				fmt.Fprintln(conn, "ERR 900 CONNECTION_CLOSED_DUE_TO_SPAM")
-				cli.Ch <- pr.ServerResponse{Msg: "OK bye"}
-				break
-			}
-		}
+		// 	s.LogWarn("Abuse detected", map[string]any{"warnings": cli.Datas.Spam_warning, "ip": cli.Ip, "player": cli.Name})
+
+		// 	if cli.Datas.Spam_warning > 3 {
+		// 		cli.Ch <- pr.ServerResponse{Msg: "ERR 900 CONNECTION_CLOSED_DUE_TO_SPAM", Req: pr.ClientRequest{Cli: cli, Msg: input.Text()}}
+		// 		break
+		// 	}
+		// }
 	}
 
 	s.leaving <- cli
 }
 
 func (s *Server) clientWriter(conn net.Conn, responses <-chan pr.ServerResponse) {
-	encoder := json.NewEncoder(conn)
-
 	for res := range responses {
-		fmt.Println(res)
-		if err := encoder.Encode(res); err != nil {
+		var output string
+
+		if res.Datas != nil && res.Datas != "" {
+			jsonData, _ := json.Marshal(res.Datas)
+			output = fmt.Sprintf("%s %s\n", res.Msg, string(jsonData))
+		} else {
+			output = fmt.Sprintf("%s\n", res.Msg)
+		}
+
+		if _, err := conn.Write([]byte(output)); err != nil {
 			return
 		}
 	}
