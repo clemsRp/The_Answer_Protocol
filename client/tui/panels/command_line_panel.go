@@ -2,6 +2,7 @@ package panel
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -55,6 +56,10 @@ func NewCommandLineComponent(app *tview.Application, inputs chan<- string) *Comm
 		if key == tcell.KeyEnter {
 			text := command_line.Input.GetText()
 			if text == "" {
+				return
+			} else if slices.Contains([]string{"c", "clear"}, text) {
+				command_line.History.SetText("")
+				command_line.Input.SetText("")
 				return
 			}
 

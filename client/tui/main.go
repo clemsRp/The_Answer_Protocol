@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	inputs  = make(chan string)
+	inputs  = make(chan string, 10)
 	outputs = make(chan pr.ServerResponse)
 )
 
@@ -61,7 +61,6 @@ func main() {
 			}
 			if res.Msg == "OK connected" {
 				app.ShowGamePage()
-				app.Draw()
 			}
 		}
 	}()

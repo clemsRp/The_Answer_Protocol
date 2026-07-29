@@ -3,7 +3,6 @@ package main
 import (
 	panel "tap/client/tui/panels"
 
-	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
@@ -15,14 +14,15 @@ type MyApp struct {
 	popup   *tview.Grid
 	router  *Router
 
-	Chat        *panel.ChatComponent
-	Server      *panel.ServerResponseComponent
-	CommandLine *panel.CommandLineComponent
-	Navigation  *panel.NavigationComponent
-	PlayersNPC  *panel.PlayersNPCComponent
-	Dialogue    *panel.DialogueComponent
-	Datas       *panel.DatasComponent
-	navMatrix   [4][4]tview.Primitive
+	Chat           *panel.ChatComponent
+	Server         *panel.ServerResponseComponent
+	CommandLine    *panel.CommandLineComponent
+	Navigation     *panel.NavigationComponent
+	PlayersNPC     *panel.PlayersNPCComponent
+	Dialogue       *panel.DialogueComponent
+	Datas          *panel.DatasComponent
+	PopupComponent *panel.PopupComponent
+	navMatrix      [4][4]tview.Primitive
 }
 
 var (
@@ -37,7 +37,7 @@ func NewMyApp(router *Router) *MyApp {
 		grid:    tview.NewGrid().SetRows(0, 0, 0, 0).SetColumns(0, 0, 0, 0),
 		pages:   tview.NewPages(),
 		connect: tview.NewGrid().SetRows(-1, 5, 20).SetColumns(-1, -1, -1, -1),
-		popup:   tview.NewGrid().SetRows(0, 25, 0).SetColumns(0, 15, 0),
+		popup:   tview.NewGrid().SetRows(0, 20, 0).SetColumns(0, 35, 0),
 		router:  router,
 	}
 
@@ -133,7 +133,6 @@ func (m *MyApp) StartListeners() {
 	m.PlayersNPC.ListenOutputs(m.app, m.router.PlayersChan, m.router.Inputs)
 	m.Dialogue.ListenOutputs(m.app, m.router.DialogueChan)
 	m.Datas.ListenOutputs(m.app, m.router.DatasChan)
-	m.Navigation.ListenOutputs(m.app, m.router.NavChan, m.router.Inputs)
 }
 
 func (m *MyApp) InitConnect() {
@@ -148,11 +147,14 @@ func (m *MyApp) InitConnect() {
 }
 
 func (m *MyApp) InitPopup() {
-	m.popup.SetBackgroundColor(tcell.GetColor("#dd1a1a"))
+	m.PopupComponent = panel.NewPopupComponent(
+		m.app,
+		[]string{"MOVE", "LOK"},
+		m.ShowGamePage,
+		m.ShowGamePage,
+	)
 
-	popup := tview.NewTextView().SetBackgroundColor(tcell.GetColor("#dd1a1a"))
-
-	m.popup.AddItem(popup, 1, 1, 1, 1, 0, 0, true)
+	m.popup.AddItem(m.PopupComponent.Layout, 1, 1, 1, 1, 0, 0, true)
 }
 
 func (m *MyApp) ShowGamePage() {
@@ -163,12 +165,12 @@ func (m *MyApp) ShowGamePage() {
 }
 
 func (m *MyApp) ShowPopupPage() {
-	go func() {
-		m.app.QueueUpdateDraw(func() {
-			m.pages.ShowPage("Popup")
-			m.app.SetFocus(m.popup)
-		})
-	}()
+	m.app.QueueUpdateDraw(func() {
+		m.pages.SwitchToPage("Popup")
+		if m.PopupComponent != nil {
+			m.app.SetFocus(m.PopupComponent.Options)
+		}
+	})
 }
 
 func (m *MyApp) Run() error {

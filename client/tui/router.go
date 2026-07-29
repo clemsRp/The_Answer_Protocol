@@ -82,6 +82,9 @@ func (r *Router) Start(m *MyApp) {
 
 			if datas == "\"\"" || datas == "null" || datas == "<nil>" {
 				datas = ""
+
+			} else {
+				r.DatasChan <- datas
 			}
 			r.CommandLineChan <- fmt.Sprintf("%s %+v", res.Msg, datas)
 		}

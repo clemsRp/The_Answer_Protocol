@@ -10,10 +10,13 @@ import (
 type NavigationComponent struct {
 	Layout     *tview.Flex
 	Navigation *tview.List
+	onSelect   func()
 }
 
 func NewNavigationComponent(app *tview.Application, onSelect func()) *NavigationComponent {
-	src := &NavigationComponent{}
+	src := &NavigationComponent{
+		onSelect: onSelect,
+	}
 
 	src.Navigation = createListView(" Actions ", true, Default, Default, tcell.ColorBlue, Black, false, true)
 	src.Layout = tview.NewFlex().SetDirection(tview.FlexRow).AddItem(src.Navigation, 0, 1, false)
@@ -27,7 +30,7 @@ func NewNavigationComponent(app *tview.Application, onSelect func()) *Navigation
 	for dir, room := range exits {
 		action := func() {
 			if onSelect != nil {
-				onSelect()
+				go onSelect()
 			}
 		}
 
@@ -45,17 +48,8 @@ func (c *NavigationComponent) ListenOutputs(app *tview.Application, navChan <-ch
 				c.Navigation.Clear()
 
 				if strings.HasPrefix(msg, "ERROR:") {
-					c.Navigation.AddItem("Failed to receive data for navigation.", "", 0, nil)
-
-					c.Navigation.AddItem("↻ Actualiser", "", 'r', func() {
-						inputs <- "CMD:REFRESH_ROOM"
-					})
 					return
 				}
-
-				c.Navigation.
-					AddItem("NORTH : room3", "", 'n', func() { inputs <- "MOVE:NORTH" }).
-					AddItem("EAST : room1", "", 'e', func() { inputs <- "MOVE:EAST" })
 			})
 		}
 	}()
