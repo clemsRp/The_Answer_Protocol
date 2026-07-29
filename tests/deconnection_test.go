@@ -1,15 +1,16 @@
-package networktests
+package tests
 
 import (
 	"net"
+	"tap/tests/utils"
 	"testing"
 	"time"
 )
 
 func TestClientNormalDeconnection(t *testing.T) {
-	_, realAddress := setupTestServer(t)
+	s := utils.SetupTestServerEngine(t)
 
-	clientConn1, err := net.DialTimeout("tcp", realAddress, 2*time.Second)
+	clientConn1, err := net.DialTimeout("tcp", s.GetAddress(), 2*time.Second)
 	if err != nil {
 		t.Fatalf("Client 1 failed to connect: %v", err)
 	}
@@ -18,7 +19,7 @@ func TestClientNormalDeconnection(t *testing.T) {
 
 	time.Sleep(50 * time.Millisecond)
 
-	clientConn2, err := net.DialTimeout("tcp", realAddress, 2*time.Second)
+	clientConn2, err := net.DialTimeout("tcp", s.GetAddress(), 2*time.Second)
 	if err != nil {
 		t.Fatalf("Server crashed or stopped accepting connections after EOF: %v", err)
 	}

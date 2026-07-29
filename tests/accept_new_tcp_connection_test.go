@@ -1,4 +1,4 @@
-package networktests
+package tests
 
 import (
 	"bufio"
@@ -6,29 +6,30 @@ import (
 	"log"
 	"net"
 	"strings"
+	"tap/tests/utils"
 	"testing"
 	"time"
 )
 
 func TestServerSendsGreeting(t *testing.T) {
-	_, realAddress := setupTestServer(t)
+	s := utils.SetupTestServerEngine(t)
 
-	clientConn, err := net.DialTimeout("tcp", realAddress, 2*time.Second)
+	clientConn, err := net.DialTimeout("tcp", s.GetAddress(), 2*time.Second)
 	if err != nil {
 		t.Fatalf("Client failed to connect: %v", err)
 	}
 	defer clientConn.Close()
 
-	clientConn.SetReadDeadline(time.Now().Add(1 * time.Second))
-
 	reader := bufio.NewReader(clientConn)
-	response, err := reader.ReadString('\n')
+	res, err := reader.ReadString('\n')
 	if err != nil {
 		t.Fatalf("Failed to read server response: %v", err)
 	}
 
-	if !strings.Contains(response, "OK hello proto=1") {
-		t.Errorf("Unexpected response received: %q", response)
+	res = strings.TrimSpace(res)
+
+	if res != "OK hello proto=1" {
+		t.Error(utils.FormatMismatch("", "OK hello proto=1", res))
 	}
 }
 
@@ -37,9 +38,9 @@ func TestServerLogsNewConnection(t *testing.T) {
 	log.SetOutput(&buf)
 	defer log.SetOutput(nil)
 
-	_, realAddress := setupTestServer(t)
+	s := utils.SetupTestServerEngine(t)
 
-	clientConn, err := net.DialTimeout("tcp", realAddress, 2*time.Second)
+	clientConn, err := net.DialTimeout("tcp", s.GetAddress(), 2*time.Second)
 	if err != nil {
 		t.Fatalf("Client failed to connect: %v", err)
 	}
@@ -49,6 +50,6 @@ func TestServerLogsNewConnection(t *testing.T) {
 
 	logsOutput := buf.String()
 	if !strings.Contains(logsOutput, "127.0.0.1") {
-		t.Errorf("Server did not log the client IP. Current logs: %q", logsOutput)
+		t.Error(utils.FormatMismatch("", "CLIENT IP", logsOutput))
 	}
 }

@@ -13,6 +13,7 @@ type Engine struct {
 	clients       map[string]*pr.Client
 	groups        map[string][]*pr.Client
 	dialogues     map[string]map[string]int
+	quit          chan struct{}
 }
 
 func NewEngine(world parser.Map, fromServerChan chan pr.ServerRequest, toServerChan chan pr.EngineResponse, updateClientsChan <-chan map[string]*pr.Client) *Engine {
@@ -23,11 +24,15 @@ func NewEngine(world parser.Map, fromServerChan chan pr.ServerRequest, toServerC
 		world:         world,
 		groups:        make(map[string][]*pr.Client),
 		dialogues:     make(map[string]map[string]int),
+		quit:          make(chan struct{}),
 	}
 }
 
 func (e *Engine) Start() {
 	go e.broadcaster()
+}
+func (e *Engine) Stop() {
+	close(e.quit)
 }
 
 func (e *Engine) broadcaster() {
@@ -45,6 +50,9 @@ func (e *Engine) broadcaster() {
 				Err:   err,
 				Req:   req,
 			}
+		case <-e.quit:
+			return
 		}
+
 	}
 }

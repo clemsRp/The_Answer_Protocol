@@ -28,7 +28,7 @@ func main() {
 
 	// Initialize server
 	var s *server.Server
-	s, err = server.NewServer("8080", serverInput, serverOutput, update_clients)
+	s, err = server.NewServer("localhost:8080", serverInput, serverOutput, update_clients)
 	if err != nil {
 		fmt.Println("Server couldn't start")
 		return

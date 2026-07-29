@@ -2,7 +2,6 @@ package engine
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 	pr "tap/protocol"
 )
@@ -15,7 +14,7 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (*pr.Client, string, a
 	// Split request
 	req := strings.SplitN(request.Msg, " ", 5)
 
-	fmt.Println(req)
+	// fmt.Println(req)
 
 	// Get "true" client
 	activeCli, ok := e.clients[request.Cli.Ip]
