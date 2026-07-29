@@ -116,7 +116,7 @@ func (s *Server) broadcaster() {
 			}
 
 			// Send server response to the client
-			output.Cli.Ch <- pr.ServerResponse{Msg: res, Datas: datas, Req: output.Req.Req}
+			output.Cli.Ch <- pr.ServerResponse{Msg: res, Datas: datas}
 		}
 	}
 }

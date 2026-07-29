@@ -78,6 +78,8 @@ func (s *Server) clientWriter(conn net.Conn, responses <-chan pr.ServerResponse)
 			output = fmt.Sprintf("%s\n", res.Msg)
 		}
 
+		fmt.Println(output)
+
 		if _, err := conn.Write([]byte(output)); err != nil {
 			return
 		}

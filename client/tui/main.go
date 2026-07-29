@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -40,16 +41,15 @@ func main() {
 
 	// Handle output
 	go func() {
-		decoder := json.NewDecoder(conn)
+		scanner := bufio.NewScanner(conn)
 
-		for {
-			var res pr.ServerResponse
-
-			if err := decoder.Decode(&res); err != nil {
-				fmt.Print("An error occured during connection:", err)
-				app.Stop()
-				os.Exit(0)
+		for scanner.Scan() {
+			line := scanner.Text()
+			if line == "" {
+				continue
 			}
+
+			res := convertServerResponse(line)
 
 			outputs <- res
 
@@ -59,6 +59,7 @@ func main() {
 				conn.Close()
 				os.Exit(0)
 			}
+
 			if res.Msg == "OK connected" {
 				app.ShowGamePage()
 			}
@@ -67,5 +68,26 @@ func main() {
 
 	if err := app.Run(); err != nil {
 		panic(fmt.Sprintf("Execution error: %v", err))
+	}
+}
+
+func convertServerResponse(line string) pr.ServerResponse {
+	if strings.ContainsRune(line, '{') {
+		split_line := strings.SplitN(line, " {", 2)
+
+		msg := split_line[0]
+		datas := "{" + split_line[1]
+
+		var data_json map[string]interface{}
+		err := json.Unmarshal([]byte(datas), &data_json)
+		if err != nil {
+			fmt.Println("Erreur de décodage :", err)
+			return pr.ServerResponse{}
+		}
+
+		return pr.ServerResponse{Msg: msg, Datas: data_json}
+
+	} else {
+		return pr.ServerResponse{Msg: line}
 	}
 }

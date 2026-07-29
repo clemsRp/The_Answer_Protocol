@@ -146,7 +146,7 @@ func (e *Engine) handleCmdChat(cli *pr.Client, req []string) (string, any, error
 			// Send chat to player
 			if is_global || is_group || is_room {
 				chat = fmt.Sprintf("EVT %s CHAT %s %s", scope, cli.Name, msg)
-				e.clients[ip].Ch <- pr.ServerResponse{Msg: chat, Req: pr.ClientRequest{}}
+				e.clients[ip].Ch <- pr.ServerResponse{Msg: chat}
 			}
 		}
 	}

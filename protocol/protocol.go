@@ -66,7 +66,6 @@ type ClientRequest struct {
 type ServerResponse struct {
 	Msg   string
 	Datas any
-	Req   ClientRequest
 }
 
 // Link server/engine
