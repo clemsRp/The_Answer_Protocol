@@ -2,8 +2,8 @@ package scenarios
 
 import "tap/server"
 
-var UsernameAlreadyUsedScenario = []ScenariosCommandTest{
-	ConnectAlice,
+var usernameAlreadyUsedScenario = []ScenariosCommandTest{
+	connectAlice,
 	{
 		Name:    "Invalid connection: Name already used",
 		Command: "CONNECT alice",
@@ -15,14 +15,12 @@ var UsernameAlreadyUsedScenario = []ScenariosCommandTest{
 	},
 }
 
-var NotConnectedValidCommandScenario = []ScenariosCommandTest{
-	{
-		Name:    "Not connected, Valid command",
-		Command: "LOOK",
-		ExpectedReplies: []Reply{
-			{server.ErrNotConnected, "alice"},
+var sessionScenarioFamily = ScenarioFamily{
+	FamilyName: "Session family",
+	Scenarios: []ScenarioEntry{
+		{
+			Name:  "Try to connect with already used name",
+			Steps: usernameAlreadyUsedScenario,
 		},
-		ExpectsJSON:      false,
-		TestOnConnection: "alice",
 	},
 }

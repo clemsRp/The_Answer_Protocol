@@ -4,7 +4,7 @@ import (
 	"tap/server"
 )
 
-var ConnectAlice = ScenariosCommandTest{
+var connectAlice = ScenariosCommandTest{
 	Name:    "CONNECT user",
 	Command: "CONNECT alice",
 	ExpectedReplies: []Reply{
@@ -14,8 +14,7 @@ var ConnectAlice = ScenariosCommandTest{
 	TestOnConnection: "alice",
 }
 
-var ConnectBob = ScenariosCommandTest{
-
+var connectBob = ScenariosCommandTest{
 	Name:    "CONNECT user",
 	Command: "CONNECT bob",
 	ExpectedReplies: []Reply{
@@ -29,7 +28,7 @@ var ConnectBob = ScenariosCommandTest{
 
 // GROUP SCENARIOS
 
-var AliceCreatesGroup = ScenariosCommandTest{
+var aliceCreatesGroup = ScenariosCommandTest{
 	Name:    "Alice creates a group",
 	Command: "GROUP CREATE",
 	ExpectedReplies: []Reply{
@@ -39,7 +38,7 @@ var AliceCreatesGroup = ScenariosCommandTest{
 	TestOnConnection: "alice",
 }
 
-var AliceInvitesBobInGroup = ScenariosCommandTest{
+var aliceInvitesBobInGroup = ScenariosCommandTest{
 	Name:    "Alice invites Bob in group",
 	Command: "GROUP INVITE bob",
 	ExpectedReplies: []Reply{
@@ -50,7 +49,7 @@ var AliceInvitesBobInGroup = ScenariosCommandTest{
 	TestOnConnection: "alice",
 }
 
-var BobJoinAliceGroup = ScenariosCommandTest{
+var bobJoinAliceGroup = ScenariosCommandTest{
 	Name:    "Bob accepts Alice's invitation",
 	Command: "GROUP JOIN alice",
 	ExpectedReplies: []Reply{
@@ -60,7 +59,7 @@ var BobJoinAliceGroup = ScenariosCommandTest{
 	ExpectsJSON:      false,
 	TestOnConnection: "bob",
 }
-var AliceLeavesGroup = ScenariosCommandTest{
+var aliceLeavesGroup = ScenariosCommandTest{
 	Name:    "Alice leaves group",
 	Command: "GROUP LEAVE",
 	ExpectedReplies: []Reply{
@@ -72,7 +71,7 @@ var AliceLeavesGroup = ScenariosCommandTest{
 }
 
 // MOVE NORMAL SCENARIOS
-var AliceInvalidMovement = ScenariosCommandTest{
+var aliceInvalidMovement = ScenariosCommandTest{
 	Name:    "Alice invalid movement",
 	Command: "MOVE nowhere",
 	ExpectedReplies: []Reply{
@@ -82,7 +81,7 @@ var AliceInvalidMovement = ScenariosCommandTest{
 	TestOnConnection: "alice",
 }
 
-var AliceMovesEast = ScenariosCommandTest{
+var aliceMovesEast = ScenariosCommandTest{
 	Name:    "Alice valid movement east",
 	Command: "MOVE east",
 	ExpectedReplies: []Reply{
@@ -93,7 +92,7 @@ var AliceMovesEast = ScenariosCommandTest{
 	TestOnConnection: "alice",
 }
 
-var AliceMovesWest = ScenariosCommandTest{
+var aliceMovesWest = ScenariosCommandTest{
 	Name:    "Alice valid movement west",
 	Command: "MOVE west",
 	ExpectedReplies: []Reply{
@@ -104,7 +103,7 @@ var AliceMovesWest = ScenariosCommandTest{
 	TestOnConnection: "alice",
 }
 
-var AliceMovesNorth = ScenariosCommandTest{
+var aliceMovesNorth = ScenariosCommandTest{
 	Name:    "Alice valid movement north",
 	Command: "MOVE north",
 	ExpectedReplies: []Reply{
@@ -115,7 +114,7 @@ var AliceMovesNorth = ScenariosCommandTest{
 	TestOnConnection: "alice",
 }
 
-var AliceMovesSouth = ScenariosCommandTest{
+var aliceMovesSouth = ScenariosCommandTest{
 	Name:    "Alice valid movement south",
 	Command: "MOVE south",
 	ExpectedReplies: []Reply{
@@ -127,7 +126,7 @@ var AliceMovesSouth = ScenariosCommandTest{
 }
 
 // CHAT NORMAL SCENARIOS
-var AliceChatGlobal = ScenariosCommandTest{
+var aliceChatGlobal = ScenariosCommandTest{
 	Name:    "Alice global chat",
 	Command: "CHAT GLOBAL Hello World!",
 	ExpectedReplies: []Reply{
@@ -138,7 +137,7 @@ var AliceChatGlobal = ScenariosCommandTest{
 	TestOnConnection: "alice",
 }
 
-var AliceChatRoom = ScenariosCommandTest{
+var aliceChatRoom = ScenariosCommandTest{
 	Name:    "Alice room chat",
 	Command: "CHAT ROOM Hello Room!",
 	ExpectedReplies: []Reply{
@@ -149,7 +148,7 @@ var AliceChatRoom = ScenariosCommandTest{
 	TestOnConnection: "alice",
 }
 
-var AliceChatGroup = ScenariosCommandTest{
+var aliceChatGroup = ScenariosCommandTest{
 	Name:    "Alice group chat",
 	Command: "CHAT GROUP Hello Team!",
 	ExpectedReplies: []Reply{
@@ -162,7 +161,7 @@ var AliceChatGroup = ScenariosCommandTest{
 
 // BASIC COMMANDS NORMAL SCENARIOS
 
-var AliceLooks = ScenariosCommandTest{
+var aliceLooks = ScenariosCommandTest{
 	Name:    "Alice look command",
 	Command: "LOOK",
 	ExpectedReplies: []Reply{
@@ -172,7 +171,7 @@ var AliceLooks = ScenariosCommandTest{
 	TestOnConnection: "alice",
 }
 
-var AliceWho = ScenariosCommandTest{
+var aliceWho = ScenariosCommandTest{
 	Name:    "Alice who command",
 	Command: "WHO",
 	ExpectedReplies: []Reply{
@@ -182,7 +181,7 @@ var AliceWho = ScenariosCommandTest{
 	TestOnConnection: "alice",
 }
 
-var AliceQuits = ScenariosCommandTest{
+var aliceQuits = ScenariosCommandTest{
 	Name:    "Alice quits the game",
 	Command: "QUIT",
 	ExpectedReplies: []Reply{
@@ -194,10 +193,42 @@ var AliceQuits = ScenariosCommandTest{
 	TestOnConnection: "alice",
 }
 
-var AliceTakesItem = ScenariosCommandTest{
+var aliceTakesItem = ScenariosCommandTest{
 	Name:    "Alice takes an item in map",
 	Command: "TAKE sword",
 	ExpectedReplies: []Reply{
 		{"OK taken=", "alice"},
 	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceDropsItem = ScenariosCommandTest{
+	Name:    "Alice drops an item in map",
+	Command: "DROP sword",
+	ExpectedReplies: []Reply{
+		{"OK dropped=", "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceChecksInventory = ScenariosCommandTest{
+	Name:    "Alice checks inventory",
+	Command: "INVENTORY",
+	ExpectedReplies: []Reply{
+		{"OK", "alice"},
+	},
+	ExpectsJSON:      true,
+	TestOnConnection: "alice",
+}
+
+var aliceTalksToNPC = ScenariosCommandTest{
+	Name:    "Alice talks to NPC in entrance",
+	Command: "TALK granny jeanine",
+	ExpectedReplies: []Reply{
+		{"OK", "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
 }
