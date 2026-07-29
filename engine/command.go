@@ -11,15 +11,15 @@ import (
 func (e *Engine) handleCmdConnect(ip string, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 Invalid name: shouldn't contain space character")
+		return "", "", errors.New(pr.ErrInvalidName)
 	}
 
 	if e.clients[ip].Datas.Connected {
-		return "", "", errors.New("ERR 403 User already connected")
+		return "", "", errors.New(pr.ErrNameInUse)
 	}
 	for _, cli := range e.clients {
 		if cli.Name == req[1] {
-			return "", "", errors.New("ERR 201 NAME_IN_USE")
+			return "", "", errors.New(pr.ErrNameInUse)
 		}
 	}
 
@@ -36,7 +36,7 @@ func (e *Engine) handleCmdConnect(ip string, req []string) (string, any, error) 
 func (e *Engine) handleCmdQuit(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	e.inform_room(cli, cli.Datas.Room, "EVT ROOM PRESENCE LEAVE "+cli.Name)
@@ -47,7 +47,7 @@ func (e *Engine) handleCmdQuit(cli *pr.Client, req []string) (string, any, error
 func (e *Engine) handleCmdWho(req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	// Calculate number of players
@@ -64,7 +64,7 @@ func (e *Engine) handleCmdWho(req []string) (string, any, error) {
 func (e *Engine) handleCmdLook(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	res := make(map[string]any)
@@ -95,7 +95,7 @@ func (e *Engine) handleCmdLook(cli *pr.Client, req []string) (string, any, error
 func (e *Engine) handleCmdMove(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	direction := req[1]
@@ -104,7 +104,7 @@ func (e *Engine) handleCmdMove(cli *pr.Client, req []string) (string, any, error
 	// Check room is valid
 	nextRoom, exists := currentRoom.Exits[direction]
 	if !exists {
-		return "", "", errors.New("ERR 301 NO_EXIT")
+		return "", "", errors.New(pr.ErrNoExit)
 	}
 
 	e.inform_room(cli, cli.Datas.Room, "EVT ROOM PRESENCE LEAVE "+cli.Name)
@@ -123,7 +123,7 @@ func (e *Engine) handleCmdMove(cli *pr.Client, req []string) (string, any, error
 func (e *Engine) handleCmdChat(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) < 3 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	var chat string
@@ -132,7 +132,7 @@ func (e *Engine) handleCmdChat(cli *pr.Client, req []string) (string, any, error
 
 	// Check scope exist
 	if !slices.Contains([]string{pr.GlobalChat, pr.RoomChat, pr.GroupChat}, scope) {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	for ip := range e.clients {
@@ -166,7 +166,7 @@ func (e *Engine) handleCmdGroup(cli *pr.Client, req []string) (string, any, erro
 	}
 	contains := slices.Contains(contains_commands, scope)
 	if (len(req) != 3 && !contains) || (len(req) > 2 && contains) {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	var arg string
@@ -191,7 +191,7 @@ func (e *Engine) handleCmdGroup(cli *pr.Client, req []string) (string, any, erro
 	case pr.DeclinePromoteGroup:
 		res, err = e.decline_promotion(cli)
 	default:
-		return "", "", errors.New("ERR 400 Invalid scope")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	if err != nil {
@@ -204,7 +204,7 @@ func (e *Engine) handleCmdGroup(cli *pr.Client, req []string) (string, any, erro
 func (e *Engine) handleCmdStatus(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	// Format response
@@ -219,7 +219,7 @@ func (e *Engine) handleCmdStatus(cli *pr.Client, req []string) (string, any, err
 func (e *Engine) handleCmdTake(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	object := req[1]
@@ -238,7 +238,7 @@ func (e *Engine) handleCmdTake(cli *pr.Client, req []string) (string, any, error
 func (e *Engine) handleCmdDrop(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	object := req[1]
@@ -257,7 +257,7 @@ func (e *Engine) handleCmdDrop(cli *pr.Client, req []string) (string, any, error
 func (e *Engine) handleCmdInventory(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 	return "OK", cli.Datas.Inventory, nil
 }
@@ -265,7 +265,7 @@ func (e *Engine) handleCmdInventory(cli *pr.Client, req []string) (string, any, 
 func (e *Engine) handleCmdQuest(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	npc := req[1]
@@ -296,7 +296,7 @@ func (e *Engine) handleCmdQuest(cli *pr.Client, req []string) (string, any, erro
 func (e *Engine) handleCmdQuests(req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	res := make([]map[string]string, 0)
@@ -316,7 +316,7 @@ func (e *Engine) handleCmdQuests(req []string) (string, any, error) {
 func (e *Engine) handleCmdTalk(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	npc := req[1]
@@ -347,7 +347,7 @@ func (e *Engine) handleCmdTalk(cli *pr.Client, req []string) (string, any, error
 func (e *Engine) handleCmdAttack(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	npc := req[1]

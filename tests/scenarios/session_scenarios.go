@@ -1,6 +1,6 @@
 package scenarios
 
-import "tap/server"
+import "tap/protocol"
 
 var usernameAlreadyUsedScenario = []ScenariosCommandTest{
 	connectAlice,
@@ -8,7 +8,7 @@ var usernameAlreadyUsedScenario = []ScenariosCommandTest{
 		Name:    "Invalid connection: Name already used",
 		Command: "CONNECT alice",
 		ExpectedReplies: []Reply{
-			{server.ErrNameInUse, "alice"},
+			{protocol.ErrNameInUse, "alice"},
 		},
 		ExpectsJSON:      false,
 		TestOnConnection: "alice",

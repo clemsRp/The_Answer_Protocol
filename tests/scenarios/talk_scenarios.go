@@ -1,6 +1,6 @@
 package scenarios
 
-import "tap/server"
+import "tap/protocol"
 
 var talkToNpcScenario = []ScenariosCommandTest{
 	connectAlice,
@@ -13,7 +13,7 @@ var talkToUnexistantNPCScenario = []ScenariosCommandTest{
 		Name:    "Alice talks to unexistant NPC",
 		Command: "TALK general",
 		ExpectedReplies: []Reply{
-			{server.ErrNpcNotFound, "alice"},
+			{protocol.ErrNpcNotFound, "alice"},
 		},
 		ExpectsJSON:      false,
 		TestOnConnection: "alice",

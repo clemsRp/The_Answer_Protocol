@@ -1,6 +1,6 @@
 package scenarios
 
-import "tap/server"
+import "tap/protocol"
 
 var itemTakeScenario = []ScenariosCommandTest{
 	connectAlice,
@@ -13,7 +13,7 @@ var itemNotFoundScenario = []ScenariosCommandTest{
 		Name:    "Tries to take same item",
 		Command: "TAKE clement",
 		ExpectedReplies: []Reply{
-			{server.ErrItemNotFound, "alice"},
+			{protocol.ErrItemNotFound, "alice"},
 		},
 		ExpectsJSON:      false,
 		TestOnConnection: "alice",
@@ -27,7 +27,7 @@ var itemTakeTwiceScenario = []ScenariosCommandTest{
 		Name:    "Tries to take same item",
 		Command: "TAKE sword",
 		ExpectedReplies: []Reply{
-			{server.ErrItemNotFound, "alice"},
+			{protocol.ErrItemNotFound, "alice"},
 		},
 		ExpectsJSON:      false,
 		TestOnConnection: "alice",
@@ -46,7 +46,7 @@ var itemDroppedNotInInventoryScenario = []ScenariosCommandTest{
 		Name:    "Tries to drop item",
 		Command: "DROP sword",
 		ExpectedReplies: []Reply{
-			{server.ErrItemNotInInventory, "alice"},
+			{protocol.ErrItemNotInInventory, "alice"},
 		},
 		ExpectsJSON:      false,
 		TestOnConnection: "alice",
@@ -61,7 +61,7 @@ var itemDropTwiceScenario = []ScenariosCommandTest{
 		Name:    "Tries to drop item",
 		Command: "DROP sword",
 		ExpectedReplies: []Reply{
-			{server.ErrItemNotInInventory, "alice"},
+			{protocol.ErrItemNotInInventory, "alice"},
 		},
 		ExpectsJSON:      false,
 		TestOnConnection: "alice",

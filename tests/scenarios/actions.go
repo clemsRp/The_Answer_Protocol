@@ -1,7 +1,7 @@
 package scenarios
 
 import (
-	"tap/server"
+	"tap/protocol"
 )
 
 var connectAlice = ScenariosCommandTest{
@@ -75,7 +75,7 @@ var aliceInvalidMovement = ScenariosCommandTest{
 	Name:    "Alice invalid movement",
 	Command: "MOVE nowhere",
 	ExpectedReplies: []Reply{
-		{server.ErrNoExit, "alice"},
+		{protocol.ErrNoExit, "alice"},
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "alice",

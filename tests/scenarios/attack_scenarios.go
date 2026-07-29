@@ -1,6 +1,6 @@
 package scenarios
 
-import "tap/server"
+import "tap/protocol"
 
 var attackHostileNPCScenario = []ScenariosCommandTest{
 	connectAlice,
@@ -21,7 +21,7 @@ var attackNonHostileNPCScenario = []ScenariosCommandTest{
 		Name:    "Attack NON hostile NPC",
 		Command: "ATTACK Nonostil",
 		ExpectedReplies: []Reply{
-			{server.ErrNpcNotHostile, "alice"},
+			{protocol.ErrNpcNotHostile, "alice"},
 		},
 		ExpectsJSON:      false,
 		TestOnConnection: "alice",
@@ -34,7 +34,7 @@ var attackUnexistantNPCScenario = []ScenariosCommandTest{
 		Name:    "Attack unexistant NPC",
 		Command: "ATTACK osdojx",
 		ExpectedReplies: []Reply{
-			{server.ErrNpcNotFound, "alice"},
+			{protocol.ErrNpcNotFound, "alice"},
 		},
 		ExpectsJSON:      false,
 		TestOnConnection: "alice",

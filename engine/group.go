@@ -29,19 +29,20 @@ func (e *Engine) remove_user_in_group(cli *pr.Client, group []*pr.Client) []*pr.
 
 func (e *Engine) create_group(cli *pr.Client) (string, error) {
 	// Create group ID
-	group_id := uuid.New().String()
+	var group_id string
 
-	// Handle existing group
-	_, ok := e.groups[group_id]
-	if ok {
-		return "", errors.New("ERR Group already exist")
+	for {
+		group_id = uuid.New().String()
+		if _, exists := e.groups[group_id]; !exists {
+			break
+		}
 	}
 
 	// Check user already in a group
 	for _, group := range e.groups {
 		for _, user := range group {
 			if user.Name == cli.Name {
-				return "", errors.New("ERR user already inside a group")
+				return "", errors.New(pr.ErrAlreadyInGroup)
 			}
 		}
 	}
@@ -57,7 +58,7 @@ func (e *Engine) invite_user_in_group(cli *pr.Client, user_name string) (string,
 	// Handle non existant e.groups
 	_, ok := e.groups[cli.Datas.Group]
 	if !ok {
-		return "", errors.New("ERR 401 NOT_IN_GROUP")
+		return "", errors.New(pr.ErrNotInGroup)
 	}
 
 	// Check cli is group's leader

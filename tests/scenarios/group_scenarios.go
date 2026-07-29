@@ -1,7 +1,7 @@
 package scenarios
 
 import (
-	"tap/server"
+	"tap/protocol"
 )
 
 var leaveUnexistantGroupScenario = []ScenariosCommandTest{
@@ -10,7 +10,7 @@ var leaveUnexistantGroupScenario = []ScenariosCommandTest{
 		Name:    "Leave unexistant group",
 		Command: "GROUP LEAVE",
 		ExpectedReplies: []Reply{
-			{server.ErrNotInGroup, "alice"},
+			{protocol.ErrNotInGroup, "alice"},
 		},
 		ExpectsJSON:      false,
 		TestOnConnection: "alice",
@@ -27,7 +27,7 @@ var joinGroupAgainScenario = []ScenariosCommandTest{
 		Name:    "Bob accepts Alice's invitation",
 		Command: "GROUP JOIN alice",
 		ExpectedReplies: []Reply{
-			{server.ErrAlreadyInGroup, "bob"},
+			{protocol.ErrAlreadyInGroup, "bob"},
 		},
 		ExpectsJSON:      false,
 		TestOnConnection: "bob",
@@ -45,7 +45,7 @@ var leaveTwiceExistantGroupScenario = []ScenariosCommandTest{
 		Name:    "Alice tries to leave group again",
 		Command: "GROUP LEAVE",
 		ExpectedReplies: []Reply{
-			{server.ErrNotInGroup, "alice"},
+			{protocol.ErrNotInGroup, "alice"},
 		},
 		ExpectsJSON:      false,
 		TestOnConnection: "alice",
@@ -59,7 +59,7 @@ var inviteUnexistantPersonScenario = []ScenariosCommandTest{
 		Name:    "Alice tries to invite Unknown in group",
 		Command: "GROUP INVITE Unknown",
 		ExpectedReplies: []Reply{
-			{server.ErrUserDoesntExist, "alice"},
+			{protocol.ErrUserDoesntExist, "alice"},
 		},
 		ExpectsJSON:      false,
 		TestOnConnection: "alice",
