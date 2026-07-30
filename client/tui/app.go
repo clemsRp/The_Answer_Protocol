@@ -26,7 +26,8 @@ type MyApp struct {
 }
 
 var (
-	cli_visible = false
+	cli_visible   = false
+	popup_visible = false
 )
 
 func NewMyApp(router *Router) *MyApp {
@@ -37,11 +38,12 @@ func NewMyApp(router *Router) *MyApp {
 		grid:    tview.NewGrid().SetRows(0, 0, 0, 0).SetColumns(0, 0, 0, 0),
 		pages:   tview.NewPages(),
 		connect: tview.NewGrid().SetRows(-1, 5, 20).SetColumns(-1, -1, -1, -1),
-		popup:   tview.NewGrid().SetRows(0, 20, 0).SetColumns(0, 35, 0),
+		popup:   tview.NewGrid().SetRows(0, 0, 0).SetColumns(0, 35, 0),
 		router:  router,
 	}
 
 	m.connect.SetBackgroundColor(panel.Black)
+	m.popup.SetBackgroundColor(panel.Black)
 
 	m.setupComponents(router)
 	m.setupGrid()
@@ -147,12 +149,14 @@ func (m *MyApp) InitConnect() {
 }
 
 func (m *MyApp) InitPopup() {
-	m.PopupComponent = panel.NewPopupComponent(
-		m.app,
-		[]string{"MOVE", "LOK"},
-		m.ShowGamePage,
-		m.ShowGamePage,
-	)
+	options := map[string]func(){
+		"MOVE1": func() { m.router.Inputs <- "CHAT GLOBAL move" },
+		"MOVE2": func() { m.router.Inputs <- "CHAT GLOBAL move" },
+		"MOVE3": func() { m.router.Inputs <- "CHAT GLOBAL move" },
+		"MOVE4": func() { m.router.Inputs <- "CHAT GLOBAL move" },
+	}
+
+	m.PopupComponent = panel.NewCommandComponent(m.app, m.popup, options, m.ShowGamePage)
 
 	m.popup.AddItem(m.PopupComponent.Layout, 1, 1, 1, 1, 0, 0, true)
 }
@@ -161,16 +165,25 @@ func (m *MyApp) ShowGamePage() {
 	m.app.QueueUpdateDraw(func() {
 		m.pages.SwitchToPage("Game")
 		m.app.SetFocus(m.Chat.Input)
+
+		if popup_visible {
+			panel.SetBlockedInputs(m.grid, popup_visible)
+			popup_visible = false
+		}
 	})
 }
 
 func (m *MyApp) ShowPopupPage() {
 	m.app.QueueUpdateDraw(func() {
-		m.pages.SwitchToPage("Popup")
-		if m.PopupComponent != nil {
-			m.app.SetFocus(m.PopupComponent.Options)
+		m.pages.ShowPage("Popup")
+		if m.PopupComponent != nil && m.PopupComponent.FocusItem != nil {
+			m.app.SetFocus(m.PopupComponent.FocusItem)
 		}
+
+		panel.SetBlockedInputs(m.grid, popup_visible)
 	})
+
+	popup_visible = true
 }
 
 func (m *MyApp) Run() error {

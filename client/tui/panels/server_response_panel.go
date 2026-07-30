@@ -24,9 +24,11 @@ func NewServerResponseComponent(app *tview.Application) *ServerResponseComponent
 	src.History = createTextView("", " Server Responses ", true, Default, Black)
 
 	src.Buttons = tview.NewFlex().SetDirection(tview.FlexColumn).
+		AddItem(nil, 1, 0, false).
 		AddItem(src.CliBtn, 0, 1, false).
 		AddItem(nil, 1, 0, false).
-		AddItem(src.QuitBtn, 0, 1, false)
+		AddItem(src.QuitBtn, 0, 1, false).
+		AddItem(nil, 1, 0, false)
 
 	src.Layout = tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(src.Buttons, 1, 1, false).

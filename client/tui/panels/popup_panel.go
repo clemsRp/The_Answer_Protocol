@@ -1,83 +1,121 @@
 package panel
 
 import (
-	"strings"
-
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
 type PopupComponent struct {
 	Layout      *tview.Flex
-	ValidateBtn *tview.Button
-	CancelBtn   *tview.Button
+	LayoutTemp  *tview.Flex
 	Buttons     *tview.Flex
-	Options     *tview.List
+	MainContent tview.Primitive
+	FocusItem   tview.Primitive
+	ButtonList  []*tview.Button
 }
 
-func NewPopupComponent(app *tview.Application, options []string, cancelFunc func(), validateFunc func()) *PopupComponent {
+type InputCapturer interface {
+	SetInputCapture(capture func(event *tcell.EventKey) *tcell.EventKey) *tview.Box
+	SetMouseCapture(capture func(action tview.MouseAction, event *tcell.EventMouse) (tview.MouseAction, *tcell.EventMouse)) *tview.Box
+}
+
+func NewPopupComponent(app *tview.Application, grid *tview.Grid, mainContent tview.Primitive, contentHeight int, buttons []*tview.Button) *PopupComponent {
+	// Color constants
+	bgColor := tcell.GetColor("#3a3838")
+
 	popup := PopupComponent{
-		Layout:      tview.NewFlex().SetDirection(tview.FlexRow),
-		ValidateBtn: tview.NewButton("Validate"),
-		CancelBtn:   tview.NewButton("Cancel"),
+		LayoutTemp:  tview.NewFlex().SetDirection(tview.FlexRow),
+		Layout:      tview.NewFlex().SetDirection(tview.FlexColumn),
 		Buttons:     tview.NewFlex().SetDirection(tview.FlexColumn),
-		Options:     tview.NewList(),
+		MainContent: mainContent,
+		FocusItem:   mainContent,
+		ButtonList:  buttons,
 	}
 
-	popup.CancelBtn.
-		SetSelectedFunc(func() {
-			go cancelFunc()
-		})
-
-	popup.ValidateBtn.
-		SetSelectedFunc(func() {
-			go validateFunc()
-		})
-
-	popup.Layout.SetBorderPadding(2, 2, 5, 5)
-
-	// Set bg colors
-	bgColor := tcell.GetColor("#2c2b2b")
-
-	popup.Layout.SetBackgroundColor(bgColor)
-	popup.Options.SetBackgroundColor(bgColor)
+	// Apply background colors to containers
+	popup.LayoutTemp.SetBackgroundColor(bgColor)
 	popup.Buttons.SetBackgroundColor(bgColor)
-	popup.ValidateBtn.SetBackgroundColor(bgColor)
-	popup.CancelBtn.SetBackgroundColor(bgColor)
 
-	option_width := 15
-
-	// Set options
-	for index, option := range options {
-		option_str := strings.Repeat(" ", (option_width-len(option))/2) + option
-		popup.Options.
-			AddItem(option_str+strings.Repeat(" ", option_width-len(option_str)), "", 0, nil)
-		index++
+	// Helper to create background-colored spacers
+	createSpacer := func() *tview.Box {
+		box := tview.NewBox()
+		box.SetBackgroundColor(bgColor)
+		return box
 	}
 
-	// Set Buttons
-	popup.Buttons.
-		AddItem(popup.CancelBtn, 0, 1, true).
-		AddItem(tview.NewBox(), 1, 1, false).
-		AddItem(popup.ValidateBtn, 0, 1, true)
+	// Assemble buttons dynamically
+	for i, btn := range buttons {
+		popup.Buttons.AddItem(btn, 0, 1, i == 0)
+		if i < len(buttons)-1 {
+			popup.Buttons.AddItem(createSpacer(), 1, 1, false)
+		}
+	}
 
-	// Set Layout
-	popup.Layout.AddItem(popup.Options, 0, 1, true)
-	popup.Layout.AddItem(popup.Buttons, 1, 1, true)
+	// Assemble vertical inner layout
+	popup.LayoutTemp.AddItem(createSpacer(), 1, 0, false)
+	popup.LayoutTemp.AddItem(mainContent, contentHeight, 1, true)
+	popup.LayoutTemp.AddItem(createSpacer(), 1, 0, false)
 
-	popup.Layout.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	// Add buttons row only if buttons are provided
+	if len(buttons) > 0 {
+		popup.LayoutTemp.AddItem(popup.Buttons, 1, 0, false)
+		popup.LayoutTemp.AddItem(createSpacer(), 1, 0, false)
+	}
+
+	// Build focusable primitives slice for Tab key navigation
+	focusableItems := []tview.Primitive{mainContent}
+	for _, btn := range buttons {
+		focusableItems = append(focusableItems, btn)
+	}
+
+	// Handle focus navigation across main content and buttons
+	popup.LayoutTemp.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyTab {
-			if popup.Options.HasFocus() {
-				app.SetFocus(popup.CancelBtn)
-			} else if popup.CancelBtn.HasFocus() {
-				app.SetFocus(popup.ValidateBtn)
-			} else {
-				app.SetFocus(popup.Options)
+			currentFocus := app.GetFocus()
+			for i, item := range focusableItems {
+				if currentFocus == item {
+					nextIndex := (i + 1) % len(focusableItems)
+					app.SetFocus(focusableItems[nextIndex])
+					return nil
+				}
+			}
+			if len(focusableItems) > 0 {
+				app.SetFocus(focusableItems[0])
 			}
 			return nil
 		}
 		return event
 	})
 
+	// Assemble final outer layout
+	popup.Layout.AddItem(createSpacer(), 0, 1, false)
+	popup.Layout.AddItem(popup.LayoutTemp, 30, 1, true)
+	popup.Layout.AddItem(createSpacer(), 0, 1, false)
+
+	// Total vertical height calculation for container grid
+	totalHeight := contentHeight + 3
+	if len(buttons) > 0 {
+		totalHeight += 2
+	}
+	grid.SetRows(0, totalHeight-1, 0)
+
 	return &popup
+}
+
+func SetBlockedInputs(component InputCapturer, is_blocked bool) {
+	// Open all inputs
+	if is_blocked {
+		component.SetInputCapture(nil)
+		component.SetMouseCapture(nil)
+		return
+	}
+
+	// Blocked all inputs
+	component.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		return nil
+	})
+
+	component.SetMouseCapture(func(action tview.MouseAction, event *tcell.EventMouse) (tview.MouseAction, *tcell.EventMouse) {
+		return action, nil
+	})
 }
