@@ -47,6 +47,7 @@ type Datas struct {
 	Connected     bool
 	Last_cmd_time time.Time
 	Spam_warning  int
+	Quests        []*TrackedQuestData
 }
 
 type Client struct {

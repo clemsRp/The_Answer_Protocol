@@ -1,6 +1,7 @@
 package panel
 
 import (
+	"encoding/json"
 	"fmt"
 	"slices"
 	pr "tap/protocol"
@@ -87,7 +88,16 @@ func (c *CommandLineComponent) ListenOutputs(app *tview.Application, commandLine
 		for res := range commandLineChan {
 
 			app.QueueUpdateDraw(func() {
-				fmt.Fprint(c.History, res.Msg+"\n")
+				b, _ := json.Marshal(res.Datas)
+				datas := string(b)
+
+				if datas == "\"\"" || datas == "null" || datas == "<nil>" {
+					datas = ""
+				}
+
+				msg := fmt.Sprintf("%s %+v", res.Msg, datas)
+
+				fmt.Fprint(c.History, msg+"\n")
 			})
 		}
 	}()
