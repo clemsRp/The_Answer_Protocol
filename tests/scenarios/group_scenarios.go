@@ -1,67 +1,89 @@
 package scenarios
 
 import (
-	"tap/server"
+	"tap/protocol"
 )
 
-var LeaveUnexistantGroupScenario = []ScenariosCommandTest{
-	ConnectAlice,
+var leaveUnexistantGroupScenario = []ScenariosCommandTest{
+	connectAlice,
 	{
 		Name:    "Leave unexistant group",
 		Command: "GROUP LEAVE",
 		ExpectedReplies: []Reply{
-			{server.ErrNotInGroup, "alice"},
+			{protocol.ErrNotInGroup, "alice"},
 		},
 		ExpectsJSON:      false,
 		TestOnConnection: "alice",
 	},
 }
 
-var JoinGroupAgainScenario = []ScenariosCommandTest{
-	ConnectAlice,
-	ConnectBob,
-	AliceCreatesGroup,
-	AliceInvitesBobInGroup,
-	BobJoinAliceGroup,
+var joinGroupAgainScenario = []ScenariosCommandTest{
+	connectAlice,
+	connectBob,
+	aliceCreatesGroup,
+	aliceInvitesBobInGroup,
+	bobJoinAliceGroup,
 	{
 		Name:    "Bob accepts Alice's invitation",
 		Command: "GROUP JOIN alice",
 		ExpectedReplies: []Reply{
-			{server.ErrAlreadyInGroup, "bob"},
+			{protocol.ErrAlreadyInGroup, "bob"},
 		},
 		ExpectsJSON:      false,
 		TestOnConnection: "bob",
 	},
 }
 
-var LeaveTwiceExistantGroupScenario = []ScenariosCommandTest{
-	ConnectAlice,
-	ConnectBob,
-	AliceCreatesGroup,
-	AliceInvitesBobInGroup,
-	BobJoinAliceGroup,
-	AliceLeavesGroup,
+var leaveTwiceExistantGroupScenario = []ScenariosCommandTest{
+	connectAlice,
+	connectBob,
+	aliceCreatesGroup,
+	aliceInvitesBobInGroup,
+	bobJoinAliceGroup,
+	aliceLeavesGroup,
 	{
 		Name:    "Alice tries to leave group again",
 		Command: "GROUP LEAVE",
 		ExpectedReplies: []Reply{
-			{server.ErrNotInGroup, "alice"},
+			{protocol.ErrNotInGroup, "alice"},
 		},
 		ExpectsJSON:      false,
 		TestOnConnection: "alice",
 	},
 }
 
-var InviteUnexistantPersonScenario = []ScenariosCommandTest{
-	ConnectAlice,
-	AliceCreatesGroup,
+var inviteUnexistantPersonScenario = []ScenariosCommandTest{
+	connectAlice,
+	aliceCreatesGroup,
 	{
 		Name:    "Alice tries to invite Unknown in group",
 		Command: "GROUP INVITE Unknown",
 		ExpectedReplies: []Reply{
-			{server.ErrUserDoesntExist, "alice"},
+			{protocol.ErrUnknownUser, "alice"},
 		},
 		ExpectsJSON:      false,
 		TestOnConnection: "alice",
+	},
+}
+
+var groupScenarioFamily = ScenarioFamily{
+	FamilyName: "Group scenarios family",
+	Scenarios: []ScenarioEntry{
+		{
+			Name:  "Leave unexistant group",
+			Steps: leaveUnexistantGroupScenario,
+		},
+		{
+			Name:  "Join group again (already in group)",
+			Steps: joinGroupAgainScenario,
+		},
+		{
+			Name:  "Leave twice existant group",
+			Steps: leaveTwiceExistantGroupScenario,
+		},
+		{
+			Name:  "Invite unexistant person",
+			Steps: inviteUnexistantPersonScenario,
+		},
 	},
 }

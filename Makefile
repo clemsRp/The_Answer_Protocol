@@ -5,4 +5,7 @@ server:
 client:
 	go run ./client/tui
 
+
+
 .PHONY: client server
+

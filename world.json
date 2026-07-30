@@ -8,7 +8,7 @@
                     "north": "health_aisle",
                     "east": "fresh_section"
                 },
-                "items": [],
+                "items": ["sword"],
                 "npcs": ["granny_jeanine"]
             },
             "health_aisle": {
@@ -44,6 +44,11 @@
             "coin_bag": {
                 "name": "Bag of Small Coins",
                 "description": "A heavy bag filled with thousands of tiny copper coins.",
+                "obtainable": true
+            },
+            "sword": {
+                "name": "Sword",
+                "description": "A sword",
                 "obtainable": true
             }
         },

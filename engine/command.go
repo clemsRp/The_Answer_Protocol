@@ -11,24 +11,30 @@ import (
 func (e *Engine) handleCmdConnect(ip string, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 Invalid name: shouldn't contain space character")
+		return "", "", errors.New(pr.ErrInvalidName)
 	}
 
-	if e.clients[ip].Datas.Connected {
-		return "", "", errors.New("ERR 403 User already connected")
+	client, exists := e.clients[ip]
+	if !exists {
+		return "", "", errors.New(pr.ErrInternalServer)
 	}
+
+	if client.Datas.Connected {
+		return "", "", errors.New(pr.ErrNameInUse)
+	}
+
 	for _, cli := range e.clients {
 		if cli.Name == req[1] {
-			return "", "", errors.New("ERR 201 NAME_IN_USE")
+			return "", "", errors.New(pr.ErrNameInUse)
 		}
 	}
-
 	// Update client variables
-	e.clients[ip].Name = req[1]
-	e.clients[ip].Datas.Connected = true
+	client.Name = req[1]
+	client.Datas.Connected = true
 	e.dialogues[req[1]] = make(map[string]int)
-	e.inform_all(e.clients[ip], fmt.Sprintf("EVT STATS players=%d", e.get_nb_connected_players()))
-	e.inform_room(e.clients[ip], e.clients[ip].Datas.Room, "EVT ROOM PRESENCE ENTER "+e.clients[ip].Name)
+
+	e.inform_all(client, fmt.Sprintf("EVT STATS players=%d", e.get_nb_connected_players()))
+	e.inform_room(client, client.Datas.Room, "EVT ROOM PRESENCE ENTER "+client.Name)
 
 	return "OK connected", "", nil
 }
@@ -36,7 +42,7 @@ func (e *Engine) handleCmdConnect(ip string, req []string) (string, any, error) 
 func (e *Engine) handleCmdQuit(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	e.inform_room(cli, cli.Datas.Room, "EVT ROOM PRESENCE LEAVE "+cli.Name)
@@ -47,7 +53,7 @@ func (e *Engine) handleCmdQuit(cli *pr.Client, req []string) (string, any, error
 func (e *Engine) handleCmdWho(req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	// Calculate number of players
@@ -64,7 +70,7 @@ func (e *Engine) handleCmdWho(req []string) (string, any, error) {
 func (e *Engine) handleCmdLook(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	res := make(map[string]any)
@@ -95,7 +101,7 @@ func (e *Engine) handleCmdLook(cli *pr.Client, req []string) (string, any, error
 func (e *Engine) handleCmdMove(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	direction := req[1]
@@ -104,7 +110,7 @@ func (e *Engine) handleCmdMove(cli *pr.Client, req []string) (string, any, error
 	// Check room is valid
 	nextRoom, exists := currentRoom.Exits[direction]
 	if !exists {
-		return "", "", errors.New("ERR 301 NO_EXIT")
+		return "", "", errors.New(pr.ErrNoExit)
 	}
 
 	e.inform_room(cli, cli.Datas.Room, "EVT ROOM PRESENCE LEAVE "+cli.Name)
@@ -123,7 +129,7 @@ func (e *Engine) handleCmdMove(cli *pr.Client, req []string) (string, any, error
 func (e *Engine) handleCmdChat(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) < 3 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	var chat string
@@ -132,7 +138,7 @@ func (e *Engine) handleCmdChat(cli *pr.Client, req []string) (string, any, error
 
 	// Check scope exist
 	if !slices.Contains([]string{pr.GlobalChat, pr.RoomChat, pr.GroupChat}, scope) {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	for ip := range e.clients {
@@ -166,7 +172,7 @@ func (e *Engine) handleCmdGroup(cli *pr.Client, req []string) (string, any, erro
 	}
 	contains := slices.Contains(contains_commands, scope)
 	if (len(req) != 3 && !contains) || (len(req) > 2 && contains) {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	var arg string
@@ -191,7 +197,7 @@ func (e *Engine) handleCmdGroup(cli *pr.Client, req []string) (string, any, erro
 	case pr.DeclinePromoteGroup:
 		res, err = e.decline_promotion(cli)
 	default:
-		return "", "", errors.New("ERR 400 Invalid scope")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	if err != nil {
@@ -204,7 +210,7 @@ func (e *Engine) handleCmdGroup(cli *pr.Client, req []string) (string, any, erro
 func (e *Engine) handleCmdStatus(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	// Format response
@@ -219,7 +225,7 @@ func (e *Engine) handleCmdStatus(cli *pr.Client, req []string) (string, any, err
 func (e *Engine) handleCmdTake(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	object := req[1]
@@ -232,13 +238,13 @@ func (e *Engine) handleCmdTake(cli *pr.Client, req []string) (string, any, error
 		}
 	}
 
-	return "", "", errors.New("ERR 404 ITEM_NOT_FOUND")
+	return "", "", errors.New(pr.ErrItemNotFound)
 }
 
 func (e *Engine) handleCmdDrop(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	object := req[1]
@@ -251,13 +257,13 @@ func (e *Engine) handleCmdDrop(cli *pr.Client, req []string) (string, any, error
 		}
 	}
 
-	return "", "", errors.New("ERR 404 ITEM_NOT_IN_INVENTORY")
+	return "", "", errors.New(pr.ErrItemNotInInventory)
 }
 
 func (e *Engine) handleCmdInventory(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 	return "OK", cli.Datas.Inventory, nil
 }
@@ -265,7 +271,7 @@ func (e *Engine) handleCmdInventory(cli *pr.Client, req []string) (string, any, 
 func (e *Engine) handleCmdQuest(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	npc := req[1]
@@ -274,7 +280,7 @@ func (e *Engine) handleCmdQuest(cli *pr.Client, req []string) (string, any, erro
 			for _, room_npc := range e.world.Rooms[cli.Datas.Room].Npcs {
 				if room_npc == npc {
 					if npc_datas.QuestId == "" || e.world.Quests[npc_datas.QuestId].Status == "unavailable" {
-						return "", "", errors.New("ERR 406 NO_QUEST_AVAILABLE")
+						return "", "", errors.New(pr.ErrNoQuestAvailable)
 					}
 
 					// Format response
@@ -290,13 +296,13 @@ func (e *Engine) handleCmdQuest(cli *pr.Client, req []string) (string, any, erro
 			}
 		}
 	}
-	return "", "", errors.New("ERR 404 NPC_NOT_FOUND")
+	return "", "", errors.New(pr.ErrNpcNotFound)
 }
 
 func (e *Engine) handleCmdQuests(req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	res := make([]map[string]string, 0)
@@ -316,7 +322,7 @@ func (e *Engine) handleCmdQuests(req []string) (string, any, error) {
 func (e *Engine) handleCmdTalk(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	npc := req[1]
@@ -341,13 +347,13 @@ func (e *Engine) handleCmdTalk(cli *pr.Client, req []string) (string, any, error
 		}
 	}
 
-	return "", "", errors.New("ERR 404 NPC_NOT_FOUND")
+	return "", "", errors.New(pr.ErrNpcNotFound)
 }
 
 func (e *Engine) handleCmdAttack(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
-		return "", "", errors.New("ERR 400 BAD_REQUEST")
+		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	npc := req[1]
@@ -368,5 +374,5 @@ func (e *Engine) handleCmdAttack(cli *pr.Client, req []string) (string, any, err
 		}
 	}
 
-	return "", "", errors.New("ERR 404 NPC_NOT_FOUND")
+	return "", "", errors.New(pr.ErrNpcNotFound)
 }

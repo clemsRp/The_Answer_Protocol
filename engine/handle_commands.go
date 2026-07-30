@@ -27,7 +27,7 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (*pr.Client, string, a
 	}
 
 	if strings.ToUpper(req[0]) != pr.CmdConnect && !request.Cli.Datas.Connected {
-		res, datas, err = "", nil, errors.New("ERR 401 UNAUTHORIZED")
+		res, datas, err = "", nil, errors.New(pr.ErrNotConnected)
 
 	} else {
 		// Handle the command type
