@@ -127,13 +127,13 @@ func NewHistoryComponent(scope string) *tview.TextView {
 
 func (c *ChatComponent) ListenOutputs(app *tview.Application, chatChan <-chan pr.ServerResponse) {
 	go func() {
-		for msg := range chatChan {
+		for res := range chatChan {
 
-			split_msg := strings.SplitN(msg, " ", 3)
+			split_msg := strings.SplitN(res.Msg, " ", 4)
 
-			scope := split_msg[0]
-			user := split_msg[1]
-			message := split_msg[2]
+			scope := split_msg[1]
+			user := split_msg[2]
+			message := split_msg[3]
 
 			lineChat := fmt.Sprintf("[green]%s: [white]%s\n", user, message)
 

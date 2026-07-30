@@ -33,7 +33,6 @@ func main() {
 		for input := range inputs {
 			// Send command to the server
 			fmt.Fprint(conn, input+"\n")
-
 			// Save the last command to handle server returns
 			router.LastCommand = strings.Split(input, " ")[0]
 		}
@@ -42,7 +41,6 @@ func main() {
 	// Handle output
 	go func() {
 		scanner := bufio.NewScanner(conn)
-
 		for scanner.Scan() {
 			line := scanner.Text()
 			if line == "" {
@@ -50,16 +48,12 @@ func main() {
 			}
 
 			res := convertServerResponse(line)
-
 			outputs <- res
-
-			// Handle Login/Logout
 			if res.Msg == "OK bye" {
 				app.Stop()
 				conn.Close()
 				os.Exit(0)
 			}
-
 			if res.Msg == "OK connected" {
 				app.ShowGamePage()
 			}
@@ -71,20 +65,33 @@ func main() {
 	}
 }
 
+func findJsonStartIndex(line string) int {
+	idx := -1
+	for i := 0; i < len(line)-1; i++ {
+		if line[i] == ' ' && (line[i+1] == '{' || line[i+1] == '[') {
+			idx = i
+			break
+		}
+	}
+	return idx
+}
+
 func convertServerResponse(line string) pr.ServerResponse {
-	if strings.ContainsRune(line, '{') {
-		split_line := strings.SplitN(line, " {", 2)
 
-		msg := split_line[0]
-		datas := "{" + split_line[1]
+	line = strings.TrimSpace(line)
+	jsonIndex := findJsonStartIndex(line)
+	isChatEvent := strings.HasPrefix(line, "EVT ") && strings.Contains(line, " CHAT ")
 
-		var data_json map[string]interface{}
+	if jsonIndex != -1 && !isChatEvent {
+
+		msg := strings.TrimSpace(line[:jsonIndex])
+		datas := line[jsonIndex:]
+
+		var data_json any
 		err := json.Unmarshal([]byte(datas), &data_json)
 		if err != nil {
-			fmt.Println("Erreur de décodage :", err)
-			return pr.ServerResponse{}
+			return pr.ServerResponse{Msg: line}
 		}
-
 		return pr.ServerResponse{Msg: msg, Datas: data_json}
 
 	} else {

@@ -39,10 +39,10 @@ func (c *ServerResponseComponent) ListenOutputs(app *tview.Application, ServerCh
 	// TO CHANGE
 
 	go func() {
-		for msg := range ServerChan {
-
+		for res := range ServerChan {
+			color := GetResponseColor(res)
 			app.QueueUpdateDraw(func() {
-				fmt.Fprint(c.History, msg+"\n")
+				fmt.Fprintf(c.History, "[%s] %s\n", color, res.Msg)
 			})
 		}
 	}()

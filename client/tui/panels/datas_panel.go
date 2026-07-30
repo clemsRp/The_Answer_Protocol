@@ -1,10 +1,7 @@
 package panel
 
 import (
-	"bytes"
-	"encoding/json"
-	"regexp"
-	"strings"
+	"fmt"
 	pr "tap/protocol"
 
 	"github.com/rivo/tview"
@@ -28,24 +25,31 @@ func NewDatasComponent(app *tview.Application) *DatasComponent {
 
 func (c *DatasComponent) ListenOutputs(app *tview.Application, datasChan <-chan pr.ServerResponse) {
 	go func() {
-		for msg := range datasChan {
+		for res := range datasChan {
+			color := GetResponseColor(res)
 			app.QueueUpdateDraw(func() {
 				c.View.Clear()
 
-				if strings.HasPrefix(msg, "ERROR:") {
-					c.View.SetText("[red]Error loading dialogue.")
+				if IsErrorResponse(res) {
+					errRes := fmt.Sprintf("[%s] %s", color, res.Msg)
+					c.View.SetText(errRes)
 					return
 				}
+				formatMsg := res.Msg
+				// if res.Datas != nil {
+				// 	for _, item := range res.Datas {
 
-				var out bytes.Buffer
-				json.Indent(&out, []byte(msg), "", "    ")
-				formatted := out.String()
+				// 	}
+				// }
+				// var out bytes.Buffer
+				// json.Indent(&out, []byte(res), "", "    ")
+				// formatted := out.String()
 
-				re := regexp.MustCompile(`\[\s*([^\[\]\{\}]*?)\s*\]`)
-				formatMsg := re.ReplaceAllStringFunc(formatted, func(m string) string {
-					parts := strings.Fields(m)
-					return strings.Join(parts, " ")
-				})
+				// re := regexp.MustCompile(`\[\s*([^\[\]\{\}]*?)\s*\]`)
+				// formatMsg := re.ReplaceAllStringFunc(formatted, func(m string) string {
+				// 	parts := strings.Fields(m)
+				// 	return strings.Join(parts, " ")
+				// })
 
 				c.View.SetText(formatMsg)
 			})

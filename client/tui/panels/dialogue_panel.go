@@ -1,7 +1,6 @@
 package panel
 
 import (
-	"strings"
 	pr "tap/protocol"
 
 	"github.com/rivo/tview"
@@ -26,16 +25,15 @@ func NewDialogueComponent(app *tview.Application) *DialogueComponent {
 
 func (c *DialogueComponent) ListenOutputs(app *tview.Application, dialogueChan <-chan pr.ServerResponse) {
 	go func() {
-		for msg := range dialogueChan {
+		for res := range dialogueChan {
 			app.QueueUpdateDraw(func() {
 				c.View.Clear()
 
-				if strings.HasPrefix(msg, "ERROR:") {
+				if IsErrorResponse(res) {
 					c.View.SetText("[red]Error loading dialogue.")
 					return
 				}
-
-				c.View.SetText(msg)
+				c.View.SetText(res.Msg)
 			})
 		}
 	}()

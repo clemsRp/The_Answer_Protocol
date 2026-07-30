@@ -84,10 +84,10 @@ func NewCommandLineComponent(app *tview.Application, inputs chan<- string) *Comm
 
 func (c *CommandLineComponent) ListenOutputs(app *tview.Application, commandLineChan <-chan pr.ServerResponse) {
 	go func() {
-		for msg := range commandLineChan {
+		for res := range commandLineChan {
 
 			app.QueueUpdateDraw(func() {
-				fmt.Fprint(c.History, msg+"\n")
+				fmt.Fprint(c.History, res.Msg+"\n")
 			})
 		}
 	}()

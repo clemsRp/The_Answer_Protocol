@@ -50,19 +50,15 @@ func (r *Router) Start() {
 	go func() {
 
 		for res := range r.Outputs {
-			color := "white"
 			switch {
 			case strings.HasPrefix(res.Msg, "OK"):
-				color = "green"
 				r.handleLastCommandResponse(res)
 
 			// TO DO
 			case strings.HasPrefix(res.Msg, "ERR"):
-				color = "red"
 				r.handleLastCommandResponse(res)
 
 			case strings.HasPrefix(res.Msg, "EVT"):
-				color = "orange"
 				r.HandleEvents(res)
 			}
 
@@ -99,7 +95,11 @@ func (r *Router) handleLastCommandResponse(res pr.ServerResponse) {
 	switch r.LastCommand {
 	case pr.CmdLook:
 		r.NavChan <- res
-		r.chan
+		r.PlayersChan <- res
+		// r.itemsChan <- res
+	case pr.CmdMove:
+		r.NavChan <- res
+		r.Inputs <- pr.CmdLook
 	case pr.CmdChat:
 		r.ChatChan <- res
 	default:
