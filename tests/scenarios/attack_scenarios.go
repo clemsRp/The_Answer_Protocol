@@ -4,15 +4,7 @@ import "tap/protocol"
 
 var attackHostileNPCScenario = []ScenariosCommandTest{
 	connectAlice,
-	{
-		Name:    "Attack hostile NPC",
-		Command: "ATTACK Granny Jeanine",
-		ExpectedReplies: []Reply{
-			{"OK", "alice"},
-		},
-		ExpectsJSON:      true,
-		TestOnConnection: "alice",
-	},
+	aliceAttacksHostileNPC,
 }
 
 var attackNonHostileNPCScenario = []ScenariosCommandTest{

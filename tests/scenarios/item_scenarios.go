@@ -77,7 +77,8 @@ var itemTakeAndCheckInventoryScenario = []ScenariosCommandTest{
 		ExpectedReplies: []Reply{
 			{"OK", "alice"},
 		},
-		ExpectsJSON: true,
+		ExpectsJSON:      true,
+		TestOnConnection: "alice",
 	},
 }
 

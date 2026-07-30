@@ -59,7 +59,7 @@ var inviteUnexistantPersonScenario = []ScenariosCommandTest{
 		Name:    "Alice tries to invite Unknown in group",
 		Command: "GROUP INVITE Unknown",
 		ExpectedReplies: []Reply{
-			{protocol.ErrUserDoesntExist, "alice"},
+			{protocol.ErrUnknownUser, "alice"},
 		},
 		ExpectsJSON:      false,
 		TestOnConnection: "alice",

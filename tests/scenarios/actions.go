@@ -225,10 +225,21 @@ var aliceChecksInventory = ScenariosCommandTest{
 
 var aliceTalksToNPC = ScenariosCommandTest{
 	Name:    "Alice talks to NPC in entrance",
-	Command: "TALK granny jeanine",
+	Command: "TALK granny_jeanine",
 	ExpectedReplies: []Reply{
 		{"OK", "alice"},
 	},
 	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceAttacksHostileNPC = ScenariosCommandTest{
+
+	Name:    "Attack hostile NPC",
+	Command: "ATTACK granny_jeanine",
+	ExpectedReplies: []Reply{
+		{"OK", "alice"},
+	},
+	ExpectsJSON:      true,
 	TestOnConnection: "alice",
 }
