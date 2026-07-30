@@ -2,6 +2,7 @@ package panel
 
 import (
 	"strings"
+	pr "tap/protocol"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -41,7 +42,7 @@ func NewNavigationComponent(app *tview.Application, onSelect func()) *Navigation
 	return src
 }
 
-func (c *NavigationComponent) ListenOutputs(app *tview.Application, navChan <-chan string, inputs chan<- string) {
+func (c *NavigationComponent) ListenOutputs(app *tview.Application, navChan <-chan pr.ServerResponse, inputs chan<- string) {
 	go func() {
 		for msg := range navChan {
 			app.QueueUpdateDraw(func() {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"regexp"
 	"strings"
+	pr "tap/protocol"
 
 	"github.com/rivo/tview"
 )
@@ -25,7 +26,7 @@ func NewDatasComponent(app *tview.Application) *DatasComponent {
 	return src
 }
 
-func (c *DatasComponent) ListenOutputs(app *tview.Application, datasChan <-chan string) {
+func (c *DatasComponent) ListenOutputs(app *tview.Application, datasChan <-chan pr.ServerResponse) {
 	go func() {
 		for msg := range datasChan {
 			app.QueueUpdateDraw(func() {

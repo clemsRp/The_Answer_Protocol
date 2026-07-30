@@ -125,7 +125,7 @@ func NewHistoryComponent(scope string) *tview.TextView {
 	return history
 }
 
-func (c *ChatComponent) ListenOutputs(app *tview.Application, chatChan <-chan string) {
+func (c *ChatComponent) ListenOutputs(app *tview.Application, chatChan <-chan pr.ServerResponse) {
 	go func() {
 		for msg := range chatChan {
 

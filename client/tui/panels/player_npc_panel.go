@@ -2,6 +2,7 @@ package panel
 
 import (
 	"strings"
+	pr "tap/protocol"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -27,7 +28,7 @@ func NewPlayersNPCComponent(app *tview.Application) *PlayersNPCComponent {
 	return src
 }
 
-func (c *PlayersNPCComponent) ListenOutputs(app *tview.Application, playersChan <-chan string, inputs chan<- string) {
+func (c *PlayersNPCComponent) ListenOutputs(app *tview.Application, playersChan <-chan pr.ServerResponse, inputs chan<- string) {
 	go func() {
 		for msg := range playersChan {
 			app.QueueUpdateDraw(func() {

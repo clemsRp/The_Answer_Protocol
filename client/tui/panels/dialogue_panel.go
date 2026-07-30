@@ -2,6 +2,7 @@ package panel
 
 import (
 	"strings"
+	pr "tap/protocol"
 
 	"github.com/rivo/tview"
 )
@@ -23,7 +24,7 @@ func NewDialogueComponent(app *tview.Application) *DialogueComponent {
 	return src
 }
 
-func (c *DialogueComponent) ListenOutputs(app *tview.Application, dialogueChan <-chan string) {
+func (c *DialogueComponent) ListenOutputs(app *tview.Application, dialogueChan <-chan pr.ServerResponse) {
 	go func() {
 		for msg := range dialogueChan {
 			app.QueueUpdateDraw(func() {

@@ -2,6 +2,7 @@ package panel
 
 import (
 	"fmt"
+	pr "tap/protocol"
 
 	"github.com/rivo/tview"
 )
@@ -34,7 +35,7 @@ func NewServerResponseComponent(app *tview.Application) *ServerResponseComponent
 	return src
 }
 
-func (c *ServerResponseComponent) ListenOutputs(app *tview.Application, ServerChan <-chan string) {
+func (c *ServerResponseComponent) ListenOutputs(app *tview.Application, ServerChan <-chan pr.ServerResponse) {
 	// TO CHANGE
 
 	go func() {

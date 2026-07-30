@@ -26,7 +26,7 @@ func main() {
 
 	router := NewRouter(inputs, outputs)
 	app := NewMyApp(router)
-	router.Start(app)
+	router.Start()
 
 	// Handle input
 	go func() {
