@@ -41,8 +41,6 @@ func (r *Router) HandleEvents(res pr.ServerResponse) {
 	group := strings.HasPrefix(res.Msg, "EVT GROUP CHAT")
 	if global || room || group {
 		r.ChatChan <- res
-		// split_msg := strings.SplitN(res.Msg, " ", 5)
-		// fmt.Sprintf("%s %s %s", split_msg[1], split_msg[3], split_msg[4])
 	}
 }
 
@@ -53,7 +51,6 @@ func (r *Router) Start() {
 			switch {
 			case strings.HasPrefix(res.Msg, "OK"):
 				r.handleLastCommandResponse(res)
-
 			// TO DO
 			case strings.HasPrefix(res.Msg, "ERR"):
 				r.handleLastCommandResponse(res)
