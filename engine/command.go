@@ -14,21 +14,27 @@ func (e *Engine) handleCmdConnect(ip string, req []string) (string, any, error) 
 		return "", "", errors.New(pr.ErrInvalidName)
 	}
 
-	if e.clients[ip].Datas.Connected {
+	client, exists := e.clients[ip]
+	if !exists {
+		return "", "", errors.New(pr.ErrInternalServer)
+	}
+
+	if client.Datas.Connected {
 		return "", "", errors.New(pr.ErrNameInUse)
 	}
+
 	for _, cli := range e.clients {
 		if cli.Name == req[1] {
 			return "", "", errors.New(pr.ErrNameInUse)
 		}
 	}
-
 	// Update client variables
-	e.clients[ip].Name = req[1]
-	e.clients[ip].Datas.Connected = true
+	client.Name = req[1]
+	client.Datas.Connected = true
 	e.dialogues[req[1]] = make(map[string]int)
-	e.inform_all(e.clients[ip], fmt.Sprintf("EVT STATS players=%d", e.get_nb_connected_players()))
-	e.inform_room(e.clients[ip], e.clients[ip].Datas.Room, "EVT ROOM PRESENCE ENTER "+e.clients[ip].Name)
+
+	e.inform_all(client, fmt.Sprintf("EVT STATS players=%d", e.get_nb_connected_players()))
+	e.inform_room(client, client.Datas.Room, "EVT ROOM PRESENCE ENTER "+client.Name)
 
 	return "OK connected", "", nil
 }

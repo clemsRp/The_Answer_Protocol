@@ -24,7 +24,7 @@ func valid_map(file []byte) error {
 	if len(world) != 1 {
 		return errors.New("Invalid map: incorrect number of maps")
 	}
-	
+
 	world_map := world[0]
 
 	// Handle duplicates keys

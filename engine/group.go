@@ -63,13 +63,13 @@ func (e *Engine) invite_user_in_group(cli *pr.Client, user_name string) (string,
 
 	// Check cli is group's leader
 	if e.groups[cli.Datas.Group][0].Name != cli.Name {
-		return "", errors.New("ERR User isn't group's leader")
+		return "", errors.New(pr.ErrNoPermission)
 	}
 
 	// Handle users already in group
 	for _, user := range e.groups[cli.Datas.Group] {
 		if user.Name == user_name {
-			return "", errors.New("ERR 402 ALREADY_IN_GROUP")
+			return "", errors.New(pr.ErrAlreadyInGroup)
 		}
 	}
 
@@ -94,7 +94,7 @@ func (e *Engine) invite_user_in_group(cli *pr.Client, user_name string) (string,
 		}
 	}
 
-	return "", errors.New("ERR new user not find")
+	return "", errors.New(pr.ErrUnknownUser)
 }
 
 func (e *Engine) join_group(cli *pr.Client, leader_name string) (string, error) {
@@ -109,18 +109,18 @@ func (e *Engine) join_group(cli *pr.Client, leader_name string) (string, error) 
 
 		for _, user := range group {
 			if user.Name == cli.Name {
-				return "", errors.New("ERR player already in group")
+				return "", errors.New(pr.ErrAlreadyInGroup)
 			}
 		}
 	}
 
 	// Handle non existant e.groups
 	if group_name == "" {
-		return "", errors.New("ERR Invalid leader name")
+		return "", errors.New(pr.ErrInternalServer)
 	}
 	_, ok := e.groups[group_name]
 	if !ok {
-		return "", errors.New("ERR Group doesn't exist yet")
+		return "", errors.New(pr.ErrInternalServer)
 	}
 
 	// Check that user is invited
@@ -132,7 +132,7 @@ func (e *Engine) join_group(cli *pr.Client, leader_name string) (string, error) 
 		}
 	}
 	if !invited {
-		return "", errors.New("ERR User isn't invited by this group")
+		return "", errors.New(pr.ErrNotInvitedToGroup)
 	}
 
 	// Add user in group
@@ -159,7 +159,7 @@ func (e *Engine) join_group(cli *pr.Client, leader_name string) (string, error) 
 func (e *Engine) leave_group(cli *pr.Client) (string, error) {
 	// Check user is inside the group
 	if cli.Datas.Group == "" {
-		return "", errors.New("ERR 401 NOT_IN_GROUP")
+		return "", errors.New(pr.ErrNotInGroup)
 	}
 
 	// Delete promotion
@@ -186,7 +186,7 @@ func (e *Engine) leave_group(cli *pr.Client) (string, error) {
 func (e *Engine) promote_user(cli *pr.Client, new_leader string) (string, error) {
 	// Handle invalid command
 	if cli.Datas.Group == "" {
-		return "", errors.New("ERR 401 NOT_IN_GROUP")
+		return "", errors.New(pr.ErrNotInGroup)
 	}
 
 	// Find the group
@@ -194,10 +194,10 @@ func (e *Engine) promote_user(cli *pr.Client, new_leader string) (string, error)
 
 	// Handle invalid rights
 	if group_users[0].Name != cli.Name {
-		return "", errors.New("ERR You are not the leader of the group")
+		return "", errors.New(pr.ErrNoPermission)
 
 	} else if cli.Name == new_leader {
-		return "", errors.New("ERR You are already the leader of the group")
+		return "", errors.New(pr.ErrAlreadyLeader)
 	}
 
 	// Find new_leader
@@ -206,7 +206,7 @@ func (e *Engine) promote_user(cli *pr.Client, new_leader string) (string, error)
 
 			// Check new_leader is inside group
 			if !slices.Contains(group_users, client) {
-				return "", errors.New("ERR 401 NOT_IN_GROUP")
+				return "", errors.New(pr.ErrNotInGroup)
 			}
 
 			// Send promotion
@@ -218,15 +218,15 @@ func (e *Engine) promote_user(cli *pr.Client, new_leader string) (string, error)
 	}
 
 	// Handle invalid new_leader
-	return "", fmt.Errorf("ERR 404 USER_NOT_FOUND")
+	return "", fmt.Errorf(pr.ErrInternalServer)
 }
 
 func (e *Engine) accept_promotion(cli *pr.Client) (string, error) {
 	// Check user have a group promotion
 	if cli.Datas.Group == "" {
-		return "", errors.New("ERR 401 NOT_IN_GROUP")
+		return "", errors.New(pr.ErrNotInGroup)
 	} else if !cli.Datas.Promotion {
-		return "", errors.New("ERR You don't have promotion")
+		return "", errors.New(pr.ErrNotPromoted)
 	}
 
 	// Update promotion and leadership
@@ -243,9 +243,9 @@ func (e *Engine) accept_promotion(cli *pr.Client) (string, error) {
 func (e *Engine) decline_promotion(cli *pr.Client) (string, error) {
 	// Check user have a group promotion
 	if cli.Datas.Group == "" {
-		return "", errors.New("ERR 401 NOT_IN_GROUP")
+		return "", errors.New(pr.ErrNotInGroup)
 	} else if !cli.Datas.Promotion {
-		return "", errors.New("ERR You don't have promotion")
+		return "", errors.New(pr.ErrNotPromoted)
 	}
 
 	// Update promotion
