@@ -24,7 +24,7 @@ type SaveChat struct {
 }
 
 var (
-	last_chat SaveChat
+	last_chat = SaveChat{Scope: pr.GlobalChat, Msg: ""}
 )
 
 func NewChatComponent(app *tview.Application, inputs chan<- string) *ChatComponent {

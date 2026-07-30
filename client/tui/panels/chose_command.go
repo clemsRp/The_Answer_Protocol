@@ -109,7 +109,9 @@ func NewCommandComponent(app *tview.Application, grid *tview.Grid, options map[s
 
 	// Buttons setup
 	cancelBtn := tview.NewButton("Cancel").SetSelectedFunc(func() {
-		go quitFunc()
+		if quitFunc != nil {
+			go quitFunc()
+		}
 	})
 
 	validateBtn := tview.NewButton("Validate").SetSelectedFunc(func() {
