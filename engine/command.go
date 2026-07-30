@@ -238,7 +238,7 @@ func (e *Engine) handleCmdTake(cli *pr.Client, req []string) (string, any, error
 		}
 	}
 
-	return "", "", errors.New("ERR 404 ITEM_NOT_FOUND")
+	return "", "", errors.New(pr.ErrItemNotFound)
 }
 
 func (e *Engine) handleCmdDrop(cli *pr.Client, req []string) (string, any, error) {
@@ -257,7 +257,7 @@ func (e *Engine) handleCmdDrop(cli *pr.Client, req []string) (string, any, error
 		}
 	}
 
-	return "", "", errors.New("ERR 404 ITEM_NOT_IN_INVENTORY")
+	return "", "", errors.New(pr.ErrItemNotInInventory)
 }
 
 func (e *Engine) handleCmdInventory(cli *pr.Client, req []string) (string, any, error) {
@@ -280,7 +280,7 @@ func (e *Engine) handleCmdQuest(cli *pr.Client, req []string) (string, any, erro
 			for _, room_npc := range e.world.Rooms[cli.Datas.Room].Npcs {
 				if room_npc == npc {
 					if npc_datas.QuestId == "" || e.world.Quests[npc_datas.QuestId].Status == "unavailable" {
-						return "", "", errors.New("ERR 406 NO_QUEST_AVAILABLE")
+						return "", "", errors.New(pr.ErrNoQuestAvailable)
 					}
 
 					// Format response
@@ -296,7 +296,7 @@ func (e *Engine) handleCmdQuest(cli *pr.Client, req []string) (string, any, erro
 			}
 		}
 	}
-	return "", "", errors.New("ERR 404 NPC_NOT_FOUND")
+	return "", "", errors.New(pr.ErrNpcNotFound)
 }
 
 func (e *Engine) handleCmdQuests(req []string) (string, any, error) {
@@ -347,7 +347,7 @@ func (e *Engine) handleCmdTalk(cli *pr.Client, req []string) (string, any, error
 		}
 	}
 
-	return "", "", errors.New("ERR 404 NPC_NOT_FOUND")
+	return "", "", errors.New(pr.ErrNpcNotFound)
 }
 
 func (e *Engine) handleCmdAttack(cli *pr.Client, req []string) (string, any, error) {
@@ -374,5 +374,5 @@ func (e *Engine) handleCmdAttack(cli *pr.Client, req []string) (string, any, err
 		}
 	}
 
-	return "", "", errors.New("ERR 404 NPC_NOT_FOUND")
+	return "", "", errors.New(pr.ErrNpcNotFound)
 }
