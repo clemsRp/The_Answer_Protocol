@@ -3,6 +3,7 @@ package panel
 import (
 	"fmt"
 	"slices"
+	pr "tap/protocol"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -81,12 +82,12 @@ func NewCommandLineComponent(app *tview.Application, inputs chan<- string) *Comm
 	return command_line
 }
 
-func (c *CommandLineComponent) ListenOutputs(app *tview.Application, commandLineChan <-chan string) {
+func (c *CommandLineComponent) ListenOutputs(app *tview.Application, commandLineChan <-chan pr.ServerResponse) {
 	go func() {
-		for msg := range commandLineChan {
+		for res := range commandLineChan {
 
 			app.QueueUpdateDraw(func() {
-				fmt.Fprint(c.History, msg+"\n")
+				fmt.Fprint(c.History, res.Msg+"\n")
 			})
 		}
 	}()

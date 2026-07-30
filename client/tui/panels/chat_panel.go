@@ -18,6 +18,15 @@ type ChatComponent struct {
 	Input     *tview.InputField
 }
 
+type SaveChat struct {
+	Scope string
+	Msg   string
+}
+
+var (
+	last_chat SaveChat
+)
+
 func NewChatComponent(app *tview.Application, inputs chan<- string) *ChatComponent {
 	chat := &ChatComponent{}
 
@@ -92,9 +101,7 @@ func NewChatComponent(app *tview.Application, inputs chan<- string) *ChatCompone
 
 			_, canal := chat.Scope.GetCurrentOption()
 
-			formated_msg := fmt.Sprintf("[green]%s: [white]%s\n", pseudo, text)
-
-			fmt.Fprint(chat.Histories[canal], formated_msg)
+			last_chat = SaveChat{Scope: canal, Msg: text}
 
 			chat.Input.SetText("")
 			inputs <- fmt.Sprintf("CHAT %s %s", canal, text)
@@ -125,23 +132,32 @@ func NewHistoryComponent(scope string) *tview.TextView {
 	return history
 }
 
-func (c *ChatComponent) ListenOutputs(app *tview.Application, chatChan <-chan string) {
+func (c *ChatComponent) ListenOutputs(app *tview.Application, chatChan <-chan pr.ServerResponse) {
 	go func() {
-		for msg := range chatChan {
+		for res := range chatChan {
+			// OK
+			if strings.HasPrefix(res.Msg, "EVT") {
+				split_msg := strings.SplitN(res.Msg, " ", 5)
 
-			split_msg := strings.SplitN(msg, " ", 3)
+				scope := split_msg[1]
+				user := split_msg[3]
+				message := split_msg[4]
 
-			scope := split_msg[0]
-			user := split_msg[1]
-			message := split_msg[2]
+				lineChat := fmt.Sprintf("[green]%s: [white]%s\n", user, message)
 
-			lineChat := fmt.Sprintf("[green]%s: [white]%s\n", user, message)
+				app.QueueUpdateDraw(func() {
+					if historyView, ok := c.Histories[scope]; ok {
+						fmt.Fprint(historyView, lineChat)
+					}
+				})
 
-			app.QueueUpdateDraw(func() {
-				if historyView, ok := c.Histories[scope]; ok {
-					fmt.Fprint(historyView, lineChat)
-				}
-			})
+			} else if res.Msg == "OK" {
+				formated_msg := fmt.Sprintf("[green]%s: [white]%s\n", pseudo, last_chat.Msg)
+
+				app.QueueUpdateDraw(func() {
+					fmt.Fprint(c.Histories[last_chat.Scope], formated_msg)
+				})
+			}
 		}
 	}()
 }

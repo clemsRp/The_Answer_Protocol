@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"strings"
 	pr "tap/protocol"
 )
@@ -11,13 +9,13 @@ type Router struct {
 	Inputs  chan<- string
 	Outputs <-chan pr.ServerResponse
 
-	ChatChan        chan string
-	CommandLineChan chan string
-	ServerChan      chan string
-	NavChan         chan string
-	PlayersChan     chan string
-	DialogueChan    chan string
-	DatasChan       chan string
+	ChatChan        chan pr.ServerResponse
+	CommandLineChan chan pr.ServerResponse
+	ServerChan      chan pr.ServerResponse
+	NavChan         chan pr.ServerResponse
+	PlayersChan     chan pr.ServerResponse
+	DialogueChan    chan pr.ServerResponse
+	DatasChan       chan pr.ServerResponse
 	LastCommand     string
 }
 
@@ -25,13 +23,13 @@ func NewRouter(inputs chan string, outputs <-chan pr.ServerResponse) *Router {
 	return &Router{
 		Inputs:          inputs,
 		Outputs:         outputs,
-		ChatChan:        make(chan string),
-		CommandLineChan: make(chan string),
-		ServerChan:      make(chan string),
-		NavChan:         make(chan string),
-		PlayersChan:     make(chan string),
-		DialogueChan:    make(chan string),
-		DatasChan:       make(chan string),
+		ChatChan:        make(chan pr.ServerResponse),
+		CommandLineChan: make(chan pr.ServerResponse),
+		ServerChan:      make(chan pr.ServerResponse),
+		NavChan:         make(chan pr.ServerResponse),
+		PlayersChan:     make(chan pr.ServerResponse),
+		DialogueChan:    make(chan pr.ServerResponse),
+		DatasChan:       make(chan pr.ServerResponse),
 		LastCommand:     "",
 	}
 }
@@ -40,53 +38,68 @@ func (r *Router) HandleEvents(res pr.ServerResponse) {
 	// Handle CHAT responses
 	global := strings.HasPrefix(res.Msg, "EVT GLOBAL CHAT")
 	room := strings.HasPrefix(res.Msg, "EVT ROOM CHAT")
-	group := strings.HasPrefix(res.Msg, "EVT GROUP CHAT alice ca va ?")
+	group := strings.HasPrefix(res.Msg, "EVT GROUP CHAT")
 	if global || room || group {
-		split_msg := strings.SplitN(res.Msg, " ", 5)
-		r.ChatChan <- fmt.Sprintf("%s %s %s", split_msg[1], split_msg[3], split_msg[4])
+		r.ChatChan <- res
 	}
 }
 
-func (r *Router) Start(m *MyApp) {
+func (r *Router) Start() {
 	go func() {
 
 		for res := range r.Outputs {
-			color := "white"
 			switch {
 			case strings.HasPrefix(res.Msg, "OK"):
-				color = "green"
-
+				r.handleLastCommandResponse(res)
 			// TO DO
 			case strings.HasPrefix(res.Msg, "ERR"):
-				color = "red"
+				r.handleLastCommandResponse(res)
 
 			case strings.HasPrefix(res.Msg, "EVT"):
-				color = "orange"
 				r.HandleEvents(res)
 			}
 
-			msg_type := res.Msg
-			msg_text := ""
+			// msg_type := res.Msg
+			// msg_text := ""
 
-			if strings.ContainsRune(res.Msg, ' ') {
-				split_msg := strings.SplitN(res.Msg, " ", 2)
+			// if strings.ContainsRune(res.Msg, ' ') {
+			// 	split_msg := strings.SplitN(res.Msg, " ", 2)
 
-				msg_type = split_msg[0]
-				msg_text = split_msg[1]
-			}
+			// 	msg_type = split_msg[0]
+			// 	msg_text = split_msg[1]
+			// }
 
-			r.ServerChan <- fmt.Sprintf("[%s]%s [white]%s", color, msg_type, msg_text)
+			r.ServerChan <- res
+			// fmt.Sprintf("[%s]%s [white]%s", color, msg_type, msg_text)
 
-			b, _ := json.Marshal(res.Datas)
-			datas := string(b)
+			// b, _ := json.Marshal(res.Datas)
+			// datas := string(b)
 
-			if datas == "\"\"" || datas == "null" || datas == "<nil>" {
-				datas = ""
+			// if datas == "\"\"" || datas == "null" || datas == "<nil>" {
+			// 	datas = ""
 
-			} else {
-				r.DatasChan <- datas
-			}
-			r.CommandLineChan <- fmt.Sprintf("%s %+v", res.Msg, datas)
+			// } else {
+			// 	r.DatasChan <- datas
+			// }
+			r.DatasChan <- res
+			r.CommandLineChan <- res
+			// fmt.Sprintf("%s %+v", res.Msg, datas)
 		}
 	}()
+}
+
+func (r *Router) handleLastCommandResponse(res pr.ServerResponse) {
+	switch r.LastCommand {
+	case pr.CmdLook:
+		r.NavChan <- res
+		r.PlayersChan <- res
+		// r.itemsChan <- res
+	case pr.CmdMove:
+		r.NavChan <- res
+		r.Inputs <- pr.CmdLook
+	case pr.CmdChat:
+		r.ChatChan <- res
+	default:
+
+	}
 }
