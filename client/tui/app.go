@@ -149,14 +149,14 @@ func (m *MyApp) InitConnect() {
 }
 
 func (m *MyApp) InitPopup() {
-	m.PopupComponent = panel.NewPopupComponent(
-		m.app,
-		m.popup,
-		map[string]func(){
-			"MOVE": func() { m.router.Inputs <- "CHAT GLOBAL move" },
-		},
-		m.ShowGamePage,
-	)
+	options := map[string]func(){
+		"MOVE1": func() { m.router.Inputs <- "CHAT GLOBAL move" },
+		"MOVE2": func() { m.router.Inputs <- "CHAT GLOBAL move" },
+		"MOVE3": func() { m.router.Inputs <- "CHAT GLOBAL move" },
+		"MOVE4": func() { m.router.Inputs <- "CHAT GLOBAL move" },
+	}
+
+	m.PopupComponent = panel.NewCommandComponent(m.app, m.popup, options, m.ShowGamePage)
 
 	m.popup.AddItem(m.PopupComponent.Layout, 1, 1, 1, 1, 0, 0, true)
 }
@@ -176,8 +176,8 @@ func (m *MyApp) ShowGamePage() {
 func (m *MyApp) ShowPopupPage() {
 	m.app.QueueUpdateDraw(func() {
 		m.pages.ShowPage("Popup")
-		if m.PopupComponent != nil {
-			m.app.SetFocus(m.PopupComponent.OptionsList)
+		if m.PopupComponent != nil && m.PopupComponent.FocusItem != nil {
+			m.app.SetFocus(m.PopupComponent.FocusItem)
 		}
 
 		panel.SetBlockedInputs(m.grid, popup_visible)
