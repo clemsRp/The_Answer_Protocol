@@ -36,20 +36,6 @@ func (c *DatasComponent) ListenOutputs(app *tview.Application, datasChan <-chan 
 					return
 				}
 				formatMsg := res.Msg
-				// if res.Datas != nil {
-				// 	for _, item := range res.Datas {
-
-				// 	}
-				// }
-				// var out bytes.Buffer
-				// json.Indent(&out, []byte(res), "", "    ")
-				// formatted := out.String()
-
-				// re := regexp.MustCompile(`\[\s*([^\[\]\{\}]*?)\s*\]`)
-				// formatMsg := re.ReplaceAllStringFunc(formatted, func(m string) string {
-				// 	parts := strings.Fields(m)
-				// 	return strings.Join(parts, " ")
-				// })
 
 				c.View.SetText(formatMsg)
 			})
