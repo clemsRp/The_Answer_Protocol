@@ -1,4 +1,4 @@
-package main
+package tui
 
 import (
 	"strings"
@@ -13,8 +13,8 @@ type Router struct {
 	CommandLineChan chan pr.ServerResponse
 	ServerChan      chan pr.ServerResponse
 	NavChan         chan pr.ServerResponse
-	PlayersChan     chan pr.ServerResponse
-	DialogueChan    chan pr.ServerResponse
+	ItemsChan       chan pr.ServerResponse
+	InteractionChan chan pr.ServerResponse
 	DatasChan       chan pr.ServerResponse
 	LastCommand     string
 }
@@ -23,13 +23,13 @@ func NewRouter(inputs chan string, outputs <-chan pr.ServerResponse) *Router {
 	return &Router{
 		Inputs:          inputs,
 		Outputs:         outputs,
-		ChatChan:        make(chan pr.ServerResponse),
-		CommandLineChan: make(chan pr.ServerResponse),
-		ServerChan:      make(chan pr.ServerResponse),
-		NavChan:         make(chan pr.ServerResponse),
-		PlayersChan:     make(chan pr.ServerResponse),
-		DialogueChan:    make(chan pr.ServerResponse),
-		DatasChan:       make(chan pr.ServerResponse),
+		ChatChan:        make(chan pr.ServerResponse, 100),
+		CommandLineChan: make(chan pr.ServerResponse, 100),
+		ServerChan:      make(chan pr.ServerResponse, 100),
+		NavChan:         make(chan pr.ServerResponse, 100),
+		ItemsChan:       make(chan pr.ServerResponse, 100),
+		InteractionChan: make(chan pr.ServerResponse, 100),
+		DatasChan:       make(chan pr.ServerResponse, 100),
 		LastCommand:     "",
 	}
 }
@@ -60,20 +60,30 @@ func (r *Router) Start() {
 			}
 
 			r.ServerChan <- res
+			r.DatasChan <- res
 			r.CommandLineChan <- res
 		}
 	}()
+}
+
+func (m *MyApp) UpdateRouterLayout() {
+	if m.grid != nil {
+		m.grid.Clear()
+	}
+
+	if m.Navigation != nil {
+		m.grid.AddItem(m.Navigation.Layout, 0, 0, 1, 1, 0, 0, true)
+	}
 }
 
 func (r *Router) handleLastCommandResponse(res pr.ServerResponse) {
 	switch r.LastCommand {
 	case pr.CmdLook:
 		r.NavChan <- res
-		r.PlayersChan <- res
+		r.ItemsChan <- res
 		// r.itemsChan <- res
 	case pr.CmdMove:
 		r.NavChan <- res
-		r.Inputs <- pr.CmdLook
 	case pr.CmdChat:
 		r.ChatChan <- res
 	default:

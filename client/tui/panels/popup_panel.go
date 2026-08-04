@@ -52,14 +52,14 @@ func NewPopupComponent(app *tview.Application, grid *tview.Grid, mainContent tvi
 	}
 
 	// Assemble vertical inner layout
-	popup.LayoutTemp.AddItem(createSpacer(), 1, 0, false)
-	popup.LayoutTemp.AddItem(mainContent, contentHeight, 1, true)
-	popup.LayoutTemp.AddItem(createSpacer(), 1, 0, false)
+	popup.LayoutTemp.AddItem(createSpacer(), 5, 0, false)
+	popup.LayoutTemp.AddItem(mainContent, 0, 1, true)
+	popup.LayoutTemp.AddItem(createSpacer(), 3, 0, false)
 
 	// Add buttons row only if buttons are provided
 	if len(buttons) > 0 {
 		popup.LayoutTemp.AddItem(popup.Buttons, 1, 0, false)
-		popup.LayoutTemp.AddItem(createSpacer(), 1, 0, false)
+		popup.LayoutTemp.AddItem(createSpacer(), 5, 0, false)
 	}
 
 	// Build focusable primitives slice for Tab key navigation
@@ -87,10 +87,9 @@ func NewPopupComponent(app *tview.Application, grid *tview.Grid, mainContent tvi
 		return event
 	})
 
-	// Assemble final outer layout
-	popup.Layout.AddItem(createSpacer(), 0, 1, false)
-	popup.Layout.AddItem(popup.LayoutTemp, 30, 1, true)
-	popup.Layout.AddItem(createSpacer(), 0, 1, false)
+	popup.Layout.AddItem(createSpacer(), 15, 0, false)
+	popup.Layout.AddItem(popup.LayoutTemp, 0, 1, true)
+	popup.Layout.AddItem(createSpacer(), 15, 0, false)
 
 	// Total vertical height calculation for container grid
 	totalHeight := contentHeight + 3

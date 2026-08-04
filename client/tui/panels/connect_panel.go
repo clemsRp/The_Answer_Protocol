@@ -25,7 +25,7 @@ func SetInputText(input *tview.InputField, text string) {
 	input.SetText(spaces + text)
 }
 
-func NewConnectComponent(inputs chan string) tview.Primitive {
+func NewConnectComponent(inputs chan<- string) tview.Primitive {
 	connect := createInputField(" Connect ", false, "", tcell.ColorGreen, tcell.ColorGreen, tcell.NewRGBColor(0, 0, 0))
 
 	connect.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
