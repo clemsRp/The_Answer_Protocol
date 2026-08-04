@@ -57,7 +57,7 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (*pr.Client, string, a
 		case pr.CmdQuest:
 			res, datas, err = e.handleCmdQuest(activeCli, req)
 		case pr.CmdQuests:
-			res, datas, err = e.handleCmdQuests(req)
+			res, datas, err = e.handleCmdQuests(activeCli, req)
 		case pr.CmdTalk:
 			res, datas, err = e.handleCmdTalk(activeCli, req)
 		case pr.CmdAttack:
