@@ -13,8 +13,8 @@ type Router struct {
 	CommandLineChan chan pr.ServerResponse
 	ServerChan      chan pr.ServerResponse
 	NavChan         chan pr.ServerResponse
-	PlayersChan     chan pr.ServerResponse
-	DialogueChan    chan pr.ServerResponse
+	ItemsChan       chan pr.ServerResponse
+	InteractionChan chan pr.ServerResponse
 	DatasChan       chan pr.ServerResponse
 	LastCommand     string
 }
@@ -27,8 +27,8 @@ func NewRouter(inputs chan string, outputs <-chan pr.ServerResponse) *Router {
 		CommandLineChan: make(chan pr.ServerResponse, 100),
 		ServerChan:      make(chan pr.ServerResponse, 100),
 		NavChan:         make(chan pr.ServerResponse, 100),
-		PlayersChan:     make(chan pr.ServerResponse, 100),
-		DialogueChan:    make(chan pr.ServerResponse, 100),
+		ItemsChan:       make(chan pr.ServerResponse, 100),
+		InteractionChan: make(chan pr.ServerResponse, 100),
 		DatasChan:       make(chan pr.ServerResponse, 100),
 		LastCommand:     "",
 	}
@@ -80,11 +80,10 @@ func (r *Router) handleLastCommandResponse(res pr.ServerResponse) {
 	switch r.LastCommand {
 	case pr.CmdLook:
 		r.NavChan <- res
-		r.PlayersChan <- res
+		r.ItemsChan <- res
 		// r.itemsChan <- res
 	case pr.CmdMove:
 		r.NavChan <- res
-		r.Inputs <- pr.CmdLook
 	case pr.CmdChat:
 		r.ChatChan <- res
 	default:

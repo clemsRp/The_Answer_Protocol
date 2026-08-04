@@ -18,8 +18,8 @@ type MyApp struct {
 	Server         *panel.ServerResponseComponent
 	CommandLine    *panel.CommandLineComponent
 	Navigation     *panel.ChoiceListComponent
-	PlayersNPC     *panel.PlayersNPCComponent
-	Dialogue       *panel.DialogueComponent
+	Items          *panel.ChoiceListComponent
+	Interaction    *panel.ChoiceListComponent
 	Datas          *panel.DatasComponent
 	PopupComponent *panel.PopupComponent
 	navMatrix      [4][4]tview.Primitive
@@ -66,8 +66,8 @@ func (m *MyApp) setupComponents(router *Router) {
 	m.CommandLine = panel.NewCommandLineComponent(m.app, router.Inputs)
 	m.Server = panel.NewServerResponseComponent(m.app)
 	m.Navigation = panel.NewNavigationComponent(m.app, m.popup, router.Inputs, m.OnOpenPopup, m.ShowGamePage)
-	m.PlayersNPC = panel.NewPlayersNPCComponent(m.app)
-	m.Dialogue = panel.NewDialogueComponent(m.app)
+	m.Items = panel.NewItemsComponent(m.app, m.popup, router.Inputs, m.OnOpenPopup, m.ShowGamePage)
+	m.Interaction = panel.NewInteractionComponent(m.app, m.popup, router.Inputs, m.OnOpenPopup, m.ShowGamePage)
 	m.Datas = panel.NewDatasComponent(m.app)
 
 	m.Server.CliBtn.
@@ -77,8 +77,8 @@ func (m *MyApp) setupComponents(router *Router) {
 				m.grid.AddItem(m.Server.Layout, 3, 0, 1, 4, 0, 0, false)
 
 				m.navMatrix = [4][4]tview.Primitive{
-					{m.Navigation.List, m.PlayersNPC.List, m.Dialogue.View, m.Chat.Input},
-					{m.Navigation.List, m.PlayersNPC.List, m.Dialogue.View, m.Chat.Input},
+					{m.Navigation.List, m.Items.List, m.Interaction.List, m.Chat.Input},
+					{m.Navigation.List, m.Items.List, m.Interaction.List, m.Chat.Input},
 					{m.Datas.View, m.Datas.View, m.Datas.View, m.Chat.Input},
 					{m.Server.History, m.Server.History, m.Server.History, m.Server.History},
 				}
@@ -90,8 +90,8 @@ func (m *MyApp) setupComponents(router *Router) {
 				m.grid.AddItem(m.Server.Layout, 3, 2, 1, 2, 0, 0, false)
 
 				m.navMatrix = [4][4]tview.Primitive{
-					{m.Navigation.List, m.PlayersNPC.List, m.Dialogue.View, m.Chat.Input},
-					{m.Navigation.List, m.PlayersNPC.List, m.Dialogue.View, m.Chat.Input},
+					{m.Navigation.List, m.Items.List, m.Interaction.List, m.Chat.Input},
+					{m.Navigation.List, m.Items.List, m.Interaction.List, m.Chat.Input},
 					{m.Datas.View, m.Datas.View, m.Datas.View, m.Chat.Input},
 					{m.CommandLine.Input, m.CommandLine.Input, m.Server.History, m.Server.History},
 				}
@@ -108,8 +108,8 @@ func (m *MyApp) setupComponents(router *Router) {
 
 func (m *MyApp) setupMatrix() {
 	m.navMatrix = [4][4]tview.Primitive{
-		{m.Navigation.List, m.PlayersNPC.List, m.Dialogue.View, m.Chat.Input},
-		{m.Navigation.List, m.PlayersNPC.List, m.Dialogue.View, m.Chat.Input},
+		{m.Navigation.List, m.Items.List, m.Interaction.List, m.Chat.Input},
+		{m.Navigation.List, m.Items.List, m.Interaction.List, m.Chat.Input},
 		{m.Datas.View, m.Datas.View, m.Datas.View, m.Chat.Input},
 		{m.Server.History, m.Server.History, m.Server.History, m.Server.History},
 	}
@@ -117,8 +117,8 @@ func (m *MyApp) setupMatrix() {
 
 func (m *MyApp) setupGrid() {
 	m.grid.AddItem(m.Navigation.Layout, 0, 0, 2, 1, 0, 0, false)
-	m.grid.AddItem(m.PlayersNPC.Layout, 0, 1, 2, 1, 0, 0, false)
-	m.grid.AddItem(m.Dialogue.Layout, 0, 2, 2, 1, 0, 0, false)
+	m.grid.AddItem(m.Items.Layout, 0, 1, 2, 1, 0, 0, false)
+	m.grid.AddItem(m.Interaction.Layout, 0, 2, 2, 1, 0, 0, false)
 	m.grid.AddItem(m.Datas.Layout, 2, 0, 1, 3, 0, 0, false)
 	m.grid.AddItem(m.Chat.Layout, 0, 3, 3, 1, 0, 0, true)
 	m.grid.AddItem(m.Server.Layout, 3, 0, 1, 4, 0, 0, false)
@@ -129,8 +129,8 @@ func (m *MyApp) StartListeners() {
 	m.CommandLine.ListenOutputs(m.app, m.router.CommandLineChan)
 	m.Server.ListenOutputs(m.app, m.router.ServerChan)
 	m.Navigation.ListenOutputs(m.app, m.router.NavChan, m.NavListenOutputs)
-	m.PlayersNPC.ListenOutputs(m.app, m.router.PlayersChan, m.router.Inputs)
-	m.Dialogue.ListenOutputs(m.app, m.router.DialogueChan)
+	m.Items.ListenOutputs(m.app, m.router.ItemsChan, m.ItemListenOutputs)
+	m.Interaction.ListenOutputs(m.app, m.router.InteractionChan, m.InteractionListenOutputs)
 	m.Datas.ListenOutputs(m.app, m.router.DatasChan)
 }
 

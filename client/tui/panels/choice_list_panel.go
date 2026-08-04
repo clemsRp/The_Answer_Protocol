@@ -9,28 +9,57 @@ import (
 )
 
 type OptionsMap map[string]map[string]func()
+type AllowedOptions interface {
+	OptionsMap | map[string]OptionsMap
+}
 
 type ChoiceListComponent struct {
 	Layout *tview.Flex
 	List   *tview.List
 }
 
-func NewChoiceListComponent(
+var (
+	popupBgColor = tcell.GetColor("#3a3838")
+	btnRestBg    = tcell.GetColor("#474646")
+	btnActiveBg  = tcell.GetColor("#7e7979")
+)
+
+func NewChoiceListComponent[T AllowedOptions](
 	app *tview.Application,
 	popupGrid *tview.Grid,
-	options OptionsMap,
+	title string,
+	options T,
 	onOpenPopup func(popup *PopupComponent),
 	onClosePopup func(),
 ) *ChoiceListComponent {
 
 	src := &ChoiceListComponent{}
-	src.List = createListView(" Actions ", true, Default, Default, tcell.ColorBlue, Black, false, true)
+	src.List = createListView(" "+title+" ", true, Default, Default, tcell.ColorBlue, Black, false, true)
 	src.Layout = tview.NewFlex().SetDirection(tview.FlexRow).AddItem(src.List, 0, 1, false)
 
-	popupBgColor := tcell.GetColor("#3a3838")
-	btnRestBg := tcell.GetColor("#474646")
-	btnActiveBg := tcell.GetColor("#7e7979")
+	switch opts := any(options).(type) {
+	case OptionsMap:
+		test(app, src, popupGrid, opts, onOpenPopup, onClosePopup)
 
+	case map[string]OptionsMap:
+		for subTitle, subOptions := range opts {
+			src.List.AddItem("[yellow:#000000]- "+subTitle+":", "", 0, nil)
+
+			test(app, src, popupGrid, subOptions, onOpenPopup, onClosePopup)
+		}
+	}
+
+	return src
+}
+
+func test(
+	app *tview.Application,
+	src *ChoiceListComponent,
+	popupGrid *tview.Grid,
+	options OptionsMap,
+	onOpenPopup func(popup *PopupComponent),
+	onClosePopup func(),
+) {
 	index := 1
 	for location, actions := range options {
 		locActions := actions
@@ -145,11 +174,9 @@ func NewChoiceListComponent(
 			}
 		}
 
-		src.List.AddItem(locName, "", rune('0'+index), itemAction)
+		src.List.AddItem("  "+locName, "", 0, itemAction)
 		index++
 	}
-
-	return src
 }
 
 func transform_name(option string, width int) string {
