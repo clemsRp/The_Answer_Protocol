@@ -1,4 +1,4 @@
-package main
+package tui
 
 import (
 	panel "tap/client/tui/panels"

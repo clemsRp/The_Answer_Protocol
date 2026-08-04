@@ -18,28 +18,21 @@ func NewItemsComponent(
 
 	options := ConvertItems(room_items, inventory_items, inputs)
 
-	switch opts := options.(type) {
-	case OptionsMap:
-		return NewChoiceListComponent(app, popupGrid, "Items", opts, onOpenPopup, onClosePopup)
-	case map[string]OptionsMap:
-		return NewChoiceListComponent(app, popupGrid, "Items", opts, onOpenPopup, onClosePopup)
-	default:
-		return nil
-	}
+	return NewChoiceListComponent(app, popupGrid, "Items", options, onOpenPopup, onClosePopup)
 }
 
-func ConvertItems(room_items, inventory_items []string, inputs chan<- string) any {
-	if len(room_items) == 0 {
-		return ConvertItemsList(inventory_items, "DROP", inputs)
+func ConvertItems(room_items, inventory_items []string, inputs chan<- string) map[string]OptionsMap {
+	res := make(map[string]OptionsMap)
 
-	} else if len(inventory_items) == 0 {
-		return ConvertItemsList(room_items, "TAKE", inputs)
+	if len(room_items) != 0 {
+		res["ROOM"] = ConvertItemsList(room_items, "TAKE", inputs)
 	}
 
-	return map[string]OptionsMap{
-		"ROOM":      ConvertItemsList(room_items, "TAKE", inputs),
-		"INVENTORY": ConvertItemsList(inventory_items, "DROP", inputs),
+	if len(inventory_items) != 0 {
+		res["INVENTORY"] = ConvertItemsList(inventory_items, "DROP", inputs)
 	}
+
+	return res
 }
 
 func ConvertItemsList(items []string, cmd string, inputs chan<- string) OptionsMap {

@@ -1,4 +1,4 @@
-package main
+package tui
 
 import (
 	"bufio"
@@ -6,30 +6,39 @@ import (
 	"net"
 	"os"
 	"strings"
+	"tap/engine/parser"
 	pr "tap/protocol"
 )
 
-var (
-	inputs  = make(chan string, 10)
-	outputs = make(chan pr.ServerResponse)
-)
+type TuiClient struct {
+	app     *MyApp
+	inputs  chan string
+	outputs chan pr.ServerResponse
+	world   parser.Map
+}
 
-func main() {
+func NewTuiClient(world parser.Map) *TuiClient {
+	// Init Client
+	cli := TuiClient{
+		inputs:  make(chan string, 10),
+		outputs: make(chan pr.ServerResponse, 100),
+		world:   world,
+	}
+
 	// Connect to server
 	conn, err := net.Dial("tcp", "localhost:8080")
 	if err != nil {
 		fmt.Println("Connection error:", err)
-		return
+		return nil
 	}
-	defer conn.Close()
 
-	router := NewRouter(inputs, outputs)
-	app := NewMyApp(router)
+	router := NewRouter(cli.inputs, cli.outputs)
+	cli.app = NewMyApp(router)
 	router.Start()
 
 	// Handle input
 	go func() {
-		for input := range inputs {
+		for input := range cli.inputs {
 			// Send command to the server
 			fmt.Fprint(conn, input+"\n")
 			// Save the last command to handle server returns
@@ -47,19 +56,23 @@ func main() {
 			}
 
 			res := convertServerResponse(line)
-			outputs <- res
+			cli.outputs <- res
 			if res.Msg == "OK bye" {
-				app.Stop()
+				cli.app.Stop()
 				conn.Close()
 				os.Exit(0)
 			}
 			if res.Msg == "OK connected" {
-				app.ShowGamePage()
+				cli.app.ShowGamePage()
 			}
 		}
 	}()
 
-	if err := app.Run(); err != nil {
+	return &cli
+}
+
+func (c *TuiClient) Start() {
+	if err := c.app.Run(); err != nil {
 		panic(fmt.Sprintf("Execution error: %v", err))
 	}
 }
