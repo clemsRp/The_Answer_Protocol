@@ -73,8 +73,6 @@ func (e *Engine) handleCmdLook(cli *pr.Client, req []string) (string, any, error
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
-	res := make(map[string]any)
-	Room := make(map[string]any)
 	players := make([]string, 0)
 
 	// Get present players
@@ -84,16 +82,41 @@ func (e *Engine) handleCmdLook(cli *pr.Client, req []string) (string, any, error
 		}
 	}
 
-	// Format response
 	currentRoom := e.world.Rooms[cli.Datas.Room]
-	res["npcs"] = currentRoom.Npcs
-	res["items"] = currentRoom.Items
-	res["players"] = players
-	res["room"] = Room
-	Room["id"] = "room." + cli.Datas.Room
-	Room["exits"] = currentRoom.Exits
-	Room["description"] = currentRoom.Description
-	Room["Name"] = currentRoom.Name
+	// Format response
+
+	north, ok := currentRoom.Exits["north"]
+	if !ok {
+		north = ""
+	}
+	south, ok1 := currentRoom.Exits["south"]
+	if !ok1 {
+		south = ""
+	}
+	east, ok2 := currentRoom.Exits["east"]
+	if !ok2 {
+		east = ""
+	}
+	west, ok := currentRoom.Exits["west"]
+	if !ok {
+		west = ""
+	}
+	Exits := pr.ExitsData{
+		North: north,
+		South: south,
+		West:  west,
+		East:  east,
+	}
+
+	Room := pr.RoomData{
+		Id:          "room." + cli.Datas.Room,
+		Name:        currentRoom.Name,
+		Description: currentRoom.Description,
+		Exits:       Exits,
+	}
+	res := pr.LookCommandData{
+		Room: Room,
+	}
 
 	return "OK", res, nil
 }
@@ -214,10 +237,11 @@ func (e *Engine) handleCmdStatus(cli *pr.Client, req []string) (string, any, err
 	}
 
 	// Format response
-	res := make(map[string]any)
-	res["status"] = cli.Datas.Status
-	res["max_hp"] = cli.Datas.Max_hp
-	res["hp"] = cli.Datas.Hp
+	res := pr.StatusCommandData{
+		Hp:     cli.Datas.Hp,
+		MaxHp:  cli.Datas.Max_hp,
+		Status: cli.Datas.Status,
+	}
 
 	return "OK", res, nil
 }
@@ -285,13 +309,15 @@ func (e *Engine) handleCmdQuest(cli *pr.Client, req []string) (string, any, erro
 
 					// Format response
 					quest := e.world.Quests[npc_datas.QuestId]
-					Datas := make(map[string]any)
-					Datas["status"] = quest.Status
-					Datas["reward"] = quest.Reward
-					Datas["description"] = quest.Description
-					Datas["quest_id"] = npc_datas.QuestId
+					res := pr.QuestData{
 
-					return "OK", Datas, nil
+						Id:          npc_datas.QuestId,
+						Reward:      quest.Reward,
+						Description: quest.Description,
+						Status:      quest.Status,
+					}
+
+					return "OK", res, nil
 				}
 			}
 		}
@@ -299,23 +325,12 @@ func (e *Engine) handleCmdQuest(cli *pr.Client, req []string) (string, any, erro
 	return "", "", errors.New(pr.ErrNpcNotFound)
 }
 
-func (e *Engine) handleCmdQuests(req []string) (string, any, error) {
+func (e *Engine) handleCmdQuests(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
-
-	res := make([]map[string]string, 0)
-	for quest_id, quest := range e.world.Quests {
-		// Format response
-		Datas := make(map[string]string)
-		Datas["quest_id"] = quest_id
-		Datas["status"] = quest.Status
-		if quest.Status == "active" {
-			Datas["progress"] = "1/3"
-		}
-		res = append(res, Datas)
-	}
+	res := cli.Datas.Quests
 
 	return "OK", res, nil
 }

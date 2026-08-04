@@ -2,6 +2,7 @@ package panel
 
 import (
 	"fmt"
+	"strings"
 	pr "tap/protocol"
 
 	"github.com/rivo/tview"
@@ -42,9 +43,19 @@ func (c *ServerResponseComponent) ListenOutputs(app *tview.Application, ServerCh
 
 	go func() {
 		for res := range ServerChan {
+			msg_type := res.Msg
+			msg_text := ""
+
+			if strings.ContainsRune(res.Msg, ' ') {
+				split_msg := strings.SplitN(res.Msg, " ", 2)
+
+				msg_type = split_msg[0]
+				msg_text = split_msg[1]
+			}
+
 			color := GetResponseColor(res)
 			app.QueueUpdateDraw(func() {
-				fmt.Fprintf(c.History, "[%s] %s\n", color, res.Msg)
+				fmt.Fprintf(c.History, "[%s]%s [white]%s\n", color, msg_type, msg_text)
 			})
 		}
 	}()

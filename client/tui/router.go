@@ -59,31 +59,8 @@ func (r *Router) Start() {
 				r.HandleEvents(res)
 			}
 
-			// msg_type := res.Msg
-			// msg_text := ""
-
-			// if strings.ContainsRune(res.Msg, ' ') {
-			// 	split_msg := strings.SplitN(res.Msg, " ", 2)
-
-			// 	msg_type = split_msg[0]
-			// 	msg_text = split_msg[1]
-			// }
-
 			r.ServerChan <- res
-			// fmt.Sprintf("[%s]%s [white]%s", color, msg_type, msg_text)
-
-			// b, _ := json.Marshal(res.Datas)
-			// datas := string(b)
-
-			// if datas == "\"\"" || datas == "null" || datas == "<nil>" {
-			// 	datas = ""
-
-			// } else {
-			// 	r.DatasChan <- datas
-			// }
-			r.DatasChan <- res
 			r.CommandLineChan <- res
-			// fmt.Sprintf("%s %+v", res.Msg, datas)
 		}
 	}()
 }
