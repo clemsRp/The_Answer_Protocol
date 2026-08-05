@@ -12,7 +12,7 @@ func TestConcurrentClientConnections(t *testing.T) {
 	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
 	addr := s.GetAddress()
 
-	const numClients = 100
+	const numClients = 1000
 	var wg sync.WaitGroup
 
 	// Channel to safely collect errors from goroutines

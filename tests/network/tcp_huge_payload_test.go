@@ -21,7 +21,7 @@ func TestProtectionAgainstHugePayloads(t *testing.T) {
 	}
 	defer conn.Close()
 
-	buf := make([]byte, 1024)
+	buf := make([]byte, server_limit)
 	conn.Read(buf)
 
 	// Create a payload larger than the default bufio.Scanner buffer (1KB).
@@ -40,6 +40,8 @@ func TestProtectionAgainstHugePayloads(t *testing.T) {
 
 	if err == nil {
 		t.Error("Fail: The server kept the connection open after receiving a huge payload. It should have dropped it to prevent memory exhaustion.")
+	} else if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+		t.Error("Fail: The server kept the connection open (Test timed out waiting for the server to close the socket).")
 	} else {
 		t.Logf("Success: Server dropped the connection upon receiving a huge payload (Error: %v)", err)
 	}
