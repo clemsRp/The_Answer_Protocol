@@ -3,12 +3,11 @@ package network
 import (
 	"bytes"
 	"net"
+	"tap/server"
 	"tap/tests/utils"
 	"testing"
 	"time"
 )
-
-var server_limit = 1024
 
 // 1024 bytes per line maximum
 func TestProtectionAgainstHugePayloads(t *testing.T) {
@@ -21,12 +20,12 @@ func TestProtectionAgainstHugePayloads(t *testing.T) {
 	}
 	defer conn.Close()
 
-	buf := make([]byte, server_limit)
+	buf := make([]byte, server.MaxPayloadSize)
 	conn.Read(buf)
 
 	// Create a payload larger than the default bufio.Scanner buffer (1KB).
 	// We send 1KB of garbage without a newline '\n'.
-	hugePayload := bytes.Repeat([]byte("A"), server_limit)
+	hugePayload := bytes.Repeat([]byte("A"), server.MaxPayloadSize)
 
 	_, err = conn.Write(hugePayload)
 	if err != nil {

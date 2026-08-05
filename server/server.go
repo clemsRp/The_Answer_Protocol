@@ -1,6 +1,7 @@
 package server
 
 import (
+	"sync"
 	pr "tap/protocol"
 	"time"
 
@@ -21,8 +22,12 @@ type Server struct {
 	requests chan pr.ClientRequest
 	logs     chan Log
 
-	entering chan *pr.Client
-	leaving  chan *pr.Client
+	entering    chan *pr.Client
+	leaving     chan *pr.Client
+	quit        chan struct{}
+	playerSlots chan struct{}
+
+	wg sync.WaitGroup
 
 	toEngine      chan pr.ServerRequest
 	fromEngine    chan pr.EngineResponse
@@ -43,6 +48,8 @@ func NewServer(listenAddr string, toEngineChan chan pr.ServerRequest, fromEngine
 		logs:          make(chan Log, 500),
 		entering:      make(chan *pr.Client, 50),
 		leaving:       make(chan *pr.Client, 50),
+		playerSlots:   make(chan struct{}, MaxPlayerLimit),
+		quit:          make(chan struct{}),
 		toEngine:      toEngineChan,
 		fromEngine:    fromEngineChan,
 		updateClients: updateClientsChan,
@@ -51,27 +58,40 @@ func NewServer(listenAddr string, toEngineChan chan pr.ServerRequest, fromEngine
 }
 
 func (s *Server) Start() {
-
+	s.wg.Add(1)
 	go s.broadcaster()
 
-	func() {
-		for {
-			conn, err := s.ln.Accept()
-			if err != nil {
-				return
-			}
-			go s.handleClient(conn)
+	for {
+		conn, err := s.ln.Accept()
+		if err != nil {
+			return
 		}
-	}()
+
+		select {
+		case s.playerSlots <- struct{}{}:
+			s.wg.Add(1)
+			go s.handleClient(conn)
+		default:
+			conn.Write([]byte(pr.ErrServerFull + "\n"))
+			conn.Close()
+		}
+	}
 }
 
 func (s *Server) Stop() {
+
 	if s.ln != nil {
 		s.ln.Close()
 	}
+	select {
+	case <-s.quit:
+	default:
+		close(s.quit)
+	}
+	s.wg.Wait()
 }
 func (s *Server) broadcaster() {
-
+	defer s.wg.Done()
 	for {
 		select {
 		// Print server logs
@@ -117,7 +137,13 @@ func (s *Server) broadcaster() {
 
 			// Send server response to the client
 			output.Cli.Ch <- pr.ServerResponse{Msg: res, Datas: datas}
+		case <-s.quit:
+			for _, c := range s.clients {
+				close(c.Ch)
+			}
+			return
 		}
+
 	}
 }
 

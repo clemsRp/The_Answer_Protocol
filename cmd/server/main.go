@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 	"tap/engine"
 	"tap/engine/parser"
 	pr "tap/protocol"
@@ -16,28 +19,36 @@ var (
 )
 
 func main() {
-	// Get the world
 	serverInput := make(chan pr.ServerRequest, 100)
 	serverOutput := make(chan pr.EngineResponse, 100)
 	var err error
+
 	world, err = parser.Get_map("world.json")
 	if err != nil {
 		fmt.Println("ERROR", err.Error())
 		return
 	}
 
-	// Initialize server
 	var s *server.Server
 	s, err = server.NewServer("localhost:8080", serverInput, serverOutput, update_clients)
 	if err != nil {
-		fmt.Println("Server couldn't start")
+		fmt.Println("Server couldn't start:", err)
 		return
 	}
 
-	// Initialize and start engine
 	e := engine.NewEngine(world, serverInput, serverOutput, update_clients)
-	e.Start()
+	go e.Start()
 
-	// Start the serveur
-	s.Start()
+	go s.Start()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	<-quit
+	fmt.Println("\n Stopping the server due to Signal...")
+
+	s.Stop()
+	e.Stop()
+
+	fmt.Println("Server and Engine stopped with success.")
 }

@@ -47,6 +47,8 @@ const (
 const (
 	ErrConnectionFailed = "ERR 900 CONNECTION_FAILED"
 	ErrSendFailed       = "ERR 901 SEND_FAILED"
+	ErrSpam             = "ERR 902 CONNECTION_CLOSED_DUE_TO_SPAM"
+	ErrServerFull       = "ERR 901 SERVER_FULL"
 )
 
 // MORE errors (NOT IN RFC protocol) 500+ codes

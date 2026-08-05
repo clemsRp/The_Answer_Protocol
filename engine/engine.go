@@ -29,10 +29,14 @@ func NewEngine(world parser.Map, fromServerChan chan pr.ServerRequest, toServerC
 }
 
 func (e *Engine) Start() {
-	go e.broadcaster()
+	e.broadcaster()
 }
 func (e *Engine) Stop() {
-	close(e.quit)
+	select {
+	case <-e.quit:
+	default:
+		close(e.quit)
+	}
 }
 
 func (e *Engine) broadcaster() {
