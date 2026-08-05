@@ -33,7 +33,6 @@ func TestMaxPlayersLimit(t *testing.T) {
 
 	intruderConn, err := net.DialTimeout("tcp", addr, 1*time.Second)
 	if err != nil {
-		// Le système a carrément refusé la connexion (TCP RST)
 		t.Log("SUCCESS : Server refused the connection.")
 		return
 	}
@@ -44,8 +43,12 @@ func TestMaxPlayersLimit(t *testing.T) {
 	res, err := reader.ReadString('\n')
 
 	if err == nil {
-		t.Fatalf("FAIL: Server accepted the %dth player and answered : %s", maxPlayers+1, res)
+		if res == "ERR 901 SERVER_FULL\n" {
+			t.Logf("SUCCESS : Server politely refused the connection with the correct error message: %s.", res)
+		} else {
+			t.Fatalf("FAIL: Server accepted the %dth player and answered with an unexpected message : %s", maxPlayers+1, res)
+		}
 	} else {
-		t.Log("SUCCESS : Server closed the connection of the exceeded connection.")
+		t.Logf("SUCCESS : Server closed the connection. Error read: %v", err)
 	}
 }
