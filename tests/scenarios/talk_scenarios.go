@@ -1,4 +1,4 @@
-package scenarios
+package scenarios_test
 
 import "tap/protocol"
 
@@ -15,7 +15,7 @@ var talkToUnexistantNPCScenario = []ScenariosCommandTest{
 		ExpectedReplies: []Reply{
 			{protocol.ErrNpcNotFound, "alice"},
 		},
-		ExpectsJSON:      false,
+		ExpectsJSON:    false,
 		TestOnConnection: "alice",
 	},
 }

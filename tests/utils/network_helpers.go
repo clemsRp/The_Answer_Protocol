@@ -12,13 +12,12 @@ import (
 	"tap/engine/parser"
 	pr "tap/protocol"
 	"tap/server"
-	"tap/tests/scenarios"
 	sc "tap/tests/scenarios"
 	"testing"
 	"time"
 )
 
-func SetupTestServerEngine(t *testing.T) *server.Server {
+func SetupTestServerEngine(t *testing.T, world_path string) *server.Server {
 	t.Helper()
 	serverInput := make(chan pr.ServerRequest, 100)
 	serverOutput := make(chan pr.EngineResponse, 100)
@@ -26,7 +25,7 @@ func SetupTestServerEngine(t *testing.T) *server.Server {
 
 	var err error
 	var world parser.Map
-	world, err = parser.Get_map("../world.json")
+	world, err = parser.Get_map(world_path)
 	if err != nil {
 		t.Fatalf("ERROR parsing: %v", err.Error())
 	}
@@ -107,7 +106,7 @@ func EstablishConnection(t *testing.T, s *server.Server, scenario sc.ScenariosCo
 }
 
 func RunScenario(t *testing.T, scenarioEntry sc.ScenarioEntry) {
-	s := SetupTestServerEngine(t)
+	s := SetupTestServerEngine(t, "../world.json")
 	connections := make(map[string]net.Conn)
 	readers := make(map[string]*bufio.Reader)
 
@@ -125,7 +124,7 @@ func RunScenario(t *testing.T, scenarioEntry sc.ScenarioEntry) {
 		conn := connections[step.TestOnConnection]
 		if step.Command != "" {
 			if conn == nil {
-				t.Fatalf("❌ CRASH AVOIDED : scenario '%s' tried to send '%s' command pour '%s' user, You maybe forgot TestOnConnection in the Action or Connect In the scenario.",
+				t.Fatalf("CRASH AVOIDED : scenario '%s' tried to send '%s' command pour '%s' user, You maybe forgot TestOnConnection in the Action or Connect In the scenario.",
 					scenarioEntry.Name, step.Command, step.TestOnConnection)
 			}
 			SendScenarioCommand(t, conn, step.Command)
@@ -135,8 +134,8 @@ func RunScenario(t *testing.T, scenarioEntry sc.ScenarioEntry) {
 	}
 }
 
-func RunConcurrentScenario(t *testing.T, scenario scenarios.ConcurrentScenario) {
-	s := SetupTestServerEngine(t)
+func RunConcurrentScenario(t *testing.T, scenario sc.ConcurrentScenario) {
+	s := SetupTestServerEngine(t, "../world.json")
 	connections := make(map[string]net.Conn)
 	readers := make(map[string]*bufio.Reader)
 

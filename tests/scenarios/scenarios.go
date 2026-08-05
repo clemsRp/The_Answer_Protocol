@@ -1,4 +1,4 @@
-package scenarios
+package scenarios_test
 
 import "testing"
 

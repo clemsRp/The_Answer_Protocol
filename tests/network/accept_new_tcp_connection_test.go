@@ -1,4 +1,4 @@
-package tests
+package network
 
 import (
 	"bufio"
@@ -12,7 +12,7 @@ import (
 )
 
 func TestServerSendsGreeting(t *testing.T) {
-	s := utils.SetupTestServerEngine(t)
+	s := utils.SetupTestServerEngine(t, "../../world.json")
 
 	clientConn, err := net.DialTimeout("tcp", s.GetAddress(), 2*time.Second)
 	if err != nil {
@@ -38,7 +38,7 @@ func TestServerLogsNewConnection(t *testing.T) {
 	log.SetOutput(&buf)
 	defer log.SetOutput(nil)
 
-	s := utils.SetupTestServerEngine(t)
+	s := utils.SetupTestServerEngine(t, "../../world.json")
 
 	clientConn, err := net.DialTimeout("tcp", s.GetAddress(), 2*time.Second)
 	if err != nil {

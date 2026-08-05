@@ -44,8 +44,6 @@ func VerifyExpectedReplies(t *testing.T, scenario sc.ScenariosCommandTest, conne
 			t.Fatalf("Read error (timeout) for %s: %v", reply.User, err)
 		}
 
-		if !strings.HasPrefix(res, reply.Msg) {
-			t.Error(FormatMismatch(scenario.Command, reply.Msg, res))
-		}
+		AssertResponse(t, scenario.Command, reply.Msg, res, scenario.ExpectsJSON)
 	}
 }

@@ -12,7 +12,7 @@ func TestScenariosCommands(t *testing.T) {
 		t.Run(family.FamilyName, func(t *testing.T) {
 
 			for _, scenarioEntry := range family.Scenarios {
-				t.Run(scenarioEntry.Name, func(t *testing.T) { 
+				t.Run(scenarioEntry.Name, func(t *testing.T) {
 					utils.RunScenario(t, scenarioEntry)
 				})
 			}
