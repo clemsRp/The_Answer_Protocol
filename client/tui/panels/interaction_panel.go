@@ -9,13 +9,12 @@ import (
 func NewInteractionComponent(
 	app *tview.Application,
 	popupGrid *tview.Grid,
+	npcs,
+	players []string,
 	inputs chan<- string,
 	onOpenPopup func(popup *PopupComponent),
 	onClosePopup func(),
 ) *ChoiceListComponent {
-	npcs := []string{"Adelina"}
-	players := []string{"Kuremento Rappo"}
-
 	options := ConvertInteractions(npcs, players, inputs)
 
 	src := NewChoiceListComponent(app, popupGrid, "Interactions", options, onOpenPopup, onClosePopup)

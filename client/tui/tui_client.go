@@ -42,7 +42,7 @@ func NewTuiClient(world parser.Map) *TuiClient {
 			// Send command to the server
 			fmt.Fprint(conn, input+"\n")
 			// Save the last command to handle server returns
-			router.LastCommand = strings.Split(input, " ")[0]
+			router.LastCommand = strings.ToUpper(strings.Split(input, " ")[0])
 		}
 	}()
 

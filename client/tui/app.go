@@ -7,6 +7,7 @@ import (
 )
 
 type MyApp struct {
+	pseudo  string
 	app     *tview.Application
 	pages   *tview.Pages
 	connect *tview.Grid
@@ -45,7 +46,7 @@ func NewMyApp(router *Router) *MyApp {
 	m.connect.SetBackgroundColor(panel.Black)
 	m.popup.SetBackgroundColor(panel.Black)
 
-	m.setupComponents(router)
+	m.setupComponents()
 	m.setupGrid()
 	m.setupMatrix()
 	m.StartListeners()
@@ -61,13 +62,13 @@ func NewMyApp(router *Router) *MyApp {
 	return m
 }
 
-func (m *MyApp) setupComponents(router *Router) {
-	m.Chat = panel.NewChatComponent(m.app, router.Inputs)
-	m.CommandLine = panel.NewCommandLineComponent(m.app, router.Inputs)
+func (m *MyApp) setupComponents() {
+	m.Chat = panel.NewChatComponent(m.app, m.router.Inputs)
+	m.CommandLine = panel.NewCommandLineComponent(m.app, m.router.Inputs)
 	m.Server = panel.NewServerResponseComponent(m.app)
-	m.Navigation = panel.NewNavigationComponent(m.app, m.popup, router.Inputs, m.OnOpenPopup, m.ShowGamePage)
-	m.Items = panel.NewItemsComponent(m.app, m.popup, router.Inputs, m.OnOpenPopup, m.ShowGamePage)
-	m.Interaction = panel.NewInteractionComponent(m.app, m.popup, router.Inputs, m.OnOpenPopup, m.ShowGamePage)
+	m.Navigation = panel.NewNavigationComponent(m.app, m.popup, map[string]string{}, m.router.Inputs, m.OnOpenPopup, m.ShowGamePage)
+	m.Items = panel.NewItemsComponent(m.app, m.popup, []string{}, m.router.Inputs, m.OnOpenPopup, m.ShowGamePage)
+	m.Interaction = panel.NewInteractionComponent(m.app, m.popup, []string{}, []string{}, m.router.Inputs, m.OnOpenPopup, m.ShowGamePage)
 	m.Datas = panel.NewDatasComponent(m.app)
 
 	m.Server.CliBtn.
@@ -102,7 +103,7 @@ func (m *MyApp) setupComponents(router *Router) {
 
 	m.Server.QuitBtn.
 		SetSelectedFunc(func() {
-			router.Inputs <- "QUIT"
+			m.router.Inputs <- "QUIT"
 		})
 }
 
@@ -135,7 +136,7 @@ func (m *MyApp) StartListeners() {
 }
 
 func (m *MyApp) InitConnect() {
-	input := panel.NewConnectComponent(m.router.Inputs)
+	input := panel.NewConnectComponent(&m.pseudo, m.router.Inputs)
 	logoView := panel.NewImageComponent("client/tui/assets/logo.ans")
 	shopView := panel.NewImageComponent("client/tui/assets/shopfront.ans")
 

@@ -113,6 +113,9 @@ func (e *Engine) handleCmdLook(cli *pr.Client, req []string) (string, any, error
 		Name:        currentRoom.Name,
 		Description: currentRoom.Description,
 		Exits:       Exits,
+		Players:     players,
+		Items:       currentRoom.Items,
+		Npcs:        currentRoom.Npcs,
 	}
 	res := pr.LookCommandData{
 		Room: Room,

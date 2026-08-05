@@ -7,15 +7,11 @@ import (
 func NewNavigationComponent(
 	app *tview.Application,
 	popupGrid *tview.Grid,
+	exits map[string]string,
 	inputs chan<- string,
 	onOpenPopup func(popup *PopupComponent),
 	onClosePopup func(),
 ) *ChoiceListComponent {
-	exits := map[string]string{
-		"north": "health_aisle",
-		"east":  "fresh_section",
-	}
-
 	options := ConvertExits(exits, inputs)
 
 	src := NewChoiceListComponent(app, popupGrid, "Rooms", options, onOpenPopup, onClosePopup)

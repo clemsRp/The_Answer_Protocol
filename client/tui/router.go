@@ -42,6 +42,11 @@ func (r *Router) HandleEvents(res pr.ServerResponse) {
 	if global || room || group {
 		r.ChatChan <- res
 	}
+
+	// Handle PRESENCE responses
+	if strings.HasPrefix(res.Msg, "EVT ROOM PRESENCE") {
+		r.InteractionChan <- res
+	}
 }
 
 func (r *Router) Start() {
@@ -81,9 +86,7 @@ func (r *Router) handleLastCommandResponse(res pr.ServerResponse) {
 	case pr.CmdLook:
 		r.NavChan <- res
 		r.ItemsChan <- res
-		// r.itemsChan <- res
-	case pr.CmdMove:
-		r.NavChan <- res
+		r.InteractionChan <- res
 	case pr.CmdChat:
 		r.ChatChan <- res
 	default:
