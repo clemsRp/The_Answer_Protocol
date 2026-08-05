@@ -9,7 +9,7 @@ import (
 )
 
 func TestConcurrentClientConnections(t *testing.T) {
-	s := utils.SetupTestServerEngine(t, "../../world.json")
+	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
 	addr := s.GetAddress()
 
 	const numClients = 100

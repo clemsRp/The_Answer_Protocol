@@ -12,7 +12,7 @@ var server_limit = 1024
 
 // 1024 bytes per line maximum
 func TestProtectionAgainstHugePayloads(t *testing.T) {
-	s := utils.SetupTestServerEngine(t, "../../world.json")
+	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
 	addr := s.GetAddress()
 
 	conn, err := net.DialTimeout("tcp", addr, 2*time.Second)

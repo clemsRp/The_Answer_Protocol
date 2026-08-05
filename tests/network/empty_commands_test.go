@@ -10,7 +10,7 @@ import (
 )
 
 func TestEmptyAndWhitespaceCommands(t *testing.T) {
-	s := utils.SetupTestServerEngine(t, "../../world.json")
+	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
 	addr := s.GetAddress()
 
 	conn, err := net.DialTimeout("tcp", addr, 2*time.Second)

@@ -8,7 +8,7 @@ import (
 )
 
 func TestClientNormalDeconnection(t *testing.T) {
-	s := utils.SetupTestServerEngine(t, "../../world.json")
+	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
 
 	clientConn1, err := net.DialTimeout("tcp", s.GetAddress(), 2*time.Second)
 	if err != nil {

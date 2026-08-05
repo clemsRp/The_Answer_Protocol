@@ -10,7 +10,7 @@ import (
 )
 
 func TestTCPFragmentation(t *testing.T) {
-	s := utils.SetupTestServerEngine(t, "../../world.json")
+	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
 	addr := s.GetAddress()
 
 	conn, err := net.DialTimeout("tcp", addr, 2*time.Second)
@@ -49,7 +49,7 @@ func TestTCPFragmentation(t *testing.T) {
 }
 
 func TestTCPCoalescing(t *testing.T) {
-	s := utils.SetupTestServerEngine(t, "../../world.json")
+	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
 	addr := s.GetAddress()
 
 	conn, err := net.DialTimeout("tcp", addr, 2*time.Second)

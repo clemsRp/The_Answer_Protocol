@@ -12,7 +12,7 @@ func TestServerGracefulShutdown_NoGoroutineLeaks(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 	baseline := runtime.NumGoroutine()
 
-	s := utils.SetupTestServerEngine(t, "../../world.json")
+	s, e := utils.SetupTestServerEngine(t, "../../world.json")
 	addr := s.GetAddress()
 
 	time.Sleep(50 * time.Millisecond)
@@ -23,7 +23,9 @@ func TestServerGracefulShutdown_NoGoroutineLeaks(t *testing.T) {
 	}
 
 	conn.Close()
+
 	s.Stop()
+	e.Stop()
 
 	time.Sleep(100 * time.Millisecond)
 
