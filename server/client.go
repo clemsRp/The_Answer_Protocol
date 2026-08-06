@@ -31,7 +31,7 @@ func (s *Server) handleClient(conn net.Conn) {
 	defer conn.Close()
 	defer func() { <-s.playerSlots }()
 
-	responses := make(chan pr.ServerResponse)
+	responses := make(chan pr.ServerResponse, 20)
 
 	s.wg.Add(1)
 	go s.clientWriter(conn, responses)
