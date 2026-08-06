@@ -8,8 +8,16 @@ import (
 )
 
 var (
+	// Items
+	items = make([]string, 0)
+
+	// Interactions
 	npcs    = make([]string, 0)
 	players = make([]string, 0)
+
+	// Group
+	group       = ""
+	invitations = make([]string, 0)
 )
 
 func (m *MyApp) NavListenOutputs(res pr.ServerResponse) {
@@ -50,7 +58,7 @@ func (m *MyApp) NavListenOutputs(res pr.ServerResponse) {
 	)
 
 	// Add new panel
-	m.grid.AddItem(m.Navigation.Layout, 0, 0, 2, 1, 0, 0, false)
+	m.grid.AddItem(m.Navigation.Layout, 0, 0, 1, 1, 0, 0, false)
 	m.setupMatrix()
 	m.ShowGamePage()
 }
@@ -59,13 +67,33 @@ func (m *MyApp) ItemListenOutputs(res pr.ServerResponse) {
 	// Remove previous item panel
 	m.grid.RemoveItem(m.Items.Layout)
 
-	// Get new items
 	var opts []string
-	raw, err := json.Marshal(res.Datas)
-	if err == nil {
-		var data pr.LookCommandData
-		if err := json.Unmarshal(raw, &data); err == nil {
-			opts = data.Room.Items
+
+	if strings.HasPrefix(res.Msg, "EVT ITEM DROPPED") {
+		new_item := strings.SplitN(res.Msg, "DROPPED ", 2)[1]
+		items = append(items, new_item)
+		opts = items
+
+	} else if strings.HasPrefix(res.Msg, "EVT ITEM TOOK") {
+		previous_item := strings.SplitN(res.Msg, "TOOK ", 2)[1]
+
+		for i, p := range items {
+			if p == previous_item {
+				items = append(items[:i], items[i+1:]...)
+				break
+			}
+		}
+
+		opts = items
+
+	} else {
+		// Get new items
+		raw, err := json.Marshal(res.Datas)
+		if err == nil {
+			var data pr.LookCommandData
+			if err := json.Unmarshal(raw, &data); err == nil {
+				opts = data.Room.Items
+			}
 		}
 	}
 
@@ -134,6 +162,35 @@ func (m *MyApp) InteractionListenOutputs(res pr.ServerResponse) {
 
 	// Add new panel
 	m.grid.AddItem(m.Interaction.Layout, 0, 2, 2, 1, 0, 0, false)
+	m.setupMatrix()
+	m.ShowGamePage()
+}
+
+func (m *MyApp) GroupListenOutputs(res pr.ServerResponse) {
+	// Remove previous item panel
+	m.grid.RemoveItem(m.Group.Layout)
+
+	if strings.HasPrefix(res.Msg, "EVT GROUP INVITE") {
+		invitation := strings.SplitN(res.Msg, "INVITE ", 2)[1]
+		invitations = append(invitations, invitation)
+
+	} else if strings.HasPrefix(res.Msg, "OK group=") {
+		group = strings.Split(res.Msg, "group=")[1]
+	}
+
+	// Create new panel
+	m.Group = panel.NewGroupComponent(
+		m.app,
+		m.popup,
+		group,
+		&invitations,
+		m.router.Inputs,
+		m.OnOpenPopup,
+		m.ShowGamePage,
+	)
+
+	// Add new panel
+	m.grid.AddItem(m.Group.Layout, 1, 0, 1, 1, 0, 0, false)
 	m.setupMatrix()
 	m.ShowGamePage()
 }

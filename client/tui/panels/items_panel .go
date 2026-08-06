@@ -21,7 +21,7 @@ func NewItemsComponent(
 ) *ChoiceListComponent {
 	options := ConvertItems(room_items, inventory, inputs)
 
-	return NewChoiceListComponent(app, popupGrid, "Items", options, onOpenPopup, onClosePopup)
+	return NewChoiceListComponent(app, popupGrid, "Items", options, onOpenPopup, onClosePopup, false)
 }
 
 func ConvertItems(room_items, inventory_items []string, inputs chan<- string) map[string]OptionsMap {

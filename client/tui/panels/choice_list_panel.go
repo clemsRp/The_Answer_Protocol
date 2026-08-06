@@ -31,6 +31,7 @@ func NewChoiceListComponent[T AllowedOptions](
 	options T,
 	onOpenPopup func(popup *PopupComponent),
 	onClosePopup func(),
+	are_btns bool,
 ) *ChoiceListComponent {
 
 	src := &ChoiceListComponent{}
@@ -39,13 +40,13 @@ func NewChoiceListComponent[T AllowedOptions](
 
 	switch opts := any(options).(type) {
 	case OptionsMap:
-		test(app, src, popupGrid, opts, onOpenPopup, onClosePopup)
+		test(app, src, popupGrid, opts, onOpenPopup, onClosePopup, are_btns)
 
 	case map[string]OptionsMap:
 		for subTitle, subOptions := range opts {
 			src.List.AddItem("[yellow:#000000]- "+subTitle+":", "", 0, nil)
 
-			test(app, src, popupGrid, subOptions, onOpenPopup, onClosePopup)
+			test(app, src, popupGrid, subOptions, onOpenPopup, onClosePopup, are_btns)
 		}
 	}
 
@@ -59,6 +60,7 @@ func test(
 	options OptionsMap,
 	onOpenPopup func(popup *PopupComponent),
 	onClosePopup func(),
+	are_btns bool,
 ) {
 	index := 1
 	for location, actions := range options {
@@ -174,7 +176,13 @@ func test(
 			}
 		}
 
-		src.List.AddItem("  "+locName, "", 0, itemAction)
+		if are_btns {
+			label := "[yellow][ " + locName + " ][-]"
+			src.List.AddItem(label, "", 0, itemAction)
+
+		} else {
+			src.List.AddItem("  "+locName+"  ", "", 0, itemAction)
+		}
 		index++
 	}
 }

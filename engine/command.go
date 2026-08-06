@@ -261,6 +261,8 @@ func (e *Engine) handleCmdTake(cli *pr.Client, req []string) (string, any, error
 			cli.Datas.Inventory = append(cli.Datas.Inventory, object)
 			e.world.Rooms[cli.Datas.Room].Items = append(e.world.Rooms[cli.Datas.Room].Items[:obj_index], e.world.Rooms[cli.Datas.Room].Items[obj_index+1:]...)
 
+			e.inform_room(cli, cli.Datas.Room, "EVT ITEM TOOK "+object)
+
 			return "OK taken=" + object, "", nil
 		}
 	}
@@ -279,6 +281,8 @@ func (e *Engine) handleCmdDrop(cli *pr.Client, req []string) (string, any, error
 		if obj == object {
 			cli.Datas.Inventory = append(cli.Datas.Inventory[:obj_index], cli.Datas.Inventory[obj_index+1:]...)
 			e.world.Rooms[cli.Datas.Room].Items = append(e.world.Rooms[cli.Datas.Room].Items, object)
+
+			e.inform_room(cli, cli.Datas.Room, "EVT ITEM DROPPED "+object)
 
 			return "OK dropped=" + object, "", nil
 		}

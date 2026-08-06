@@ -43,6 +43,10 @@ func NewTuiClient(world parser.Map) *TuiClient {
 			fmt.Fprint(conn, input+"\n")
 			// Save the last command to handle server returns
 			router.LastCommand = strings.ToUpper(strings.Split(input, " ")[0])
+
+			if strings.ToUpper(router.LastCommand) == "GROUP" {
+				router.LastCommand = strings.ToUpper(strings.Split(input, " ")[1])
+			}
 		}
 	}()
 

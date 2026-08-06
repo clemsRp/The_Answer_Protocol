@@ -17,7 +17,7 @@ func NewInteractionComponent(
 ) *ChoiceListComponent {
 	options := ConvertInteractions(npcs, players, inputs)
 
-	src := NewChoiceListComponent(app, popupGrid, "Interactions", options, onOpenPopup, onClosePopup)
+	src := NewChoiceListComponent(app, popupGrid, "Interactions", options, onOpenPopup, onClosePopup, false)
 
 	return src
 }

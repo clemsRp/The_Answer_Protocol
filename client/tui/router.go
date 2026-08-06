@@ -13,6 +13,7 @@ type Router struct {
 	CommandLineChan chan pr.ServerResponse
 	ServerChan      chan pr.ServerResponse
 	NavChan         chan pr.ServerResponse
+	GroupChan       chan pr.ServerResponse
 	ItemsChan       chan pr.ServerResponse
 	InteractionChan chan pr.ServerResponse
 	DatasChan       chan pr.ServerResponse
@@ -27,6 +28,7 @@ func NewRouter(inputs chan string, outputs <-chan pr.ServerResponse) *Router {
 		CommandLineChan: make(chan pr.ServerResponse, 100),
 		ServerChan:      make(chan pr.ServerResponse, 100),
 		NavChan:         make(chan pr.ServerResponse, 100),
+		GroupChan:       make(chan pr.ServerResponse, 100),
 		ItemsChan:       make(chan pr.ServerResponse, 100),
 		InteractionChan: make(chan pr.ServerResponse, 100),
 		DatasChan:       make(chan pr.ServerResponse, 100),
@@ -43,9 +45,19 @@ func (r *Router) HandleEvents(res pr.ServerResponse) {
 		r.ChatChan <- res
 	}
 
+	// Handle ITEM responses
+	if strings.HasPrefix(res.Msg, "EVT ITEM") {
+		r.ItemsChan <- res
+	}
+
 	// Handle PRESENCE responses
 	if strings.HasPrefix(res.Msg, "EVT ROOM PRESENCE") {
 		r.InteractionChan <- res
+	}
+
+	// andle GROUP responses
+	if strings.HasPrefix(res.Msg, "EVT GROUP") {
+		r.GroupChan <- res
 	}
 }
 
@@ -87,8 +99,16 @@ func (r *Router) handleLastCommandResponse(res pr.ServerResponse) {
 		r.NavChan <- res
 		r.ItemsChan <- res
 		r.InteractionChan <- res
+
 	case pr.CmdChat:
 		r.ChatChan <- res
+
+	case pr.JoinGroup:
+		r.GroupChan <- res
+
+	case pr.CreateGroup:
+		r.GroupChan <- res
+
 	default:
 
 	}

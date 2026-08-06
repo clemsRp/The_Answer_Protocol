@@ -14,7 +14,7 @@ func NewNavigationComponent(
 ) *ChoiceListComponent {
 	options := ConvertExits(exits, inputs)
 
-	src := NewChoiceListComponent(app, popupGrid, "Rooms", options, onOpenPopup, onClosePopup)
+	src := NewChoiceListComponent(app, popupGrid, "Rooms", options, onOpenPopup, onClosePopup, false)
 
 	return src
 }
