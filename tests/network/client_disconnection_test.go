@@ -22,11 +22,11 @@ func TestClientDisconnection(t *testing.T) {
 
 	conn2, err := net.DialTimeout("tcp", addr, 2*time.Second)
 	if err != nil {
-		t.Fatalf("Fail: Server appears to have crashed after a client abruptly disconnected: %v", err)
+		t.Fatalf("Fail: Server appears to have crashed after a client disconnected: %v", err)
 	}
 	defer conn2.Close()
 
-	t.Log("Success: Server survived an abrupt client disconnection.")
+	t.Log("Success: Server survived client disconnection.")
 }
 
 func TestHardResetDisconnection(t *testing.T) {
