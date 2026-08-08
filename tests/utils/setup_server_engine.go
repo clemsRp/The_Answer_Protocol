@@ -8,6 +8,7 @@ import (
 	pr "tap/protocol"
 	"tap/server"
 	"testing"
+	"time"
 )
 
 func SetupTestServerEngine(t *testing.T, world_path string) (*server.Server, *engine.Engine) {
@@ -33,9 +34,11 @@ func SetupTestServerEngine(t *testing.T, world_path string) (*server.Server, *en
 	// Initialize and start engine
 	e := engine.NewEngine(world, serverInput, serverOutput, updateClients)
 	go e.Start()
-
+	time.Sleep(10 * time.Millisecond)
 	// Start the serveur
 	go s.Start()
+	time.Sleep(10 * time.Millisecond)
+
 	t.Cleanup(func() {
 		s.Stop()
 		e.Stop()

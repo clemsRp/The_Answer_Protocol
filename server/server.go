@@ -33,7 +33,87 @@ type Server struct {
 	fromEngine    chan pr.EngineResponse
 	updateClients chan map[string]*pr.Client
 
-	t_start int64
+	t_start     int64
+	IdleTimeout time.Duration
+}
+
+func (s *Server) handleNewConnection(conn net.Conn) {
+	select {
+	case s.playerSlots <- struct{}{}:
+		s.wg.Add(1)
+		go s.handleClient(conn)
+	default:
+		conn.Write([]byte(pr.ErrServerFull + "\n"))
+		conn.Close()
+	}
+}
+
+func (s *Server) broadcaster() {
+	defer s.wg.Done()
+	for {
+		select {
+		case req := <-s.requests:
+			s.toEngine <- pr.ServerRequest{Msg: req.Msg, Cli: req.Cli, Req: req}
+		case cli := <-s.entering:
+			s.addClient(cli)
+		case cli := <-s.leaving:
+			s.removeClient(cli)
+		case output := <-s.fromEngine:
+			s.sendToClient(output)
+		case <-s.quit:
+			s.shutdown()
+			return
+		}
+	}
+}
+
+func (s *Server) addClient(cli *pr.Client) {
+	s.clients[cli.Ip] = cli
+	s.sendClientsUpdate()
+}
+
+func (s *Server) removeClient(cli *pr.Client) {
+	if c, ok := s.clients[cli.Ip]; ok {
+		delete(s.clients, cli.Ip)
+		close(c.Ch)
+	}
+	s.sendClientsUpdate()
+}
+
+func (s *Server) sendClientsUpdate() {
+	snapshot := make(map[string]*pr.Client, len(s.clients))
+	for k, v := range s.clients {
+		snapshot[k] = v
+	}
+	s.updateClients <- snapshot
+}
+
+func (s *Server) sendToClient(output pr.EngineResponse) {
+	if _, exists := s.clients[output.Cli.Ip]; !exists {
+		return
+	}
+
+	res, datas := output.Msg, output.Datas
+	if output.Err != nil {
+		res, datas = output.Err.Error(), ""
+	}
+
+	select {
+	case output.Cli.Ch <- pr.ServerResponse{Msg: res, Datas: datas}:
+	default:
+		output.Cli.Conn.Close()
+	}
+}
+
+func (s *Server) shutdown() {
+	for _, c := range s.clients {
+		close(c.Ch)
+		c.Conn.Close()
+	}
+}
+
+func (s *Server) GetAddress() string {
+	return s.ln.Addr().String()
 }
 
 func NewServer(listenAddr string, toEngineChan chan pr.ServerRequest, fromEngineChan chan pr.EngineResponse, updateClientsChan chan map[string]*pr.Client) (*Server, error) {
@@ -54,10 +134,15 @@ func NewServer(listenAddr string, toEngineChan chan pr.ServerRequest, fromEngine
 		fromEngine:    fromEngineChan,
 		updateClients: updateClientsChan,
 		t_start:       time.Now().Unix(),
+		IdleTimeout:   15 * time.Minute,
 	}, nil
 }
 
 func (s *Server) Start() {
+
+	s.wg.Add(1)
+	defer s.wg.Done()
+
 	s.wg.Add(1)
 	go s.broadcaster()
 
@@ -66,15 +151,7 @@ func (s *Server) Start() {
 		if err != nil {
 			return
 		}
-
-		select {
-		case s.playerSlots <- struct{}{}:
-			s.wg.Add(1)
-			go s.handleClient(conn)
-		default:
-			conn.Write([]byte(pr.ErrServerFull + "\n"))
-			conn.Close()
-		}
+		s.handleNewConnection(conn)
 	}
 }
 
@@ -89,64 +166,4 @@ func (s *Server) Stop() {
 		close(s.quit)
 	}
 	s.wg.Wait()
-}
-func (s *Server) broadcaster() {
-	defer s.wg.Done()
-	for {
-		select {
-		// Print server logs
-		// case log := <-s.logs:
-
-		// Handle a client command
-		case req := <-s.requests:
-			s.toEngine <- pr.ServerRequest{Msg: req.Msg, Cli: req.Cli, Req: req}
-
-		// Handle the start of the a client connection
-		case cli := <-s.entering:
-			// Add client
-			s.clients[cli.Ip] = cli
-
-			snapshot := make(map[string]*pr.Client, len(s.clients))
-			for k, v := range s.clients {
-				snapshot[k] = v
-			}
-
-			// Update engine clients
-			s.updateClients <- snapshot
-
-		// Handle the end of the a client connection
-		case cli := <-s.leaving:
-			// Delete client
-			if c, ok := s.clients[cli.Ip]; ok {
-				delete(s.clients, cli.Ip)
-				close(c.Ch)
-			}
-
-			// Update engine clients
-			s.updateClients <- s.clients
-
-		// Handle Request Output
-		case output := <-s.fromEngine:
-
-			// Handle command errors and status codes
-			res := output.Msg
-			datas := output.Datas
-			if output.Err != nil {
-				res, datas = output.Err.Error(), ""
-			}
-
-			// Send server response to the client
-			output.Cli.Ch <- pr.ServerResponse{Msg: res, Datas: datas}
-		case <-s.quit:
-			for _, c := range s.clients {
-				close(c.Ch)
-			}
-			return
-		}
-
-	}
-}
-
-func (s *Server) GetAddress() string {
-	return s.ln.Addr().String()
 }
