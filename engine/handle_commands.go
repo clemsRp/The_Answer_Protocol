@@ -67,7 +67,7 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
 		return e.handleCmdAttack(player, req)
 
 	default:
-		return "", nil, errors.New("ERR 400 BAD_REQUEST")
+		return "", nil, errors.New(pr.ErrInvalidCommand)
 	}
 
 }
