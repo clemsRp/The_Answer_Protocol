@@ -12,29 +12,19 @@ import (
 // 1024 bytes per line maximum
 func TestProtectionAgainstHugePayloads(t *testing.T) {
 	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
-	addr := s.GetAddress()
-
-	conn, err := net.DialTimeout("tcp", addr, 2*time.Second)
-	if err != nil {
-		t.Fatalf("Connection failed: %v", err)
-	}
+	conn, _ := utils.ConnectAndGreet(t, s.GetAddress())
 	defer conn.Close()
 
-	buf := make([]byte, server.MaxPayloadSize)
-	conn.Read(buf)
+	overflowSize := server.MaxPayloadSize
+	hugePayload := bytes.Repeat([]byte("A"), overflowSize)
 
-	// Create a payload larger than the default bufio.Scanner buffer (1KB).
-	// We send 1KB of garbage without a newline '\n'.
-	hugePayload := bytes.Repeat([]byte("A"), server.MaxPayloadSize)
-
-	_, err = conn.Write(hugePayload)
+	_, err := conn.Write(hugePayload)
 	if err != nil {
 		t.Fatalf("Failed to send huge payload: %v", err)
 	}
 
-	// The server should forcefully close the connection to protect its memory.
-	// Therefore, a subsequent read should fail (EOF or connection reset).
-	conn.SetReadDeadline(time.Now().Add(1 * time.Second))
+	buf := make([]byte, 10)
+	conn.SetReadDeadline(time.Now().Add(500 * time.Millisecond))
 	_, err = conn.Read(buf)
 
 	if err == nil {
