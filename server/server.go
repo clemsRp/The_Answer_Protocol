@@ -62,8 +62,10 @@ func (s *Server) broadcaster() {
 			s.exchanger.ServerInput <- pr.ServerRequest{Ip: req.ip, Msg: req.msg}
 		case cli := <-s.entering:
 			s.addClient(cli)
+			s.exchanger.JoinChan <- cli.ip
 		case cli := <-s.leaving:
 			s.removeClient(cli)
+			s.exchanger.LeaveChan <- cli.ip
 		case output := <-s.exchanger.ServerOutput:
 			s.sendToClient(output)
 		case <-s.quit:

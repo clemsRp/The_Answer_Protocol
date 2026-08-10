@@ -19,11 +19,13 @@ type Engine struct {
 
 func NewEngine(world parser.Map, exchanger pr.Exchanger) *Engine {
 	return &Engine{
-		exchanger: exchanger,
 		world:     world,
+		sessions:  make(map[string]string),
+		players:   make(map[string]*Player),
 		groups:    make(map[string][]*Player),
 		dialogues: make(map[string]map[string]int),
 		quit:      make(chan struct{}),
+		exchanger: exchanger,
 	}
 }
 
