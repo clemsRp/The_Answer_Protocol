@@ -2,6 +2,7 @@ package tui
 
 import (
 	"strings"
+	panel "tap/client/tui/panels"
 	pr "tap/protocol"
 )
 
@@ -19,10 +20,13 @@ type Router struct {
 	ItemsChan       chan pr.ServerResponse
 	InteractionChan chan pr.ServerResponse
 	DatasChan       chan pr.ServerResponse
-	LastCommand     string
+	QuitChan        <-chan struct{}
+
+	LastCommand string
 }
 
-func NewRouter(inputs chan string, outputs <-chan pr.ServerResponse) *Router {
+func NewRouter(inputs chan string, outputs <-chan pr.ServerResponse, quitChan <-chan struct{}) *Router {
+
 	return &Router{
 		Inputs:          inputs,
 		Outputs:         outputs,
@@ -36,7 +40,9 @@ func NewRouter(inputs chan string, outputs <-chan pr.ServerResponse) *Router {
 		ItemsChan:       make(chan pr.ServerResponse, 100),
 		InteractionChan: make(chan pr.ServerResponse, 100),
 		DatasChan:       make(chan pr.ServerResponse, 100),
-		LastCommand:     "",
+		QuitChan:        quitChan,
+
+		LastCommand: "",
 	}
 }
 
@@ -59,32 +65,46 @@ func (r *Router) HandleEvents(res pr.ServerResponse) {
 		r.InteractionChan <- res
 	}
 
-	// andle GROUP responses
+	// Handle GROUP responses
 	if strings.HasPrefix(res.Msg, "EVT GROUP") {
 		r.GroupChan <- res
 	}
 }
 
 func (r *Router) Start() {
-	go func() {
-
-		for res := range r.Outputs {
+	for {
+		select {
+		case res := <-r.Outputs:
 			switch {
-			case strings.HasPrefix(res.Msg, "OK"):
+			case panel.IsOKResponse(res):
 				r.handleLastCommandResponse(res)
-			// TO DO
-			case strings.HasPrefix(res.Msg, "ERR"):
+			case panel.IsErrorResponse(res):
 				r.handleLastCommandResponse(res)
 
-			case strings.HasPrefix(res.Msg, "EVT"):
+			case panel.IsEventResponse(res):
 				r.HandleEvents(res)
 			}
-
 			r.ServerChan <- res
 			r.DatasChan <- res
 			r.CommandLineChan <- res
+		case <-r.QuitChan:
+			r.stop()
+			return
 		}
-	}()
+	}
+}
+
+func (r *Router) stop() {
+	close(r.ChatChan)
+	close(r.CommandLineChan)
+	close(r.ServerChan)
+	close(r.NavChan)
+	close(r.GroupChan)
+	close(r.GroupLeaveChan)
+	close(r.UsersChan)
+	close(r.ItemsChan)
+	close(r.InteractionChan)
+	close(r.DatasChan)
 }
 
 func (m *MyApp) UpdateRouterLayout() {
