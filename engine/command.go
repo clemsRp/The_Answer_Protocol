@@ -67,6 +67,23 @@ func (e *Engine) handleCmdWho(req []string) (string, any, error) {
 	return fmt.Sprintf("OK players=%d", nb_clients), "", nil
 }
 
+func (e *Engine) handleCmdUsers(req []string) (string, any, error) {
+	// Handle invalid command
+	if len(req) != 1 {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
+	// Get players
+	users := make([]string, 0)
+	for cli := range e.clients {
+		if e.clients[cli].Datas.Connected && e.clients[cli].Datas.Group == "" {
+			users = append(users, e.clients[cli].Name)
+		}
+	}
+
+	return "OK", users, nil
+}
+
 func (e *Engine) handleCmdLook(cli *pr.Client, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {

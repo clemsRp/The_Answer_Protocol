@@ -14,6 +14,8 @@ type Router struct {
 	ServerChan      chan pr.ServerResponse
 	NavChan         chan pr.ServerResponse
 	GroupChan       chan pr.ServerResponse
+	GroupLeaveChan  chan pr.ServerResponse
+	UsersChan       chan pr.ServerResponse
 	ItemsChan       chan pr.ServerResponse
 	InteractionChan chan pr.ServerResponse
 	DatasChan       chan pr.ServerResponse
@@ -29,6 +31,8 @@ func NewRouter(inputs chan string, outputs <-chan pr.ServerResponse) *Router {
 		ServerChan:      make(chan pr.ServerResponse, 100),
 		NavChan:         make(chan pr.ServerResponse, 100),
 		GroupChan:       make(chan pr.ServerResponse, 100),
+		GroupLeaveChan:  make(chan pr.ServerResponse, 100),
+		UsersChan:       make(chan pr.ServerResponse, 100),
 		ItemsChan:       make(chan pr.ServerResponse, 100),
 		InteractionChan: make(chan pr.ServerResponse, 100),
 		DatasChan:       make(chan pr.ServerResponse, 100),
@@ -99,15 +103,16 @@ func (r *Router) handleLastCommandResponse(res pr.ServerResponse) {
 		r.NavChan <- res
 		r.ItemsChan <- res
 		r.InteractionChan <- res
-
 	case pr.CmdChat:
 		r.ChatChan <- res
-
+	case pr.CmdUsers:
+		r.UsersChan <- res
 	case pr.JoinGroup:
 		r.GroupChan <- res
-
 	case pr.CreateGroup:
 		r.GroupChan <- res
+	case pr.LeaveGroup:
+		r.GroupLeaveChan <- res
 
 	default:
 

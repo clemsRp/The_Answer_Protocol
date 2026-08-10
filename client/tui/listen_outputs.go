@@ -17,6 +17,8 @@ var (
 
 	// Group
 	group       = ""
+	leader      = false
+	users       = make([]string, 0)
 	invitations = make([]string, 0)
 )
 
@@ -176,14 +178,82 @@ func (m *MyApp) GroupListenOutputs(res pr.ServerResponse) {
 
 	} else if strings.HasPrefix(res.Msg, "OK group=") {
 		group = strings.Split(res.Msg, "group=")[1]
+		if m.router.LastCommand == pr.CreateGroup {
+			leader = true
+		}
 	}
 
 	// Create new panel
 	m.Group = panel.NewGroupComponent(
 		m.app,
 		m.popup,
-		group,
-		&invitations,
+		panel.GroupDatas{
+			Group:       group,
+			Leader:      leader,
+			Invitations: &invitations,
+			Users:       &users,
+		},
+		m.router.Inputs,
+		m.OnOpenPopup,
+		m.ShowGamePage,
+	)
+
+	// Add new panel
+	m.grid.AddItem(m.Group.Layout, 1, 0, 1, 1, 0, 0, false)
+	m.setupMatrix()
+	m.ShowGamePage()
+}
+
+func (m *MyApp) GroupLeaveListenOutputs(res pr.ServerResponse) {
+	// Remove previous item panel
+	m.grid.RemoveItem(m.Group.Layout)
+
+	group = ""
+	leader = false
+
+	// Create new panel
+	m.Group = panel.NewGroupComponent(
+		m.app,
+		m.popup,
+		panel.GroupDatas{
+			Group:       group,
+			Leader:      leader,
+			Invitations: &invitations,
+			Users:       &users,
+		},
+		m.router.Inputs,
+		m.OnOpenPopup,
+		m.ShowGamePage,
+	)
+
+	// Add new panel
+	m.grid.AddItem(m.Group.Layout, 1, 0, 1, 1, 0, 0, false)
+	m.setupMatrix()
+	m.ShowGamePage()
+}
+
+func (m *MyApp) UsersListenOutputs(res pr.ServerResponse) {
+	// Remove previous item panel
+	m.grid.RemoveItem(m.Group.Layout)
+
+	raw, err := json.Marshal(res.Datas)
+	if err == nil {
+		var fetchedUsers []string
+		if err := json.Unmarshal(raw, &fetchedUsers); err == nil {
+			users = fetchedUsers
+		}
+	}
+
+	// Create new panel
+	m.Group = panel.NewGroupComponent(
+		m.app,
+		m.popup,
+		panel.GroupDatas{
+			Group:       group,
+			Leader:      leader,
+			Invitations: &invitations,
+			Users:       &users,
+		},
 		m.router.Inputs,
 		m.OnOpenPopup,
 		m.ShowGamePage,

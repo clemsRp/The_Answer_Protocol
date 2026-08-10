@@ -38,6 +38,8 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (*pr.Client, string, a
 			res, datas, err = e.handleCmdQuit(activeCli, req)
 		case pr.CmdWho:
 			res, datas, err = e.handleCmdWho(req)
+		case pr.CmdUsers:
+			res, datas, err = e.handleCmdUsers(req)
 		case pr.CmdLook:
 			res, datas, err = e.handleCmdLook(activeCli, req)
 		case pr.CmdMove:

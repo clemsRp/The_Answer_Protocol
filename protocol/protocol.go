@@ -28,13 +28,6 @@ type ServerEvent struct {
 	Data     string
 }
 
-// type ServerResponse struct {
-// 	Success bool
-// 	Code    int
-// 	Message string
-// 	Data    string
-// }
-
 type Datas struct {
 	Room          string
 	Status        string
@@ -98,6 +91,7 @@ const (
 	CmdQuest     = "QUEST"
 	CmdQuests    = "QUESTS"
 	CmdWho       = "WHO"
+	CmdUsers     = "USERS"
 	CmdGroup     = "GROUP"
 	CmdQuit      = "QUIT"
 

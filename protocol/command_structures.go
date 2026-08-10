@@ -31,6 +31,10 @@ type InventoryCommandData struct {
 	ItemsInInventory []string
 }
 
+type UsersCommandData struct {
+	Users []string
+}
+
 type QuestData struct {
 	Id          string `json:"quest_id"`
 	Status      string `json:"status"`

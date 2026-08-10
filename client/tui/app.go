@@ -19,7 +19,7 @@ type MyApp struct {
 	Server         *panel.ServerResponseComponent
 	CommandLine    *panel.CommandLineComponent
 	Navigation     *panel.ChoiceListComponent
-	Group          *panel.ChoiceListComponent
+	Group          *panel.GroupComponent
 	Items          *panel.ChoiceListComponent
 	Interaction    *panel.ChoiceListComponent
 	Datas          *panel.DatasComponent
@@ -67,7 +67,7 @@ func (m *MyApp) setupComponents() {
 	m.Chat = panel.NewChatComponent(m.app, m.router.Inputs)
 	m.CommandLine = panel.NewCommandLineComponent(m.app, m.router.Inputs)
 	m.Server = panel.NewServerResponseComponent(m.app)
-	m.Group = panel.NewGroupComponent(m.app, m.popup, "", &[]string{}, m.router.Inputs, m.OnOpenPopup, m.ShowGamePage)
+	m.Group = panel.NewGroupComponent(m.app, m.popup, panel.GroupDatas{}, m.router.Inputs, m.OnOpenPopup, m.ShowGamePage)
 	m.Navigation = panel.NewNavigationComponent(m.app, m.popup, map[string]string{}, m.router.Inputs, m.OnOpenPopup, m.ShowGamePage)
 	m.Items = panel.NewItemsComponent(m.app, m.popup, []string{}, m.router.Inputs, m.OnOpenPopup, m.ShowGamePage)
 	m.Interaction = panel.NewInteractionComponent(m.app, m.popup, []string{}, []string{}, m.router.Inputs, m.OnOpenPopup, m.ShowGamePage)
@@ -81,7 +81,7 @@ func (m *MyApp) setupComponents() {
 
 				m.navMatrix = [4][4]tview.Primitive{
 					{m.Navigation.List, m.Items.List, m.Interaction.List, m.Chat.Input},
-					{m.Group.List, m.Items.List, m.Interaction.List, m.Chat.Input},
+					{m.Group.Layout, m.Items.List, m.Interaction.List, m.Chat.Input},
 					{m.Datas.View, m.Datas.View, m.Datas.View, m.Chat.Input},
 					{m.Server.History, m.Server.History, m.Server.History, m.Server.History},
 				}
@@ -94,7 +94,7 @@ func (m *MyApp) setupComponents() {
 
 				m.navMatrix = [4][4]tview.Primitive{
 					{m.Navigation.List, m.Items.List, m.Interaction.List, m.Chat.Input},
-					{m.Group.List, m.Items.List, m.Interaction.List, m.Chat.Input},
+					{m.Group.Layout, m.Items.List, m.Interaction.List, m.Chat.Input},
 					{m.Datas.View, m.Datas.View, m.Datas.View, m.Chat.Input},
 					{m.CommandLine.Input, m.CommandLine.Input, m.Server.History, m.Server.History},
 				}
@@ -112,7 +112,7 @@ func (m *MyApp) setupComponents() {
 func (m *MyApp) setupMatrix() {
 	m.navMatrix = [4][4]tview.Primitive{
 		{m.Navigation.List, m.Items.List, m.Interaction.List, m.Chat.Input},
-		{m.Navigation.List, m.Items.List, m.Interaction.List, m.Chat.Input},
+		{m.Group.Layout, m.Items.List, m.Interaction.List, m.Chat.Input},
 		{m.Datas.View, m.Datas.View, m.Datas.View, m.Chat.Input},
 		{m.Server.History, m.Server.History, m.Server.History, m.Server.History},
 	}
@@ -134,6 +134,8 @@ func (m *MyApp) StartListeners() {
 	m.Server.ListenOutputs(m.app, m.router.ServerChan)
 	m.Navigation.ListenOutputs(m.app, m.router.NavChan, m.NavListenOutputs)
 	m.Group.ListenOutputs(m.app, m.router.GroupChan, m.GroupListenOutputs)
+	m.Group.ListenOutputs(m.app, m.router.GroupLeaveChan, m.GroupLeaveListenOutputs)
+	m.Group.ListenOutputs(m.app, m.router.UsersChan, m.UsersListenOutputs)
 	m.Items.ListenOutputs(m.app, m.router.ItemsChan, m.ItemListenOutputs)
 	m.Interaction.ListenOutputs(m.app, m.router.InteractionChan, m.InteractionListenOutputs)
 	m.Datas.ListenOutputs(m.app, m.router.DatasChan)

@@ -40,20 +40,20 @@ func NewChoiceListComponent[T AllowedOptions](
 
 	switch opts := any(options).(type) {
 	case OptionsMap:
-		test(app, src, popupGrid, opts, onOpenPopup, onClosePopup, are_btns)
+		createList(app, src, popupGrid, opts, onOpenPopup, onClosePopup, are_btns)
 
 	case map[string]OptionsMap:
 		for subTitle, subOptions := range opts {
 			src.List.AddItem("[yellow:#000000]- "+subTitle+":", "", 0, nil)
 
-			test(app, src, popupGrid, subOptions, onOpenPopup, onClosePopup, are_btns)
+			createList(app, src, popupGrid, subOptions, onOpenPopup, onClosePopup, are_btns)
 		}
 	}
 
 	return src
 }
 
-func test(
+func createList(
 	app *tview.Application,
 	src *ChoiceListComponent,
 	popupGrid *tview.Grid,
