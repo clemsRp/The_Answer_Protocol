@@ -13,6 +13,10 @@ func (e *Engine) handleCmdConnect(ip string, req []string) (string, any, error) 
 		return "", "", errors.New(pr.ErrInvalidName)
 	}
 
+	// check if session is already connected
+	if e.sessions[ip] != "" {
+		return "", "", errors.New(pr.ErrNameInUse)
+	}
 	pseudo := req[1]
 	if _, exists := e.players[pseudo]; exists {
 		return "", "", errors.New(pr.ErrNameInUse)
