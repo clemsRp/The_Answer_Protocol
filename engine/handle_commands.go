@@ -6,67 +6,68 @@ import (
 	pr "tap/protocol"
 )
 
-func (e *Engine) handleCommands(request pr.ServerRequest) (*pr.Client, string, any, error) {
-	var res string
-	var datas any
-	var err error
+func (e *Engine) validateSession(ip string, cmd string) (string, error) {
+	pseudo, exists := e.sessions[ip]
 
-	// Split request
+	if !exists {
+		return "", errors.New(pr.ErrInternalServer)
+	}
+
+	if cmd != pr.CmdConnect && pseudo == "" {
+		return "", errors.New(pr.ErrNotConnected)
+	}
+
+	return pseudo, nil
+}
+
+func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
 	req := strings.SplitN(request.Msg, " ", 5)
+	cmd := strings.ToUpper(req[0])
 
-	// fmt.Println(req)
-
-	// Get "true" client
-	activeCli, ok := e.clients[request.Cli.Ip]
-	if !ok {
-		activeCli = request.Cli
-	}
-	name := activeCli.Name
-	if name == "" {
-		name = activeCli.Ip
+	// validates session if player is connected
+	pseudo, err := e.validateSession(request.Ip, cmd)
+	if err != nil {
+		return "", nil, err
 	}
 
-	if strings.ToUpper(req[0]) != pr.CmdConnect && !request.Cli.Datas.Connected {
-		res, datas, err = "", nil, errors.New(pr.ErrNotConnected)
+	if cmd == pr.CmdConnect {
+		return e.handleCmdConnect(request.Ip, req)
+	}
+	player := e.players[pseudo]
 
-	} else {
-		// Handle the command type
-		switch strings.ToUpper(req[0]) {
-		case pr.CmdConnect:
-			res, datas, err = e.handleCmdConnect(request.Cli.Ip, req)
-		case pr.CmdQuit:
-			res, datas, err = e.handleCmdQuit(activeCli, req)
-		case pr.CmdWho:
-			res, datas, err = e.handleCmdWho(req)
-		case pr.CmdLook:
-			res, datas, err = e.handleCmdLook(activeCli, req)
-		case pr.CmdMove:
-			res, datas, err = e.handleCmdMove(activeCli, req)
-		case pr.CmdChat:
-			res, datas, err = e.handleCmdChat(activeCli, req)
-		case pr.CmdGroup:
-			res, datas, err = e.handleCmdGroup(activeCli, req)
-		case pr.CmdStatus:
-			res, datas, err = e.handleCmdStatus(activeCli, req)
-		case pr.CmdTake:
-			res, datas, err = e.handleCmdTake(activeCli, req)
-		case pr.CmdDrop:
-			res, datas, err = e.handleCmdDrop(activeCli, req)
-		case pr.CmdInventory:
-			res, datas, err = e.handleCmdInventory(activeCli, req)
-		case pr.CmdQuest:
-			res, datas, err = e.handleCmdQuest(activeCli, req)
-		case pr.CmdQuests:
-			res, datas, err = e.handleCmdQuests(activeCli, req)
-		case pr.CmdTalk:
-			res, datas, err = e.handleCmdTalk(activeCli, req)
-		case pr.CmdAttack:
-			res, datas, err = e.handleCmdAttack(activeCli, req)
+	// Handle the command types for authentified players
+	switch cmd {
+	case pr.CmdQuit:
+		return e.handleCmdQuit(player, req)
+	case pr.CmdWho:
+		return e.handleCmdWho(req)
+	case pr.CmdLook:
+		return e.handleCmdLook(player, req)
+	case pr.CmdMove:
+		return e.handleCmdMove(player, req)
+	case pr.CmdChat:
+		return e.handleCmdChat(player, req)
+	case pr.CmdGroup:
+		return e.handleCmdGroup(player, req)
+	case pr.CmdStatus:
+		return e.handleCmdStatus(player, req)
+	case pr.CmdTake:
+		return e.handleCmdTake(player, req)
+	case pr.CmdDrop:
+		return e.handleCmdDrop(player, req)
+	case pr.CmdInventory:
+		return e.handleCmdInventory(player, req)
+	case pr.CmdQuest:
+		return e.handleCmdQuest(player, req)
+	case pr.CmdQuests:
+		return e.handleCmdQuests(player, req)
+	case pr.CmdTalk:
+		return e.handleCmdTalk(player, req)
+	case pr.CmdAttack:
+		return e.handleCmdAttack(player, req)
 
-		default:
-			res, datas, err = "", nil, errors.New("ERR 400 BAD_REQUEST")
-		}
+	default:
+		return "", nil, errors.New("ERR 400 BAD_REQUEST")
 	}
 
-	return activeCli, res, datas, err
 }

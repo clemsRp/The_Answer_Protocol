@@ -17,21 +17,19 @@ type Log struct {
 
 type Server struct {
 	ln      net.Listener
-	clients map[string]*pr.Client
+	clients map[string]*Client
 
-	requests chan pr.ClientRequest
+	requests chan ClientRequest
 	logs     chan Log
 
-	entering    chan *pr.Client
-	leaving     chan *pr.Client
+	entering    chan *Client
+	leaving     chan *Client
 	quit        chan struct{}
 	playerSlots chan struct{}
 
 	wg sync.WaitGroup
 
-	toEngine      chan pr.ServerRequest
-	fromEngine    chan pr.EngineResponse
-	updateClients chan map[string]*pr.Client
+	exchanger pr.Exchanger
 
 	t_start     int64
 	IdleTimeout time.Duration
@@ -61,12 +59,12 @@ func (s *Server) broadcaster() {
 	for {
 		select {
 		case req := <-s.requests:
-			s.toEngine <- pr.ServerRequest{Msg: req.Msg, Cli: req.Cli, Req: req}
+			s.exchanger.ServerInput <- pr.ServerRequest{Ip: req.ip, Msg: req.msg}
 		case cli := <-s.entering:
 			s.addClient(cli)
 		case cli := <-s.leaving:
 			s.removeClient(cli)
-		case output := <-s.fromEngine:
+		case output := <-s.exchanger.ServerOutput:
 			s.sendToClient(output)
 		case <-s.quit:
 			s.shutdown()
@@ -75,30 +73,21 @@ func (s *Server) broadcaster() {
 	}
 }
 
-func (s *Server) addClient(cli *pr.Client) {
-	s.clients[cli.Ip] = cli
-	s.sendClientsUpdate()
+func (s *Server) addClient(cli *Client) {
+	s.clients[cli.ip] = cli
 }
 
-func (s *Server) removeClient(cli *pr.Client) {
-	if c, ok := s.clients[cli.Ip]; ok {
-		delete(s.clients, cli.Ip)
-		close(c.Ch)
+func (s *Server) removeClient(cli *Client) {
+	if c, ok := s.clients[cli.ip]; ok {
+		delete(s.clients, cli.ip)
+		close(c.ch)
 	}
-	s.sendClientsUpdate()
-}
-
-func (s *Server) sendClientsUpdate() {
-	snapshot := make(map[string]*pr.Client, len(s.clients))
-	for k, v := range s.clients {
-		snapshot[k] = v
-	}
-	s.updateClients <- snapshot
 }
 
 func (s *Server) sendToClient(output pr.EngineResponse) {
 
-	if _, exists := s.clients[output.Cli.Ip]; !exists {
+	cli, exists := s.clients[output.Ip]
+	if !exists {
 		return
 	}
 
@@ -112,16 +101,16 @@ func (s *Server) sendToClient(output pr.EngineResponse) {
 	// we force a disconnection via the default case
 	// rather than paralyzing the entire server broadcast loop.
 	select {
-	case output.Cli.Ch <- pr.ServerResponse{Msg: res, Datas: datas}:
+	case cli.ch <- pr.ServerResponse{Msg: res, Datas: datas}:
 	default:
-		output.Cli.Conn.Close()
+		cli.conn.Close()
 	}
 }
 
 func (s *Server) shutdown() {
 	for _, c := range s.clients {
-		close(c.Ch)
-		c.Conn.Close()
+		close(c.ch)
+		c.conn.Close()
 	}
 }
 
@@ -129,25 +118,24 @@ func (s *Server) GetAddress() string {
 	return s.ln.Addr().String()
 }
 
-func NewServer(listenAddr string, toEngineChan chan pr.ServerRequest, fromEngineChan chan pr.EngineResponse, updateClientsChan chan map[string]*pr.Client) (*Server, error) {
+func NewServer(listenAddr string, exchanger pr.Exchanger) (*Server, error) {
 	listener, err := net.Listen("tcp", listenAddr)
 	if err != nil {
 		return nil, err
 	}
 	return &Server{
-		ln:            listener,
-		clients:       make(map[string]*pr.Client),
-		requests:      make(chan pr.ClientRequest, 100),
-		logs:          make(chan Log, 500),
-		entering:      make(chan *pr.Client, 50),
-		leaving:       make(chan *pr.Client, 50),
-		playerSlots:   make(chan struct{}, MaxPlayerLimit),
-		quit:          make(chan struct{}),
-		toEngine:      toEngineChan,
-		fromEngine:    fromEngineChan,
-		updateClients: updateClientsChan,
-		t_start:       time.Now().Unix(),
-		IdleTimeout:   time.Duration(MaxClientTimeOutMinutes) * time.Minute,
+		ln:          listener,
+		clients:     make(map[string]*Client),
+		requests:    make(chan ClientRequest, 100),
+		logs:        make(chan Log, 500),
+		entering:    make(chan *Client, 50),
+		leaving:     make(chan *Client, 50),
+		playerSlots: make(chan struct{}, MaxPlayerLimit),
+		quit:        make(chan struct{}),
+
+		exchanger:   exchanger,
+		t_start:     time.Now().Unix(),
+		IdleTimeout: time.Duration(MaxClientTimeOutMinutes) * time.Minute,
 	}, nil
 }
 

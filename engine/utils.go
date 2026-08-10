@@ -5,55 +5,40 @@ import (
 	pr "tap/protocol"
 )
 
-func (e *Engine) inform_user(user string, msg string) {
-	for ip := range e.clients {
-		if e.clients[ip].Datas.Connected && e.clients[ip].Name == user {
-			e.clients[ip].Ch <- pr.ServerResponse{Msg: msg}
+func (e *Engine) inform_user(player *Player, msg string) {
+	e.exchanger.ServerOutput <- pr.EngineResponse{Ip: player.ip, Msg: msg}
+}
+
+func (e *Engine) inform_room(player *Player, room string, msg string) {
+	for pseudo, p := range e.players {
+		if player.room == room && pseudo != player.name {
+			e.exchanger.ServerOutput <- pr.EngineResponse{Ip: p.ip, Msg: msg}
 		}
 	}
 }
 
-func (e *Engine) inform_room(cli *pr.Client, room string, msg string) {
-	for ip := range e.clients {
-		if e.clients[ip].Datas.Connected && e.clients[ip].Datas.Room == room && e.clients[ip].Name != cli.Name {
-			e.clients[ip].Ch <- pr.ServerResponse{Msg: msg}
+func (e *Engine) inform_group(player *Player, group string, msg string) {
+	for pseudo, p := range e.players {
+		if p.group == group && pseudo != player.name {
+			e.exchanger.ServerOutput <- pr.EngineResponse{Ip: p.ip, Msg: msg}
 		}
 	}
 }
 
-func (e *Engine) inform_group(cli *pr.Client, group string, msg string) {
-	for ip := range e.clients {
-		if e.clients[ip].Datas.Connected && e.clients[ip].Datas.Group == group && e.clients[ip].Name != cli.Name {
-			e.clients[ip].Ch <- pr.ServerResponse{Msg: msg}
+func (e *Engine) inform_group_invitations(player *Player, group string, msg string) {
+	for pseudo, p := range e.players {
+		if slices.Contains(player.invitation, group) && pseudo != player.name {
+			e.exchanger.ServerOutput <- pr.EngineResponse{Ip: p.ip, Msg: msg}
 		}
 	}
 }
 
-func (e *Engine) inform_group_invitations(cli *pr.Client, group string, msg string) {
-	for ip := range e.clients {
-		if e.clients[ip].Datas.Connected && slices.Contains(e.clients[ip].Datas.Invitation, group) && e.clients[ip].Name != cli.Name {
-			e.clients[ip].Ch <- pr.ServerResponse{Msg: msg}
+func (e *Engine) inform_all(player *Player, msg string) {
+	for pseudo, p := range e.players {
+		if pseudo != player.name {
+			e.exchanger.ServerOutput <- pr.EngineResponse{Ip: p.ip, Msg: msg}
 		}
 	}
-}
-
-func (e *Engine) inform_all(cli *pr.Client, msg string) {
-	for ip := range e.clients {
-		if e.clients[ip].Datas.Connected && e.clients[ip].Name != cli.Name {
-			e.clients[ip].Ch <- pr.ServerResponse{Msg: msg}
-		}
-	}
-}
-
-func (e *Engine) get_nb_connected_players() int {
-	res := 0
-	for _, cli := range e.clients {
-		if cli.Datas.Connected {
-			res++
-		}
-	}
-
-	return res
 }
 
 func GetElementIndex[T comparable](slice []T, element_need T) int {

@@ -9,44 +9,45 @@ import (
 )
 
 func (e *Engine) handleCmdConnect(ip string, req []string) (string, any, error) {
-	// Handle invalid command
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidName)
 	}
 
-	client, exists := e.clients[ip]
-	if !exists {
-		return "", "", errors.New(pr.ErrInternalServer)
-	}
-
-	if client.Datas.Connected {
+	pseudo := req[1]
+	if _, exists := e.players[pseudo]; exists {
 		return "", "", errors.New(pr.ErrNameInUse)
 	}
 
-	for _, cli := range e.clients {
-		if cli.Name == req[1] {
-			return "", "", errors.New(pr.ErrNameInUse)
-		}
+	player := &Player{
+		name:  pseudo,
+		room:  "entrance",
+		hp:    100,
+		hpMax: 100,
+		ip:    ip,
 	}
-	// Update client variables
-	client.Name = req[1]
-	client.Datas.Connected = true
-	e.dialogues[req[1]] = make(map[string]int)
+	e.players[pseudo] = player
+	e.sessions[ip] = pseudo
+	e.dialogues[pseudo] = make(map[string]int)
 
-	e.inform_all(client, fmt.Sprintf("EVT STATS players=%d", e.get_nb_connected_players()))
-	e.inform_room(client, client.Datas.Room, "EVT ROOM PRESENCE ENTER "+client.Name)
+	e.inform_all(player, fmt.Sprintf("EVT STATS players=%d", len(e.players)))
+	e.inform_room(player, "entrance", "EVT ROOM PRESENCE ENTER "+player.name)
 
 	return "OK connected", "", nil
 }
 
-func (e *Engine) handleCmdQuit(cli *pr.Client, req []string) (string, any, error) {
+func (e *Engine) playerQuits(player *Player) {
+	delete(e.players, player.name)
+	e.inform_room(player, player.room, "EVT ROOM PRESENCE LEAVE "+player.name)
+	e.inform_all(player, fmt.Sprintf("EVT STATS players=%d", len(e.players)))
+}
+
+func (e *Engine) handleCmdQuit(player *Player, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
-	e.inform_room(cli, cli.Datas.Room, "EVT ROOM PRESENCE LEAVE "+cli.Name)
-	e.inform_all(cli, fmt.Sprintf("EVT STATS players=%d", e.get_nb_connected_players()-1))
+	e.playerQuits(player)
 	return "OK bye", "", nil
 }
 
@@ -56,18 +57,10 @@ func (e *Engine) handleCmdWho(req []string) (string, any, error) {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
-	// Calculate number of players
-	nb_clients := 0
-	for cli := range e.clients {
-		if e.clients[cli].Datas.Connected {
-			nb_clients++
-		}
-	}
-
-	return fmt.Sprintf("OK players=%d", nb_clients), "", nil
+	return fmt.Sprintf("OK players=%d", len(e.players)), "", nil
 }
 
-func (e *Engine) handleCmdLook(cli *pr.Client, req []string) (string, any, error) {
+func (e *Engine) handleCmdLook(player *Player, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
@@ -76,43 +69,26 @@ func (e *Engine) handleCmdLook(cli *pr.Client, req []string) (string, any, error
 	players := make([]string, 0)
 
 	// Get present players
-	for ip := range e.clients {
-		if e.clients[ip].Datas.Room == cli.Datas.Room && e.clients[ip].Datas.Connected {
-			players = append(players, e.clients[ip].Name)
+	for pseudo, p := range e.players {
+		if player.room == p.room {
+			players = append(players, pseudo)
 		}
 	}
 
-	currentRoom := e.world.Rooms[cli.Datas.Room]
+	currentRoom := e.world.Rooms[player.room]
 	// Format response
 
-	north, ok := currentRoom.Exits["north"]
-	if !ok {
-		north = ""
+	exits := pr.ExitsData{
+		North: currentRoom.Exits["north"],
+		South: currentRoom.Exits["south"],
+		East:  currentRoom.Exits["east"],
+		West:  currentRoom.Exits["west"],
 	}
-	south, ok1 := currentRoom.Exits["south"]
-	if !ok1 {
-		south = ""
-	}
-	east, ok2 := currentRoom.Exits["east"]
-	if !ok2 {
-		east = ""
-	}
-	west, ok := currentRoom.Exits["west"]
-	if !ok {
-		west = ""
-	}
-	Exits := pr.ExitsData{
-		North: north,
-		South: south,
-		West:  west,
-		East:  east,
-	}
-
 	Room := pr.RoomData{
-		Id:          "room." + cli.Datas.Room,
+		Id:          "room." + player.room,
 		Name:        currentRoom.Name,
 		Description: currentRoom.Description,
-		Exits:       Exits,
+		Exits:       exits,
 		Players:     players,
 		Items:       currentRoom.Items,
 		Npcs:        currentRoom.Npcs,
@@ -124,14 +100,14 @@ func (e *Engine) handleCmdLook(cli *pr.Client, req []string) (string, any, error
 	return "OK", res, nil
 }
 
-func (e *Engine) handleCmdMove(cli *pr.Client, req []string) (string, any, error) {
+func (e *Engine) handleCmdMove(player *Player, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	direction := req[1]
-	currentRoom := e.world.Rooms[cli.Datas.Room]
+	currentRoom := e.world.Rooms[player.room]
 
 	// Check room is valid
 	nextRoom, exists := currentRoom.Exits[direction]
@@ -139,20 +115,20 @@ func (e *Engine) handleCmdMove(cli *pr.Client, req []string) (string, any, error
 		return "", "", errors.New(pr.ErrNoExit)
 	}
 
-	e.inform_room(cli, cli.Datas.Room, "EVT ROOM PRESENCE LEAVE "+cli.Name)
+	e.inform_room(player, player.room, "EVT ROOM PRESENCE LEAVE "+player.name)
 
 	// Change the player room variable
-	if cli, ok := e.clients[cli.Ip]; ok {
-		cli.Datas.Room = nextRoom
+	if player, ok := e.players[player.ip]; ok {
+		player.room = nextRoom
 	}
-	cli.Datas.Room = nextRoom
+	player.room = nextRoom
 
-	e.inform_room(cli, cli.Datas.Room, "EVT ROOM PRESENCE ENTER "+cli.Name)
+	e.inform_room(player, player.room, "EVT ROOM PRESENCE ENTER "+player.name)
 
 	return fmt.Sprintf("OK room=%s", nextRoom), "", nil
 }
 
-func (e *Engine) handleCmdChat(cli *pr.Client, req []string) (string, any, error) {
+func (e *Engine) handleCmdChat(player *Player, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) < 3 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
@@ -167,25 +143,25 @@ func (e *Engine) handleCmdChat(cli *pr.Client, req []string) (string, any, error
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
-	for ip := range e.clients {
-		if e.clients[ip].Name != cli.Name {
+	for pseudo, p := range e.players {
+		if pseudo != player.name {
 
 			// Compare scopes with other player datas
 			is_global := scope == pr.GlobalChat
-			is_group := scope == pr.GroupChat && cli.Datas.Group != "" && cli.Datas.Group == e.clients[ip].Datas.Group
-			is_room := scope == pr.RoomChat && cli.Datas.Room == e.clients[ip].Datas.Room
+			is_group := scope == pr.GroupChat && player.group != "" && p.group == player.group
+			is_room := scope == pr.RoomChat && p.room == player.room
 
 			// Send chat to player
 			if is_global || is_group || is_room {
-				chat = fmt.Sprintf("EVT %s CHAT %s %s", scope, cli.Name, msg)
-				e.clients[ip].Ch <- pr.ServerResponse{Msg: chat}
+				chat = fmt.Sprintf("EVT %s CHAT %s %s", scope, player.name, msg)
+				e.exchanger.ServerOutput <- pr.EngineResponse{Ip: p.ip, Msg: chat}
 			}
 		}
 	}
 	return "OK", "", nil
 }
 
-func (e *Engine) handleCmdGroup(cli *pr.Client, req []string) (string, any, error) {
+func (e *Engine) handleCmdGroup(player *Player, req []string) (string, any, error) {
 	var err error
 	var res string
 	scope := strings.ToUpper(req[1])
@@ -209,19 +185,19 @@ func (e *Engine) handleCmdGroup(cli *pr.Client, req []string) (string, any, erro
 	// Handle group scopes
 	switch scope {
 	case pr.CreateGroup:
-		res, err = e.create_group(cli)
+		res, err = e.create_group(player)
 	case pr.InviteGroup:
-		res, err = e.invite_user_in_group(cli, arg)
+		res, err = e.invite_user_in_group(player, arg)
 	case pr.JoinGroup:
-		res, err = e.join_group(cli, arg)
+		res, err = e.join_group(player, arg)
 	case pr.LeaveGroup:
-		res, err = e.leave_group(cli)
+		res, err = e.leave_group(player)
 	case pr.PromoteGroup:
-		res, err = e.promote_user(cli, arg)
+		res, err = e.promote_user(player, arg)
 	case pr.AcceptPromoteGroup:
-		res, err = e.accept_promotion(cli)
+		res, err = e.accept_promotion(player)
 	case pr.DeclinePromoteGroup:
-		res, err = e.decline_promotion(cli)
+		res, err = e.decline_promotion(player)
 	default:
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
@@ -233,7 +209,7 @@ func (e *Engine) handleCmdGroup(cli *pr.Client, req []string) (string, any, erro
 	return res, "", nil
 }
 
-func (e *Engine) handleCmdStatus(cli *pr.Client, req []string) (string, any, error) {
+func (e *Engine) handleCmdStatus(player *Player, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
@@ -241,27 +217,27 @@ func (e *Engine) handleCmdStatus(cli *pr.Client, req []string) (string, any, err
 
 	// Format response
 	res := pr.StatusCommandData{
-		Hp:     cli.Datas.Hp,
-		MaxHp:  cli.Datas.Max_hp,
-		Status: cli.Datas.Status,
+		Hp:     player.hp,
+		MaxHp:  player.hpMax,
+		Status: player.status,
 	}
 
 	return "OK", res, nil
 }
 
-func (e *Engine) handleCmdTake(cli *pr.Client, req []string) (string, any, error) {
+func (e *Engine) handleCmdTake(player *Player, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	object := req[1]
-	for obj_index, obj := range e.world.Rooms[cli.Datas.Room].Items {
+	for obj_index, obj := range e.world.Rooms[player.room].Items {
 		if obj == object {
-			cli.Datas.Inventory = append(cli.Datas.Inventory, object)
-			e.world.Rooms[cli.Datas.Room].Items = append(e.world.Rooms[cli.Datas.Room].Items[:obj_index], e.world.Rooms[cli.Datas.Room].Items[obj_index+1:]...)
+			player.inventory = append(player.inventory, object)
+			e.world.Rooms[player.room].Items = append(e.world.Rooms[player.room].Items[:obj_index], e.world.Rooms[player.room].Items[obj_index+1:]...)
 
-			e.inform_room(cli, cli.Datas.Room, "EVT ITEM TOOK "+object)
+			e.inform_room(player, player.room, "EVT ITEM TOOK "+object)
 
 			return "OK taken=" + object, "", nil
 		}
@@ -270,19 +246,19 @@ func (e *Engine) handleCmdTake(cli *pr.Client, req []string) (string, any, error
 	return "", "", errors.New(pr.ErrItemNotFound)
 }
 
-func (e *Engine) handleCmdDrop(cli *pr.Client, req []string) (string, any, error) {
+func (e *Engine) handleCmdDrop(player *Player, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	object := req[1]
-	for obj_index, obj := range cli.Datas.Inventory {
+	for obj_index, obj := range player.inventory {
 		if obj == object {
-			cli.Datas.Inventory = append(cli.Datas.Inventory[:obj_index], cli.Datas.Inventory[obj_index+1:]...)
-			e.world.Rooms[cli.Datas.Room].Items = append(e.world.Rooms[cli.Datas.Room].Items, object)
+			player.inventory = append(player.inventory[:obj_index], player.inventory[obj_index+1:]...)
+			e.world.Rooms[player.room].Items = append(e.world.Rooms[player.room].Items, object)
 
-			e.inform_room(cli, cli.Datas.Room, "EVT ITEM DROPPED "+object)
+			e.inform_room(player, player.room, "EVT ITEM DROPPED "+object)
 
 			return "OK dropped=" + object, "", nil
 		}
@@ -291,15 +267,15 @@ func (e *Engine) handleCmdDrop(cli *pr.Client, req []string) (string, any, error
 	return "", "", errors.New(pr.ErrItemNotInInventory)
 }
 
-func (e *Engine) handleCmdInventory(cli *pr.Client, req []string) (string, any, error) {
+func (e *Engine) handleCmdInventory(player *Player, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
-	return "OK", cli.Datas.Inventory, nil
+	return "OK", player.inventory, nil
 }
 
-func (e *Engine) handleCmdQuest(cli *pr.Client, req []string) (string, any, error) {
+func (e *Engine) handleCmdQuest(player *Player, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
@@ -308,7 +284,7 @@ func (e *Engine) handleCmdQuest(cli *pr.Client, req []string) (string, any, erro
 	npc := req[1]
 	for npc_name, npc_datas := range e.world.Npcs {
 		if npc_name == npc {
-			for _, room_npc := range e.world.Rooms[cli.Datas.Room].Npcs {
+			for _, room_npc := range e.world.Rooms[player.room].Npcs {
 				if room_npc == npc {
 					if npc_datas.QuestId == "" || e.world.Quests[npc_datas.QuestId].Status == "unavailable" {
 						return "", "", errors.New(pr.ErrNoQuestAvailable)
@@ -332,16 +308,16 @@ func (e *Engine) handleCmdQuest(cli *pr.Client, req []string) (string, any, erro
 	return "", "", errors.New(pr.ErrNpcNotFound)
 }
 
-func (e *Engine) handleCmdQuests(cli *pr.Client, req []string) (string, any, error) {
+func (e *Engine) handleCmdQuests(player *Player, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
-	res := cli.Datas.Quests
+	res := player.quests
 
 	return "OK", res, nil
 }
-func (e *Engine) handleCmdTalk(cli *pr.Client, req []string) (string, any, error) {
+func (e *Engine) handleCmdTalk(player *Player, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
@@ -351,17 +327,17 @@ func (e *Engine) handleCmdTalk(cli *pr.Client, req []string) (string, any, error
 	// Find npc
 	for npc_name, npc_datas := range e.world.Npcs {
 		if npc_name == npc {
-			for _, room_npc := range e.world.Rooms[cli.Datas.Room].Npcs {
+			for _, room_npc := range e.world.Rooms[player.room].Npcs {
 				if room_npc == npc {
 					// Get npc dialogue
-					_, ok := e.dialogues[cli.Name][npc_name]
+					_, ok := e.dialogues[player.name][npc_name]
 					if !ok {
-						e.dialogues[cli.Name][npc_name] = 0
+						e.dialogues[player.name][npc_name] = 0
 					}
 
-					npc_index := e.dialogues[cli.Name][npc_name]
+					npc_index := e.dialogues[player.name][npc_name]
 					Datas := npc_datas.Dialogue[npc_index%len(npc_datas.Dialogue)]
-					e.dialogues[cli.Name][npc_name]++
+					e.dialogues[player.name][npc_name]++
 
 					return "OK", Datas, nil
 				}
@@ -372,7 +348,7 @@ func (e *Engine) handleCmdTalk(cli *pr.Client, req []string) (string, any, error
 	return "", "", errors.New(pr.ErrNpcNotFound)
 }
 
-func (e *Engine) handleCmdAttack(cli *pr.Client, req []string) (string, any, error) {
+func (e *Engine) handleCmdAttack(player *Player, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
@@ -381,11 +357,11 @@ func (e *Engine) handleCmdAttack(cli *pr.Client, req []string) (string, any, err
 	npc := req[1]
 	for npc_name, npc_datas := range e.world.Npcs {
 		if npc_name == npc {
-			for _, room_npc := range e.world.Rooms[cli.Datas.Room].Npcs {
+			for _, room_npc := range e.world.Rooms[player.room].Npcs {
 				if room_npc == npc {
 					// Format response
 					Datas := make(map[string]any)
-					Datas["attacker_hp"] = cli.Datas.Hp
+					Datas["attacker_hp"] = player.hp
 					Datas["target_hp"] = npc_datas.Stats.Hp
 					Datas["damage"] = 10
 					Datas["status"] = "combat"

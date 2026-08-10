@@ -1,10 +1,5 @@
 package protocol
 
-import (
-	"net"
-	"time"
-)
-
 const (
 	CategoryRoom   = "ROOM"
 	CategoryGlobal = "GLOBAL"
@@ -28,60 +23,39 @@ type ServerEvent struct {
 	Data     string
 }
 
-// type ServerResponse struct {
-// 	Success bool
-// 	Code    int
-// 	Message string
-// 	Data    string
+// type Datas struct {
+// 	Room          string
+// 	Status        string
+// 	Inventory     []string
+// 	Invitation    []string
+// 	Group         string
+// 	Promotion     bool
+// 	Hp            int
+// 	Max_hp        int
+// 	Connected     bool
+// 	Last_cmd_time time.Time
+// 	Spam_warning  int
+// 	Quests        []*TrackedQuestData
 // }
 
-type Datas struct {
-	Room          string
-	Status        string
-	Inventory     []string
-	Invitation    []string
-	Group         string
-	Promotion     bool
-	Hp            int
-	Max_hp        int
-	Connected     bool
-	Last_cmd_time time.Time
-	Spam_warning  int
-	Quests        []*TrackedQuestData
-}
-
-type Client struct {
-	Conn  net.Conn            `json:"-"`
-	Ch    chan ServerResponse `json:"-"`
-	Ip    string
-	Name  string
-	Datas Datas
-}
-
-// Link client/server
-type ClientRequest struct {
-	Cli *Client `json:"-"`
-	Msg string
-}
-
-type ServerResponse struct {
-	Msg   string
-	Datas any
-}
-
-// Link server/engine
+// server to engine
 type ServerRequest struct {
-	Cli *Client
+	Ip  string
 	Msg string
-	Req ClientRequest
 }
 
+// engine to server
 type EngineResponse struct {
-	Cli   *Client
+	Ip    string
 	Msg   string
 	Datas any
 	Err   error
-	Req   ServerRequest
+}
+
+// server to client
+type ServerResponse struct {
+	Msg   string `json:"msg"`
+	Datas any    `json:"datas,omitempty"`
 }
 
 const (
@@ -118,3 +92,20 @@ const (
 	East  = "east"
 	West  = "west"
 )
+
+type Exchanger struct {
+	ServerInput  chan ServerRequest
+	ServerOutput chan EngineResponse
+	JoinChan     chan string
+	LeaveChan    chan string
+}
+
+type PlayerInfo struct {
+	Name      string   `json:"name"`
+	Location  string   `json:"location"`
+	Hp        int      `json:"hp"`
+	HpMax     int      `json:"hp_max"`
+	Room      string   `json:"room"`
+	Group     string   `json:"group"`
+	Inventory []string `json:"inventory"`
+}
