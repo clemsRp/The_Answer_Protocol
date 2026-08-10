@@ -13,9 +13,10 @@ import (
 
 func SetupTestServerEngine(t *testing.T, world_path string) (*server.Server, *engine.Engine) {
 	t.Helper()
-	serverInput := make(chan pr.ServerRequest, 100)
-	serverOutput := make(chan pr.EngineResponse, 100)
-	updateClients := make(chan map[string]*pr.Client, 10)
+	exchanger := pr.Exchanger{ServerInput: make(chan pr.ServerRequest, 100),
+		ServerOutput: make(chan pr.EngineResponse, 100),
+		JoinChan:     make(chan string, 10),
+		LeaveChan:    make(chan string, 10)}
 
 	var err error
 	var world parser.Map
@@ -26,13 +27,13 @@ func SetupTestServerEngine(t *testing.T, world_path string) (*server.Server, *en
 
 	// Initialize server
 	var s *server.Server
-	s, err = server.NewServer("localhost:0", serverInput, serverOutput, updateClients)
+	s, err = server.NewServer("localhost:0", exchanger)
 	if err != nil {
 		t.Fatalf("Server couldn't start %v", err)
 	}
 
 	// Initialize and start engine
-	e := engine.NewEngine(world, serverInput, serverOutput, updateClients)
+	e := engine.NewEngine(world, exchanger)
 	go e.Start()
 	time.Sleep(10 * time.Millisecond)
 	// Start the serveur

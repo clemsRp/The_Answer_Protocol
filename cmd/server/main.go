@@ -13,14 +13,15 @@ import (
 )
 
 var (
-	t_start        = time.Now().Unix()
-	update_clients = make(chan map[string]*pr.Client, 10)
-	world          parser.Map
+	t_start = time.Now().Unix()
+	world   parser.Map
 )
 
 func main() {
-	serverInput := make(chan pr.ServerRequest, 100)
-	serverOutput := make(chan pr.EngineResponse, 100)
+	exchanger := pr.Exchanger{ServerInput: make(chan pr.ServerRequest, 100),
+		ServerOutput: make(chan pr.EngineResponse, 100),
+		JoinChan:     make(chan string, 10),
+		LeaveChan:    make(chan string, 10)}
 	var err error
 
 	world, err = parser.Get_map("world.json")
@@ -30,13 +31,13 @@ func main() {
 	}
 
 	var s *server.Server
-	s, err = server.NewServer("localhost:8080", serverInput, serverOutput, update_clients)
+	s, err = server.NewServer("localhost:8080", exchanger)
 	if err != nil {
 		fmt.Println("Server couldn't start:", err)
 		return
 	}
 
-	e := engine.NewEngine(world, serverInput, serverOutput, update_clients)
+	e := engine.NewEngine(world, exchanger)
 	go e.Start()
 
 	go s.Start()

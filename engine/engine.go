@@ -6,25 +6,26 @@ import (
 )
 
 type Engine struct {
-	fromServer    chan pr.ServerRequest
-	toServer      chan pr.EngineResponse
-	updateClients <-chan map[string]*pr.Client
-	world         parser.Map
-	clients       map[string]*pr.Client
-	groups        map[string][]*pr.Client
-	dialogues     map[string]map[string]int
-	quit          chan struct{}
+	world parser.Map
+	//sessions store IP to pseudos
+	sessions map[string]string
+	//players store pseudos to Player
+	players   map[string]*Player
+	groups    map[string][]*Player
+	dialogues map[string]map[string]int
+	exchanger pr.Exchanger
+	quit      chan struct{}
 }
 
-func NewEngine(world parser.Map, fromServerChan chan pr.ServerRequest, toServerChan chan pr.EngineResponse, updateClientsChan <-chan map[string]*pr.Client) *Engine {
+func NewEngine(world parser.Map, exchanger pr.Exchanger) *Engine {
 	return &Engine{
-		fromServer:    fromServerChan,
-		toServer:      toServerChan,
-		updateClients: updateClientsChan,
-		world:         world,
-		groups:        make(map[string][]*pr.Client),
-		dialogues:     make(map[string]map[string]int),
-		quit:          make(chan struct{}),
+		world:     world,
+		sessions:  make(map[string]string),
+		players:   make(map[string]*Player),
+		groups:    make(map[string][]*Player),
+		dialogues: make(map[string]map[string]int),
+		quit:      make(chan struct{}),
+		exchanger: exchanger,
 	}
 }
 
@@ -42,21 +43,35 @@ func (e *Engine) Stop() {
 func (e *Engine) broadcaster() {
 	for {
 		select {
-		case clients := <-e.updateClients:
-			e.clients = clients
+		case ip := <-e.exchanger.JoinChan:
+			// ghost session stored in sessions when a new client arrives
+			e.sessions[ip] = ""
+		case ip := <-e.exchanger.LeaveChan:
+			e.handlePlayerLeave(ip)
 
-		case req := <-e.fromServer:
-			activeCli, res, datas, err := e.handleCommands(req)
-			e.toServer <- pr.EngineResponse{
-				Cli:   activeCli,
+		case req := <-e.exchanger.ServerInput:
+			res, datas, err := e.handleCommands(req)
+			e.exchanger.ServerOutput <- pr.EngineResponse{
+				Ip:    req.Ip,
 				Msg:   res,
 				Datas: datas,
 				Err:   err,
-				Req:   req,
 			}
 		case <-e.quit:
 			return
 		}
 
 	}
+}
+
+func (e *Engine) handlePlayerLeave(ip string) {
+	pseudo := e.sessions[ip]
+
+	if pseudo != "" {
+		if player, exists := e.players[pseudo]; exists {
+			e.playerQuits(player)
+			delete(e.players, pseudo)
+		}
+	}
+	delete(e.sessions, ip)
 }

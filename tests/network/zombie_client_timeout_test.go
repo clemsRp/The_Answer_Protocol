@@ -15,21 +15,22 @@ func TestZombieClientTimeout(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 	baseline := runtime.NumGoroutine()
 
-	serverInput := make(chan pr.ServerRequest, 100)
-	serverOutput := make(chan pr.EngineResponse, 100)
-	updateClients := make(chan map[string]*pr.Client, 10)
+	exchanger := pr.Exchanger{ServerInput: make(chan pr.ServerRequest, 100),
+		ServerOutput: make(chan pr.EngineResponse, 100),
+		JoinChan:     make(chan string, 10),
+		LeaveChan:    make(chan string, 10)}
 
 	world, err := parser.Get_map("../../world.json")
 	if err != nil {
 		t.Fatalf("ERROR parsing: %v", err)
 	}
 
-	s, err := server.NewServer("localhost:0", serverInput, serverOutput, updateClients)
+	s, err := server.NewServer("localhost:0", exchanger)
 	if err != nil {
 		t.Fatalf("Server couldn't be created %v", err)
 	}
 
-	e := engine.NewEngine(world, serverInput, serverOutput, updateClients)
+	e := engine.NewEngine(world, exchanger)
 
 	s.IdleTimeout = 1 * time.Second
 

@@ -238,9 +238,9 @@ func (m *MyApp) UsersListenOutputs(res pr.ServerResponse) {
 
 	raw, err := json.Marshal(res.Datas)
 	if err == nil {
-		var fetchedUsers []string
-		if err := json.Unmarshal(raw, &fetchedUsers); err == nil {
-			users = fetchedUsers
+		var data pr.UsersCommandData
+		if err := json.Unmarshal(raw, &data); err == nil {
+			users = data.Users
 		}
 	}
 
