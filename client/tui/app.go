@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"context"
 	panel "tap/client/tui/panels"
 
 	"github.com/rivo/tview"
@@ -25,6 +26,7 @@ type MyApp struct {
 	Datas          *panel.DatasComponent
 	PopupComponent *panel.PopupComponent
 	navMatrix      [4][4]tview.Primitive
+	ctx            context.Context
 }
 
 var (
@@ -32,7 +34,7 @@ var (
 	popup_visible = false
 )
 
-func NewMyApp(router *Router) *MyApp {
+func NewMyApp(ctx context.Context, router *Router) *MyApp {
 	tview.Styles.PrimitiveBackgroundColor = panel.Black
 
 	m := &MyApp{
@@ -42,6 +44,7 @@ func NewMyApp(router *Router) *MyApp {
 		connect: tview.NewGrid().SetRows(-1, 5, 20).SetColumns(-1, -1, -1, -1),
 		popup:   tview.NewGrid().SetRows(0, 35, 0).SetColumns(0, 60, 0),
 		router:  router,
+		ctx:     ctx,
 	}
 
 	m.connect.SetBackgroundColor(panel.Black)

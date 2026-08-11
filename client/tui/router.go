@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"context"
 	"strings"
 	panel "tap/client/tui/panels"
 	pr "tap/protocol"
@@ -21,11 +22,11 @@ type Router struct {
 	InteractionChan chan pr.ServerResponse
 	DatasChan       chan pr.ServerResponse
 	QuitChan        <-chan struct{}
-
-	LastCommand string
+	LastCommand     string
+	ctx             context.Context
 }
 
-func NewRouter(inputs chan string, outputs <-chan pr.ServerResponse, quitChan <-chan struct{}) *Router {
+func NewRouter(ctx context.Context, inputs chan string, outputs <-chan pr.ServerResponse) *Router {
 
 	return &Router{
 		Inputs:          inputs,
@@ -40,9 +41,8 @@ func NewRouter(inputs chan string, outputs <-chan pr.ServerResponse, quitChan <-
 		ItemsChan:       make(chan pr.ServerResponse, 100),
 		InteractionChan: make(chan pr.ServerResponse, 100),
 		DatasChan:       make(chan pr.ServerResponse, 100),
-		QuitChan:        quitChan,
-
-		LastCommand: "",
+		LastCommand:     "",
+		ctx:             ctx,
 	}
 }
 
@@ -87,7 +87,7 @@ func (r *Router) Start() {
 			r.ServerChan <- res
 			r.DatasChan <- res
 			r.CommandLineChan <- res
-		case <-r.QuitChan:
+		case <-r.ctx.Done():
 			r.stop()
 			return
 		}

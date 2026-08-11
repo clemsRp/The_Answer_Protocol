@@ -2,6 +2,7 @@ package tui
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"net"
 	"strings"
@@ -13,35 +14,31 @@ type TuiClient struct {
 	app           *MyApp
 	inputs        chan string
 	outputs       chan pr.ServerResponse
-	quitChan      chan struct{}
 	conn          net.Conn
 	wg            sync.WaitGroup
 	disconnectMsg string
 	stopOnce      sync.Once
+	ctx           context.Context
+	cancelFunc    context.CancelFunc
 }
 
 func NewTuiClient(conn net.Conn) *TuiClient {
 	// Init Client
+	ctx, cancel := context.WithCancel(context.Background())
 	cli := TuiClient{
-		inputs:   make(chan string, 10),
-		outputs:  make(chan pr.ServerResponse, 100),
-		quitChan: make(chan struct{}),
-		conn:     conn,
+		inputs:     make(chan string, 10),
+		outputs:    make(chan pr.ServerResponse, 100),
+		conn:       conn,
+		ctx:        ctx,
+		cancelFunc: cancel,
 	}
 
-	router := NewRouter(cli.inputs, cli.outputs, cli.quitChan)
-	cli.app = NewMyApp(router)
+	router := NewRouter(cli.ctx, cli.inputs, cli.outputs)
+	cli.app = NewMyApp(cli.ctx, router)
 
 	return &cli
 }
 
-func (tui *TuiClient) closeQuitChannelSafely() {
-	select {
-	case <-tui.quitChan:
-	default:
-		close(tui.quitChan)
-	}
-}
 func (tui *TuiClient) startRouter() {
 	defer tui.wg.Done()
 	tui.app.router.Start()
@@ -61,7 +58,7 @@ func (tui *TuiClient) handleInput() {
 			if strings.ToUpper(router.LastCommand) == "GROUP" {
 				router.LastCommand = strings.ToUpper(strings.Split(input, " ")[1])
 			}
-		case <-tui.quitChan:
+		case <-tui.ctx.Done():
 			return
 		}
 	}
@@ -96,7 +93,10 @@ func (tui *TuiClient) listenResponses() {
 func (tui *TuiClient) Stop() {
 	tui.stopOnce.Do(func() {
 		tui.app.Stop()
+		tui.cancelFunc()
+		tui.conn.Close()
 	})
+
 }
 
 func (tui *TuiClient) Start() {
@@ -113,8 +113,9 @@ func (tui *TuiClient) Start() {
 	go tui.listenResponses()
 
 	err := tui.app.Run()
-	tui.closeQuitChannelSafely()
-	tui.conn.Close()
+
+	tui.Stop()
+
 	tui.wg.Wait()
 
 	if err != nil {
