@@ -1,7 +1,9 @@
 package panel
 
 import (
+	"context"
 	"strings"
+	"sync"
 	pr "tap/protocol"
 
 	"github.com/gdamore/tcell/v2"
@@ -35,7 +37,7 @@ func NewChoiceListComponent[T AllowedOptions](
 ) *ChoiceListComponent {
 
 	src := &ChoiceListComponent{}
-	src.List = createListView(" "+title+" ", true, Default, Default, tcell.ColorBlue, Black, false, true)
+	src.List = createListView(" "+title+" ", true, false, true)
 	src.Layout = tview.NewFlex().SetDirection(tview.FlexRow).AddItem(src.List, 0, 1, false)
 
 	switch opts := any(options).(type) {
@@ -192,13 +194,24 @@ func transform_name(option string, width int) string {
 	return strings.Repeat(" ", first_len) + option + strings.Repeat(" ", width-first_len-len(option))
 }
 
-func (c *ChoiceListComponent) ListenOutputs(app *tview.Application, Chan <-chan pr.ServerResponse, function func(pr.ServerResponse)) {
+func (c *ChoiceListComponent) ListenOutputs(ctx context.Context, wg *sync.WaitGroup, app *tview.Application, Chan <-chan pr.ServerResponse, function func(pr.ServerResponse)) {
+	wg.Add(1)
 	go func() {
-		for res := range Chan {
-			response := res
-			app.QueueUpdateDraw(func() {
-				function(response)
-			})
+		defer wg.Done()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case res, ok := <-Chan:
+				if !ok {
+					return
+				}
+				response := res
+				app.QueueUpdateDraw(func() {
+					function(response)
+				})
+			}
 		}
 	}()
 }

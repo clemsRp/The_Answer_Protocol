@@ -2,25 +2,21 @@ package main
 
 import (
 	"fmt"
+	"net"
+	"os"
 	"tap/client/tui"
-	"tap/engine/parser"
-)
-
-var (
-	world parser.Map
 )
 
 func main() {
-	// Get the world
-	var err error
-	world, err = parser.Get_map("world.json")
-	if err != nil {
-		fmt.Println("ERROR", err.Error())
-		return
-	}
 
+	// Connect to server
+	conn, err := net.Dial("tcp", "localhost:8080")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Connection error:", err)
+		os.Exit(1)
+	}
 	// Initialize client
-	cli := tui.NewTuiClient(world)
+	cli := tui.NewTuiClient(conn)
 
 	cli.Start()
 }

@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"context"
+	"sync"
 	panel "tap/client/tui/panels"
 
 	"github.com/rivo/tview"
@@ -25,6 +27,8 @@ type MyApp struct {
 	Datas          *panel.DatasComponent
 	PopupComponent *panel.PopupComponent
 	navMatrix      [4][4]tview.Primitive
+	ctx            context.Context
+	wg             *sync.WaitGroup
 }
 
 var (
@@ -32,9 +36,8 @@ var (
 	popup_visible = false
 )
 
-func NewMyApp(router *Router) *MyApp {
-	tview.Styles.PrimitiveBackgroundColor = panel.Black
-
+func NewMyApp(ctx context.Context, wg *sync.WaitGroup, router *Router) *MyApp {
+	tview.Styles.PrimitiveBackgroundColor = panel.AppTheme.Background
 	m := &MyApp{
 		app:     tview.NewApplication(),
 		grid:    tview.NewGrid().SetRows(0, 0, 0, 0).SetColumns(0, 0, 0, 0),
@@ -42,10 +45,9 @@ func NewMyApp(router *Router) *MyApp {
 		connect: tview.NewGrid().SetRows(-1, 5, 20).SetColumns(-1, -1, -1, -1),
 		popup:   tview.NewGrid().SetRows(0, 35, 0).SetColumns(0, 60, 0),
 		router:  router,
+		ctx:     ctx,
+		wg:      wg,
 	}
-
-	m.connect.SetBackgroundColor(panel.Black)
-	m.popup.SetBackgroundColor(panel.Black)
 
 	m.setupComponents()
 	m.setupGrid()
@@ -129,16 +131,16 @@ func (m *MyApp) setupGrid() {
 }
 
 func (m *MyApp) StartListeners() {
-	m.Chat.ListenOutputs(m.app, m.router.ChatChan)
-	m.CommandLine.ListenOutputs(m.app, m.router.CommandLineChan)
-	m.Server.ListenOutputs(m.app, m.router.ServerChan)
-	m.Navigation.ListenOutputs(m.app, m.router.NavChan, m.NavListenOutputs)
-	m.Group.ListenOutputs(m.app, m.router.GroupChan, m.GroupListenOutputs)
-	m.Group.ListenOutputs(m.app, m.router.GroupLeaveChan, m.GroupLeaveListenOutputs)
-	m.Group.ListenOutputs(m.app, m.router.UsersChan, m.UsersListenOutputs)
-	m.Items.ListenOutputs(m.app, m.router.ItemsChan, m.ItemListenOutputs)
-	m.Interaction.ListenOutputs(m.app, m.router.InteractionChan, m.InteractionListenOutputs)
-	m.Datas.ListenOutputs(m.app, m.router.DatasChan)
+	m.Chat.ListenOutputs(m.ctx, m.wg, m.app, m.router.ChatChan)
+	m.CommandLine.ListenOutputs(m.ctx, m.wg, m.app, m.router.CommandLineChan)
+	m.Server.ListenOutputs(m.ctx, m.wg, m.app, m.router.ServerChan)
+	m.Navigation.ListenOutputs(m.ctx, m.wg, m.app, m.router.NavChan, m.NavListenOutputs)
+	m.Group.ListenOutputs(m.ctx, m.wg, m.app, m.router.GroupChan, m.GroupListenOutputs)
+	m.Group.ListenOutputs(m.ctx, m.wg, m.app, m.router.GroupLeaveChan, m.GroupLeaveListenOutputs)
+	m.Group.ListenOutputs(m.ctx, m.wg, m.app, m.router.UsersChan, m.UsersListenOutputs)
+	m.Items.ListenOutputs(m.ctx, m.wg, m.app, m.router.ItemsChan, m.ItemListenOutputs)
+	m.Interaction.ListenOutputs(m.ctx, m.wg, m.app, m.router.InteractionChan, m.InteractionListenOutputs)
+	m.Datas.ListenOutputs(m.ctx, m.wg, m.app, m.router.DatasChan)
 }
 
 func (m *MyApp) InitConnect() {

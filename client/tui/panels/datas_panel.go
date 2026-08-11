@@ -1,6 +1,8 @@
 package panel
 
 import (
+	"context"
+	"sync"
 	pr "tap/protocol"
 
 	"github.com/rivo/tview"
@@ -14,22 +16,33 @@ type DatasComponent struct {
 func NewDatasComponent(app *tview.Application) *DatasComponent {
 	src := &DatasComponent{}
 
-	src.View = createTextView("", " Datas ", true, Default, Black)
+	src.View = createTextView("", " Datas ", true)
 	src.View.SetDynamicColors(true).SetWordWrap(true)
 
 	src.Layout = tview.NewFlex().SetDirection(tview.FlexRow).AddItem(src.View, 0, 1, false)
 
 	return src
 }
-
-func (c *DatasComponent) ListenOutputs(app *tview.Application, datasChan <-chan pr.ServerResponse) {
+func (c *DatasComponent) ListenOutputs(ctx context.Context, wg *sync.WaitGroup, app *tview.Application, datasChan <-chan pr.ServerResponse) {
+	wg.Add(1)
 	go func() {
-		for res := range datasChan {
-			app.QueueUpdateDraw(func() {
-				c.View.Clear()
+		defer wg.Done()
 
-				c.View.SetText(res.Msg)
-			})
+		for {
+			select {
+			case <-ctx.Done():
+				return
+
+			case res, ok := <-datasChan:
+				if !ok {
+					return
+				}
+
+				app.QueueUpdateDraw(func() {
+					c.View.Clear()
+					c.View.SetText(res.Msg)
+				})
+			}
 		}
 	}()
 }

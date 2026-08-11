@@ -1,8 +1,10 @@
 package panel
 
 import (
+	"context"
 	"fmt"
 	"strings"
+	"sync"
 	pr "tap/protocol"
 
 	"github.com/rivo/tview"
@@ -22,7 +24,7 @@ func NewServerResponseComponent(app *tview.Application) *ServerResponseComponent
 	src.CliBtn = tview.NewButton("CLI")
 	src.QuitBtn = tview.NewButton("QUIT")
 
-	src.History = createTextView("", " Server Responses ", true, Default, Black)
+	src.History = createTextView("", " Server Responses ", true)
 
 	src.Buttons = tview.NewFlex().SetDirection(tview.FlexColumn).
 		AddItem(nil, 1, 0, false).
@@ -38,25 +40,35 @@ func NewServerResponseComponent(app *tview.Application) *ServerResponseComponent
 	return src
 }
 
-func (c *ServerResponseComponent) ListenOutputs(app *tview.Application, ServerChan <-chan pr.ServerResponse) {
-	// TO CHANGE
-
+func (c *ServerResponseComponent) ListenOutputs(ctx context.Context, wg *sync.WaitGroup, app *tview.Application, ServerChan <-chan pr.ServerResponse) {
+	wg.Add(1)
 	go func() {
-		for res := range ServerChan {
-			msg_type := res.Msg
-			msg_text := ""
+		defer wg.Done()
 
-			if strings.ContainsRune(res.Msg, ' ') {
-				split_msg := strings.SplitN(res.Msg, " ", 2)
+		for {
+			select {
+			case <-ctx.Done():
+				return
 
-				msg_type = split_msg[0]
-				msg_text = split_msg[1]
+			case res, ok := <-ServerChan:
+				if !ok {
+					return
+				}
+
+				msg_type := res.Msg
+				msg_text := ""
+
+				if strings.ContainsRune(res.Msg, ' ') {
+					split_msg := strings.SplitN(res.Msg, " ", 2)
+					msg_type = split_msg[0]
+					msg_text = split_msg[1]
+				}
+
+				color := GetResponseColor(res)
+				app.QueueUpdateDraw(func() {
+					fmt.Fprintf(c.History, "[%s]%s [white]%s\n", color, msg_type, msg_text)
+				})
 			}
-
-			color := GetResponseColor(res)
-			app.QueueUpdateDraw(func() {
-				fmt.Fprintf(c.History, "[%s]%s [white]%s\n", color, msg_type, msg_text)
-			})
 		}
 	}()
 }

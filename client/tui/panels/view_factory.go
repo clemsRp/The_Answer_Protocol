@@ -5,109 +5,114 @@ import (
 	"github.com/rivo/tview"
 )
 
-var (
-	Black   = tcell.NewRGBColor(0, 0, 0)
-	Default = tcell.ColorDefault
-)
+type Focusable interface {
+	SetFocusFunc(callback func()) *tview.Box
+	SetBlurFunc(callback func()) *tview.Box
+}
 
-func createTextView(text string, title string, hasBorder bool, textColor tcell.Color, backgroundColor tcell.Color) *tview.TextView {
+func BindContainerFocus(container *tview.Flex, children ...Focusable) {
+	for _, child := range children {
+		child.SetFocusFunc(func() {
+			container.SetBorderColor(AppTheme.BorderActive)
+			container.SetTitleColor(AppTheme.TitleActive)
+		})
+		child.SetBlurFunc(func() {
+			container.SetBorderColor(AppTheme.BorderInactive)
+			container.SetTitleColor(AppTheme.TitleInactive)
+		})
+	}
+}
+
+func createTextView(text string, title string, hasBorder bool) *tview.TextView {
 	tv := tview.NewTextView()
-
 	tv.SetText(text)
-	tv.SetTextColor(textColor)
-	tv.SetBackgroundColor(backgroundColor)
+	tv.SetTextColor(AppTheme.TextPrimary)
+	tv.SetBackgroundColor(AppTheme.Background)
 	tv.SetDynamicColors(true)
 	tv.SetBorder(hasBorder)
+	tv.SetBorderColor(AppTheme.BorderInactive)
+
 	if title != "" {
 		tv.SetTitle(title)
+		tv.SetTitleColor(AppTheme.TitleInactive)
 	}
-	inactiveColor := tcell.ColorDimGray
-	activeColor := tcell.ColorYellow
-	tv.SetBorderColor(inactiveColor)
+
 	tv.SetFocusFunc(func() {
-		tv.SetBorderColor(activeColor)
-		tv.SetTitleColor(activeColor)
+		tv.SetBorderColor(AppTheme.BorderActive)
+		tv.SetTitleColor(AppTheme.TitleActive)
 	})
 	tv.SetBlurFunc(func() {
-		tv.SetBorderColor(inactiveColor)
-		tv.SetTitleColor(tcell.ColorWhite)
+		tv.SetBorderColor(AppTheme.BorderInactive)
+		tv.SetTitleColor(AppTheme.TitleInactive)
 	})
-
 	return tv
 }
 
-func createListView(title string, hasBorder bool, panelColor tcell.Color, shortcutColor tcell.Color, selectedBgColor tcell.Color, backgroundColor tcell.Color, highlightFullLine bool, showSecondaryText bool) *tview.List {
+func createListView(title string, hasBorder bool, highlightFullLine bool, showSecondaryText bool) *tview.List {
 	l := tview.NewList()
-
-	l.SetMainTextColor(panelColor)
-	l.SetShortcutColor(shortcutColor)
-	l.SetSelectedBackgroundColor(selectedBgColor)
-	l.SetBackgroundColor(backgroundColor)
+	l.SetMainTextColor(AppTheme.TextPrimary)
+	l.SetShortcutColor(AppTheme.TextHighlight)
+	l.SetSelectedBackgroundColor(AppTheme.ListSelectedBg)
+	l.SetSelectedTextColor(AppTheme.ListSelectedTxt)
+	l.SetBackgroundColor(AppTheme.Background)
 	l.ShowSecondaryText(showSecondaryText)
-
 	l.SetHighlightFullLine(highlightFullLine)
 	l.SetBorder(hasBorder)
+	l.SetBorderColor(AppTheme.BorderInactive)
+
 	if title != "" {
 		l.SetTitle(title)
+		l.SetTitleColor(AppTheme.TitleInactive)
 	}
-	inactiveColor := tcell.ColorDimGray
-	activeColor := tcell.ColorYellow
-	l.SetBorderColor(inactiveColor)
 
 	l.SetFocusFunc(func() {
-		l.SetBorderColor(activeColor)
-		l.SetTitleColor(activeColor)
+		l.SetBorderColor(AppTheme.BorderActive)
+		l.SetTitleColor(AppTheme.TitleActive)
 	})
 	l.SetBlurFunc(func() {
-		l.SetBorderColor(inactiveColor)
-		l.SetTitleColor(tcell.ColorWhite)
+		l.SetBorderColor(AppTheme.BorderInactive)
+		l.SetTitleColor(AppTheme.TitleInactive)
 	})
 	return l
 }
 
-func createFormView(title string, hasBorder bool, labelColor tcell.Color, buttonColor tcell.Color, buttonBgColor tcell.Color, backgroundColor tcell.Color) *tview.Form {
-	f := tview.NewForm()
-
-	f.SetLabelColor(labelColor)
-	f.SetButtonTextColor(buttonColor)
-	f.SetButtonBackgroundColor(buttonBgColor)
-	f.SetBackgroundColor(backgroundColor)
-
-	f.SetBorder(hasBorder)
-	inactiveColor := tcell.ColorDimGray
-	activeColor := tcell.ColorYellow
-	f.SetBorderColor(inactiveColor)
-	if title != "" {
-		f.SetTitle(title)
-	}
-
-	f.SetFocusFunc(func() {
-		f.SetBorderColor(activeColor)
-		f.SetTitleColor(activeColor)
-	})
-	f.SetBlurFunc(func() {
-		f.SetBorderColor(inactiveColor)
-		f.SetTitleColor(tcell.ColorWhite)
-	})
-
-	return f
-}
-
-func createInputField(title string, hasBorder bool, label string, labelColor tcell.Color, fieldColor tcell.Color, backgroundColor tcell.Color) *tview.InputField {
+func createInputField(title string, hasBorder bool, label string) *tview.InputField {
 	input := tview.NewInputField()
-
 	input.SetLabel(label)
-	input.SetLabelColor(labelColor)
-	input.SetFieldTextColor(fieldColor)
-	input.SetBackgroundColor(backgroundColor)
-	input.SetFieldBackgroundColor(backgroundColor)
-
+	input.SetLabelColor(AppTheme.TextSecondary)
+	input.SetFieldTextColor(AppTheme.TextPrimary)
+	input.SetBackgroundColor(AppTheme.Background)
+	input.SetFieldBackgroundColor(AppTheme.Background)
 	input.SetBorder(hasBorder)
+	input.SetBorderColor(AppTheme.BorderInactive)
+
 	if title != "" {
 		input.SetTitle(title)
+		input.SetTitleColor(AppTheme.TitleInactive)
 	}
 
+	input.SetFocusFunc(func() {
+		input.SetBorderColor(AppTheme.BorderActive)
+		input.SetTitleColor(AppTheme.TitleActive)
+	})
+	input.SetBlurFunc(func() {
+		input.SetBorderColor(AppTheme.BorderInactive)
+		input.SetTitleColor(AppTheme.TitleInactive)
+	})
 	return input
+}
+
+func createSelectField(label string, options []string, index int) *tview.DropDown {
+	s := tview.NewDropDown().
+		SetLabel(label).
+		SetOptions(options, nil)
+
+	s.SetLabelColor(AppTheme.TextSecondary)
+	s.SetFieldTextColor(AppTheme.TextPrimary)
+	s.SetFieldBackgroundColor(AppTheme.Background)
+	s.SetBackgroundColor(AppTheme.Background)
+	s.SetCurrentOption(index)
+	return s
 }
 
 func createVerticalInputField(labelText string, labelColor tcell.Color, inputField *tview.InputField) tview.Primitive {
@@ -120,14 +125,4 @@ func createVerticalInputField(labelText string, labelColor tcell.Color, inputFie
 		AddItem(inputField, 1, 1, true)
 
 	return container
-}
-
-func createSelectField(label string, options []string, index int) *tview.DropDown {
-	s := tview.NewDropDown().
-		SetLabel(label).
-		SetOptions(options, nil)
-
-	s.SetCurrentOption(index)
-
-	return s
 }

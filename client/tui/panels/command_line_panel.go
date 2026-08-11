@@ -1,9 +1,11 @@
 package panel
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"slices"
+	"sync"
 	pr "tap/protocol"
 
 	"github.com/gdamore/tcell/v2"
@@ -19,13 +21,13 @@ type CommandLineComponent struct {
 func NewCommandLineComponent(app *tview.Application, inputs chan<- string) *CommandLineComponent {
 	command_line := &CommandLineComponent{}
 
-	command_line.History = createTextView("", "", true, Default, Black)
+	command_line.History = createTextView("", "", true)
 	command_line.History.SetBorder(false)
 
 	command_line.Input = tview.NewInputField().
 		SetLabel("tap-cli> ").
 		SetFieldWidth(0).
-		SetFieldBackgroundColor(Black)
+		SetFieldBackgroundColor(AppTheme.Background)
 
 	inputRow := tview.NewFlex().SetDirection(tview.FlexColumn).
 		AddItem(command_line.Input, 0, 1, true)
@@ -83,11 +85,20 @@ func NewCommandLineComponent(app *tview.Application, inputs chan<- string) *Comm
 	return command_line
 }
 
-func (c *CommandLineComponent) ListenOutputs(app *tview.Application, commandLineChan <-chan pr.ServerResponse) {
+func (c *CommandLineComponent) ListenOutputs(ctx context.Context, wg *sync.WaitGroup, app *tview.Application, commandLineChan <-chan pr.ServerResponse) {
+	wg.Add(1)
 	go func() {
-		for res := range commandLineChan {
+		defer wg.Done()
 
-			app.QueueUpdateDraw(func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+
+			case res, ok := <-commandLineChan:
+				if !ok {
+					return
+				}
 				b, _ := json.Marshal(res.Datas)
 				datas := string(b)
 
@@ -97,8 +108,10 @@ func (c *CommandLineComponent) ListenOutputs(app *tview.Application, commandLine
 
 				msg := fmt.Sprintf("%s %+v", res.Msg, datas)
 
-				fmt.Fprint(c.History, msg+"\n")
-			})
+				app.QueueUpdateDraw(func() {
+					fmt.Fprint(c.History, msg+"\n")
+				})
+			}
 		}
 	}()
 }
