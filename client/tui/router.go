@@ -15,7 +15,8 @@ type Router struct {
 	NavChan         chan pr.ServerResponse
 	GroupChan       chan pr.ServerResponse
 	GroupLeaveChan  chan pr.ServerResponse
-	UsersChan       chan pr.ServerResponse
+	UnGroupedChan   chan pr.ServerResponse
+	GroupedChan     chan pr.ServerResponse
 	ItemsChan       chan pr.ServerResponse
 	InteractionChan chan pr.ServerResponse
 	DatasChan       chan pr.ServerResponse
@@ -32,7 +33,8 @@ func NewRouter(inputs chan string, outputs <-chan pr.ServerResponse) *Router {
 		NavChan:         make(chan pr.ServerResponse, 100),
 		GroupChan:       make(chan pr.ServerResponse, 100),
 		GroupLeaveChan:  make(chan pr.ServerResponse, 100),
-		UsersChan:       make(chan pr.ServerResponse, 100),
+		UnGroupedChan:   make(chan pr.ServerResponse, 100),
+		GroupedChan:     make(chan pr.ServerResponse, 100),
 		ItemsChan:       make(chan pr.ServerResponse, 100),
 		InteractionChan: make(chan pr.ServerResponse, 100),
 		DatasChan:       make(chan pr.ServerResponse, 100),
@@ -59,8 +61,13 @@ func (r *Router) HandleEvents(res pr.ServerResponse) {
 		r.InteractionChan <- res
 	}
 
-	// andle GROUP responses
+	// Handle GROUP responses
 	if strings.HasPrefix(res.Msg, "EVT GROUP") {
+		r.GroupChan <- res
+	}
+
+	// Handle new_leader
+	if strings.HasPrefix(res.Msg, "EVT new_leader=") {
 		r.GroupChan <- res
 	}
 }
@@ -105,8 +112,16 @@ func (r *Router) handleLastCommandResponse(res pr.ServerResponse) {
 		r.InteractionChan <- res
 	case pr.CmdChat:
 		r.ChatChan <- res
-	case pr.CmdUsers:
-		r.UsersChan <- res
+	case pr.CmdUnGrouped:
+		r.UnGroupedChan <- res
+	case pr.CmdGrouped:
+		r.GroupedChan <- res
+	case pr.PromoteGroup:
+		r.GroupedChan <- res
+	case pr.AcceptPromoteGroup:
+		r.GroupChan <- res
+	case pr.DeclinePromoteGroup:
+		r.GroupChan <- res
 	case pr.JoinGroup:
 		r.GroupChan <- res
 	case pr.CreateGroup:

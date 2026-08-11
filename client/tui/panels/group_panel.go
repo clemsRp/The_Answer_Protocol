@@ -13,10 +13,13 @@ type GroupComponent struct {
 }
 
 type GroupDatas struct {
-	Group       string
-	Leader      bool
-	Users       *[]string
-	Invitations *[]string
+	Group         string
+	Leader        bool
+	Promotion     bool
+	SendPromotion bool
+	Grouped       *[]string
+	UnGrouped     *[]string
+	Invitations   *[]string
 }
 
 func NewGroupComponent(
@@ -43,6 +46,7 @@ func NewGroupComponent(
 
 	val_color := "yellow"
 
+	// Display datas
 	datas.AddItem(fmt.Sprintf("Group: [%s]%s", val_color, cur_group), "", 0, nil)
 	datas.AddItem(fmt.Sprintf("Leader: [%s]%t", val_color, groupDatas.Leader), "", 0, nil)
 
@@ -56,10 +60,12 @@ func NewGroupComponent(
 	src.Layout.AddItem(makeSpacer(1), 1, 1, false)
 
 	if groupDatas.Group == "" {
+		// Create button
 		create_btn := tview.NewButton("Create").SetSelectedFunc(func() { inputs <- "GROUP CREATE" })
 		src.Layout.AddItem(create_btn, 1, 1, false)
 
 		if groupDatas.Invitations != nil && len(*groupDatas.Invitations) != 0 {
+			// Join button
 			join_func := func(invitations *[]string, inv string) {
 				inputs <- "GROUP JOIN " + inv
 
@@ -81,9 +87,10 @@ func NewGroupComponent(
 
 	} else {
 		if groupDatas.Leader {
+			// Invite button
 			invite_func := func(users *[]string, user string) {
 				if user == "REFRESH" {
-					inputs <- "USERS"
+					inputs <- "UNGROUPED"
 					return
 				}
 
@@ -100,8 +107,42 @@ func NewGroupComponent(
 					}
 				}
 			}
-			invite_btn := CreateOptionBtn(app, popup, "Invite", groupDatas.Users, onOpenPopup, onClosePopup, invite_func)
+			invite_btn := CreateOptionBtn(app, popup, "Invite", groupDatas.UnGrouped, onOpenPopup, onClosePopup, invite_func)
 			src.Layout.AddItem(invite_btn, 1, 1, false)
+
+			if !groupDatas.SendPromotion && len(*groupDatas.Grouped) > 0 {
+				// Promote button
+				promote_flex := tview.NewFlex().SetDirection(tview.FlexColumn)
+
+				selector := createSelectField("", *groupDatas.Grouped, 0)
+				promote_btn := tview.NewButton("Promote").SetSelectedFunc(func() {
+					_, new_leader := selector.GetCurrentOption()
+					inputs <- "GROUP PROMOTE " + new_leader
+				})
+
+				promote_flex.AddItem(promote_btn, -1, 1, false)
+				promote_flex.AddItem(makeSpacer(1), 1, 1, false)
+				promote_flex.AddItem(selector, 0, 1, false)
+
+				src.Layout.AddItem(makeSpacer(1), 1, 1, false)
+				src.Layout.AddItem(promote_flex, 1, 1, true)
+			}
+
+		} else if groupDatas.Promotion {
+			// Accept/Decline promotion
+			choice_flex := tview.NewFlex().SetDirection(tview.FlexColumn)
+
+			// Accept button
+			accept_btn := tview.NewButton("✅").SetSelectedFunc(func() { inputs <- "GROUP ACCEPT" })
+			decline_btn := tview.NewButton("❌").SetSelectedFunc(func() { inputs <- "GROUP DECLINE" })
+
+			choice_flex.AddItem(tview.NewTextView().SetTitle("Get promoted: "), 15, 1, false)
+			choice_flex.AddItem(makeSpacer(1), 1, 1, false)
+			choice_flex.AddItem(accept_btn, 1, 1, true)
+			choice_flex.AddItem(makeSpacer(1), 1, 1, false)
+			choice_flex.AddItem(decline_btn, 1, 1, true)
+
+			src.Layout.AddItem(choice_flex, 0, 1, true)
 		}
 
 		src.Layout.AddItem(makeSpacer(1), 1, 1, false)

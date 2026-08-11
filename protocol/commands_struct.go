@@ -31,8 +31,12 @@ type InventoryCommandData struct {
 	ItemsInInventory []string
 }
 
-type UsersCommandData struct {
-	Users []string
+type UnGroupedCommandData struct {
+	UnGrouped []string
+}
+
+type GroupedCommandData struct {
+	Grouped []string
 }
 
 type QuestData struct {

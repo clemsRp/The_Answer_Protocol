@@ -14,7 +14,8 @@ const (
 	CmdQuest     = "QUEST"
 	CmdQuests    = "QUESTS"
 	CmdWho       = "WHO"
-	CmdUsers     = "USERS"
+	CmdUnGrouped = "UNGROUPED"
+	CmdGrouped   = "GROUPED"
 	CmdGroup     = "GROUP"
 	CmdQuit      = "QUIT"
 

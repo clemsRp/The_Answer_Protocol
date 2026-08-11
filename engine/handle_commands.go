@@ -43,8 +43,10 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
 		return e.handleCmdWho(req)
 	case pr.CmdLook:
 		return e.handleCmdLook(player, req)
-	case pr.CmdUsers:
-		return e.handleCmdUsers(req)
+	case pr.CmdUnGrouped:
+		return e.handleCmdUnGrouped(player, req)
+	case pr.CmdGrouped:
+		return e.handleCmdGrouped(player, req)
 	case pr.CmdMove:
 		return e.handleCmdMove(player, req)
 	case pr.CmdChat:

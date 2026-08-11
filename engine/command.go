@@ -64,7 +64,7 @@ func (e *Engine) handleCmdWho(req []string) (string, any, error) {
 	return fmt.Sprintf("OK players=%d", len(e.players)), "", nil
 }
 
-func (e *Engine) handleCmdUsers(req []string) (string, any, error) {
+func (e *Engine) handleCmdUnGrouped(player *Player, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
@@ -73,12 +73,29 @@ func (e *Engine) handleCmdUsers(req []string) (string, any, error) {
 	// Get players
 	users := make([]string, 0)
 	for _, cli := range e.players {
-		if cli.group == "" {
+		if cli.name != player.name && cli.group == "" {
 			users = append(users, cli.name)
 		}
 	}
 
-	return "OK", pr.UsersCommandData{Users: users}, nil
+	return "OK", pr.UnGroupedCommandData{UnGrouped: users}, nil
+}
+
+func (e *Engine) handleCmdGrouped(player *Player, req []string) (string, any, error) {
+	// Handle invalid command
+	if len(req) != 1 {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
+	// Get players
+	users := make([]string, 0)
+	for _, cli := range e.players {
+		if cli.name != player.name && cli.group != "" {
+			users = append(users, cli.name)
+		}
+	}
+
+	return "OK", pr.GroupedCommandData{Grouped: users}, nil
 }
 
 func (e *Engine) handleCmdLook(player *Player, req []string) (string, any, error) {

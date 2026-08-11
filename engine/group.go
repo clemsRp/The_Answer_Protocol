@@ -165,6 +165,7 @@ func (e *Engine) leave_group(player *Player) (string, error) {
 	e.groups[player.group] = groupSlice
 
 	e.inform_group(player, player.group, "EVT GROUP LEAVE "+player.name)
+	e.inform_group(player, player.group, "EVT new_leader="+e.groups[player.group][0].name)
 
 	// Remove group if needed
 	if len(groupSlice) == 0 {
@@ -192,6 +193,9 @@ func (e *Engine) promote_user(player *Player, new_leader string) (string, error)
 
 	} else if player.name == new_leader {
 		return "", errors.New(pr.ErrAlreadyLeader)
+
+	} else if player.send_promotion {
+		return "", errors.New(pr.ErrNoPermission)
 	}
 
 	// Find new_leader in e.players
@@ -206,6 +210,7 @@ func (e *Engine) promote_user(player *Player, new_leader string) (string, error)
 	}
 
 	// Send promotion
+	player.send_promotion = true
 	targetPlayer.promotion = true
 	e.inform_user(targetPlayer, "EVT GROUP PROMOTE "+new_leader)
 
