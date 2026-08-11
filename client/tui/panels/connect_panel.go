@@ -26,7 +26,7 @@ func SetInputText(input *tview.InputField, text string) {
 }
 
 func NewConnectComponent(m_pseudo *string, inputs chan<- string) tview.Primitive {
-	connect := createInputField(" Connect ", false, "", tcell.ColorGreen, tcell.ColorGreen, tcell.NewRGBColor(0, 0, 0))
+	connect := createInputField(" Connect ", false, "")
 
 	connect.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyRune {

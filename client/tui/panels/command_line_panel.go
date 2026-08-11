@@ -19,13 +19,13 @@ type CommandLineComponent struct {
 func NewCommandLineComponent(app *tview.Application, inputs chan<- string) *CommandLineComponent {
 	command_line := &CommandLineComponent{}
 
-	command_line.History = createTextView("", "", true, Default, Black)
+	command_line.History = createTextView("", "", true)
 	command_line.History.SetBorder(false)
 
 	command_line.Input = tview.NewInputField().
 		SetLabel("tap-cli> ").
 		SetFieldWidth(0).
-		SetFieldBackgroundColor(Black)
+		SetFieldBackgroundColor(AppTheme.Background)
 
 	inputRow := tview.NewFlex().SetDirection(tview.FlexColumn).
 		AddItem(command_line.Input, 0, 1, true)

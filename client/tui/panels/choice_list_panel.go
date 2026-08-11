@@ -35,7 +35,7 @@ func NewChoiceListComponent[T AllowedOptions](
 ) *ChoiceListComponent {
 
 	src := &ChoiceListComponent{}
-	src.List = createListView(" "+title+" ", true, Default, Default, tcell.ColorBlue, Black, false, true)
+	src.List = createListView(" "+title+" ", true, false, true)
 	src.Layout = tview.NewFlex().SetDirection(tview.FlexRow).AddItem(src.List, 0, 1, false)
 
 	switch opts := any(options).(type) {

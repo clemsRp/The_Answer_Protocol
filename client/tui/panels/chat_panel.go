@@ -124,7 +124,7 @@ func NewChatComponent(app *tview.Application, inputs chan<- string) *ChatCompone
 }
 
 func NewHistoryComponent(scope string) *tview.TextView {
-	history := createTextView("", "", true, Default, Black)
+	history := createTextView("", "", true)
 	history.
 		SetBorder(true).
 		SetTitle(fmt.Sprintf(" %s ", scope))

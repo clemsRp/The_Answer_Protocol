@@ -35,7 +35,6 @@ var (
 )
 
 func NewMyApp(ctx context.Context, router *Router) *MyApp {
-	tview.Styles.PrimitiveBackgroundColor = panel.Black
 
 	m := &MyApp{
 		app:     tview.NewApplication(),
@@ -46,9 +45,6 @@ func NewMyApp(ctx context.Context, router *Router) *MyApp {
 		router:  router,
 		ctx:     ctx,
 	}
-
-	m.connect.SetBackgroundColor(panel.Black)
-	m.popup.SetBackgroundColor(panel.Black)
 
 	m.setupComponents()
 	m.setupGrid()

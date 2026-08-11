@@ -22,7 +22,7 @@ func NewServerResponseComponent(app *tview.Application) *ServerResponseComponent
 	src.CliBtn = tview.NewButton("CLI")
 	src.QuitBtn = tview.NewButton("QUIT")
 
-	src.History = createTextView("", " Server Responses ", true, Default, Black)
+	src.History = createTextView("", " Server Responses ", true)
 
 	src.Buttons = tview.NewFlex().SetDirection(tview.FlexColumn).
 		AddItem(nil, 1, 0, false).

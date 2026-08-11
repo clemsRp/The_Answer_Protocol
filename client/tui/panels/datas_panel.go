@@ -14,7 +14,7 @@ type DatasComponent struct {
 func NewDatasComponent(app *tview.Application) *DatasComponent {
 	src := &DatasComponent{}
 
-	src.View = createTextView("", " Datas ", true, Default, Black)
+	src.View = createTextView("", " Datas ", true)
 	src.View.SetDynamicColors(true).SetWordWrap(true)
 
 	src.Layout = tview.NewFlex().SetDirection(tview.FlexRow).AddItem(src.View, 0, 1, false)
