@@ -1,10 +1,15 @@
 package parser
 
-import (
-	"encoding/json"
-	"errors"
-	"os"
-)
+type PlayerInfo struct {
+	Name      string   `json:"name"`
+	Location  string   `json:"location"`
+	Hp        int      `json:"hp"`
+	HpMax     int      `json:"hp_max"`
+	Room      string   `json:"room"`
+	Group     string   `json:"group"`
+	Inventory []string `json:"inventory"`
+	Quests    []Quest  `json:"quests"`
+}
 
 type Stats struct {
 	Hp     int    `json:"hp"`
@@ -18,12 +23,6 @@ type Quest struct {
 	Status      string `json:"status"`
 }
 
-type Item struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Obtainable  bool   `json:"obtainable"`
-}
-
 type Npc struct {
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
@@ -31,6 +30,7 @@ type Npc struct {
 	Role        string   `json:"role"`
 	QuestId     string   `json:"quest_id"`
 	Stats       Stats    `json:"stats"`
+	Hostile     bool     `json:"hostile"`
 }
 
 type Room struct {
@@ -47,32 +47,22 @@ type Map struct {
 	Npcs   map[string]*Npc   `json:"npcs"`
 	Quests map[string]*Quest `json:"quests"`
 }
+type Item struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Obtainable  bool   `json:"obtainable"`
+	Type        string `json:"type"`
+	Tradable    bool   `json:"tradable"`
+	Worth       int    `json:"worth"`
+}
 
-func Get_map(map_path string) (Map, error) {
-	// Get map file content
-	file, err := os.ReadFile(map_path)
-	if err != nil {
-		return Map{}, errors.New("Invalid file path: Permission denied or File doesn't exist")
-	}
+type Weapon struct {
+	Damage   int
+	Worth    int
+	Tradable bool
+}
 
-	// Validate map
-	err = valid_map(file)
-	if err != nil {
-		return Map{}, err
-	}
-
-	// Convert map from file to Map structure
-	var worlds []Map
-	err = json.Unmarshal(file, &worlds)
-	if err != nil {
-		return Map{}, errors.New("Invalid file: JSON file must be parsable")
-	}
-
-	// Handle invalid values
-	err = worlds[0].IsValidMap()
-	if err != nil {
-		return Map{}, err
-	}
-
-	return worlds[0], nil
+type Ressource struct {
+	Worth    int
+	Tradable bool
 }

@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 	"tap/engine"
-	"tap/engine/parser"
+	"tap/protocol/parser"
 	pr "tap/protocol"
 	"tap/server"
 	"time"

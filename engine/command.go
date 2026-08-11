@@ -23,11 +23,12 @@ func (e *Engine) handleCmdConnect(ip string, req []string) (string, any, error) 
 	}
 
 	player := &Player{
-		name:  pseudo,
-		room:  "entrance",
-		hp:    100,
-		hpMax: 100,
-		ip:    ip,
+		name:   pseudo,
+		room:   "entrance",
+		hp:     100,
+		hpMax:  100,
+		ip:     ip,
+		status: "idle",
 	}
 	e.players[pseudo] = player
 	e.sessions[ip] = pseudo
@@ -370,28 +371,14 @@ func (e *Engine) handleCmdTalk(player *Player, req []string) (string, any, error
 }
 
 func (e *Engine) handleCmdAttack(player *Player, req []string) (string, any, error) {
-	// Handle invalid command
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
+	npcName := req[1]
 
-	npc := req[1]
-	for npc_name, npc_datas := range e.world.Npcs {
-		if npc_name == npc {
-			for _, room_npc := range e.world.Rooms[player.room].Npcs {
-				if room_npc == npc {
-					// Format response
-					Datas := make(map[string]any)
-					Datas["attacker_hp"] = player.hp
-					Datas["target_hp"] = npc_datas.Stats.Hp
-					Datas["damage"] = 10
-					Datas["status"] = "combat"
-
-					return "OK", Datas, nil
-				}
-			}
-		}
+	if player.status == "combat" {
+		return e.processCombatTurn(player, npcName)
 	}
 
-	return "", "", errors.New(pr.ErrNpcNotFound)
+	return e.initiateCombat(player, npcName)
 }

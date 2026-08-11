@@ -29,14 +29,8 @@ func (e *Engine) remove_user_in_group(player *Player, group []*Player) []*Player
 
 func (e *Engine) create_group(player *Player) (string, error) {
 	// Create group ID
-	var group_id string
 
-	for {
-		group_id = uuid.New().String()
-		if _, exists := e.groups[group_id]; !exists {
-			break
-		}
-	}
+	group_id := uuid.New().String()
 
 	// Check user already in a group
 	if player.group != "" {

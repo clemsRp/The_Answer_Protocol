@@ -1,5 +1,7 @@
 package engine
 
+import "tap/protocol/parser"
+
 type Player struct {
 	ip         string
 	name       string
@@ -12,4 +14,7 @@ type Player struct {
 	quests     []string
 	invitation []string
 	promotion  bool
+	combatId   string
+	weapon     *parser.Weapon
 }
+

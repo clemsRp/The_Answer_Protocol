@@ -3,8 +3,8 @@ package network
 import (
 	"runtime"
 	"tap/engine"
-	"tap/engine/parser"
 	pr "tap/protocol"
+	"tap/protocol/parser"
 	"tap/server"
 	"tap/tests/utils"
 	"testing"
