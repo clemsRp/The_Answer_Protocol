@@ -1,7 +1,9 @@
 package panel
 
 import (
+	"context"
 	"fmt"
+	"sync"
 	pr "tap/protocol"
 
 	"github.com/gdamore/tcell/v2"
@@ -239,13 +241,26 @@ func CreateOptionBtn(
 	return btn
 }
 
-func (c *GroupComponent) ListenOutputs(app *tview.Application, Chan <-chan pr.ServerResponse, function func(pr.ServerResponse)) {
+func (c *GroupComponent) ListenOutputs(ctx context.Context, wg *sync.WaitGroup, app *tview.Application, Chan <-chan pr.ServerResponse, function func(pr.ServerResponse)) {
+	wg.Add(1)
 	go func() {
-		for res := range Chan {
-			response := res
-			app.QueueUpdateDraw(func() {
-				function(response)
-			})
+		defer wg.Done()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+
+			case res, ok := <-Chan:
+				if !ok {
+					return
+				}
+
+				response := res
+				app.QueueUpdateDraw(func() {
+					function(response)
+				})
+			}
 		}
 	}()
 }

@@ -1,8 +1,10 @@
 package panel
 
 import (
+	"context"
 	"fmt"
 	"strings"
+	"sync"
 
 	pr "tap/protocol"
 
@@ -132,31 +134,47 @@ func NewHistoryComponent(scope string) *tview.TextView {
 	return history
 }
 
-func (c *ChatComponent) ListenOutputs(app *tview.Application, chatChan <-chan pr.ServerResponse) {
+func (c *ChatComponent) ListenOutputs(ctx context.Context, wg *sync.WaitGroup, app *tview.Application, chatChan <-chan pr.ServerResponse) {
+	wg.Add(1)
 	go func() {
-		for res := range chatChan {
-			// OK
-			if strings.HasPrefix(res.Msg, "EVT") {
-				split_msg := strings.SplitN(res.Msg, " ", 5)
+		defer wg.Done()
 
-				scope := split_msg[1]
-				user := split_msg[3]
-				message := split_msg[4]
+		for {
+			select {
+			case <-ctx.Done():
+				return
 
-				lineChat := fmt.Sprintf("[green]%s: [white]%s\n", user, message)
+			case res, ok := <-chatChan:
+				if !ok {
+					return
+				}
 
-				app.QueueUpdateDraw(func() {
-					if historyView, ok := c.Histories[scope]; ok {
-						fmt.Fprint(historyView, lineChat)
+				if strings.HasPrefix(res.Msg, "EVT") {
+					split_msg := strings.SplitN(res.Msg, " ", 5)
+
+					if len(split_msg) >= 5 {
+						scope := split_msg[1]
+						user := split_msg[3]
+						message := split_msg[4]
+
+						lineChat := fmt.Sprintf("[green]%s: [white]%s\n", user, message)
+
+						app.QueueUpdateDraw(func() {
+							if historyView, exists := c.Histories[scope]; exists {
+								fmt.Fprint(historyView, lineChat)
+							}
+						})
 					}
-				})
 
-			} else if res.Msg == "OK" {
-				formated_msg := fmt.Sprintf("[green]%s: [white]%s\n", pseudo, last_chat.Msg)
+				} else if res.Msg == "OK" {
+					formated_msg := fmt.Sprintf("[green]%s: [white]%s\n", pseudo, last_chat.Msg)
 
-				app.QueueUpdateDraw(func() {
-					fmt.Fprint(c.Histories[last_chat.Scope], formated_msg)
-				})
+					app.QueueUpdateDraw(func() {
+						if historyView, exists := c.Histories[last_chat.Scope]; exists {
+							fmt.Fprint(historyView, formated_msg)
+						}
+					})
+				}
 			}
 		}
 	}()

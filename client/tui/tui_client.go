@@ -34,7 +34,7 @@ func NewTuiClient(conn net.Conn) *TuiClient {
 	}
 
 	router := NewRouter(cli.ctx, cli.inputs, cli.outputs)
-	cli.app = NewMyApp(cli.ctx, router)
+	cli.app = NewMyApp(cli.ctx, &cli.wg, router)
 
 	return &cli
 }
@@ -68,6 +68,7 @@ func (tui *TuiClient) listenResponses() {
 	defer tui.wg.Done()
 	scanner := bufio.NewScanner(tui.conn)
 	tui.disconnectMsg = "Closed the app and the connection gracefully."
+
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line == "" {

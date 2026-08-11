@@ -1,9 +1,11 @@
 package panel
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"slices"
+	"sync"
 	pr "tap/protocol"
 
 	"github.com/gdamore/tcell/v2"
@@ -83,11 +85,20 @@ func NewCommandLineComponent(app *tview.Application, inputs chan<- string) *Comm
 	return command_line
 }
 
-func (c *CommandLineComponent) ListenOutputs(app *tview.Application, commandLineChan <-chan pr.ServerResponse) {
+func (c *CommandLineComponent) ListenOutputs(ctx context.Context, wg *sync.WaitGroup, app *tview.Application, commandLineChan <-chan pr.ServerResponse) {
+	wg.Add(1)
 	go func() {
-		for res := range commandLineChan {
+		defer wg.Done()
 
-			app.QueueUpdateDraw(func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+
+			case res, ok := <-commandLineChan:
+				if !ok {
+					return
+				}
 				b, _ := json.Marshal(res.Datas)
 				datas := string(b)
 
@@ -97,8 +108,10 @@ func (c *CommandLineComponent) ListenOutputs(app *tview.Application, commandLine
 
 				msg := fmt.Sprintf("%s %+v", res.Msg, datas)
 
-				fmt.Fprint(c.History, msg+"\n")
-			})
+				app.QueueUpdateDraw(func() {
+					fmt.Fprint(c.History, msg+"\n")
+				})
+			}
 		}
 	}()
 }
