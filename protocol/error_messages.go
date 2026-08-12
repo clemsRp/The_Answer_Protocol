@@ -33,9 +33,10 @@ const (
 
 // NPCs & Quests
 const (
-	ErrNpcNotFound      = "ERR 404 NPC_NOT_FOUND"
-	ErrNpcNotHostile    = "ERR 405 NPC_NOT_HOSTILE"
-	ErrNoQuestAvailable = "ERR 406 NO_QUEST_AVAILABLE"
+	ErrNpcNotFound       = "ERR 404 NPC_NOT_FOUND"
+	ErrNpcNotHostile     = "ERR 405 NPC_NOT_HOSTILE"
+	ErrNoQuestAvailable  = "ERR 406 NO_QUEST_AVAILABLE"
+	ErrNotYourTurnToPlay = "ERR 407 NOT_YOUR_TURN"
 )
 
 // Internal server

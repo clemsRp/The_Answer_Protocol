@@ -35,13 +35,21 @@
                 "name": "Solid Gold Denture",
                 "description": "A premium set of false teeth, perfect for chewing tough meat.",
                 "obtainable": true,
-                "type": "weapon"
+                "type": "weapon",
+                "tradable": true,
+                "worth": 10,
+                "damage": 6
             },
             "suppository_box": {
                 "name": "Discounted Suppository Box",
                 "description": "The very last pack on the shelf. Everyone is fighting for it.",
                 "obtainable": true,
-                "type": "consumable"
+                "type": "consumable",
+                "target_stat": "hp",
+                "amount": 10,
+                "effect_type": "heal",
+                "charges": 6,
+                "duration": 1
             },
             "coin_bag": {
                 "name": "Bag of Small Coins",
@@ -53,7 +61,8 @@
                 "name": "Sword",
                 "description": "A sword",
                 "obtainable": true,
-                "type": "weapon"
+                "type": "weapon",
+                "damage": 10
             }
         },
         "npcs": {

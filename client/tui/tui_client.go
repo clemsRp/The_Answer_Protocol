@@ -118,7 +118,6 @@ func (tui *TuiClient) Start() {
 	tui.Stop()
 
 	tui.wg.Wait()
-
 	if err != nil {
 		fmt.Printf("TUI encountered fatal error: %v\n", err)
 	}

@@ -22,20 +22,16 @@ func (e *Engine) handleCmdConnect(ip string, req []string) (string, any, error) 
 		return "", "", errors.New(pr.ErrNameInUse)
 	}
 
-	player := &Player{
-		name:   pseudo,
-		room:   "entrance",
-		hp:     100,
-		hpMax:  100,
-		ip:     ip,
-		status: "idle",
+	player, err := e.createNewPlayerInstance(pseudo, ip)
+	if err != nil {
+		return "", "", err
 	}
 	e.players[pseudo] = player
 	e.sessions[ip] = pseudo
 	e.dialogues[pseudo] = make(map[string]int)
 
 	e.inform_all(player, fmt.Sprintf("EVT STATS players=%d", len(e.players)))
-	e.inform_room(player, "entrance", "EVT ROOM PRESENCE ENTER "+player.name)
+	e.inform_room(player, player.room, "EVT ROOM PRESENCE ENTER "+player.name)
 
 	return "OK connected", "", nil
 }
@@ -97,23 +93,22 @@ func (e *Engine) handleCmdLook(player *Player, req []string) (string, any, error
 		}
 	}
 
-	currentRoom := e.world.Rooms[player.room]
 	// Format response
 
 	exits := pr.ExitsData{
-		North: currentRoom.Exits["north"],
-		South: currentRoom.Exits["south"],
-		East:  currentRoom.Exits["east"],
-		West:  currentRoom.Exits["west"],
+		North: player.room.Exits["north"],
+		South: player.room.Exits["south"],
+		East:  player.room.Exits["east"],
+		West:  player.room.Exits["west"],
 	}
 	Room := pr.RoomData{
-		Id:          "room." + player.room,
-		Name:        currentRoom.Name,
-		Description: currentRoom.Description,
+		Id:          "room." + player.room.Name,
+		Name:        player.room.Name,
+		Description: player.room.Description,
 		Exits:       exits,
 		Players:     players,
-		Items:       currentRoom.Items,
-		Npcs:        currentRoom.Npcs,
+		Items:       player.room.Items,
+		Npcs:        player.room.Npcs,
 	}
 	res := pr.LookCommandData{
 		Room: Room,
@@ -129,14 +124,13 @@ func (e *Engine) handleCmdMove(player *Player, req []string) (string, any, error
 	}
 
 	direction := req[1]
-	currentRoom := e.world.Rooms[player.room]
 
 	// Check room is valid
-	nextRoom, exists := currentRoom.Exits[direction]
+	nextRoomName, exists := player.room.Exits[direction]
 	if !exists {
 		return "", "", errors.New(pr.ErrNoExit)
 	}
-
+	nextRoom := e.world.Rooms[nextRoomName]
 	e.inform_room(player, player.room, "EVT ROOM PRESENCE LEAVE "+player.name)
 
 	// Change the player room variable
@@ -147,7 +141,7 @@ func (e *Engine) handleCmdMove(player *Player, req []string) (string, any, error
 
 	e.inform_room(player, player.room, "EVT ROOM PRESENCE ENTER "+player.name)
 
-	return fmt.Sprintf("OK room=%s", nextRoom), "", nil
+	return fmt.Sprintf("OK room=%s", nextRoom.Name), "", nil
 }
 
 func (e *Engine) handleCmdChat(player *Player, req []string) (string, any, error) {
@@ -239,9 +233,9 @@ func (e *Engine) handleCmdStatus(player *Player, req []string) (string, any, err
 
 	// Format response
 	res := pr.StatusCommandData{
-		Hp:     player.hp,
-		MaxHp:  player.hpMax,
-		Status: player.status,
+		Hp:     player.stats.Hp,
+		MaxHp:  player.stats.HpMax,
+		Status: player.stats.Status,
 	}
 
 	return "OK", res, nil
@@ -254,10 +248,11 @@ func (e *Engine) handleCmdTake(player *Player, req []string) (string, any, error
 	}
 
 	object := req[1]
-	for obj_index, obj := range e.world.Rooms[player.room].Items {
-		if obj == object {
-			player.inventory = append(player.inventory, object)
-			e.world.Rooms[player.room].Items = append(e.world.Rooms[player.room].Items[:obj_index], e.world.Rooms[player.room].Items[obj_index+1:]...)
+	for obj_index, item_name := range player.room.Items {
+		item := e.world.Items[item_name]
+		if item.Name == object {
+			player.inventory = append(player.inventory, item)
+			player.room.Items = append(player.room.Items[:obj_index], player.room.Items[obj_index+1:]...)
 
 			e.inform_room(player, player.room, "EVT ITEM TOOK "+object)
 
@@ -276,9 +271,9 @@ func (e *Engine) handleCmdDrop(player *Player, req []string) (string, any, error
 
 	object := req[1]
 	for obj_index, obj := range player.inventory {
-		if obj == object {
+		if obj.Name == object {
 			player.inventory = append(player.inventory[:obj_index], player.inventory[obj_index+1:]...)
-			e.world.Rooms[player.room].Items = append(e.world.Rooms[player.room].Items, object)
+			player.room.Items = append(player.room.Items, object)
 
 			e.inform_room(player, player.room, "EVT ITEM DROPPED "+object)
 
@@ -306,7 +301,7 @@ func (e *Engine) handleCmdQuest(player *Player, req []string) (string, any, erro
 	npc := req[1]
 	for npc_name, npc_datas := range e.world.Npcs {
 		if npc_name == npc {
-			for _, room_npc := range e.world.Rooms[player.room].Npcs {
+			for _, room_npc := range player.room.Npcs {
 				if room_npc == npc {
 					if npc_datas.QuestId == "" || e.world.Quests[npc_datas.QuestId].Status == "unavailable" {
 						return "", "", errors.New(pr.ErrNoQuestAvailable)
@@ -349,7 +344,7 @@ func (e *Engine) handleCmdTalk(player *Player, req []string) (string, any, error
 	// Find npc
 	for npc_name, npc_datas := range e.world.Npcs {
 		if npc_name == npc {
-			for _, room_npc := range e.world.Rooms[player.room].Npcs {
+			for _, room_npc := range player.room.Npcs {
 				if room_npc == npc {
 					// Get npc dialogue
 					_, ok := e.dialogues[player.name][npc_name]
@@ -376,7 +371,7 @@ func (e *Engine) handleCmdAttack(player *Player, req []string) (string, any, err
 	}
 	npcName := req[1]
 
-	if player.status == "combat" {
+	if player.inCombat {
 		return e.processCombatTurn(player, npcName)
 	}
 

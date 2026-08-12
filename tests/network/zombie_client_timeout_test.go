@@ -4,7 +4,7 @@ import (
 	"runtime"
 	"tap/engine"
 	pr "tap/protocol"
-	"tap/protocol/parser"
+	"tap/parser"
 	"tap/server"
 	"tap/tests/utils"
 	"testing"

@@ -3,7 +3,6 @@ package engine
 import (
 	"errors"
 	pr "tap/protocol"
-	"tap/protocol/parser"
 
 	"github.com/google/uuid"
 )
@@ -36,9 +35,9 @@ import (
 // - if noone is in combat anymore (everyone fleed) or one PART died, the combat ends.
 
 type CombatSession struct {
-	Attackers   map[string]*Player
-	Enemies     map[string]*parser.Npc
-	CurrentTurn string
+	Id          string
+	Fighters    []Fighter
+	CurrentTurn int
 	Win         bool
 	Cancelled   bool
 }
@@ -50,57 +49,77 @@ type CombatTurnResult struct {
 	Status     string `json:"status"`
 }
 
-func (e *Engine) initiateCombat(player *Player, npcName string) (string, *CombatSession, error) {
-	current_room := e.world.Rooms[player.room]
-
-	npc_base, exists := e.world.Npcs[npcName]
-	if !exists || !isNpcInRoom(*current_room, npcName) {
-		return "", nil, errors.New(pr.ErrNpcNotFound)
+func (e *Engine) getValidTarget(room *Room, npcName string) (*Npc, error) {
+	npcBase, exists := e.world.Npcs[npcName]
+	if !exists || !isNpcInRoom(room, npcName) {
+		return nil, errors.New(pr.ErrNpcNotFound)
 	}
-	if !npc_base.Hostile {
-		return "", nil, errors.New(pr.ErrNpcNotHostile)
+	if !npcBase.Hostile {
+		return nil, errors.New(pr.ErrNpcNotHostile)
+	}
+	return npcBase, nil
+}
+
+func (e *Engine) initiateCombat(player *Player, npcName string) (*CombatSession, error) {
+	npcBase, err := e.getValidTarget(player.room, npcName)
+	if err != nil {
+		return nil, err
 	}
 
 	combatID := uuid.New().String()
-	copy_npc := *npc_base
-	copy_npc.Stats.Status = "combat"
+	combatNpc := npcBase.Clone()
 
-	attackers := make(map[string]*Player)
-	enemies := make(map[string]*parser.Npc)
-	enemies[copy_npc.Name] = &copy_npc
+	combat_session := &CombatSession{Id: combatID, Fighters: []Fighter{}}
+	group, exists := e.getPlayerGroup(player)
 
-	current_group, is_in_group := e.groups[player.group]
-	if !is_in_group {
-		player.status = "combat"
-		player.combatId = combatID
-		attackers[player.name] = player
+	combat_session.addNpcToCombat(combatNpc)
+	if !exists {
+		combat_session.addPlayerToCombat(player)
 	} else {
-		for _, p := range current_group {
-			p.status = "combat"
-			p.combatId = combatID
-			attackers[p.name] = p
+		for _, p := range group.players {
+			combat_session.addPlayerToCombat(p)
 		}
 	}
 
-	combat_session := &CombatSession{
-		Attackers: attackers,
-		Enemies:   enemies,
-	}
 	e.activeCombats[combatID] = combat_session
-	combat_result := CombatTurnResult{AttackerHp: player.hp, TargetHp: npc_base.Stats.Hp, Damage: }
-	return "", combat_session, nil
+
+	return combat_session, nil
 }
 
-func (e *Engine) processCombatTurn(player *Player, targetName string) (string, any, error) {
-	combatSession, exists := e.activeCombats[player.combatId]
+func (cs *CombatSession) addPlayerToCombat(player *Player) {
+	player.inCombat = true
+	player.stats.CombatId = cs.Id
+	cs.Fighters = append(cs.Fighters, player)
+}
+
+func (cs *CombatSession) addNpcToCombat(npc *Npc) {
+	npc.InCombat = true
+	npc.Stats.CombatId = cs.Id
+	cs.Fighters = append(cs.Fighters, npc)
+
+}
+
+func (e *Engine) processCombatTurn(player *Player, targetName string) (string, *CombatTurnResult, error) {
+	if !player.inCombat || player.stats.CombatId == "" {
+		return "OK", nil, errors.New(pr.ErrInternalServer)
+	}
+
+	combatSession, exists := e.activeCombats[player.stats.CombatId]
 	if !exists {
-		player.status = "idle"
-		return "", "", errors.New(pr.ErrInternalServer)
+		player.inCombat = false
+		return "", nil, errors.New(pr.ErrInternalServer)
 	}
 	target, targetExists := combatSession.Enemies[targetName]
 	if !targetExists {
-		return "", "", errors.New(pr.ErrNpcNotFound)
+		return "", nil, errors.New(pr.ErrNpcNotFound)
+	}
+	current_turn := combatSession.CurrentTurn
+	if player.name != current_turn {
+		return "", nil, errors.New(pr.ErrNotYourTurnToPlay)
 	}
 
-	return "" + targetName, nil, nil
+	return "" + targetName, *CombatTurnResult, nil
+}
+func (e *Engine) nextToPlay(cs *CombatSession) {
+
 }
