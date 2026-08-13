@@ -365,15 +365,28 @@ func (e *Engine) handleCmdTalk(player *Player, req []string) (string, any, error
 	return "", "", errors.New(pr.ErrNpcNotFound)
 }
 
+// Dans la commande attack tout en bas, je voudrais:
+
+// 1. d'abord verifier que la target est valide, si le Npc est dans la room pour l'instanciation du combat, ou si le Npc est dans les Fighters du combat session. ensuite recuperer le Npc_copy de cette fonction ou une erreur.
+
+// 2. Dans l'instanciation, arranger le slice fighters par rapport  a l'initiative de chacun
+
 func (e *Engine) handleCmdAttack(player *Player, req []string) (string, any, error) {
+
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 	npcName := req[1]
-
-	if player.inCombat {
-		return e.processCombatTurn(player, npcName)
+	npc_copy, err := e.getValidTarget(player, npcName)
+	if err != nil {
+		return "", "", err
 	}
-
-	return e.initiateCombat(player, npcName)
+	combat_session, exists := e.activeCombats[player.stats.CombatId]
+	if !exists {
+		return e.initiateCombat(player, npcName)
+	}
+	if !combat_session.isFighterTurn(player) {
+		return "", "", errors.New(pr.ErrNotYourTurnToPlay)
+	}
+	return combat_session.processCombatTurn(player, npc_copy)
 }

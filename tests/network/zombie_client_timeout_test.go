@@ -4,7 +4,6 @@ import (
 	"runtime"
 	"tap/engine"
 	pr "tap/protocol"
-	"tap/parser"
 	"tap/server"
 	"tap/tests/utils"
 	"testing"
@@ -20,7 +19,7 @@ func TestZombieClientTimeout(t *testing.T) {
 		JoinChan:     make(chan string, 10),
 		LeaveChan:    make(chan string, 10)}
 
-	world, err := parser.Get_map("../../world.json")
+	world, err := engine.Get_map("../../world.json")
 	if err != nil {
 		t.Fatalf("ERROR parsing: %v", err)
 	}

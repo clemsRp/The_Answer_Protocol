@@ -4,7 +4,6 @@ import (
 	"io"
 	"log"
 	"tap/engine"
-	"tap/parser"
 	pr "tap/protocol"
 	"tap/server"
 	"testing"
@@ -20,7 +19,7 @@ func SetupTestServerEngine(t *testing.T, world_path string) (*server.Server, *en
 
 	var err error
 	var world *engine.Map
-	world, err = parser.Get_map(world_path)
+	world, err = engine.Get_map(world_path)
 	if err != nil {
 		t.Fatalf("ERROR parsing: %v", err.Error())
 	}

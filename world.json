@@ -75,11 +75,7 @@
                 ],
                 "role": "quest",
                 "quest_id": "buy_denture",
-                "stats": {
-                    "hp": 15,
-                    "max_hp": 15,
-                    "status": "healthy"
-                }
+                "hostile": false
             },
             "grandpa_gaston": {
                 "name": "Grandpa Gaston",
@@ -92,8 +88,10 @@
                 "stats": {
                     "hp": 10,
                     "max_hp": 10,
-                    "status": "healthy"
-                }
+                    "status": "healthy",
+                    "initiative": 100
+                },
+                "hostile": true
             }
         },
         "quests": {

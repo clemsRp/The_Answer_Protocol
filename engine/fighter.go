@@ -10,7 +10,7 @@ const (
 type CombatStats struct {
 	Hp         int    `json:"hp"`
 	Initiative int    `json:"initiative"`
-	HpMax      int    `json:"hp_max"`
+	HpMax      int    `json:"max_hp"`
 	CombatId   string `json:"combat_id,omitempty"`
 	Status     string `json:"status,omitempty"`
 }
@@ -26,6 +26,8 @@ func (cs *CombatStats) Clone() *CombatStats {
 type Fighter interface {
 	takeDamage(amount int)
 	isDead() bool
+	getName() string
+	getHp() int
+	getInitiative() int
+	playCombatTurn(target Fighter) *CombatTurnResult
 }
-
-

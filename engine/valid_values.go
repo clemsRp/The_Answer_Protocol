@@ -67,7 +67,7 @@ var (
 	consumable_target_stats = []string{
 		"hp",
 		"mana",
-		"hp_max",
+		"max_hp",
 		"status",
 		"initiative",
 	}
@@ -127,21 +127,25 @@ func IsValidNpc(npc *Npc, m *Map) error {
 			return fmt.Errorf("Invalid map: '%s' quest id doesn't exist", npc.QuestId)
 		}
 	}
+	if npc.Hostile {
+		// Check stats
+		if npc.Stats.Hp < 0 {
+			return fmt.Errorf(
+				"Invalid map: hp must be a positive integer != '%d'",
+				npc.Stats.Hp,
+			)
+		} else if npc.Stats.Hp > npc.Stats.HpMax {
+			return fmt.Errorf(
+				"Invalid map: max_hp must be a positive integer != '%d' and greater or equal than hp (%d)",
+				npc.Stats.HpMax,
+				npc.Stats.Hp,
+			)
+		} else if !is_inside(npc_status, npc.Stats.Status) {
+			return fmt.Errorf("Invalid map: '%s' status doesn't exist", npc.Stats.Status)
+		} else if npc.Stats.Initiative <= 0 {
+			return fmt.Errorf("Invalid map: '%s' initiative can't be under or equal to 0", npc.Name)
 
-	// Check stats
-	if npc.Stats.Hp < 0 {
-		return fmt.Errorf(
-			"Invalid map: hp must be a positive integer != '%d'",
-			npc.Stats.Hp,
-		)
-	} else if npc.Stats.Hp > npc.Stats.HpMax {
-		return fmt.Errorf(
-			"Invalid map: max_hp must be a positive integer != '%d' and greater or equal than hp (%d)",
-			npc.Stats.HpMax,
-			npc.Stats.Hp,
-		)
-	} else if !is_inside(npc_status, npc.Stats.Status) {
-		return fmt.Errorf("Invalid map: '%s' status doesn't exist", npc.Stats.Status)
+		}
 	}
 
 	return nil

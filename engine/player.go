@@ -33,10 +33,25 @@ func (p *Player) isDead() bool {
 	return false
 }
 
+func (p *Player) getHp() int {
+	return p.stats.Hp
+}
+
 func (p *Player) takeDamage(amount int) {
 	p.stats.Hp -= amount
 }
 
+func (p *Player) playCombatTurn(target Fighter) *CombatTurnResult {
+	target.takeDamage(p.equippedWeapon.Damage)
+	turn_result := &CombatTurnResult{AttackerHp: p.getHp(), TargetHp: target.getHp(), Damage: p.equippedWeapon.Damage, Status: "combat"}
+	return turn_result
+}
+func (p *Player) getName() string {
+	return p.name
+}
+func (p *Player) getInitiative() int {
+	return p.stats.Initiative
+}
 func (e *Engine) createNewPlayerInstance(pseudo string, ip string) (*Player, error) {
 	base_item, exists := e.world.Items["sword"]
 	if !exists {

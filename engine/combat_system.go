@@ -2,6 +2,7 @@ package engine
 
 import (
 	"errors"
+	"sort"
 	pr "tap/protocol"
 
 	"github.com/google/uuid"
@@ -49,21 +50,50 @@ type CombatTurnResult struct {
 	Status     string `json:"status"`
 }
 
-func (e *Engine) getValidTarget(room *Room, npcName string) (*Npc, error) {
-	npcBase, exists := e.world.Npcs[npcName]
-	if !exists || !isNpcInRoom(room, npcName) {
+func (e *Engine) getValidTarget(player *Player, targetName string) (*Npc, error) {
+	// if npc doesn't exist in word
+	npcBase, exists := e.world.Npcs[targetName]
+	if !exists {
+		return nil, errors.New(pr.ErrNpcNotFound)
+	}
+	room, ok := e.world.Rooms[player.room.Name]
+	if !ok {
+		return nil, errors.New(pr.ErrInternalServer)
+	}
+	if !isNpcInRoom(room, targetName) {
 		return nil, errors.New(pr.ErrNpcNotFound)
 	}
 	if !npcBase.Hostile {
 		return nil, errors.New(pr.ErrNpcNotHostile)
 	}
+
+	// if player is not in combat return npc found that has been attacked
+	if !player.inCombat {
+		return npcBase.Clone(), nil
+	}
+	// if player in combat, check if targetName is in Fighters of the combat and is a NPC
+	combat_session, exists := e.activeCombats[player.stats.CombatId]
+	if !exists {
+		return nil, errors.New(pr.ErrInternalServer)
+	}
+	for _, fighter := range combat_session.Fighters {
+		switch verifTarget := fighter.(type) {
+		case *Player:
+			return nil, errors.New(pr.ErrNoAllyAttack)
+		case *Npc:
+			// return target clone
+			return verifTarget.Clone(), nil
+		default:
+			return nil, errors.New(pr.ErrInternalServer)
+		}
+	}
 	return npcBase, nil
 }
 
-func (e *Engine) initiateCombat(player *Player, npcName string) (*CombatSession, error) {
-	npcBase, err := e.getValidTarget(player.room, npcName)
+func (e *Engine) initiateCombat(player *Player, npcName string) (string, *CombatTurnResult, error) {
+	npcBase, err := e.getValidTarget(player, npcName)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	combatID := uuid.New().String()
@@ -81,9 +111,46 @@ func (e *Engine) initiateCombat(player *Player, npcName string) (*CombatSession,
 		}
 	}
 
-	e.activeCombats[combatID] = combat_session
+	//TODO
+	combat_session.sortTurnsOrderByInitiative()
+	// play a turn once here
+	return combat_session.processCombatTurn(player, combatNpc)
 
-	return combat_session, nil
+}
+
+func (cs *CombatSession) sortTurnsOrderByInitiative() {
+	sort.Slice(cs.Fighters, func(i, j int) bool {
+		initiativeI := cs.Fighters[i].getInitiative()
+		initiativeJ := cs.Fighters[j].getInitiative()
+		return initiativeI > initiativeJ
+	})
+}
+
+// infinite cycle on even on current Turn == 100
+func (cs *CombatSession) currentTurnIndex() int {
+	return cs.CurrentTurn % len(cs.Fighters)
+}
+
+func (cs *CombatSession) isFighterTurn(fighter Fighter) bool {
+	// currentTurnIndex() renvoie l'index exact de celui qui doit jouer
+	expectedFighter := cs.Fighters[cs.currentTurnIndex()]
+
+	// On compare simplement les noms via l'interface
+	return expectedFighter.getName() == fighter.getName()
+}
+
+func (cs *CombatSession) processCombatTurn(attacker Fighter, target Fighter) (string, *CombatTurnResult, error) {
+	if !cs.isFighterTurn(attacker) {
+		return "", nil, errors.New(pr.ErrNotYourTurnToPlay)
+	}
+
+	turn_result := attacker.playCombatTurn(target)
+	if target.isDead() {
+		cs.Win = true
+	} else {
+		cs.CurrentTurn++
+	}
+	return "OK", turn_result, nil
 }
 
 func (cs *CombatSession) addPlayerToCombat(player *Player) {
@@ -96,30 +163,5 @@ func (cs *CombatSession) addNpcToCombat(npc *Npc) {
 	npc.InCombat = true
 	npc.Stats.CombatId = cs.Id
 	cs.Fighters = append(cs.Fighters, npc)
-
-}
-
-func (e *Engine) processCombatTurn(player *Player, targetName string) (string, *CombatTurnResult, error) {
-	if !player.inCombat || player.stats.CombatId == "" {
-		return "OK", nil, errors.New(pr.ErrInternalServer)
-	}
-
-	combatSession, exists := e.activeCombats[player.stats.CombatId]
-	if !exists {
-		player.inCombat = false
-		return "", nil, errors.New(pr.ErrInternalServer)
-	}
-	target, targetExists := combatSession.Enemies[targetName]
-	if !targetExists {
-		return "", nil, errors.New(pr.ErrNpcNotFound)
-	}
-	current_turn := combatSession.CurrentTurn
-	if player.name != current_turn {
-		return "", nil, errors.New(pr.ErrNotYourTurnToPlay)
-	}
-
-	return "" + targetName, *CombatTurnResult, nil
-}
-func (e *Engine) nextToPlay(cs *CombatSession) {
 
 }

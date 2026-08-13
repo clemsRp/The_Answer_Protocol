@@ -6,7 +6,6 @@ import (
 	"os/signal"
 	"syscall"
 	"tap/engine"
-	"tap/parser"
 	pr "tap/protocol"
 	"tap/server"
 )
@@ -22,7 +21,7 @@ func main() {
 		JoinChan:     make(chan string, 10),
 		LeaveChan:    make(chan string, 10)}
 
-	world, err = parser.Get_map("world.json")
+	world, err = engine.Get_map("world.json")
 	if err != nil {
 		fmt.Println("ERROR", err.Error())
 		return
