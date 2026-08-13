@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"slices"
 	"strings"
 	pr "tap/protocol"
 )
@@ -14,9 +15,6 @@ type Router struct {
 	ServerChan      chan pr.ServerResponse
 	NavChan         chan pr.ServerResponse
 	GroupChan       chan pr.ServerResponse
-	GroupLeaveChan  chan pr.ServerResponse
-	UnGroupedChan   chan pr.ServerResponse
-	GroupedChan     chan pr.ServerResponse
 	ItemsChan       chan pr.ServerResponse
 	InteractionChan chan pr.ServerResponse
 	DatasChan       chan pr.ServerResponse
@@ -32,9 +30,6 @@ func NewRouter(inputs chan string, outputs <-chan pr.ServerResponse) *Router {
 		ServerChan:      make(chan pr.ServerResponse, 100),
 		NavChan:         make(chan pr.ServerResponse, 100),
 		GroupChan:       make(chan pr.ServerResponse, 100),
-		GroupLeaveChan:  make(chan pr.ServerResponse, 100),
-		UnGroupedChan:   make(chan pr.ServerResponse, 100),
-		GroupedChan:     make(chan pr.ServerResponse, 100),
 		ItemsChan:       make(chan pr.ServerResponse, 100),
 		InteractionChan: make(chan pr.ServerResponse, 100),
 		DatasChan:       make(chan pr.ServerResponse, 100),
@@ -43,6 +38,11 @@ func NewRouter(inputs chan string, outputs <-chan pr.ServerResponse) *Router {
 }
 
 func (r *Router) HandleEvents(res pr.ServerResponse) {
+	// Update INVITE datas
+	if strings.HasPrefix(res.Msg, "EVT STATS") {
+		r.Inputs <- "UNGROUPED"
+	}
+
 	// Handle CHAT responses
 	global := strings.HasPrefix(res.Msg, "EVT GLOBAL CHAT")
 	room := strings.HasPrefix(res.Msg, "EVT ROOM CHAT")
@@ -62,12 +62,7 @@ func (r *Router) HandleEvents(res pr.ServerResponse) {
 	}
 
 	// Handle GROUP responses
-	if strings.HasPrefix(res.Msg, "EVT GROUP") {
-		r.GroupChan <- res
-	}
-
-	// Handle new_leader
-	if strings.HasPrefix(res.Msg, "EVT new_leader=") {
+	if strings.HasPrefix(res.Msg, "EVT GROUP") || strings.HasPrefix(res.Msg, "EVT new_leader=") {
 		r.GroupChan <- res
 	}
 }
@@ -105,31 +100,31 @@ func (m *MyApp) UpdateRouterLayout() {
 }
 
 func (r *Router) handleLastCommandResponse(res pr.ServerResponse) {
-	switch r.LastCommand {
-	case pr.CmdLook:
-		r.NavChan <- res
-		r.ItemsChan <- res
-		r.InteractionChan <- res
-	case pr.CmdChat:
-		r.ChatChan <- res
-	case pr.CmdUnGrouped:
-		r.UnGroupedChan <- res
-	case pr.CmdGrouped:
-		r.GroupedChan <- res
-	case pr.PromoteGroup:
-		r.GroupedChan <- res
-	case pr.AcceptPromoteGroup:
+	// Handle Group commands
+	group_commands := []string{
+		pr.CmdUnGrouped,
+		pr.CmdGrouped,
+		pr.PromoteGroup,
+		pr.AcceptPromoteGroup,
+		pr.DeclinePromoteGroup,
+		pr.JoinGroup,
+		pr.CreateGroup,
+		pr.LeaveGroup,
+		pr.KickGroup,
+	}
+	if slices.Contains(group_commands, r.LastCommand) {
 		r.GroupChan <- res
-	case pr.DeclinePromoteGroup:
-		r.GroupChan <- res
-	case pr.JoinGroup:
-		r.GroupChan <- res
-	case pr.CreateGroup:
-		r.GroupChan <- res
-	case pr.LeaveGroup:
-		r.GroupLeaveChan <- res
 
-	default:
+	} else {
+		switch r.LastCommand {
+		case pr.CmdLook:
+			r.NavChan <- res
+			r.ItemsChan <- res
+			r.InteractionChan <- res
+		case pr.CmdChat:
+			r.ChatChan <- res
+		default:
 
+		}
 	}
 }

@@ -209,6 +209,7 @@ func (e *Engine) handleCmdGroup(player *Player, req []string) (string, any, erro
 		pr.CreateGroup,
 		pr.LeaveGroup,
 		pr.AcceptPromoteGroup,
+		pr.DeclinePromoteGroup,
 	}
 	contains := slices.Contains(contains_commands, scope)
 	if (len(req) != 3 && !contains) || (len(req) > 2 && contains) {
@@ -226,6 +227,8 @@ func (e *Engine) handleCmdGroup(player *Player, req []string) (string, any, erro
 		res, err = e.create_group(player)
 	case pr.InviteGroup:
 		res, err = e.invite_user_in_group(player, arg)
+	case pr.KickGroup:
+		res, err = e.kick_user_in_group(player, arg)
 	case pr.JoinGroup:
 		res, err = e.join_group(player, arg)
 	case pr.LeaveGroup:

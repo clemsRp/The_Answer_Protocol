@@ -91,6 +91,43 @@ func (e *Engine) invite_user_in_group(player *Player, user_name string) (string,
 	return "OK", nil
 }
 
+func (e *Engine) kick_user_in_group(player *Player, user_name string) (string, error) {
+	// Handle non existant groups
+	_, ok := e.groups[player.group]
+	if !ok {
+		return "", errors.New(pr.ErrNotInGroup)
+	}
+
+	// Check player is group's leader
+	if e.groups[player.group][0].name != player.name {
+		return "", errors.New(pr.ErrNoPermission)
+	}
+
+	// Handle users not in group
+	for _, user := range e.groups[player.group] {
+		if user.name == user_name {
+			// Get target user from e.players
+			targetPlayer, exists := e.players[user_name]
+			if !exists {
+				return "", errors.New(pr.ErrUnknownUser)
+			}
+
+			e.inform_group(player, player.group, "EVT GROUP KICK "+targetPlayer.name)
+
+			// Remove user from his current group
+			groupSlice := e.groups[player.group]
+			groupSlice = e.remove_user_in_group(targetPlayer, groupSlice)
+			e.groups[player.group] = groupSlice
+
+			targetPlayer.group = ""
+
+			return "OK", nil
+		}
+	}
+
+	return "", errors.New(pr.ErrNotInGroup)
+}
+
 func (e *Engine) join_group(player *Player, leader_name string) (string, error) {
 	group_name := ""
 
@@ -165,11 +202,13 @@ func (e *Engine) leave_group(player *Player) (string, error) {
 	e.groups[player.group] = groupSlice
 
 	e.inform_group(player, player.group, "EVT GROUP LEAVE "+player.name)
-	e.inform_group(player, player.group, "EVT new_leader="+e.groups[player.group][0].name)
 
 	// Remove group if needed
 	if len(groupSlice) == 0 {
 		delete(e.groups, player.group)
+
+	} else {
+		e.inform_group(player, player.group, "EVT new_leader="+e.groups[player.group][0].name)
 	}
 
 	// Re initialize his group value
@@ -246,6 +285,9 @@ func (e *Engine) decline_promotion(player *Player) (string, error) {
 
 	// Update promotion
 	player.promotion = false
+
+	// Change leader promotion status
+	e.groups[player.group][0].send_promotion = false
 
 	e.inform_group(player, player.group, "EVT GROUP PROMOTE DECLINED "+player.name)
 	e.inform_group_invitations(player, player.group, "EVT GROUP PROMOTE DECLINED "+player.name)

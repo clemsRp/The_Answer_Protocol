@@ -68,6 +68,7 @@ func NewTuiClient(world parser.Map) *TuiClient {
 			}
 			if res.Msg == "OK connected" {
 				cli.app.ShowGamePage()
+				cli.inputs <- "UNGROUPED"
 			}
 		}
 	}()

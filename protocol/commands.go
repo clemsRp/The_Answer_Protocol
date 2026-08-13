@@ -25,6 +25,7 @@ const (
 
 	CreateGroup         = "CREATE"
 	InviteGroup         = "INVITE"
+	KickGroup           = "KICK"
 	JoinGroup           = "JOIN"
 	LeaveGroup          = "LEAVE"
 	PromoteGroup        = "PROMOTE"

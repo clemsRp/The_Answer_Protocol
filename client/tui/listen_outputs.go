@@ -17,6 +17,7 @@ var (
 
 	// Group
 	group              = ""
+	last_kick          = ""
 	leader             = false
 	promotion          = false
 	send_promotion     = false
@@ -183,10 +184,42 @@ func (m *MyApp) GroupListenOutputs(res pr.ServerResponse) {
 		new_member := strings.SplitN(res.Msg, "JOIN ", 2)[1]
 		in_group_users = append(in_group_users, new_member)
 
+	} else if strings.HasPrefix(res.Msg, "EVT GROUP KICK") {
+		previous_member := strings.SplitN(res.Msg, "KICK ", 2)[1]
+		for i, user := range in_group_users {
+			if user == previous_member {
+				in_group_users[i] = in_group_users[len(in_group_users)-1]
+				in_group_users = in_group_users[:len(in_group_users)-1]
+				break
+			}
+		}
+
+		not_in_group_users = append(not_in_group_users, previous_member)
+
+		if previous_member == m.pseudo {
+			promotion = false
+			group = ""
+		}
+
+	} else if strings.HasPrefix(res.Msg, "EVT GROUP LEAVE") {
+		previous_member := strings.SplitN(res.Msg, "LEAVE ", 2)[1]
+		for i, user := range in_group_users {
+			if user == previous_member {
+				in_group_users[i] = in_group_users[len(in_group_users)-1]
+				in_group_users = in_group_users[:len(in_group_users)-1]
+				break
+			}
+		}
+
 	} else if strings.HasPrefix(res.Msg, "EVT GROUP PROMOTE ACCEPTED") {
 		promotion = false
 		send_promotion = false
 		leader = false
+
+	} else if strings.HasPrefix(res.Msg, "EVT GROUP PROMOTE DECLINED") {
+		promotion = false
+		send_promotion = false
+		leader = true
 
 	} else if strings.HasPrefix(res.Msg, "EVT new_leader=") {
 		if strings.SplitN(res.Msg, "new_leader=", 2)[1] == m.pseudo {
@@ -205,15 +238,41 @@ func (m *MyApp) GroupListenOutputs(res pr.ServerResponse) {
 		}
 
 	} else if strings.HasPrefix(res.Msg, "OK pending_leader=") {
-		group = strings.Split(res.Msg, "pending_leader=")[1]
+		pending_leader := strings.Split(res.Msg, "pending_leader=")[1]
+		leader = pending_leader == m.pseudo
 		if m.router.LastCommand == pr.PromoteGroup {
 			send_promotion = true
 		}
 
 	} else if strings.HasPrefix(res.Msg, "OK new_leader=") {
-		if m.router.LastCommand == pr.AcceptPromoteGroup || m.router.LastCommand == pr.DeclinePromoteGroup {
+		promotion = false
+		leader = true
+
+	} else if res.Msg == "OK" {
+		switch m.router.LastCommand {
+		case pr.LeaveGroup:
+			group = ""
+			leader = false
+		case pr.KickGroup:
+			not_in_group_users = append(not_in_group_users, last_kick)
+		case pr.DeclinePromoteGroup:
 			promotion = false
-			leader = true
+		case pr.CmdUnGrouped:
+			raw, err := json.Marshal(res.Datas)
+			if err == nil {
+				var data pr.UnGroupedCommandData
+				if err := json.Unmarshal(raw, &data); err == nil {
+					not_in_group_users = data.UnGrouped
+				}
+			}
+		case pr.CmdGrouped:
+			raw, err := json.Marshal(res.Datas)
+			if err == nil {
+				var data pr.GroupedCommandData
+				if err := json.Unmarshal(raw, &data); err == nil {
+					in_group_users = data.Grouped
+				}
+			}
 		}
 	}
 
@@ -223,109 +282,7 @@ func (m *MyApp) GroupListenOutputs(res pr.ServerResponse) {
 		m.popup,
 		panel.GroupDatas{
 			Group:         group,
-			Leader:        leader,
-			Promotion:     promotion,
-			SendPromotion: send_promotion,
-			Invitations:   &invitations,
-			UnGrouped:     &not_in_group_users,
-			Grouped:       &in_group_users,
-		},
-		m.router.Inputs,
-		m.OnOpenPopup,
-		m.ShowGamePage,
-	)
-
-	// Add new panel
-	m.grid.AddItem(m.Group.Layout, 1, 0, 1, 1, 0, 0, false)
-	m.setupMatrix()
-	m.ShowGamePage()
-}
-
-func (m *MyApp) GroupLeaveListenOutputs(res pr.ServerResponse) {
-	// Remove previous item panel
-	m.grid.RemoveItem(m.Group.Layout)
-
-	group = ""
-	leader = false
-
-	// Create new panel
-	m.Group = panel.NewGroupComponent(
-		m.app,
-		m.popup,
-		panel.GroupDatas{
-			Group:         group,
-			Leader:        leader,
-			Promotion:     promotion,
-			SendPromotion: send_promotion,
-			Invitations:   &invitations,
-			UnGrouped:     &not_in_group_users,
-			Grouped:       &in_group_users,
-		},
-		m.router.Inputs,
-		m.OnOpenPopup,
-		m.ShowGamePage,
-	)
-
-	// Add new panel
-	m.grid.AddItem(m.Group.Layout, 1, 0, 1, 1, 0, 0, false)
-	m.setupMatrix()
-	m.ShowGamePage()
-}
-
-func (m *MyApp) UnGroupedListenOutputs(res pr.ServerResponse) {
-	// Remove previous item panel
-	m.grid.RemoveItem(m.Group.Layout)
-
-	raw, err := json.Marshal(res.Datas)
-	if err == nil {
-		var data pr.UnGroupedCommandData
-		if err := json.Unmarshal(raw, &data); err == nil {
-			not_in_group_users = data.UnGrouped
-		}
-	}
-
-	// Create new panel
-	m.Group = panel.NewGroupComponent(
-		m.app,
-		m.popup,
-		panel.GroupDatas{
-			Group:         group,
-			Leader:        leader,
-			Promotion:     promotion,
-			SendPromotion: send_promotion,
-			Invitations:   &invitations,
-			UnGrouped:     &not_in_group_users,
-			Grouped:       &in_group_users,
-		},
-		m.router.Inputs,
-		m.OnOpenPopup,
-		m.ShowGamePage,
-	)
-
-	// Add new panel
-	m.grid.AddItem(m.Group.Layout, 1, 0, 1, 1, 0, 0, false)
-	m.setupMatrix()
-	m.ShowGamePage()
-}
-
-func (m *MyApp) GroupedListenOutputs(res pr.ServerResponse) {
-	// Remove previous item panel
-	m.grid.RemoveItem(m.Group.Layout)
-
-	raw, err := json.Marshal(res.Datas)
-	if err == nil {
-		var data pr.GroupedCommandData
-		if err := json.Unmarshal(raw, &data); err == nil {
-			in_group_users = data.Grouped
-		}
-	}
-
-	// Create new panel
-	m.Group = panel.NewGroupComponent(
-		m.app,
-		m.popup,
-		panel.GroupDatas{
-			Group:         group,
+			LastKick:      &last_kick,
 			Leader:        leader,
 			Promotion:     promotion,
 			SendPromotion: send_promotion,
