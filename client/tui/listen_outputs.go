@@ -2,6 +2,7 @@ package tui
 
 import (
 	"encoding/json"
+	"slices"
 	"strings"
 	panel "tap/client/tui/panels"
 	pr "tap/protocol"
@@ -182,51 +183,48 @@ func (m *MyApp) GroupListenOutputs(res pr.ServerResponse) {
 
 	} else if strings.HasPrefix(res.Msg, "EVT GROUP JOIN") {
 		new_member := strings.SplitN(res.Msg, "JOIN ", 2)[1]
-		in_group_users = append(in_group_users, new_member)
+		if !slices.Contains(in_group_users, new_member) {
+			m.router.Inputs <- "GROUPED"
+		}
 
 	} else if strings.HasPrefix(res.Msg, "EVT GROUP KICK") {
 		previous_member := strings.SplitN(res.Msg, "KICK ", 2)[1]
-		for i, user := range in_group_users {
-			if user == previous_member {
-				in_group_users[i] = in_group_users[len(in_group_users)-1]
-				in_group_users = in_group_users[:len(in_group_users)-1]
-				break
-			}
-		}
-
-		not_in_group_users = append(not_in_group_users, previous_member)
+		m.router.Inputs <- "GROUPED"
 
 		if previous_member == m.pseudo {
 			promotion = false
+			send_promotion = false
+			leader = false
 			group = ""
+			in_group_users = make([]string, 0)
 		}
 
 	} else if strings.HasPrefix(res.Msg, "EVT GROUP LEAVE") {
-		previous_member := strings.SplitN(res.Msg, "LEAVE ", 2)[1]
-		for i, user := range in_group_users {
-			if user == previous_member {
-				in_group_users[i] = in_group_users[len(in_group_users)-1]
-				in_group_users = in_group_users[:len(in_group_users)-1]
-				break
-			}
-		}
+		in_group_users = make([]string, 0)
+		m.router.Inputs <- "GROUPED"
 
 	} else if strings.HasPrefix(res.Msg, "EVT GROUP PROMOTE ACCEPTED") {
+		newLeader := strings.SplitN(res.Msg, "EVT GROUP PROMOTE ACCEPTED ", 2)[1]
 		promotion = false
 		send_promotion = false
-		leader = false
+		leader = (newLeader == m.pseudo)
+
+		m.router.Inputs <- "GROUPED"
 
 	} else if strings.HasPrefix(res.Msg, "EVT GROUP PROMOTE DECLINED") {
 		promotion = false
-		send_promotion = false
-		leader = true
+
+		if leader {
+			send_promotion = false
+		}
 
 	} else if strings.HasPrefix(res.Msg, "EVT new_leader=") {
-		if strings.SplitN(res.Msg, "new_leader=", 2)[1] == m.pseudo {
-			promotion = false
-			send_promotion = false
-			leader = true
-		}
+		newLeader := strings.SplitN(res.Msg, "new_leader=", 2)[1]
+		promotion = false
+		send_promotion = false
+		leader = (newLeader == m.pseudo)
+
+		m.router.Inputs <- "GROUPED"
 
 	} else if strings.HasPrefix(res.Msg, "EVT GROUP PROMOTE") {
 		promotion = true
@@ -245,24 +243,36 @@ func (m *MyApp) GroupListenOutputs(res pr.ServerResponse) {
 		}
 
 	} else if strings.HasPrefix(res.Msg, "OK new_leader=") {
-		promotion = false
+		last_kick = ""
 		leader = true
+		promotion = false
+		send_promotion = false
+
+		go func() {
+			m.router.Inputs <- "GROUPED"
+		}()
 
 	} else if res.Msg == "OK" {
 		switch m.router.LastCommand {
 		case pr.LeaveGroup:
 			group = ""
 			leader = false
+			in_group_users = make([]string, 0)
 		case pr.KickGroup:
-			not_in_group_users = append(not_in_group_users, last_kick)
+			m.router.Inputs <- "UNGROUPED"
+
 		case pr.DeclinePromoteGroup:
 			promotion = false
+
 		case pr.CmdUnGrouped:
 			raw, err := json.Marshal(res.Datas)
 			if err == nil {
 				var data pr.UnGroupedCommandData
 				if err := json.Unmarshal(raw, &data); err == nil {
-					not_in_group_users = data.UnGrouped
+					filteredUsers := filterUngrouped(data.UnGrouped, in_group_users)
+
+					not_in_group_users = make([]string, 0, len(filteredUsers))
+					not_in_group_users = append(not_in_group_users, filteredUsers...)
 				}
 			}
 		case pr.CmdGrouped:
@@ -270,9 +280,12 @@ func (m *MyApp) GroupListenOutputs(res pr.ServerResponse) {
 			if err == nil {
 				var data pr.GroupedCommandData
 				if err := json.Unmarshal(raw, &data); err == nil {
-					in_group_users = data.Grouped
+					in_group_users = make([]string, 0, len(data.Grouped))
+					in_group_users = append(in_group_users, data.Grouped...)
 				}
 			}
+
+			m.router.Inputs <- "UNGROUPED"
 		}
 	}
 
@@ -299,4 +312,21 @@ func (m *MyApp) GroupListenOutputs(res pr.ServerResponse) {
 	m.grid.AddItem(m.Group.Layout, 1, 0, 1, 1, 0, 0, false)
 	m.setupMatrix()
 	m.ShowGamePage()
+}
+
+func filterUngrouped(ungrouped []string, members []string) []string {
+	var filtered []string
+	for _, user := range ungrouped {
+		isMember := false
+		for _, member := range members {
+			if user == member {
+				isMember = true
+				break
+			}
+		}
+		if !isMember {
+			filtered = append(filtered, user)
+		}
+	}
+	return filtered
 }

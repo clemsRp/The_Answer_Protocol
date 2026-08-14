@@ -73,7 +73,7 @@ func (e *Engine) handleCmdUnGrouped(player *Player, req []string) (string, any, 
 	// Get players
 	users := make([]string, 0)
 	for _, cli := range e.players {
-		if cli.name != player.name && cli.group == "" {
+		if cli.name != player.name && cli.group == "" && !slices.Contains(cli.invitation, player.group) {
 			users = append(users, cli.name)
 		}
 	}
@@ -90,7 +90,7 @@ func (e *Engine) handleCmdGrouped(player *Player, req []string) (string, any, er
 	// Get players
 	users := make([]string, 0)
 	for _, cli := range e.players {
-		if cli.name != player.name && cli.group != "" {
+		if cli.name != player.name && cli.group == player.group && player.group != "" {
 			users = append(users, cli.name)
 		}
 	}
@@ -156,9 +156,6 @@ func (e *Engine) handleCmdMove(player *Player, req []string) (string, any, error
 	e.inform_room(player, player.room, "EVT ROOM PRESENCE LEAVE "+player.name)
 
 	// Change the player room variable
-	if player, ok := e.players[player.ip]; ok {
-		player.room = nextRoom
-	}
 	player.room = nextRoom
 
 	e.inform_room(player, player.room, "EVT ROOM PRESENCE ENTER "+player.name)

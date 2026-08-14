@@ -196,6 +196,9 @@ func (e *Engine) leave_group(player *Player) (string, error) {
 	// Delete promotion
 	player.promotion = false
 
+	// Check leader
+	was_leader := (e.groups[player.group][0].name == player.name)
+
 	// Remove user from his current group
 	groupSlice := e.groups[player.group]
 	groupSlice = e.remove_user_in_group(player, groupSlice)
@@ -207,7 +210,7 @@ func (e *Engine) leave_group(player *Player) (string, error) {
 	if len(groupSlice) == 0 {
 		delete(e.groups, player.group)
 
-	} else {
+	} else if was_leader {
 		e.inform_group(player, player.group, "EVT new_leader="+e.groups[player.group][0].name)
 	}
 
@@ -264,10 +267,16 @@ func (e *Engine) accept_promotion(player *Player) (string, error) {
 		return "", errors.New(pr.ErrNotPromoted)
 	}
 
+	oldLeader := e.groups[player.group][0]
+	oldLeader.send_promotion = false
+
 	// Update promotion and leadership
 	player.promotion = false
 	new_leader_index := GetElementIndex(e.groups[player.group], player)
-	MoveElement(e.groups[player.group], new_leader_index, 0)
+
+	groupSlice := e.groups[player.group]
+	MoveElement(groupSlice, new_leader_index, 0)
+	e.groups[player.group] = groupSlice
 
 	e.inform_group(player, player.group, "EVT GROUP PROMOTE ACCEPTED "+player.name)
 	e.inform_group_invitations(player, player.group, "EVT GROUP PROMOTE ACCEPTED "+player.name)

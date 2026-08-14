@@ -39,7 +39,7 @@ func NewRouter(inputs chan string, outputs <-chan pr.ServerResponse) *Router {
 
 func (r *Router) HandleEvents(res pr.ServerResponse) {
 	// Update INVITE datas
-	if strings.HasPrefix(res.Msg, "EVT STATS") {
+	if strings.HasPrefix(res.Msg, "EVT STATS") || strings.HasPrefix(res.Msg, "EVT ROOM PRESENCE") {
 		r.Inputs <- "UNGROUPED"
 	}
 
@@ -114,6 +114,10 @@ func (r *Router) handleLastCommandResponse(res pr.ServerResponse) {
 	}
 	if slices.Contains(group_commands, r.LastCommand) {
 		r.GroupChan <- res
+
+		if r.LastCommand == pr.CmdGrouped || r.LastCommand == pr.CmdUnGrouped {
+			r.DatasChan <- res
+		}
 
 	} else {
 		switch r.LastCommand {

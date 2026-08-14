@@ -91,22 +91,11 @@ func NewGroupComponent(
 		if groupDatas.Leader {
 			// Invite button
 			invite_func := func(users *[]string, user string) {
-				if user == "REFRESH" {
-					inputs <- "UNGROUPED"
-					return
-				}
-
 				inputs <- "GROUP INVITE " + user
+				inputs <- "UNGROUPED"
 
 				if users == nil {
 					return
-				}
-
-				for i, v := range *users {
-					if v == user {
-						*users = append((*users)[:i], (*users)[i+1:]...)
-						break
-					}
 				}
 			}
 
@@ -117,11 +106,6 @@ func NewGroupComponent(
 
 			// Kick button
 			kick_func := func(users *[]string, user string) {
-				if user == "REFRESH" {
-					inputs <- "GROUPED"
-					return
-				}
-
 				inputs <- "GROUP KICK " + user
 				*groupDatas.LastKick = user
 
@@ -170,7 +154,6 @@ func NewGroupComponent(
 			accept_btn.
 				SetSelectedFunc(func() {
 					inputs <- "GROUP ACCEPT"
-					inputs <- "GROUPED"
 					groupDatas.Promotion = false
 				})
 			accept_btn.SetBackgroundColor(Black)
