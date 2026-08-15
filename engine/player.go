@@ -1,7 +1,7 @@
 package engine
 
 type Player struct {
-	ip             string
+	id             string
 	name           string
 	room           string
 	hp             int

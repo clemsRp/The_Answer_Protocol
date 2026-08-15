@@ -7,7 +7,7 @@ import (
 
 type Engine struct {
 	world parser.Map
-	//sessions store IP to pseudos
+	//sessions store id to pseudos
 	sessions map[string]string
 	//players store pseudos to Player
 	players   map[string]*Player
@@ -43,16 +43,16 @@ func (e *Engine) Stop() {
 func (e *Engine) broadcaster() {
 	for {
 		select {
-		case ip := <-e.exchanger.JoinChan:
+		case id := <-e.exchanger.JoinChan:
 			// ghost session stored in sessions when a new client arrives
-			e.sessions[ip] = ""
-		case ip := <-e.exchanger.LeaveChan:
-			e.handlePlayerLeave(ip)
+			e.sessions[id] = ""
+		case id := <-e.exchanger.LeaveChan:
+			e.handlePlayerLeave(id)
 
 		case req := <-e.exchanger.ServerInput:
 			res, datas, err := e.handleCommands(req)
 			e.exchanger.ServerOutput <- pr.EngineResponse{
-				Ip:    req.Ip,
+				Id:    req.Id,
 				Msg:   res,
 				Datas: datas,
 				Err:   err,
@@ -64,8 +64,8 @@ func (e *Engine) broadcaster() {
 	}
 }
 
-func (e *Engine) handlePlayerLeave(ip string) {
-	pseudo := e.sessions[ip]
+func (e *Engine) handlePlayerLeave(id string) {
+	pseudo := e.sessions[id]
 
 	if pseudo != "" {
 		if player, exists := e.players[pseudo]; exists {
@@ -73,5 +73,5 @@ func (e *Engine) handlePlayerLeave(ip string) {
 			delete(e.players, pseudo)
 		}
 	}
-	delete(e.sessions, ip)
+	delete(e.sessions, id)
 }

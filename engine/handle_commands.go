@@ -6,8 +6,8 @@ import (
 	pr "tap/protocol"
 )
 
-func (e *Engine) validateSession(ip string, cmd string) (string, error) {
-	pseudo, exists := e.sessions[ip]
+func (e *Engine) validateSession(id string, cmd string) (string, error) {
+	pseudo, exists := e.sessions[id]
 
 	if !exists {
 		return "", errors.New(pr.ErrInternalServer)
@@ -25,13 +25,13 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
 	cmd := strings.ToUpper(req[0])
 
 	// validates session if player is connected
-	pseudo, err := e.validateSession(request.Ip, cmd)
+	pseudo, err := e.validateSession(request.Id, cmd)
 	if err != nil {
 		return "", nil, err
 	}
 
 	if cmd == pr.CmdConnect {
-		return e.handleCmdConnect(request.Ip, req)
+		return e.handleCmdConnect(request.Id, req)
 	}
 	player := e.players[pseudo]
 

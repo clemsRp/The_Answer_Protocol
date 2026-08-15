@@ -234,6 +234,7 @@ func (m *MyApp) GroupListenOutputs(res pr.ServerResponse) {
 		group = strings.Split(res.Msg, "group=")[1]
 		if m.router.LastCommand == pr.CreateGroup {
 			leader = true
+			m.router.Inputs <- "GROUPED"
 		}
 
 	} else if strings.HasPrefix(res.Msg, "OK pending_leader=") {

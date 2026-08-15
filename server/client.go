@@ -7,17 +7,19 @@ import (
 	"net"
 	pr "tap/protocol"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Client struct {
 	conn        net.Conn               `json:"-"`
 	ch          chan pr.ServerResponse `json:"-"`
-	ip          string
+	id          string
 	spamWarning int
 }
 
 type ClientRequest struct {
-	ip  string
+	id  string
 	msg string
 }
 
@@ -25,7 +27,7 @@ func newClient(conn net.Conn, ch chan pr.ServerResponse) *Client {
 	return &Client{
 		conn: conn,
 		ch:   ch,
-		ip:   conn.RemoteAddr().String(),
+		id:   uuid.New().String(),
 	}
 }
 
@@ -77,7 +79,7 @@ func (s *Server) readClientInput(cli *Client) {
 		}
 		if limiter.Allow() {
 			cli.spamWarning = 0
-			s.requests <- ClientRequest{ip: cli.ip, msg: input.Text()}
+			s.requests <- ClientRequest{id: cli.id, msg: input.Text()}
 		} else {
 			if s.handleSpam(cli) {
 				break

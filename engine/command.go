@@ -8,13 +8,13 @@ import (
 	pr "tap/protocol"
 )
 
-func (e *Engine) handleCmdConnect(ip string, req []string) (string, any, error) {
+func (e *Engine) handleCmdConnect(id string, req []string) (string, any, error) {
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidName)
 	}
 
 	// check if session is already connected
-	if e.sessions[ip] != "" {
+	if e.sessions[id] != "" {
 		return "", "", errors.New(pr.ErrNameInUse)
 	}
 	pseudo := req[1]
@@ -27,10 +27,10 @@ func (e *Engine) handleCmdConnect(ip string, req []string) (string, any, error) 
 		room:  "entrance",
 		hp:    100,
 		hpMax: 100,
-		ip:    ip,
+		id:    id,
 	}
 	e.players[pseudo] = player
-	e.sessions[ip] = pseudo
+	e.sessions[id] = pseudo
 	e.dialogues[pseudo] = make(map[string]int)
 
 	e.inform_all(player, fmt.Sprintf("EVT STATS players=%d", len(e.players)))
@@ -50,6 +50,12 @@ func (e *Engine) handleCmdQuit(player *Player, req []string) (string, any, error
 	if len(req) != 1 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
+
+	for _, obj := range player.inventory {
+		e.world.Rooms[player.room].Items = append(e.world.Rooms[player.room].Items, obj)
+		e.inform_room(player, player.room, "EVT ITEM DROPPED "+obj)
+	}
+	player.inventory = make([]string, 0)
 
 	e.playerQuits(player)
 	return "OK bye", "", nil
@@ -189,7 +195,7 @@ func (e *Engine) handleCmdChat(player *Player, req []string) (string, any, error
 			// Send chat to player
 			if is_global || is_group || is_room {
 				chat = fmt.Sprintf("EVT %s CHAT %s %s", scope, player.name, msg)
-				e.exchanger.ServerOutput <- pr.EngineResponse{Ip: p.ip, Msg: chat}
+				e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: chat}
 			}
 		}
 	}

@@ -2,13 +2,13 @@ package protocol
 
 // server to engine
 type ServerRequest struct {
-	Ip  string
+	Id  string
 	Msg string
 }
 
 // engine to server
 type EngineResponse struct {
-	Ip    string
+	Id    string
 	Msg   string
 	Datas any
 	Err   error

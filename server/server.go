@@ -59,13 +59,13 @@ func (s *Server) broadcaster() {
 	for {
 		select {
 		case req := <-s.requests:
-			s.exchanger.ServerInput <- pr.ServerRequest{Ip: req.ip, Msg: req.msg}
+			s.exchanger.ServerInput <- pr.ServerRequest{Id: req.id, Msg: req.msg}
 		case cli := <-s.entering:
 			s.addClient(cli)
-			s.exchanger.JoinChan <- cli.ip
+			s.exchanger.JoinChan <- cli.id
 		case cli := <-s.leaving:
 			s.removeClient(cli)
-			s.exchanger.LeaveChan <- cli.ip
+			s.exchanger.LeaveChan <- cli.id
 		case output := <-s.exchanger.ServerOutput:
 			s.sendToClient(output)
 		case <-s.quit:
@@ -76,19 +76,19 @@ func (s *Server) broadcaster() {
 }
 
 func (s *Server) addClient(cli *Client) {
-	s.clients[cli.ip] = cli
+	s.clients[cli.id] = cli
 }
 
 func (s *Server) removeClient(cli *Client) {
-	if c, ok := s.clients[cli.ip]; ok {
-		delete(s.clients, cli.ip)
+	if c, ok := s.clients[cli.id]; ok {
+		delete(s.clients, cli.id)
 		close(c.ch)
 	}
 }
 
 func (s *Server) sendToClient(output pr.EngineResponse) {
 
-	cli, exists := s.clients[output.Ip]
+	cli, exists := s.clients[output.Id]
 	if !exists {
 		return
 	}
