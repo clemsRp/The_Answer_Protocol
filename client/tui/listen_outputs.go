@@ -100,6 +100,7 @@ func (m *MyApp) ItemListenOutputs(res pr.ServerResponse) {
 			var data pr.LookCommandData
 			if err := json.Unmarshal(raw, &data); err == nil {
 				opts = data.Room.Items
+				items = opts
 			}
 		}
 	}

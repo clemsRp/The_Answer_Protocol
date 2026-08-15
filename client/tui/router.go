@@ -41,6 +41,7 @@ func (r *Router) HandleEvents(res pr.ServerResponse) {
 	// Update INVITE datas
 	if strings.HasPrefix(res.Msg, "EVT STATS") || strings.HasPrefix(res.Msg, "EVT ROOM PRESENCE") {
 		r.Inputs <- "UNGROUPED"
+		r.Inputs <- "LOOK"
 	}
 
 	// Handle CHAT responses
@@ -121,6 +122,9 @@ func (r *Router) handleLastCommandResponse(res pr.ServerResponse) {
 
 	} else {
 		switch r.LastCommand {
+		case pr.CmdConnect:
+			r.Inputs <- "UNGROUPED"
+			r.Inputs <- "LOOK"
 		case pr.CmdLook:
 			r.NavChan <- res
 			r.ItemsChan <- res

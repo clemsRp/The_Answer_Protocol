@@ -27,11 +27,6 @@ func ConvertExits(exits map[string]string, inputs chan<- string) OptionsMap {
 			"MOVE": func() {
 				go func() {
 					inputs <- "MOVE " + exit
-				}()
-			},
-			"MOVE + LOOK": func() {
-				go func() {
-					inputs <- "MOVE " + exit
 					inputs <- "LOOK"
 				}()
 			},

@@ -46,11 +46,6 @@ func ConvertItemsList(items []string, cmd string, inputs chan<- string) OptionsM
 			cmd: func() {
 				go func() {
 					ItemFunc(item, cmd, inputs)
-				}()
-			},
-			cmd + " + LOOK": func() {
-				go func() {
-					ItemFunc(item, cmd, inputs)
 					inputs <- "LOOK"
 				}()
 			},
