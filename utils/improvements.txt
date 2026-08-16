@@ -5,8 +5,4 @@
 - ATTACK:
 	- Check that npc is hostile
 	- Adapt combat damage
-	- Updat values after combat
-
-- Issue GROUP COMMAND (quand tu crees un groupe, 
-et qu'ensuite tu te reconnectes avec le meme nom d'user, 
-l'user a toujours un group mais ne peut pas quitter son groupe)
+	- Update values after combat

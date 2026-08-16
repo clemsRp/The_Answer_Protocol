@@ -6,29 +6,29 @@ import (
 )
 
 func (e *Engine) inform_user(player *Player, msg string) {
-	e.exchanger.ServerOutput <- pr.EngineResponse{Ip: player.ip, Msg: msg}
+	e.exchanger.ServerOutput <- pr.EngineResponse{Id: player.id, Msg: msg}
 }
 
 func (e *Engine) inform_room(player *Player, room *Room, msg string) {
 	for pseudo, p := range e.players {
 		if player.room == room && pseudo != player.name {
-			e.exchanger.ServerOutput <- pr.EngineResponse{Ip: p.ip, Msg: msg}
+			e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: msg}
 		}
 	}
 }
 
-func (e *Engine) inform_group(player *Player, group *Group, msg string) {
-	for _, p := range group.players {
-		if p.name != player.name {
-			e.exchanger.ServerOutput <- pr.EngineResponse{Ip: p.ip, Msg: msg}
+func (e *Engine) inform_group(player *Player, group string, msg string) {
+	for pseudo, p := range e.players {
+		if p.group == group && pseudo != player.name {
+			e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: msg}
 		}
 	}
 }
 
-func (e *Engine) inform_group_invitations(player *Player, group *Group, msg string) {
-	for _, p := range group.players {
-		if slices.Contains(player.invitations, group.id) && p.name != player.name {
-			e.exchanger.ServerOutput <- pr.EngineResponse{Ip: p.ip, Msg: msg}
+func (e *Engine) inform_group_invitations(player *Player, group string, msg string) {
+	for pseudo, p := range e.players {
+		if slices.Contains(player.invitations, group) && pseudo != player.name {
+			e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: msg}
 		}
 	}
 }
@@ -36,7 +36,7 @@ func (e *Engine) inform_group_invitations(player *Player, group *Group, msg stri
 func (e *Engine) inform_all(player *Player, msg string) {
 	for pseudo, p := range e.players {
 		if pseudo != player.name {
-			e.exchanger.ServerOutput <- pr.EngineResponse{Ip: p.ip, Msg: msg}
+			e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: msg}
 		}
 	}
 }

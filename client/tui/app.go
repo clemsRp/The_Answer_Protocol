@@ -137,8 +137,6 @@ func (m *MyApp) StartListeners() {
 	m.Server.ListenOutputs(m.ctx, m.wg, m.app, m.router.ServerChan)
 	m.Navigation.ListenOutputs(m.ctx, m.wg, m.app, m.router.NavChan, m.NavListenOutputs)
 	m.Group.ListenOutputs(m.ctx, m.wg, m.app, m.router.GroupChan, m.GroupListenOutputs)
-	m.Group.ListenOutputs(m.ctx, m.wg, m.app, m.router.GroupLeaveChan, m.GroupLeaveListenOutputs)
-	m.Group.ListenOutputs(m.ctx, m.wg, m.app, m.router.UsersChan, m.UsersListenOutputs)
 	m.Items.ListenOutputs(m.ctx, m.wg, m.app, m.router.ItemsChan, m.ItemListenOutputs)
 	m.Interaction.ListenOutputs(m.ctx, m.wg, m.app, m.router.InteractionChan, m.InteractionListenOutputs)
 	m.Datas.ListenOutputs(m.ctx, m.wg, m.app, m.router.DatasChan)
@@ -171,9 +169,7 @@ func (m *MyApp) ShowGamePage() {
 
 	m.app.SetFocus(m.Navigation.List)
 
-	go m.app.QueueUpdateDraw(func() {
-		m.app.Sync()
-	})
+	m.app.Sync()
 }
 
 func (m *MyApp) ShowPopupPage() {
@@ -188,9 +184,7 @@ func (m *MyApp) ShowPopupPage() {
 
 	popup_visible = true
 
-	go m.app.QueueUpdateDraw(func() {
-		m.app.Sync()
-	})
+	m.app.Sync()
 }
 
 func (m *MyApp) Run() error {

@@ -6,7 +6,7 @@ import (
 )
 
 type Player struct {
-	ip             string
+	id             string
 	name           string
 	room           *Room
 	group          string
@@ -14,6 +14,7 @@ type Player struct {
 	quests         []*Quest
 	invitations    []string
 	promotion      bool
+	send_promotion bool
 	inCombat       bool
 	equippedWeapon *Weapon
 	stats          *CombatStats
@@ -52,7 +53,7 @@ func (p *Player) getName() string {
 func (p *Player) getInitiative() int {
 	return p.stats.Initiative
 }
-func (e *Engine) createNewPlayerInstance(pseudo string, ip string) (*Player, error) {
+func (e *Engine) createNewPlayerInstance(pseudo string, id string) (*Player, error) {
 	base_item, exists := e.world.Items["sword"]
 	if !exists {
 		return nil, errors.New(pr.ErrInternalServer)
@@ -75,6 +76,6 @@ func (e *Engine) createNewPlayerInstance(pseudo string, ip string) (*Player, err
 			Initiative: 100,
 			Status:     StatusNormal,
 		},
-		ip: ip,
+		id: id,
 	}, nil
 }

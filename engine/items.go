@@ -1,6 +1,7 @@
 package engine
 
 type Item struct {
+	Id          string `json:"-"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Obtainable  bool   `json:"obtainable"`

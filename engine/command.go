@@ -8,13 +8,13 @@ import (
 	pr "tap/protocol"
 )
 
-func (e *Engine) handleCmdConnect(ip string, req []string) (string, any, error) {
+func (e *Engine) handleCmdConnect(id string, req []string) (string, any, error) {
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidName)
 	}
 
 	// check if session is already connected
-	if e.sessions[ip] != "" {
+	if e.sessions[id] != "" {
 		return "", "", errors.New(pr.ErrNameInUse)
 	}
 	pseudo := req[1]
@@ -22,12 +22,12 @@ func (e *Engine) handleCmdConnect(ip string, req []string) (string, any, error) 
 		return "", "", errors.New(pr.ErrNameInUse)
 	}
 
-	player, err := e.createNewPlayerInstance(pseudo, ip)
+	player, err := e.createNewPlayerInstance(pseudo, id)
 	if err != nil {
 		return "", "", err
 	}
 	e.players[pseudo] = player
-	e.sessions[ip] = pseudo
+	e.sessions[id] = pseudo
 	e.dialogues[pseudo] = make(map[string]int)
 
 	e.inform_all(player, fmt.Sprintf("EVT STATS players=%d", len(e.players)))
@@ -48,6 +48,12 @@ func (e *Engine) handleCmdQuit(player *Player, req []string) (string, any, error
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
+	for _, obj := range player.inventory {
+		player.room.Items = append(player.room.Items, obj.Id)
+		e.inform_room(player, player.room, "EVT ITEM DROPPED "+obj.Id)
+	}
+	player.inventory = make([]*Item, 0)
+
 	e.playerQuits(player)
 	return "OK bye", "", nil
 }
@@ -61,7 +67,7 @@ func (e *Engine) handleCmdWho(req []string) (string, any, error) {
 	return fmt.Sprintf("OK players=%d", len(e.players)), "", nil
 }
 
-func (e *Engine) handleCmdUsers(req []string) (string, any, error) {
+func (e *Engine) handleCmdUnGrouped(player *Player, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
@@ -70,12 +76,29 @@ func (e *Engine) handleCmdUsers(req []string) (string, any, error) {
 	// Get players
 	users := make([]string, 0)
 	for _, cli := range e.players {
-		if cli.group == "" {
+		if cli.name != player.name && cli.group == "" && !slices.Contains(cli.invitations, player.group) {
 			users = append(users, cli.name)
 		}
 	}
 
-	return "OK", pr.UsersCommandData{Users: users}, nil
+	return "OK", pr.UnGroupedCommandData{UnGrouped: users}, nil
+}
+
+func (e *Engine) handleCmdGrouped(player *Player, req []string) (string, any, error) {
+	// Handle invalid command
+	if len(req) != 1 {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
+	// Get players
+	users := make([]string, 0)
+	for _, cli := range e.players {
+		if cli.name != player.name && cli.group == player.group && player.group != "" {
+			users = append(users, cli.name)
+		}
+	}
+
+	return "OK", pr.GroupedCommandData{Grouped: users}, nil
 }
 
 func (e *Engine) handleCmdLook(player *Player, req []string) (string, any, error) {
@@ -134,9 +157,6 @@ func (e *Engine) handleCmdMove(player *Player, req []string) (string, any, error
 	e.inform_room(player, player.room, "EVT ROOM PRESENCE LEAVE "+player.name)
 
 	// Change the player room variable
-	if player, ok := e.players[player.ip]; ok {
-		player.room = nextRoom
-	}
 	player.room = nextRoom
 
 	e.inform_room(player, player.room, "EVT ROOM PRESENCE ENTER "+player.name)
@@ -170,7 +190,7 @@ func (e *Engine) handleCmdChat(player *Player, req []string) (string, any, error
 			// Send chat to player
 			if is_global || is_group || is_room {
 				chat = fmt.Sprintf("EVT %s CHAT %s %s", scope, player.name, msg)
-				e.exchanger.ServerOutput <- pr.EngineResponse{Ip: p.ip, Msg: chat}
+				e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: chat}
 			}
 		}
 	}
@@ -187,6 +207,7 @@ func (e *Engine) handleCmdGroup(player *Player, req []string) (string, any, erro
 		pr.CreateGroup,
 		pr.LeaveGroup,
 		pr.AcceptPromoteGroup,
+		pr.DeclinePromoteGroup,
 	}
 	contains := slices.Contains(contains_commands, scope)
 	if (len(req) != 3 && !contains) || (len(req) > 2 && contains) {
@@ -204,6 +225,8 @@ func (e *Engine) handleCmdGroup(player *Player, req []string) (string, any, erro
 		res, err = e.create_group(player)
 	case pr.InviteGroup:
 		res, err = e.invite_user_in_group(player, arg)
+	case pr.KickGroup:
+		res, err = e.kick_user_in_group(player, arg)
 	case pr.JoinGroup:
 		res, err = e.join_group(player, arg)
 	case pr.LeaveGroup:
@@ -250,7 +273,7 @@ func (e *Engine) handleCmdTake(player *Player, req []string) (string, any, error
 	object := req[1]
 	for obj_index, item_name := range player.room.Items {
 		item := e.world.Items[item_name]
-		if item.Name == object {
+		if item_name == object {
 			player.inventory = append(player.inventory, item)
 			player.room.Items = append(player.room.Items[:obj_index], player.room.Items[obj_index+1:]...)
 
@@ -271,7 +294,7 @@ func (e *Engine) handleCmdDrop(player *Player, req []string) (string, any, error
 
 	object := req[1]
 	for obj_index, obj := range player.inventory {
-		if obj.Name == object {
+		if obj.Id == object {
 			player.inventory = append(player.inventory[:obj_index], player.inventory[obj_index+1:]...)
 			player.room.Items = append(player.room.Items, object)
 

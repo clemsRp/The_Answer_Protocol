@@ -2,7 +2,6 @@ package tui
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 	pr "tap/protocol"
 )
@@ -25,7 +24,6 @@ func convertServerResponse(line string) pr.ServerResponse {
 	isChatEvent := strings.HasPrefix(line, "EVT ") && strings.Contains(line, " CHAT ")
 
 	if jsonIndex != -1 && !isChatEvent {
-		fmt.Println(jsonIndex)
 		msg := strings.TrimSpace(line[:jsonIndex])
 		datas := line[jsonIndex:]
 

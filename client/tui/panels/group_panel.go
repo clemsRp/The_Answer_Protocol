@@ -3,6 +3,7 @@ package panel
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	pr "tap/protocol"
 
@@ -15,10 +16,14 @@ type GroupComponent struct {
 }
 
 type GroupDatas struct {
-	Group       string
-	Leader      bool
-	Users       *[]string
-	Invitations *[]string
+	Group         string
+	LastKick      *string
+	Leader        bool
+	Promotion     bool
+	SendPromotion bool
+	Grouped       *[]string
+	UnGrouped     *[]string
+	Invitations   *[]string
 }
 
 func NewGroupComponent(
@@ -45,6 +50,7 @@ func NewGroupComponent(
 
 	val_color := "yellow"
 
+	// Display datas
 	datas.AddItem(fmt.Sprintf("Group: [%s]%s", val_color, cur_group), "", 0, nil)
 	datas.AddItem(fmt.Sprintf("Leader: [%s]%t", val_color, groupDatas.Leader), "", 0, nil)
 
@@ -58,10 +64,12 @@ func NewGroupComponent(
 	src.Layout.AddItem(makeSpacer(1), 1, 1, false)
 
 	if groupDatas.Group == "" {
+		// Create button
 		create_btn := tview.NewButton("Create").SetSelectedFunc(func() { inputs <- "GROUP CREATE" })
 		src.Layout.AddItem(create_btn, 1, 1, false)
 
 		if groupDatas.Invitations != nil && len(*groupDatas.Invitations) != 0 {
+			// Join button
 			join_func := func(invitations *[]string, inv string) {
 				inputs <- "GROUP JOIN " + inv
 
@@ -83,13 +91,25 @@ func NewGroupComponent(
 
 	} else {
 		if groupDatas.Leader {
+			// Invite button
 			invite_func := func(users *[]string, user string) {
-				if user == "REFRESH" {
-					inputs <- "USERS"
+				inputs <- "GROUP INVITE " + user
+				inputs <- "UNGROUPED"
+
+				if users == nil {
 					return
 				}
+			}
 
-				inputs <- "GROUP INVITE " + user
+			if len(*groupDatas.UnGrouped) > 0 {
+				invite_btn := CreateOptionBtn(app, popup, "Invite", groupDatas.UnGrouped, onOpenPopup, onClosePopup, invite_func)
+				src.Layout.AddItem(invite_btn, 1, 1, false)
+			}
+
+			// Kick button
+			kick_func := func(users *[]string, user string) {
+				inputs <- "GROUP KICK " + user
+				*groupDatas.LastKick = user
 
 				if users == nil {
 					return
@@ -102,8 +122,60 @@ func NewGroupComponent(
 					}
 				}
 			}
-			invite_btn := CreateOptionBtn(app, popup, "Invite", groupDatas.Users, onOpenPopup, onClosePopup, invite_func)
-			src.Layout.AddItem(invite_btn, 1, 1, false)
+
+			if len(*groupDatas.Grouped) > 0 {
+				kick_btn := CreateOptionBtn(app, popup, "Kick", groupDatas.Grouped, onOpenPopup, onClosePopup, kick_func)
+				src.Layout.AddItem(makeSpacer(1), 1, 1, false)
+				src.Layout.AddItem(kick_btn, 1, 1, false)
+			}
+
+			if !groupDatas.SendPromotion && len(*groupDatas.Grouped) > 0 {
+				// Promote button
+				promote_flex := tview.NewFlex().SetDirection(tview.FlexColumn)
+
+				selector := createSelectField("", modify_select_options(*groupDatas.Grouped), 0)
+				promote_btn := tview.NewButton("Promote").SetSelectedFunc(func() {
+					_, new_leader := selector.GetCurrentOption()
+					inputs <- "GROUP PROMOTE " + strings.TrimSpace(new_leader)
+				})
+
+				promote_flex.AddItem(promote_btn, 0, 1, false)
+				promote_flex.AddItem(makeSpacer(1), 1, 1, false)
+				promote_flex.AddItem(selector, get_select_width(*groupDatas.Grouped), 1, false)
+
+				src.Layout.AddItem(makeSpacer(1), 1, 1, false)
+				src.Layout.AddItem(promote_flex, 1, 1, true)
+			}
+
+		} else if groupDatas.Promotion {
+			// Accept/Decline promotion
+			choice_flex := tview.NewFlex().SetDirection(tview.FlexColumn)
+
+			// Accept button
+			accept_btn := tview.NewButton("✅")
+			accept_btn.
+				SetSelectedFunc(func() {
+					inputs <- "GROUP ACCEPT"
+					groupDatas.Promotion = false
+				})
+			accept_btn.SetBackgroundColor(tcell.GetColor("#000000"))
+			accept_btn.SetBackgroundColorActivated(tcell.GetColor("#000000"))
+
+			decline_btn := tview.NewButton("❌")
+			decline_btn.SetSelectedFunc(func() {
+				inputs <- "GROUP DECLINE"
+				groupDatas.Promotion = false
+			})
+			decline_btn.SetBackgroundColor(tcell.GetColor("#000000"))
+			decline_btn.SetBackgroundColorActivated(tcell.GetColor("#000000"))
+
+			choice_flex.AddItem(tview.NewTextView().SetText("Get promoted: ").SetTextColor(tcell.ColorYellow), 15, 0, false)
+			choice_flex.AddItem(tview.NewBox(), 0, 0, false)
+			choice_flex.AddItem(accept_btn, 1, 0, true)
+			choice_flex.AddItem(tview.NewBox(), 2, 0, false)
+			choice_flex.AddItem(decline_btn, 1, 0, true)
+
+			src.Layout.AddItem(choice_flex, 1, 1, true)
 		}
 
 		src.Layout.AddItem(makeSpacer(1), 1, 1, false)
@@ -125,7 +197,7 @@ func CreateOptionBtn(
 ) *tview.Button {
 
 	btn := tview.NewButton(btnLabel).SetSelectedFunc(func() {
-		if btnLabel != "Invite" && (options == nil || len(*options) == 0) {
+		if options == nil || len(*options) == 0 {
 			return
 		}
 
@@ -154,10 +226,6 @@ func CreateOptionBtn(
 				return "[white:#7e7979]" + transform_name(name, 30)
 			}
 			return "[white:#474646]" + transform_name(name, 30)
-		}
-
-		if btnLabel == "Invite" {
-			optsList = append(optsList, "REFRESH")
 		}
 
 		// Ajout des options dans la liste
@@ -241,8 +309,30 @@ func CreateOptionBtn(
 	return btn
 }
 
+func get_select_width(options []string) int {
+	max_len := 0
+	for _, option := range options {
+		if len(option) > max_len {
+			max_len = len(option)
+		}
+	}
+
+	return max_len + 2
+}
+
+func modify_select_options(options []string) []string {
+	res := make([]string, 0)
+
+	for _, option := range options {
+		res = append(res, fmt.Sprintf(" %s ", option))
+	}
+
+	return res
+}
+
 func (c *GroupComponent) ListenOutputs(ctx context.Context, wg *sync.WaitGroup, app *tview.Application, Chan <-chan pr.ServerResponse, function func(pr.ServerResponse)) {
 	wg.Add(1)
+
 	go func() {
 		defer wg.Done()
 

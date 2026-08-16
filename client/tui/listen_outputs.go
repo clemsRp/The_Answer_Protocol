@@ -2,6 +2,7 @@ package tui
 
 import (
 	"encoding/json"
+	"slices"
 	"strings"
 	panel "tap/client/tui/panels"
 	pr "tap/protocol"
@@ -16,10 +17,14 @@ var (
 	players = make([]string, 0)
 
 	// Group
-	group       = ""
-	leader      = false
-	users       = make([]string, 0)
-	invitations = make([]string, 0)
+	group              = ""
+	last_kick          = ""
+	leader             = false
+	promotion          = false
+	send_promotion     = false
+	not_in_group_users = make([]string, 0)
+	in_group_users     = make([]string, 0)
+	invitations        = make([]string, 0)
 )
 
 func (m *MyApp) NavListenOutputs(res pr.ServerResponse) {
@@ -95,6 +100,7 @@ func (m *MyApp) ItemListenOutputs(res pr.ServerResponse) {
 			var data pr.LookCommandData
 			if err := json.Unmarshal(raw, &data); err == nil {
 				opts = data.Room.Items
+				items = opts
 			}
 		}
 	}
@@ -176,71 +182,108 @@ func (m *MyApp) GroupListenOutputs(res pr.ServerResponse) {
 		invitation := strings.SplitN(res.Msg, "INVITE ", 2)[1]
 		invitations = append(invitations, invitation)
 
+	} else if strings.HasPrefix(res.Msg, "EVT GROUP JOIN") {
+		new_member := strings.SplitN(res.Msg, "JOIN ", 2)[1]
+		if !slices.Contains(in_group_users, new_member) {
+			m.router.Inputs <- "GROUPED"
+		}
+
+	} else if strings.HasPrefix(res.Msg, "EVT GROUP KICK") {
+		previous_member := strings.SplitN(res.Msg, "KICK ", 2)[1]
+
+		if previous_member == m.pseudo {
+			promotion = false
+			send_promotion = false
+			leader = false
+			group = ""
+			in_group_users = make([]string, 0)
+		}
+		m.router.Inputs <- "GROUPED"
+
+	} else if strings.HasPrefix(res.Msg, "EVT GROUP LEAVE") {
+		in_group_users = make([]string, 0)
+		m.router.Inputs <- "GROUPED"
+
+	} else if strings.HasPrefix(res.Msg, "EVT GROUP PROMOTE ACCEPTED") {
+		newLeader := strings.SplitN(res.Msg, "EVT GROUP PROMOTE ACCEPTED ", 2)[1]
+		promotion = false
+		send_promotion = false
+		leader = (newLeader == m.pseudo)
+		m.router.Inputs <- "GROUPED"
+
+	} else if strings.HasPrefix(res.Msg, "EVT GROUP PROMOTE DECLINED") {
+		promotion = false
+
+		if leader {
+			send_promotion = false
+		}
+		m.router.Inputs <- "GROUPED"
+
+	} else if strings.HasPrefix(res.Msg, "EVT new_leader=") {
+		newLeader := strings.SplitN(res.Msg, "new_leader=", 2)[1]
+		promotion = false
+		send_promotion = false
+		leader = (newLeader == m.pseudo)
+		m.router.Inputs <- "GROUPED"
+
+	} else if strings.HasPrefix(res.Msg, "EVT GROUP PROMOTE") {
+		promotion = true
+
 	} else if strings.HasPrefix(res.Msg, "OK group=") {
 		group = strings.Split(res.Msg, "group=")[1]
 		if m.router.LastCommand == pr.CreateGroup {
 			leader = true
 		}
-	}
+		m.router.Inputs <- "GROUPED"
 
-	// Create new panel
-	m.Group = panel.NewGroupComponent(
-		m.app,
-		m.popup,
-		panel.GroupDatas{
-			Group:       group,
-			Leader:      leader,
-			Invitations: &invitations,
-			Users:       &users,
-		},
-		m.router.Inputs,
-		m.OnOpenPopup,
-		m.ShowGamePage,
-	)
+	} else if strings.HasPrefix(res.Msg, "OK pending_leader=") {
+		pending_leader := strings.Split(res.Msg, "pending_leader=")[1]
+		leader = pending_leader == m.pseudo
+		if m.router.LastCommand == pr.PromoteGroup {
+			send_promotion = true
+		}
+		m.router.Inputs <- "GROUPED"
 
-	// Add new panel
-	m.grid.AddItem(m.Group.Layout, 1, 0, 1, 1, 0, 0, false)
-	m.setupMatrix()
-	m.ShowGamePage()
-}
+	} else if strings.HasPrefix(res.Msg, "OK new_leader=") {
+		last_kick = ""
+		leader = true
+		promotion = false
+		send_promotion = false
+		m.router.Inputs <- "GROUPED"
 
-func (m *MyApp) GroupLeaveListenOutputs(res pr.ServerResponse) {
-	// Remove previous item panel
-	m.grid.RemoveItem(m.Group.Layout)
+	} else if res.Msg == "OK" {
+		switch m.router.LastCommand {
+		case pr.LeaveGroup:
+			group = ""
+			leader = false
+			in_group_users = make([]string, 0)
 
-	group = ""
-	leader = false
+		case pr.DeclinePromoteGroup:
+			promotion = false
+		case pr.KickGroup:
+			m.router.Inputs <- "GROUPED"
 
-	// Create new panel
-	m.Group = panel.NewGroupComponent(
-		m.app,
-		m.popup,
-		panel.GroupDatas{
-			Group:       group,
-			Leader:      leader,
-			Invitations: &invitations,
-			Users:       &users,
-		},
-		m.router.Inputs,
-		m.OnOpenPopup,
-		m.ShowGamePage,
-	)
+		case pr.CmdUnGrouped:
+			raw, err := json.Marshal(res.Datas)
+			if err == nil {
+				var data pr.UnGroupedCommandData
+				if err := json.Unmarshal(raw, &data); err == nil {
+					filteredUsers := filterUngrouped(data.UnGrouped, in_group_users)
 
-	// Add new panel
-	m.grid.AddItem(m.Group.Layout, 1, 0, 1, 1, 0, 0, false)
-	m.setupMatrix()
-	m.ShowGamePage()
-}
-
-func (m *MyApp) UsersListenOutputs(res pr.ServerResponse) {
-	// Remove previous item panel
-	m.grid.RemoveItem(m.Group.Layout)
-
-	raw, err := json.Marshal(res.Datas)
-	if err == nil {
-		var data pr.UsersCommandData
-		if err := json.Unmarshal(raw, &data); err == nil {
-			users = data.Users
+					not_in_group_users = make([]string, 0, len(filteredUsers))
+					not_in_group_users = append(not_in_group_users, filteredUsers...)
+				}
+			}
+		case pr.CmdGrouped:
+			raw, err := json.Marshal(res.Datas)
+			if err == nil {
+				var data pr.GroupedCommandData
+				if err := json.Unmarshal(raw, &data); err == nil {
+					in_group_users = make([]string, 0, len(data.Grouped))
+					in_group_users = append(in_group_users, data.Grouped...)
+				}
+			}
+			m.router.Inputs <- "UNGROUPED"
 		}
 	}
 
@@ -249,10 +292,14 @@ func (m *MyApp) UsersListenOutputs(res pr.ServerResponse) {
 		m.app,
 		m.popup,
 		panel.GroupDatas{
-			Group:       group,
-			Leader:      leader,
-			Invitations: &invitations,
-			Users:       &users,
+			Group:         group,
+			LastKick:      &last_kick,
+			Leader:        leader,
+			Promotion:     promotion,
+			SendPromotion: send_promotion,
+			Invitations:   &invitations,
+			UnGrouped:     &not_in_group_users,
+			Grouped:       &in_group_users,
 		},
 		m.router.Inputs,
 		m.OnOpenPopup,
@@ -263,4 +310,21 @@ func (m *MyApp) UsersListenOutputs(res pr.ServerResponse) {
 	m.grid.AddItem(m.Group.Layout, 1, 0, 1, 1, 0, 0, false)
 	m.setupMatrix()
 	m.ShowGamePage()
+}
+
+func filterUngrouped(ungrouped []string, members []string) []string {
+	var filtered []string
+	for _, user := range ungrouped {
+		isMember := false
+		for _, member := range members {
+			if user == member {
+				isMember = true
+				break
+			}
+		}
+		if !isMember {
+			filtered = append(filtered, user)
+		}
+	}
+	return filtered
 }

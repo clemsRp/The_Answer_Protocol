@@ -41,8 +41,9 @@ func NewTuiClient(conn net.Conn) *TuiClient {
 
 func (tui *TuiClient) startRouter() {
 	defer tui.wg.Done()
-	tui.app.router.Start()
+	tui.app.router.Start(tui.app)
 }
+
 func (tui *TuiClient) handleInput() {
 	defer tui.wg.Done()
 
@@ -52,12 +53,14 @@ func (tui *TuiClient) handleInput() {
 		case input := <-tui.inputs:
 			// Send command to the server
 			fmt.Fprint(tui.conn, input+"\n")
-			// Save the last command to handle server returns
-			router.LastCommand = strings.ToUpper(strings.Split(input, " ")[0])
 
-			if strings.ToUpper(router.LastCommand) == "GROUP" {
-				router.LastCommand = strings.ToUpper(strings.Split(input, " ")[1])
+			// Save the last command to handle server returns
+			cmd := strings.ToUpper(strings.Fields(input)[0])
+			if cmd == "GROUP" && len(strings.Fields(input)) > 1 {
+				cmd = strings.ToUpper(strings.Fields(input)[1])
 			}
+			router.pendingCmds <- cmd
+
 		case <-tui.ctx.Done():
 			return
 		}
@@ -81,7 +84,9 @@ func (tui *TuiClient) listenResponses() {
 			break
 		}
 		if res.Msg == "OK connected" {
-			tui.app.ShowGamePage()
+			tui.app.app.QueueUpdateDraw(func() {
+				tui.app.ShowGamePage()
+			})
 		}
 	}
 	if err := scanner.Err(); err != nil {

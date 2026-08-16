@@ -1,0 +1,7369 @@
+.
+├── client
+│   └── tui
+│       ├── app.go
+│       ├── assets
+│       │   ├── logo.ans
+│       │   ├── logo.png
+│       │   ├── shopfront.ans
+│       │   └── shopfront.png
+│       ├── listen_outputs.go
+│       ├── move_focus.go
+│       ├── panels
+│       │   ├── chat_panel.go
+│       │   ├── choice_list_panel.go
+│       │   ├── command_line_panel.go
+│       │   ├── connect_panel.go
+│       │   ├── datas_panel.go
+│       │   ├── group_panel.go
+│       │   ├── interaction_panel.go
+│       │   ├── items_panel.go
+│       │   ├── navigation_panel.go
+│       │   ├── popup_panel.go
+│       │   ├── server_response_panel.go
+│       │   ├── style_utils.go
+│       │   ├── theme.go
+│       │   ├── utils.go
+│       │   └── view_factory.go
+│       ├── router.go
+│       ├── tui_client.go
+│       └── utils.go
+├── cmd
+│   ├── client
+│   │   └── tui
+│   │       └── main.go
+│   └── server
+│       └── main.go
+├── engine
+│   ├── combat_system.go
+│   ├── command.go
+│   ├── data_models.go
+│   ├── duplicate_keys.go
+│   ├── engine.go
+│   ├── fighter.go
+│   ├── group.go
+│   ├── handle_commands.go
+│   ├── items.go
+│   ├── npcs.go
+│   ├── parser.go
+│   ├── player.go
+│   ├── utils.go
+│   └── valid_values.go
+├── go.mod
+├── go.sum
+├── grid_ideas.excalidraw
+├── Makefile
+├── project.txt
+├── protocol
+│   ├── commands.go
+│   ├── commands_struct.go
+│   ├── error_messages.go
+│   ├── events.go
+│   └── protocol.go
+├── protocol-rfc.html
+├── README.md
+├── server
+│   ├── client.go
+│   ├── constants.go
+│   ├── rate_limiter.go
+│   ├── server.go
+│   └── timestamp.go
+├── tests
+│   ├── logs
+│   │   └── logs.go
+│   ├── network
+│   │   ├── accept_new_tcp_connection_test.go
+│   │   ├── anti_flood_test.go
+│   │   ├── client_disconnection_test.go
+│   │   ├── empty_commands_test.go
+│   │   ├── invalid_utf8_payload_test.go
+│   │   ├── max_player_limit_test.go
+│   │   ├── server_graceful_shutdown_idle_test.go
+│   │   ├── server_graceful_shutdown_with_disconnecting_clients_test.go
+│   │   ├── server_lifecycle_test.go
+│   │   ├── tcp_fragment_coalescing_test.go
+│   │   ├── tcp_huge_payload_test.go
+│   │   ├── tcp_many_connections_test.go
+│   │   ├── unknown_commands_test.go
+│   │   └── zombie_client_timeout_test.go
+│   ├── scenarios
+│   │   ├── actions.go
+│   │   ├── attack_scenarios.go
+│   │   ├── concurrency_scenarios.go
+│   │   ├── establish_connection.go
+│   │   ├── group_scenarios.go
+│   │   ├── item_scenarios.go
+│   │   ├── quest_scenarios.go
+│   │   ├── run_concurrent_scenarios.go
+│   │   ├── run_scenarios.go
+│   │   ├── scenarios.go
+│   │   ├── scenarios_test.go
+│   │   ├── send_scenarios_command.go
+│   │   ├── session_scenarios.go
+│   │   ├── talk_scenarios.go
+│   │   └── verify_expected_replies.go
+│   ├── testTUI
+│   │   └── normal_disconnection_test.go
+│   └── utils
+│       ├── connect_and_greet.go
+│       ├── formatters.go
+│       ├── send_commands.go
+│       ├── setup_server_engine.go
+│       └── validators.go
+├── utils
+│   ├── improvements.txt
+│   ├── lore_ideas.txt
+│   └── map_formats.txt
+└── world.json
+
+18 directories, 98 files
+-e 
+=== CONTENU DES FICHIERS ===
+
+
+--- FILE: ./README.md ---
+
+
+
+logging ressource:
+```https://www.dash0.com/guides/json-logging```
+--- FILE: ./client/tui/panels/datas_panel.go ---
+package panel
+
+import (
+	"context"
+	"sync"
+	pr "tap/protocol"
+
+	"github.com/rivo/tview"
+)
+
+type DatasComponent struct {
+	Layout *tview.Flex
+	View   *tview.TextView
+}
+
+func NewDatasComponent(app *tview.Application) *DatasComponent {
+	src := &DatasComponent{}
+
+	src.View = createTextView("", " Datas ", true)
+	src.View.SetDynamicColors(true).SetWordWrap(true)
+
+	src.Layout = tview.NewFlex().SetDirection(tview.FlexRow).AddItem(src.View, 0, 1, false)
+
+	return src
+}
+func (c *DatasComponent) ListenOutputs(ctx context.Context, wg *sync.WaitGroup, app *tview.Application, datasChan <-chan pr.ServerResponse) {
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+
+			case res, ok := <-datasChan:
+				if !ok {
+					return
+				}
+
+				app.QueueUpdateDraw(func() {
+					c.View.Clear()
+					c.View.SetText(res.Msg)
+				})
+			}
+		}
+	}()
+}
+
+--- FILE: ./client/tui/panels/server_response_panel.go ---
+package panel
+
+import (
+	"context"
+	"fmt"
+	"strings"
+	"sync"
+	pr "tap/protocol"
+
+	"github.com/rivo/tview"
+)
+
+type ServerResponseComponent struct {
+	Layout  *tview.Flex
+	CliBtn  *tview.Button
+	QuitBtn *tview.Button
+	Buttons *tview.Flex
+	History *tview.TextView
+}
+
+func NewServerResponseComponent(app *tview.Application) *ServerResponseComponent {
+	src := &ServerResponseComponent{}
+
+	src.CliBtn = tview.NewButton("CLI")
+	src.QuitBtn = tview.NewButton("QUIT")
+
+	src.History = createTextView("", " Server Responses ", true)
+
+	src.Buttons = tview.NewFlex().SetDirection(tview.FlexColumn).
+		AddItem(nil, 1, 0, false).
+		AddItem(src.CliBtn, 0, 1, false).
+		AddItem(nil, 1, 0, false).
+		AddItem(src.QuitBtn, 0, 1, false).
+		AddItem(nil, 1, 0, false)
+
+	src.Layout = tview.NewFlex().SetDirection(tview.FlexRow).
+		AddItem(src.Buttons, 1, 1, false).
+		AddItem(src.History, 0, 1, false)
+
+	return src
+}
+
+func (c *ServerResponseComponent) ListenOutputs(ctx context.Context, wg *sync.WaitGroup, app *tview.Application, ServerChan <-chan pr.ServerResponse) {
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+
+			case res, ok := <-ServerChan:
+				if !ok {
+					return
+				}
+
+				msg_type := res.Msg
+				msg_text := ""
+
+				if strings.ContainsRune(res.Msg, ' ') {
+					split_msg := strings.SplitN(res.Msg, " ", 2)
+					msg_type = split_msg[0]
+					msg_text = split_msg[1]
+				}
+
+				color := GetResponseColor(res)
+				app.QueueUpdateDraw(func() {
+					fmt.Fprintf(c.History, "[%s]%s [white]%s\n", color, msg_type, msg_text)
+				})
+			}
+		}
+	}()
+}
+
+--- FILE: ./client/tui/panels/chat_panel.go ---
+package panel
+
+import (
+	"context"
+	"fmt"
+	"strings"
+	"sync"
+
+	pr "tap/protocol"
+
+	"github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
+)
+
+type ChatComponent struct {
+	Layout    *tview.Flex
+	History   *tview.Pages
+	Histories map[string]*tview.TextView
+	Scope     *tview.DropDown
+	Input     *tview.InputField
+}
+
+type SaveChat struct {
+	Scope string
+	Msg   string
+}
+
+var (
+	last_chat = SaveChat{Scope: pr.GlobalChat, Msg: ""}
+)
+
+func NewChatComponent(app *tview.Application, inputs chan<- string) *ChatComponent {
+	chat := &ChatComponent{}
+
+	// Init Scope Histories
+	chat.History = tview.NewPages()
+
+	chat.Histories = map[string]*tview.TextView{
+		pr.RoomChat:   NewHistoryComponent(pr.RoomChat),
+		pr.GroupChat:  NewHistoryComponent(pr.GroupChat),
+		pr.GlobalChat: NewHistoryComponent(pr.GlobalChat),
+	}
+
+	for scope, history := range chat.Histories {
+		focus := false
+		if scope == pr.GlobalChat {
+			focus = true
+		}
+		chat.History.AddPage(scope, history, true, focus)
+	}
+
+	chat.Scope = createSelectField("Canal: ", []string{pr.GlobalChat, pr.RoomChat, pr.GroupChat}, 0)
+
+	chat.Input = tview.NewInputField().
+		SetLabel(" Message: ").
+		SetFieldWidth(0)
+	inputRow := tview.NewFlex().SetDirection(tview.FlexColumn).
+		AddItem(chat.Scope, 17, 1, false).
+		AddItem(chat.Input, 0, 1, true)
+
+	chat.Layout = tview.NewFlex().SetDirection(tview.FlexRow).
+		AddItem(chat.History, 0, 1, false).
+		AddItem(inputRow, 1, 1, true)
+	chat.Layout.SetBorder(true).SetTitle(" Chat")
+
+	activeColor := tcell.ColorYellow
+	inactiveColor := tcell.ColorDimGray
+	chat.Layout.SetBorderColor(inactiveColor)
+
+	chat.Input.SetFocusFunc(func() {
+		chat.Layout.SetBorderColor(activeColor)
+		chat.Layout.SetTitleColor(activeColor)
+
+		chat.Input.SetBorderColor(activeColor)
+		chat.Input.SetTitleColor(activeColor)
+	})
+	chat.Input.SetBlurFunc(func() {
+		chat.Layout.SetBorderColor(inactiveColor)
+		chat.Layout.SetTitleColor(tcell.ColorWhite)
+
+		chat.Input.SetBorderColor(inactiveColor)
+		chat.Input.SetTitleColor(tcell.ColorWhite)
+	})
+
+	chat.Scope.SetSelectedFunc(func(scope string, index int) {
+		chat.History.SwitchToPage(scope)
+	})
+	chat.Scope.SetFocusFunc(func() {
+		chat.Layout.SetBorderColor(activeColor)
+		chat.Layout.SetTitleColor(activeColor)
+	})
+	chat.Scope.SetBlurFunc(func() {
+		chat.Layout.SetBorderColor(inactiveColor)
+		chat.Layout.SetTitleColor(tcell.ColorWhite)
+	})
+
+	chat.Input.SetDoneFunc(func(key tcell.Key) {
+		if key == tcell.KeyEnter {
+			text := chat.Input.GetText()
+			if text == "" {
+				return
+			}
+
+			_, canal := chat.Scope.GetCurrentOption()
+
+			last_chat = SaveChat{Scope: canal, Msg: text}
+
+			chat.Input.SetText("")
+			inputs <- fmt.Sprintf("CHAT %s %s", canal, text)
+		}
+	})
+
+	chat.Layout.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyTab {
+			if app.GetFocus() == chat.Input {
+				app.SetFocus(chat.Scope)
+			} else {
+				app.SetFocus(chat.Input)
+			}
+			return nil
+		}
+		return event
+	})
+
+	return chat
+}
+
+func NewHistoryComponent(scope string) *tview.TextView {
+	history := createTextView("", "", true)
+	history.
+		SetBorder(true).
+		SetTitle(fmt.Sprintf(" %s ", scope))
+
+	return history
+}
+
+func (c *ChatComponent) ListenOutputs(ctx context.Context, wg *sync.WaitGroup, app *tview.Application, chatChan <-chan pr.ServerResponse) {
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+
+			case res, ok := <-chatChan:
+				if !ok {
+					return
+				}
+
+				if strings.HasPrefix(res.Msg, "EVT") {
+					split_msg := strings.SplitN(res.Msg, " ", 5)
+
+					if len(split_msg) >= 5 {
+						scope := split_msg[1]
+						user := split_msg[3]
+						message := split_msg[4]
+
+						lineChat := fmt.Sprintf("[green]%s: [white]%s\n", user, message)
+
+						app.QueueUpdateDraw(func() {
+							if historyView, exists := c.Histories[scope]; exists {
+								fmt.Fprint(historyView, lineChat)
+							}
+						})
+					}
+
+				} else if res.Msg == "OK" {
+					formated_msg := fmt.Sprintf("[green]%s: [white]%s\n", pseudo, last_chat.Msg)
+
+					app.QueueUpdateDraw(func() {
+						if historyView, exists := c.Histories[last_chat.Scope]; exists {
+							fmt.Fprint(historyView, formated_msg)
+						}
+					})
+				}
+			}
+		}
+	}()
+}
+
+--- FILE: ./client/tui/panels/connect_panel.go ---
+package panel
+
+import (
+	"fmt"
+	"io"
+	"os"
+	"strings"
+	"unicode"
+
+	"github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
+)
+
+var (
+	pseudo = ""
+)
+
+func SetInputText(input *tview.InputField, text string) {
+	_, _, width, _ := input.GetRect()
+	nb_spaces := (width - len(text)) / 2
+	if nb_spaces < 0 {
+		nb_spaces = 0
+	}
+	spaces := strings.Repeat(" ", nb_spaces)
+	input.SetText(spaces + text)
+}
+
+func NewConnectComponent(m_pseudo *string, inputs chan<- string) tview.Primitive {
+	connect := createInputField(" Connect ", false, "")
+
+	connect.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyRune {
+			r := event.Rune()
+			if unicode.IsLetter(r) || unicode.IsDigit(r) {
+				return event
+			}
+			return nil
+		}
+		return event
+	})
+
+	connect.SetDrawFunc(func(screen tcell.Screen, x, y, width, height int) (int, int, int, int) {
+		currentText := connect.GetText()
+		cleanText := strings.TrimSpace(currentText)
+
+		nb_spaces := (width - len(cleanText)) / 2
+		if nb_spaces < 0 {
+			nb_spaces = 0
+		}
+		spaces := strings.Repeat(" ", nb_spaces)
+
+		if currentText != spaces+cleanText {
+			connect.SetText(spaces + cleanText)
+		}
+		return connect.GetInnerRect()
+	})
+
+	connect.SetDoneFunc(func(key tcell.Key) {
+		if key == tcell.KeyEnter {
+			input_pseudo := strings.TrimSpace(connect.GetText())
+			if input_pseudo == "" {
+				return
+			}
+
+			pseudo = input_pseudo
+
+			SetInputText(connect, "")
+			*m_pseudo = input_pseudo
+			inputs <- "CONNECT " + input_pseudo
+		}
+	})
+
+	input := createVerticalInputField("\t\t\t\t\t   ENTER PSEUDO", tcell.ColorGreen, connect)
+	return input
+}
+
+func NewImageComponent(img_path string) *tview.TextView {
+	imgView := tview.NewTextView().
+		SetDynamicColors(true).
+		SetWordWrap(false)
+
+	file, err := os.Open(img_path)
+	if err != nil {
+		fmt.Fprintf(imgView, "Error loading image: %v", err)
+		return imgView
+	}
+	defer file.Close()
+
+	_, _ = io.Copy(tview.ANSIWriter(imgView), file)
+	return imgView
+}
+
+--- FILE: ./client/tui/panels/view_factory.go ---
+package panel
+
+import (
+	"github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
+)
+
+type Focusable interface {
+	SetFocusFunc(callback func()) *tview.Box
+	SetBlurFunc(callback func()) *tview.Box
+}
+
+func BindContainerFocus(container *tview.Flex, children ...Focusable) {
+	for _, child := range children {
+		child.SetFocusFunc(func() {
+			container.SetBorderColor(AppTheme.BorderActive)
+			container.SetTitleColor(AppTheme.TitleActive)
+		})
+		child.SetBlurFunc(func() {
+			container.SetBorderColor(AppTheme.BorderInactive)
+			container.SetTitleColor(AppTheme.TitleInactive)
+		})
+	}
+}
+
+func createTextView(text string, title string, hasBorder bool) *tview.TextView {
+	tv := tview.NewTextView()
+	tv.SetText(text)
+	tv.SetTextColor(AppTheme.TextPrimary)
+	tv.SetBackgroundColor(AppTheme.Background)
+	tv.SetDynamicColors(true)
+	tv.SetBorder(hasBorder)
+	tv.SetBorderColor(AppTheme.BorderInactive)
+
+	if title != "" {
+		tv.SetTitle(title)
+		tv.SetTitleColor(AppTheme.TitleInactive)
+	}
+
+	tv.SetFocusFunc(func() {
+		tv.SetBorderColor(AppTheme.BorderActive)
+		tv.SetTitleColor(AppTheme.TitleActive)
+	})
+	tv.SetBlurFunc(func() {
+		tv.SetBorderColor(AppTheme.BorderInactive)
+		tv.SetTitleColor(AppTheme.TitleInactive)
+	})
+	return tv
+}
+
+func createListView(title string, hasBorder bool, highlightFullLine bool, showSecondaryText bool) *tview.List {
+	l := tview.NewList()
+	l.SetMainTextColor(AppTheme.TextPrimary)
+	l.SetShortcutColor(AppTheme.TextHighlight)
+	l.SetSelectedBackgroundColor(AppTheme.ListSelectedBg)
+	l.SetSelectedTextColor(AppTheme.ListSelectedTxt)
+	l.SetBackgroundColor(AppTheme.Background)
+	l.ShowSecondaryText(showSecondaryText)
+	l.SetHighlightFullLine(highlightFullLine)
+	l.SetBorder(hasBorder)
+	l.SetBorderColor(AppTheme.BorderInactive)
+
+	if title != "" {
+		l.SetTitle(title)
+		l.SetTitleColor(AppTheme.TitleInactive)
+	}
+
+	l.SetFocusFunc(func() {
+		l.SetBorderColor(AppTheme.BorderActive)
+		l.SetTitleColor(AppTheme.TitleActive)
+	})
+	l.SetBlurFunc(func() {
+		l.SetBorderColor(AppTheme.BorderInactive)
+		l.SetTitleColor(AppTheme.TitleInactive)
+	})
+	return l
+}
+
+func createInputField(title string, hasBorder bool, label string) *tview.InputField {
+	input := tview.NewInputField()
+	input.SetLabel(label)
+	input.SetLabelColor(AppTheme.TextSecondary)
+	input.SetFieldTextColor(AppTheme.TextPrimary)
+	input.SetBackgroundColor(AppTheme.Background)
+	input.SetFieldBackgroundColor(AppTheme.Background)
+	input.SetBorder(hasBorder)
+	input.SetBorderColor(AppTheme.BorderInactive)
+
+	if title != "" {
+		input.SetTitle(title)
+		input.SetTitleColor(AppTheme.TitleInactive)
+	}
+
+	input.SetFocusFunc(func() {
+		input.SetBorderColor(AppTheme.BorderActive)
+		input.SetTitleColor(AppTheme.TitleActive)
+	})
+	input.SetBlurFunc(func() {
+		input.SetBorderColor(AppTheme.BorderInactive)
+		input.SetTitleColor(AppTheme.TitleInactive)
+	})
+	return input
+}
+
+func createSelectField(label string, options []string, index int) *tview.DropDown {
+	s := tview.NewDropDown().
+		SetLabel(label).
+		SetOptions(options, nil)
+
+	s.SetLabelColor(AppTheme.TextSecondary)
+	s.SetFieldTextColor(AppTheme.TextPrimary)
+	s.SetFieldBackgroundColor(AppTheme.Background)
+	s.SetBackgroundColor(AppTheme.Background)
+	s.SetCurrentOption(index)
+	return s
+}
+
+func createVerticalInputField(labelText string, labelColor tcell.Color, inputField *tview.InputField) tview.Primitive {
+	label := tview.NewTextView().
+		SetText(labelText).
+		SetTextColor(labelColor)
+
+	container := tview.NewFlex().SetDirection(tview.FlexRow).
+		AddItem(label, 1, 1, false).
+		AddItem(inputField, 1, 1, true)
+
+	return container
+}
+
+--- FILE: ./client/tui/panels/style_utils.go ---
+package panel
+
+import (
+	pr "tap/protocol"
+)
+
+const (
+	COLOR_ERR = "red"
+	COLOR_EVT = "orange"
+	COLOR_OK  = "green"
+)
+
+func GetResponseColor(res pr.ServerResponse) string {
+	color := "green"
+	if IsErrorResponse(res) {
+		color = "red"
+	}
+	if IsEventResponse(res) {
+		color = "orange"
+	}
+	return color
+}
+
+--- FILE: ./client/tui/panels/utils.go ---
+package panel
+
+import (
+	"strings"
+	pr "tap/protocol"
+)
+
+func IsErrorResponse(res pr.ServerResponse) bool {
+	if strings.HasPrefix(res.Msg, "ERR") {
+		return true
+	}
+	return false
+}
+
+func IsEventResponse(res pr.ServerResponse) bool {
+	if strings.HasPrefix(res.Msg, "EVT") {
+		return true
+	}
+	return false
+}
+
+func IsOKResponse(res pr.ServerResponse) bool {
+	if strings.HasPrefix(res.Msg, "OK") {
+		return true
+	}
+	return false
+}
+
+--- FILE: ./client/tui/panels/command_line_panel.go ---
+package panel
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"slices"
+	"sync"
+	pr "tap/protocol"
+
+	"github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
+)
+
+type CommandLineComponent struct {
+	Layout  *tview.Flex
+	History *tview.TextView
+	Input   *tview.InputField
+}
+
+func NewCommandLineComponent(app *tview.Application, inputs chan<- string) *CommandLineComponent {
+	command_line := &CommandLineComponent{}
+
+	command_line.History = createTextView("", "", true)
+	command_line.History.SetBorder(false)
+
+	command_line.Input = tview.NewInputField().
+		SetLabel("tap-cli> ").
+		SetFieldWidth(0).
+		SetFieldBackgroundColor(AppTheme.Background)
+
+	inputRow := tview.NewFlex().SetDirection(tview.FlexColumn).
+		AddItem(command_line.Input, 0, 1, true)
+
+	command_line.Layout = tview.NewFlex().SetDirection(tview.FlexRow).
+		AddItem(command_line.History, 0, 1, false).
+		AddItem(inputRow, 1, 1, true)
+	command_line.Layout.SetBorder(true).SetTitle(" CLI ")
+
+	activeColor := tcell.ColorYellow
+	inactiveColor := tcell.ColorDimGray
+	command_line.Layout.SetBorderColor(inactiveColor)
+
+	command_line.Input.SetFocusFunc(func() {
+		command_line.Layout.SetBorderColor(activeColor)
+		command_line.Layout.SetTitleColor(activeColor)
+
+		command_line.Input.SetBorderColor(activeColor)
+		command_line.Input.SetTitleColor(activeColor)
+	})
+	command_line.Input.SetBlurFunc(func() {
+		command_line.Layout.SetBorderColor(inactiveColor)
+		command_line.Layout.SetTitleColor(tcell.ColorWhite)
+
+		command_line.Input.SetBorderColor(inactiveColor)
+		command_line.Input.SetTitleColor(tcell.ColorWhite)
+	})
+
+	command_line.Input.SetDoneFunc(func(key tcell.Key) {
+		if key == tcell.KeyEnter {
+			text := command_line.Input.GetText()
+			if text == "" {
+				return
+			} else if slices.Contains([]string{"c", "clear"}, text) {
+				command_line.History.SetText("")
+				command_line.Input.SetText("")
+				return
+			}
+
+			fmt.Fprint(command_line.History, "tap-cli> "+text+"\n")
+
+			command_line.Input.SetText("")
+			inputs <- text
+		}
+	})
+
+	command_line.Layout.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyTab {
+			app.SetFocus(command_line.Input)
+			return nil
+		}
+		return event
+	})
+
+	return command_line
+}
+
+func (c *CommandLineComponent) ListenOutputs(ctx context.Context, wg *sync.WaitGroup, app *tview.Application, commandLineChan <-chan pr.ServerResponse) {
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+
+			case res, ok := <-commandLineChan:
+				if !ok {
+					return
+				}
+				b, _ := json.Marshal(res.Datas)
+				datas := string(b)
+
+				if datas == "\"\"" || datas == "null" || datas == "<nil>" {
+					datas = ""
+				}
+
+				msg := fmt.Sprintf("%s %+v", res.Msg, datas)
+
+				app.QueueUpdateDraw(func() {
+					fmt.Fprint(c.History, msg+"\n")
+				})
+			}
+		}
+	}()
+}
+
+--- FILE: ./client/tui/panels/group_panel.go ---
+package panel
+
+import (
+	"context"
+	"fmt"
+	"strings"
+	"sync"
+	pr "tap/protocol"
+
+	"github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
+)
+
+type GroupComponent struct {
+	Layout *tview.Flex
+}
+
+type GroupDatas struct {
+	Group         string
+	LastKick      *string
+	Leader        bool
+	Promotion     bool
+	SendPromotion bool
+	Grouped       *[]string
+	UnGrouped     *[]string
+	Invitations   *[]string
+}
+
+func NewGroupComponent(
+	app *tview.Application,
+	popup *tview.Grid,
+	groupDatas GroupDatas,
+	inputs chan<- string,
+	onOpenPopup func(popup *PopupComponent),
+	onClosePopup func(),
+) *GroupComponent {
+	src := GroupComponent{
+		Layout: tview.NewFlex().SetDirection(tview.FlexRow),
+	}
+	src.Layout.SetBorder(true).SetTitle(" Group ")
+
+	datas := tview.NewList().
+		SetSelectedBackgroundColor(tcell.GetColor("#000000")).
+		SetSelectedTextColor(tcell.ColorWhite)
+
+	cur_group := groupDatas.Group
+	if cur_group == "" {
+		cur_group = "None"
+	}
+
+	val_color := "yellow"
+
+	// Display datas
+	datas.AddItem(fmt.Sprintf("Group: [%s]%s", val_color, cur_group), "", 0, nil)
+	datas.AddItem(fmt.Sprintf("Leader: [%s]%t", val_color, groupDatas.Leader), "", 0, nil)
+
+	src.Layout.AddItem(datas, 0, 1, true)
+
+	makeSpacer := func(height int) *tview.Box {
+		spacer := tview.NewBox()
+		return spacer
+	}
+
+	src.Layout.AddItem(makeSpacer(1), 1, 1, false)
+
+	if groupDatas.Group == "" {
+		// Create button
+		create_btn := tview.NewButton("Create").SetSelectedFunc(func() { inputs <- "GROUP CREATE" })
+		src.Layout.AddItem(create_btn, 1, 1, false)
+
+		if groupDatas.Invitations != nil && len(*groupDatas.Invitations) != 0 {
+			// Join button
+			join_func := func(invitations *[]string, inv string) {
+				inputs <- "GROUP JOIN " + inv
+
+				if invitations == nil {
+					return
+				}
+
+				for i, v := range *invitations {
+					if v == inv {
+						*invitations = append((*invitations)[:i], (*invitations)[i+1:]...)
+						break
+					}
+				}
+			}
+			src.Layout.AddItem(makeSpacer(1), 1, 1, false)
+			join_btn := CreateOptionBtn(app, popup, "Join", groupDatas.Invitations, onOpenPopup, onClosePopup, join_func)
+			src.Layout.AddItem(join_btn, 1, 1, false)
+		}
+
+	} else {
+		if groupDatas.Leader {
+			// Invite button
+			invite_func := func(users *[]string, user string) {
+				inputs <- "GROUP INVITE " + user
+				inputs <- "UNGROUPED"
+
+				if users == nil {
+					return
+				}
+			}
+
+			if len(*groupDatas.UnGrouped) > 0 {
+				invite_btn := CreateOptionBtn(app, popup, "Invite", groupDatas.UnGrouped, onOpenPopup, onClosePopup, invite_func)
+				src.Layout.AddItem(invite_btn, 1, 1, false)
+			}
+
+			// Kick button
+			kick_func := func(users *[]string, user string) {
+				inputs <- "GROUP KICK " + user
+				*groupDatas.LastKick = user
+
+				if users == nil {
+					return
+				}
+
+				for i, v := range *users {
+					if v == user {
+						*users = append((*users)[:i], (*users)[i+1:]...)
+						break
+					}
+				}
+			}
+
+			if len(*groupDatas.Grouped) > 0 {
+				kick_btn := CreateOptionBtn(app, popup, "Kick", groupDatas.Grouped, onOpenPopup, onClosePopup, kick_func)
+				src.Layout.AddItem(makeSpacer(1), 1, 1, false)
+				src.Layout.AddItem(kick_btn, 1, 1, false)
+			}
+
+			if !groupDatas.SendPromotion && len(*groupDatas.Grouped) > 0 {
+				// Promote button
+				promote_flex := tview.NewFlex().SetDirection(tview.FlexColumn)
+
+				selector := createSelectField("", modify_select_options(*groupDatas.Grouped), 0)
+				promote_btn := tview.NewButton("Promote").SetSelectedFunc(func() {
+					_, new_leader := selector.GetCurrentOption()
+					inputs <- "GROUP PROMOTE " + strings.TrimSpace(new_leader)
+				})
+
+				promote_flex.AddItem(promote_btn, 0, 1, false)
+				promote_flex.AddItem(makeSpacer(1), 1, 1, false)
+				promote_flex.AddItem(selector, get_select_width(*groupDatas.Grouped), 1, false)
+
+				src.Layout.AddItem(makeSpacer(1), 1, 1, false)
+				src.Layout.AddItem(promote_flex, 1, 1, true)
+			}
+
+		} else if groupDatas.Promotion {
+			// Accept/Decline promotion
+			choice_flex := tview.NewFlex().SetDirection(tview.FlexColumn)
+
+			// Accept button
+			accept_btn := tview.NewButton("✅")
+			accept_btn.
+				SetSelectedFunc(func() {
+					inputs <- "GROUP ACCEPT"
+					groupDatas.Promotion = false
+				})
+			accept_btn.SetBackgroundColor(tcell.GetColor("#000000"))
+			accept_btn.SetBackgroundColorActivated(tcell.GetColor("#000000"))
+
+			decline_btn := tview.NewButton("❌")
+			decline_btn.SetSelectedFunc(func() {
+				inputs <- "GROUP DECLINE"
+				groupDatas.Promotion = false
+			})
+			decline_btn.SetBackgroundColor(tcell.GetColor("#000000"))
+			decline_btn.SetBackgroundColorActivated(tcell.GetColor("#000000"))
+
+			choice_flex.AddItem(tview.NewTextView().SetText("Get promoted: ").SetTextColor(tcell.ColorYellow), 15, 0, false)
+			choice_flex.AddItem(tview.NewBox(), 0, 0, false)
+			choice_flex.AddItem(accept_btn, 1, 0, true)
+			choice_flex.AddItem(tview.NewBox(), 2, 0, false)
+			choice_flex.AddItem(decline_btn, 1, 0, true)
+
+			src.Layout.AddItem(choice_flex, 1, 1, true)
+		}
+
+		src.Layout.AddItem(makeSpacer(1), 1, 1, false)
+		leave_btn := tview.NewButton("Leave").SetSelectedFunc(func() { inputs <- "GROUP LEAVE" })
+		src.Layout.AddItem(leave_btn, 1, 1, false)
+	}
+
+	return &src
+}
+
+func CreateOptionBtn(
+	app *tview.Application,
+	popupGrid *tview.Grid,
+	btnLabel string,
+	options *[]string,
+	onOpenPopup func(popup *PopupComponent),
+	onClosePopup func(),
+	onOptionSelected func(options *[]string, selected string),
+) *tview.Button {
+
+	btn := tview.NewButton(btnLabel).SetSelectedFunc(func() {
+		if options == nil || len(*options) == 0 {
+			return
+		}
+
+		optsList := *options
+		var selectedOption string
+
+		optionsFlex := tview.NewFlex().SetDirection(tview.FlexRow)
+		optionsFlex.SetBackgroundColor(popupBgColor)
+
+		makeSpacer := func(height int) *tview.Box {
+			spacer := tview.NewBox()
+			spacer.SetBackgroundColor(popupBgColor)
+			return spacer
+		}
+
+		optionsFlex.AddItem(makeSpacer(1), 1, 0, false)
+
+		actionList := tview.NewList().
+			SetMainTextColor(tcell.ColorWhite).
+			SetSelectedBackgroundColor(tcell.ColorRed).
+			SetSelectedTextColor(tcell.ColorWhite)
+		actionList.SetBackgroundColor(popupBgColor)
+
+		formatItem := func(name string, isSelected bool) string {
+			if isSelected {
+				return "[white:#7e7979]" + transform_name(name, 30)
+			}
+			return "[white:#474646]" + transform_name(name, 30)
+		}
+
+		// Ajout des options dans la liste
+		for idx, opt := range optsList {
+			isFirst := idx == 0
+			actionList.AddItem(formatItem(opt, isFirst), "", 0, nil)
+		}
+
+		if len(optsList) > 0 {
+			selectedOption = optsList[0]
+		}
+
+		// Mise à jour de la sélection au survol/changement d'index
+		actionList.SetChangedFunc(func(i int, mainText, secondaryText string, shortcut rune) {
+			if i >= 0 && i < len(optsList) {
+				selectedOption = optsList[i]
+
+				for idx, name := range optsList {
+					isSelected := (idx == i)
+					actionList.SetItemText(idx, formatItem(name, isSelected), "")
+				}
+			}
+		})
+
+		actionList.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+			if event.Key() == tcell.KeyEnter {
+				return nil
+			}
+			return event
+		})
+
+		optionsFlex.AddItem(actionList, len(optsList)*2, 1, true)
+
+		// Bouton Cancel
+		cancelBtn := tview.NewButton("Cancel").
+			SetLabelColor(tcell.ColorWhite).
+			SetBackgroundColorActivated(btnActiveBg).
+			SetLabelColorActivated(tcell.ColorWhite).
+			SetSelectedFunc(func() {
+				if onClosePopup != nil {
+					onClosePopup()
+				}
+			})
+		cancelBtn.SetBackgroundColor(btnRestBg)
+
+		// Bouton Validate
+		validateBtn := tview.NewButton("Validate").
+			SetLabelColor(tcell.ColorWhite).
+			SetBackgroundColorActivated(btnActiveBg).
+			SetLabelColorActivated(tcell.ColorWhite).
+			SetSelectedFunc(func() {
+				if selectedOption == "" {
+					return
+				}
+
+				chosenOpt := selectedOption
+
+				if onClosePopup != nil {
+					onClosePopup()
+				}
+
+				if onOptionSelected != nil {
+					onOptionSelected(options, chosenOpt)
+				}
+			})
+		validateBtn.SetBackgroundColor(btnRestBg)
+
+		buttons := []*tview.Button{cancelBtn, validateBtn}
+		totalHeight := (len(optsList) * 2) + 11
+
+		newPopup := NewPopupComponent(app, popupGrid, optionsFlex, totalHeight, buttons)
+
+		popupGrid.Clear()
+		popupGrid.AddItem(newPopup.Layout, 1, 1, 1, 1, 0, 0, true)
+
+		if onOpenPopup != nil {
+			onOpenPopup(newPopup)
+		}
+	})
+
+	return btn
+}
+
+func get_select_width(options []string) int {
+	max_len := 0
+	for _, option := range options {
+		if len(option) > max_len {
+			max_len = len(option)
+		}
+	}
+
+	return max_len + 2
+}
+
+func modify_select_options(options []string) []string {
+	res := make([]string, 0)
+
+	for _, option := range options {
+		res = append(res, fmt.Sprintf(" %s ", option))
+	}
+
+	return res
+}
+
+func (c *GroupComponent) ListenOutputs(ctx context.Context, wg *sync.WaitGroup, app *tview.Application, Chan <-chan pr.ServerResponse, function func(pr.ServerResponse)) {
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+
+			case res, ok := <-Chan:
+				if !ok {
+					return
+				}
+
+				response := res
+				app.QueueUpdateDraw(func() {
+					function(response)
+				})
+			}
+		}
+	}()
+}
+
+--- FILE: ./client/tui/panels/items_panel.go ---
+package panel
+
+import (
+	"fmt"
+	pr "tap/protocol"
+
+	"github.com/rivo/tview"
+)
+
+var (
+	inventory = make([]string, 0)
+)
+
+func NewItemsComponent(
+	app *tview.Application,
+	popupGrid *tview.Grid,
+	room_items []string,
+	inputs chan<- string,
+	onOpenPopup func(popup *PopupComponent),
+	onClosePopup func(),
+) *ChoiceListComponent {
+	options := ConvertItems(room_items, inventory, inputs)
+
+	return NewChoiceListComponent(app, popupGrid, "Items", options, onOpenPopup, onClosePopup, false)
+}
+
+func ConvertItems(room_items, inventory_items []string, inputs chan<- string) map[string]OptionsMap {
+	res := make(map[string]OptionsMap)
+
+	if len(room_items) != 0 {
+		res["ROOM"] = ConvertItemsList(room_items, pr.CmdTake, inputs)
+	}
+
+	if len(inventory_items) != 0 {
+		res["INVENTORY"] = ConvertItemsList(inventory_items, pr.CmdDrop, inputs)
+	}
+
+	return res
+}
+
+func ConvertItemsList(items []string, cmd string, inputs chan<- string) OptionsMap {
+	res := make(OptionsMap)
+
+	for _, item := range items {
+		res[item] = map[string]func(){
+			cmd: func() {
+				go func() {
+					ItemFunc(item, cmd, inputs)
+					inputs <- "LOOK"
+				}()
+			},
+		}
+	}
+
+	return res
+}
+
+func ItemFunc(item, cmd string, inputs chan<- string) {
+	if cmd == pr.CmdTake {
+		inventory = append(inventory, item)
+
+	} else if cmd == pr.CmdDrop {
+		// Get cur_item index inside inventory
+		item_index := -1
+		for i, cur_item := range inventory {
+			if cur_item == item {
+				item_index = i
+				break
+			}
+		}
+
+		// Remove cur_item
+		if item_index != -1 {
+			inventory = append(inventory[:item_index], inventory[item_index+1:]...)
+		}
+	}
+	inputs <- fmt.Sprintf("%s %s", cmd, item)
+}
+
+--- FILE: ./client/tui/panels/popup_panel.go ---
+package panel
+
+import (
+	"github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
+)
+
+type PopupComponent struct {
+	Layout      *tview.Flex
+	LayoutTemp  *tview.Flex
+	Buttons     *tview.Flex
+	MainContent tview.Primitive
+	FocusItem   tview.Primitive
+	ButtonList  []*tview.Button
+}
+
+type InputCapturer interface {
+	SetInputCapture(capture func(event *tcell.EventKey) *tcell.EventKey) *tview.Box
+	SetMouseCapture(capture func(action tview.MouseAction, event *tcell.EventMouse) (tview.MouseAction, *tcell.EventMouse)) *tview.Box
+}
+
+func NewPopupComponent(app *tview.Application, grid *tview.Grid, mainContent tview.Primitive, contentHeight int, buttons []*tview.Button) *PopupComponent {
+	// Color constants
+	bgColor := tcell.GetColor("#3a3838")
+
+	popup := PopupComponent{
+		LayoutTemp:  tview.NewFlex().SetDirection(tview.FlexRow),
+		Layout:      tview.NewFlex().SetDirection(tview.FlexColumn),
+		Buttons:     tview.NewFlex().SetDirection(tview.FlexColumn),
+		MainContent: mainContent,
+		FocusItem:   mainContent,
+		ButtonList:  buttons,
+	}
+
+	// Apply background colors to containers
+	popup.LayoutTemp.SetBackgroundColor(bgColor)
+	popup.Buttons.SetBackgroundColor(bgColor)
+
+	// Helper to create background-colored spacers
+	createSpacer := func() *tview.Box {
+		box := tview.NewBox()
+		box.SetBackgroundColor(bgColor)
+		return box
+	}
+
+	// Assemble buttons dynamically
+	for i, btn := range buttons {
+		popup.Buttons.AddItem(btn, 0, 1, i == 0)
+		if i < len(buttons)-1 {
+			popup.Buttons.AddItem(createSpacer(), 1, 1, false)
+		}
+	}
+
+	// Assemble vertical inner layout
+	popup.LayoutTemp.AddItem(createSpacer(), 5, 0, false)
+	popup.LayoutTemp.AddItem(mainContent, 0, 1, true)
+	popup.LayoutTemp.AddItem(createSpacer(), 3, 0, false)
+
+	// Add buttons row only if buttons are provided
+	if len(buttons) > 0 {
+		popup.LayoutTemp.AddItem(popup.Buttons, 1, 0, false)
+		popup.LayoutTemp.AddItem(createSpacer(), 5, 0, false)
+	}
+
+	// Build focusable primitives slice for Tab key navigation
+	focusableItems := []tview.Primitive{mainContent}
+	for _, btn := range buttons {
+		focusableItems = append(focusableItems, btn)
+	}
+
+	// Handle focus navigation across main content and buttons
+	popup.LayoutTemp.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyTab {
+			currentFocus := app.GetFocus()
+			for i, item := range focusableItems {
+				if currentFocus == item {
+					nextIndex := (i + 1) % len(focusableItems)
+					app.SetFocus(focusableItems[nextIndex])
+					return nil
+				}
+			}
+			if len(focusableItems) > 0 {
+				app.SetFocus(focusableItems[0])
+			}
+			return nil
+		}
+		return event
+	})
+
+	popup.Layout.AddItem(createSpacer(), 15, 0, false)
+	popup.Layout.AddItem(popup.LayoutTemp, 0, 1, true)
+	popup.Layout.AddItem(createSpacer(), 15, 0, false)
+
+	// Total vertical height calculation for container grid
+	totalHeight := contentHeight + 3
+	if len(buttons) > 0 {
+		totalHeight += 2
+	}
+	grid.SetRows(0, totalHeight-1, 0)
+
+	return &popup
+}
+
+func SetBlockedInputs(component InputCapturer, is_blocked bool) {
+	// Open all inputs
+	if is_blocked {
+		component.SetInputCapture(nil)
+		component.SetMouseCapture(nil)
+		return
+	}
+
+	// Blocked all inputs
+	component.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		return nil
+	})
+
+	component.SetMouseCapture(func(action tview.MouseAction, event *tcell.EventMouse) (tview.MouseAction, *tcell.EventMouse) {
+		return action, nil
+	})
+}
+
+--- FILE: ./client/tui/panels/interaction_panel.go ---
+package panel
+
+import (
+	"fmt"
+
+	"github.com/rivo/tview"
+)
+
+func NewInteractionComponent(
+	app *tview.Application,
+	popupGrid *tview.Grid,
+	npcs,
+	players []string,
+	inputs chan<- string,
+	onOpenPopup func(popup *PopupComponent),
+	onClosePopup func(),
+) *ChoiceListComponent {
+	options := ConvertInteractions(npcs, players, inputs)
+
+	src := NewChoiceListComponent(app, popupGrid, "Interactions", options, onOpenPopup, onClosePopup, false)
+
+	return src
+}
+
+func ConvertInteractions(npcs, players []string, inputs chan<- string) map[string]OptionsMap {
+	res := make(map[string]OptionsMap)
+
+	if len(npcs) != 0 {
+		res["NPCS"] = ConvertInteractionsList(npcs, []string{"TALK", "ATTACK"}, inputs)
+	}
+
+	if len(players) != 0 {
+		res["PLAYERS"] = ConvertInteractionsList(players, []string{"ATTACK"}, inputs)
+	}
+
+	return res
+}
+
+func ConvertInteractionsList(people, cmds []string, inputs chan<- string) OptionsMap {
+	res := make(OptionsMap)
+
+	for _, person := range people {
+		for _, cmd := range cmds {
+
+			res[person] = map[string]func(){
+				cmd: func() {
+					go func() {
+						inputs <- fmt.Sprintf("%s %s", cmd, person)
+					}()
+				},
+			}
+		}
+	}
+
+	return res
+}
+
+--- FILE: ./client/tui/panels/choice_list_panel.go ---
+package panel
+
+import (
+	"context"
+	"strings"
+	"sync"
+	pr "tap/protocol"
+
+	"github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
+)
+
+type OptionsMap map[string]map[string]func()
+type AllowedOptions interface {
+	OptionsMap | map[string]OptionsMap
+}
+
+type ChoiceListComponent struct {
+	Layout *tview.Flex
+	List   *tview.List
+}
+
+var (
+	popupBgColor = tcell.GetColor("#3a3838")
+	btnRestBg    = tcell.GetColor("#474646")
+	btnActiveBg  = tcell.GetColor("#7e7979")
+)
+
+func NewChoiceListComponent[T AllowedOptions](
+	app *tview.Application,
+	popupGrid *tview.Grid,
+	title string,
+	options T,
+	onOpenPopup func(popup *PopupComponent),
+	onClosePopup func(),
+	are_btns bool,
+) *ChoiceListComponent {
+
+	src := &ChoiceListComponent{}
+	src.List = createListView(" "+title+" ", true, false, true)
+	src.Layout = tview.NewFlex().SetDirection(tview.FlexRow).AddItem(src.List, 0, 1, false)
+
+	switch opts := any(options).(type) {
+	case OptionsMap:
+		createList(app, src, popupGrid, opts, onOpenPopup, onClosePopup, are_btns)
+
+	case map[string]OptionsMap:
+		for subTitle, subOptions := range opts {
+			src.List.AddItem("[yellow:#000000]- "+subTitle+":", "", 0, nil)
+
+			createList(app, src, popupGrid, subOptions, onOpenPopup, onClosePopup, are_btns)
+		}
+	}
+
+	return src
+}
+
+func createList(
+	app *tview.Application,
+	src *ChoiceListComponent,
+	popupGrid *tview.Grid,
+	options OptionsMap,
+	onOpenPopup func(popup *PopupComponent),
+	onClosePopup func(),
+	are_btns bool,
+) {
+	index := 1
+	for location, actions := range options {
+		locActions := actions
+		locName := location
+
+		itemAction := func() {
+			var selectedFunc func()
+
+			optionsFlex := tview.NewFlex().SetDirection(tview.FlexRow)
+			optionsFlex.SetBackgroundColor(popupBgColor)
+
+			makeSpacer := func(height int) *tview.Box {
+				spacer := tview.NewBox()
+				spacer.SetBackgroundColor(popupBgColor)
+				return spacer
+			}
+
+			optionsFlex.AddItem(makeSpacer(1), 1, 0, false)
+
+			actionList := tview.NewList().
+				SetMainTextColor(tcell.ColorWhite).
+				SetSelectedBackgroundColor(tcell.ColorRed).
+				SetSelectedTextColor(tcell.ColorWhite)
+
+			actionList.SetBackgroundColor(popupBgColor)
+
+			funcsIndices := make([]func(), 0, len(locActions))
+			cmdNames := make([]string, 0, len(locActions))
+
+			formatItem := func(name string, isSelected bool) string {
+				if isSelected {
+					return "[white:#7e7979]" + transform_name(name, 30)
+				}
+				return "[white:#474646]" + transform_name(name, 30)
+			}
+
+			for cmdName, cmdFunc := range locActions {
+				cFunc := cmdFunc
+				funcsIndices = append(funcsIndices, cFunc)
+				cmdNames = append(cmdNames, cmdName)
+
+				isFirst := len(cmdNames) == 1
+				actionList.AddItem(formatItem(cmdName, isFirst), "", 0, nil)
+			}
+
+			if len(funcsIndices) > 0 {
+				selectedFunc = funcsIndices[0]
+			}
+
+			actionList.SetChangedFunc(func(i int, mainText, secondaryText string, shortcut rune) {
+				if i >= 0 && i < len(funcsIndices) {
+					selectedFunc = funcsIndices[i]
+
+					for idx, name := range cmdNames {
+						isSelected := (idx == i)
+						actionList.SetItemText(idx, formatItem(name, isSelected), "")
+					}
+				}
+			})
+
+			actionList.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+				if event.Key() == tcell.KeyEnter {
+					return nil
+				}
+				return event
+			})
+
+			optionsFlex.AddItem(actionList, len(locActions)*2, 1, true)
+
+			// Bouton Cancel
+			cancelBtn := tview.NewButton("Cancel").
+				SetLabelColor(tcell.ColorWhite).
+				SetBackgroundColorActivated(btnActiveBg).
+				SetLabelColorActivated(tcell.ColorWhite).
+				SetSelectedFunc(func() {
+					if onClosePopup != nil {
+						onClosePopup()
+					}
+				})
+			cancelBtn.SetBackgroundColor(btnRestBg)
+
+			validateBtn := tview.NewButton("Validate").
+				SetLabelColor(tcell.ColorWhite).
+				SetBackgroundColorActivated(btnActiveBg).
+				SetLabelColorActivated(tcell.ColorWhite).
+				SetSelectedFunc(func() {
+					if selectedFunc == nil {
+						return
+					}
+
+					fnToExecute := selectedFunc
+					selectedFunc = nil
+
+					if onClosePopup != nil {
+						onClosePopup()
+					}
+
+					fnToExecute()
+				})
+			validateBtn.SetBackgroundColor(btnRestBg)
+
+			buttons := []*tview.Button{cancelBtn, validateBtn}
+			totalHeight := (len(locActions) * 2) + 11
+
+			newPopup := NewPopupComponent(app, popupGrid, optionsFlex, totalHeight, buttons)
+
+			popupGrid.Clear()
+			popupGrid.AddItem(newPopup.Layout, 1, 1, 1, 1, 0, 0, true)
+
+			if onOpenPopup != nil {
+				onOpenPopup(newPopup)
+			}
+		}
+
+		if are_btns {
+			label := "[yellow][ " + locName + " ][-]"
+			src.List.AddItem(label, "", 0, itemAction)
+
+		} else {
+			src.List.AddItem("  "+locName+"  ", "", 0, itemAction)
+		}
+		index++
+	}
+}
+
+func transform_name(option string, width int) string {
+	first_len := (width - len(option)) / 2
+	return strings.Repeat(" ", first_len) + option + strings.Repeat(" ", width-first_len-len(option))
+}
+
+func (c *ChoiceListComponent) ListenOutputs(ctx context.Context, wg *sync.WaitGroup, app *tview.Application, Chan <-chan pr.ServerResponse, function func(pr.ServerResponse)) {
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case res, ok := <-Chan:
+				if !ok {
+					return
+				}
+				response := res
+				app.QueueUpdateDraw(func() {
+					function(response)
+				})
+			}
+		}
+	}()
+}
+
+--- FILE: ./client/tui/panels/theme.go ---
+package panel
+
+import (
+	"github.com/gdamore/tcell/v2"
+)
+
+type Theme struct {
+	// Global colors
+	Background    tcell.Color
+	TextPrimary   tcell.Color
+	TextSecondary tcell.Color
+	TextHighlight tcell.Color
+
+	// Border and titles
+	BorderInactive tcell.Color
+	BorderActive   tcell.Color
+	TitleInactive  tcell.Color
+	TitleActive    tcell.Color
+
+	// Lists
+	ListSelectedBg  tcell.Color
+	ListSelectedTxt tcell.Color
+
+	// Popups and Buttons
+	PopupBackground tcell.Color
+	ButtonRestBg    tcell.Color
+	ButtonActiveBg  tcell.Color
+	ButtonText      tcell.Color
+}
+
+var AppTheme = Theme{
+	Background:    tcell.NewRGBColor(0, 0, 0),
+	TextPrimary:   tcell.ColorWhite,
+	TextSecondary: tcell.ColorGray,
+	TextHighlight: tcell.ColorYellow,
+
+	BorderInactive: tcell.ColorDimGray,
+	BorderActive:   tcell.ColorYellow,
+	TitleInactive:  tcell.ColorWhite,
+	TitleActive:    tcell.ColorYellow,
+
+	ListSelectedBg:  tcell.ColorBlue,
+	ListSelectedTxt: tcell.ColorWhite,
+
+	PopupBackground: tcell.GetColor("#3a3838"),
+	ButtonRestBg:    tcell.GetColor("#474646"),
+	ButtonActiveBg:  tcell.GetColor("#7e7979"),
+	ButtonText:      tcell.ColorWhite,
+}
+
+--- FILE: ./client/tui/panels/navigation_panel.go ---
+package panel
+
+import (
+	"github.com/rivo/tview"
+)
+
+func NewNavigationComponent(
+	app *tview.Application,
+	popupGrid *tview.Grid,
+	exits map[string]string,
+	inputs chan<- string,
+	onOpenPopup func(popup *PopupComponent),
+	onClosePopup func(),
+) *ChoiceListComponent {
+	options := ConvertExits(exits, inputs)
+
+	src := NewChoiceListComponent(app, popupGrid, "Rooms", options, onOpenPopup, onClosePopup, false)
+
+	return src
+}
+
+func ConvertExits(exits map[string]string, inputs chan<- string) OptionsMap {
+	res := make(OptionsMap)
+
+	for exit, room := range exits {
+		res[exit+": "+room] = map[string]func(){
+			"MOVE": func() {
+				go func() {
+					inputs <- "MOVE " + exit
+					inputs <- "LOOK"
+				}()
+			},
+		}
+	}
+
+	return res
+}
+
+--- FILE: ./client/tui/move_focus.go ---
+package tui
+
+import "github.com/gdamore/tcell/v2"
+
+func (m *MyApp) moveFocusSpatial(dRow, dCol int) {
+	currentFocus := m.app.GetFocus()
+	startRow, startCol := -1, -1
+
+	for r := range 4 {
+		for c := range 4 {
+			if m.navMatrix[r][c] == currentFocus {
+				startRow, startCol = r, c
+				break
+			}
+		}
+	}
+
+	if startRow == -1 {
+		return
+	}
+
+	targetRow, targetCol := startRow, startCol
+
+	for {
+		targetRow += dRow
+		targetCol += dCol
+
+		if targetRow < 0 || targetRow >= 4 || targetCol < 0 || targetCol >= 4 {
+			return
+		}
+
+		nextComponent := m.navMatrix[targetRow][targetCol]
+
+		if nextComponent != currentFocus && nextComponent != nil {
+			m.app.SetFocus(nextComponent)
+			return
+		}
+	}
+}
+
+func (m *MyApp) SetupFocusManager() {
+
+	m.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Modifiers() == tcell.ModShift {
+			switch event.Key() {
+
+			case tcell.KeyUp:
+				m.moveFocusSpatial(-1, 0)
+				return nil
+
+			case tcell.KeyDown:
+				m.moveFocusSpatial(1, 0)
+				return nil
+
+			case tcell.KeyLeft:
+				m.moveFocusSpatial(0, -1)
+				return nil
+
+			case tcell.KeyRight:
+				m.moveFocusSpatial(0, 1)
+				return nil
+			}
+		}
+
+		return event
+	})
+}
+
+--- FILE: ./client/tui/app.go ---
+package tui
+
+import (
+	"context"
+	"sync"
+	panel "tap/client/tui/panels"
+
+	"github.com/rivo/tview"
+)
+
+type MyApp struct {
+	pseudo  string
+	app     *tview.Application
+	pages   *tview.Pages
+	connect *tview.Grid
+	grid    *tview.Grid
+	popup   *tview.Grid
+	router  *Router
+
+	Chat           *panel.ChatComponent
+	Server         *panel.ServerResponseComponent
+	CommandLine    *panel.CommandLineComponent
+	Navigation     *panel.ChoiceListComponent
+	Group          *panel.GroupComponent
+	Items          *panel.ChoiceListComponent
+	Interaction    *panel.ChoiceListComponent
+	Datas          *panel.DatasComponent
+	PopupComponent *panel.PopupComponent
+	navMatrix      [4][4]tview.Primitive
+	ctx            context.Context
+	wg             *sync.WaitGroup
+}
+
+var (
+	cli_visible   = false
+	popup_visible = false
+)
+
+func NewMyApp(ctx context.Context, wg *sync.WaitGroup, router *Router) *MyApp {
+	tview.Styles.PrimitiveBackgroundColor = panel.AppTheme.Background
+	m := &MyApp{
+		app:     tview.NewApplication(),
+		grid:    tview.NewGrid().SetRows(0, 0, 0, 0).SetColumns(0, 0, 0, 0),
+		pages:   tview.NewPages(),
+		connect: tview.NewGrid().SetRows(-1, 5, 20).SetColumns(-1, -1, -1, -1),
+		popup:   tview.NewGrid().SetRows(0, 35, 0).SetColumns(0, 60, 0),
+		router:  router,
+		ctx:     ctx,
+		wg:      wg,
+	}
+
+	m.setupComponents()
+	m.setupGrid()
+	m.setupMatrix()
+	m.StartListeners()
+	m.SetupFocusManager()
+	m.app.EnableMouse(true)
+	m.InitConnect()
+
+	m.pages.AddPage("Connexion", m.connect, true, true)
+	m.pages.AddPage("Game", m.grid, true, false)
+	m.pages.AddPage("Popup", m.popup, true, false)
+
+	m.app.SetRoot(m.pages, true)
+	return m
+}
+
+func (m *MyApp) setupComponents() {
+	m.Chat = panel.NewChatComponent(m.app, m.router.Inputs)
+	m.CommandLine = panel.NewCommandLineComponent(m.app, m.router.Inputs)
+	m.Server = panel.NewServerResponseComponent(m.app)
+	m.Group = panel.NewGroupComponent(m.app, m.popup, panel.GroupDatas{}, m.router.Inputs, m.OnOpenPopup, m.ShowGamePage)
+	m.Navigation = panel.NewNavigationComponent(m.app, m.popup, map[string]string{}, m.router.Inputs, m.OnOpenPopup, m.ShowGamePage)
+	m.Items = panel.NewItemsComponent(m.app, m.popup, []string{}, m.router.Inputs, m.OnOpenPopup, m.ShowGamePage)
+	m.Interaction = panel.NewInteractionComponent(m.app, m.popup, []string{}, []string{}, m.router.Inputs, m.OnOpenPopup, m.ShowGamePage)
+	m.Datas = panel.NewDatasComponent(m.app)
+
+	m.Server.CliBtn.
+		SetSelectedFunc(func() {
+			if cli_visible {
+				m.grid.RemoveItem(m.CommandLine.Layout)
+				m.grid.AddItem(m.Server.Layout, 3, 0, 1, 4, 0, 0, false)
+
+				m.navMatrix = [4][4]tview.Primitive{
+					{m.Navigation.List, m.Items.List, m.Interaction.List, m.Chat.Input},
+					{m.Group.Layout, m.Items.List, m.Interaction.List, m.Chat.Input},
+					{m.Datas.View, m.Datas.View, m.Datas.View, m.Chat.Input},
+					{m.Server.History, m.Server.History, m.Server.History, m.Server.History},
+				}
+
+				cli_visible = false
+
+			} else {
+				m.grid.AddItem(m.CommandLine.Layout, 3, 0, 1, 2, 0, 0, false)
+				m.grid.AddItem(m.Server.Layout, 3, 2, 1, 2, 0, 0, false)
+
+				m.navMatrix = [4][4]tview.Primitive{
+					{m.Navigation.List, m.Items.List, m.Interaction.List, m.Chat.Input},
+					{m.Group.Layout, m.Items.List, m.Interaction.List, m.Chat.Input},
+					{m.Datas.View, m.Datas.View, m.Datas.View, m.Chat.Input},
+					{m.CommandLine.Input, m.CommandLine.Input, m.Server.History, m.Server.History},
+				}
+
+				cli_visible = true
+			}
+		})
+
+	m.Server.QuitBtn.
+		SetSelectedFunc(func() {
+			m.router.Inputs <- "QUIT"
+			m.app.Stop()
+		})
+}
+
+func (m *MyApp) setupMatrix() {
+	m.navMatrix = [4][4]tview.Primitive{
+		{m.Navigation.List, m.Items.List, m.Interaction.List, m.Chat.Input},
+		{m.Group.Layout, m.Items.List, m.Interaction.List, m.Chat.Input},
+		{m.Datas.View, m.Datas.View, m.Datas.View, m.Chat.Input},
+		{m.Server.History, m.Server.History, m.Server.History, m.Server.History},
+	}
+}
+
+func (m *MyApp) setupGrid() {
+	m.grid.AddItem(m.Navigation.Layout, 0, 0, 1, 1, 0, 0, false)
+	m.grid.AddItem(m.Group.Layout, 1, 0, 1, 1, 0, 0, false)
+	m.grid.AddItem(m.Items.Layout, 0, 1, 2, 1, 0, 0, false)
+	m.grid.AddItem(m.Interaction.Layout, 0, 2, 2, 1, 0, 0, false)
+	m.grid.AddItem(m.Datas.Layout, 2, 0, 1, 3, 0, 0, false)
+	m.grid.AddItem(m.Chat.Layout, 0, 3, 3, 1, 0, 0, true)
+	m.grid.AddItem(m.Server.Layout, 3, 0, 1, 4, 0, 0, false)
+}
+
+func (m *MyApp) StartListeners() {
+	m.Chat.ListenOutputs(m.ctx, m.wg, m.app, m.router.ChatChan)
+	m.CommandLine.ListenOutputs(m.ctx, m.wg, m.app, m.router.CommandLineChan)
+	m.Server.ListenOutputs(m.ctx, m.wg, m.app, m.router.ServerChan)
+	m.Navigation.ListenOutputs(m.ctx, m.wg, m.app, m.router.NavChan, m.NavListenOutputs)
+	m.Group.ListenOutputs(m.ctx, m.wg, m.app, m.router.GroupChan, m.GroupListenOutputs)
+	m.Items.ListenOutputs(m.ctx, m.wg, m.app, m.router.ItemsChan, m.ItemListenOutputs)
+	m.Interaction.ListenOutputs(m.ctx, m.wg, m.app, m.router.InteractionChan, m.InteractionListenOutputs)
+	m.Datas.ListenOutputs(m.ctx, m.wg, m.app, m.router.DatasChan)
+}
+
+func (m *MyApp) InitConnect() {
+	input := panel.NewConnectComponent(&m.pseudo, m.router.Inputs)
+	logoView := panel.NewImageComponent("client/tui/assets/logo.ans")
+	shopView := panel.NewImageComponent("client/tui/assets/shopfront.ans")
+
+	m.connect.AddItem(logoView, 0, 0, 1, 5, 0, 0, false)
+	m.connect.AddItem(shopView, 2, 0, 2, 5, 0, 0, false)
+
+	m.connect.AddItem(input, 1, 2, 1, 1, 0, 0, true)
+}
+
+func (m *MyApp) OnOpenPopup(createdPopup *panel.PopupComponent) {
+	m.PopupComponent = createdPopup
+	m.ShowPopupPage()
+}
+
+func (m *MyApp) ShowGamePage() {
+	m.popup.Clear()
+	m.pages.SwitchToPage("Game")
+
+	if popup_visible {
+		panel.SetBlockedInputs(m.grid, true)
+		popup_visible = false
+	}
+
+	m.app.SetFocus(m.Navigation.List)
+
+	m.app.QueueUpdateDraw(func() {
+		m.app.Sync()
+	})
+}
+
+func (m *MyApp) ShowPopupPage() {
+	m.pages.ShowPage("Popup")
+	m.pages.SendToFront("Popup")
+
+	panel.SetBlockedInputs(m.grid, false)
+
+	if m.PopupComponent != nil && m.PopupComponent.FocusItem != nil {
+		m.app.SetFocus(m.PopupComponent.FocusItem)
+	}
+
+	popup_visible = true
+
+	m.app.QueueUpdateDraw(func() {
+		m.app.Sync()
+	})
+}
+
+func (m *MyApp) Run() error {
+	return m.app.Run()
+}
+
+func (m *MyApp) Stop() {
+	m.app.Stop()
+}
+
+func (m *MyApp) Draw() {
+	m.app.Draw()
+}
+
+--- FILE: ./client/tui/listen_outputs.go ---
+package tui
+
+import (
+	"encoding/json"
+	"slices"
+	"strings"
+	panel "tap/client/tui/panels"
+	pr "tap/protocol"
+)
+
+var (
+	// Items
+	items = make([]string, 0)
+
+	// Interactions
+	npcs    = make([]string, 0)
+	players = make([]string, 0)
+
+	// Group
+	group              = ""
+	last_kick          = ""
+	leader             = false
+	promotion          = false
+	send_promotion     = false
+	not_in_group_users = make([]string, 0)
+	in_group_users     = make([]string, 0)
+	invitations        = make([]string, 0)
+)
+
+func (m *MyApp) NavListenOutputs(res pr.ServerResponse) {
+	// Remove previous nav panel
+	m.grid.RemoveItem(m.Navigation.Layout)
+
+	// Get new rooms
+	opts := make(map[string]string)
+
+	raw, err := json.Marshal(res.Datas)
+	if err == nil {
+		var data pr.LookCommandData
+		if err := json.Unmarshal(raw, &data); err == nil {
+			exits := data.Room.Exits
+			if exits.North != "" {
+				opts["north"] = exits.North
+			}
+			if exits.East != "" {
+				opts["east"] = exits.East
+			}
+			if exits.West != "" {
+				opts["west"] = exits.West
+			}
+			if exits.South != "" {
+				opts["south"] = exits.South
+			}
+		}
+	}
+
+	// Create new panel
+	m.Navigation = panel.NewNavigationComponent(
+		m.app,
+		m.popup,
+		opts,
+		m.router.Inputs,
+		m.OnOpenPopup,
+		m.ShowGamePage,
+	)
+
+	// Add new panel
+	m.grid.AddItem(m.Navigation.Layout, 0, 0, 1, 1, 0, 0, false)
+	m.setupMatrix()
+	m.ShowGamePage()
+}
+
+func (m *MyApp) ItemListenOutputs(res pr.ServerResponse) {
+	// Remove previous item panel
+	m.grid.RemoveItem(m.Items.Layout)
+
+	var opts []string
+
+	if strings.HasPrefix(res.Msg, "EVT ITEM DROPPED") {
+		new_item := strings.SplitN(res.Msg, "DROPPED ", 2)[1]
+		items = append(items, new_item)
+		opts = items
+
+	} else if strings.HasPrefix(res.Msg, "EVT ITEM TOOK") {
+		previous_item := strings.SplitN(res.Msg, "TOOK ", 2)[1]
+
+		for i, p := range items {
+			if p == previous_item {
+				items = append(items[:i], items[i+1:]...)
+				break
+			}
+		}
+
+		opts = items
+
+	} else {
+		// Get new items
+		raw, err := json.Marshal(res.Datas)
+		if err == nil {
+			var data pr.LookCommandData
+			if err := json.Unmarshal(raw, &data); err == nil {
+				opts = data.Room.Items
+				items = opts
+			}
+		}
+	}
+
+	// Create new panel
+	m.Items = panel.NewItemsComponent(
+		m.app,
+		m.popup,
+		opts,
+		m.router.Inputs,
+		m.OnOpenPopup,
+		m.ShowGamePage,
+	)
+
+	// Add new panel
+	m.grid.AddItem(m.Items.Layout, 0, 1, 2, 1, 0, 0, false)
+	m.setupMatrix()
+	m.ShowGamePage()
+}
+
+func (m *MyApp) InteractionListenOutputs(res pr.ServerResponse) {
+	// Remove previous item panel
+	m.grid.RemoveItem(m.Interaction.Layout)
+
+	if strings.HasPrefix(res.Msg, "EVT ROOM PRESENCE ENTER") {
+		new_player := strings.SplitN(res.Msg, "ENTER ", 2)[1]
+		players = append(players, new_player)
+
+	} else if strings.HasPrefix(res.Msg, "EVT ROOM PRESENCE LEAVE") {
+		previous_player := strings.SplitN(res.Msg, "LEAVE ", 2)[1]
+
+		for i, p := range players {
+			if p == previous_player {
+				players = append(players[:i], players[i+1:]...)
+				break
+			}
+		}
+
+	} else {
+		// Get new items
+		npcs = []string{}
+		players = []string{}
+		raw, err := json.Marshal(res.Datas)
+		if err == nil {
+			var data pr.LookCommandData
+			if err := json.Unmarshal(raw, &data); err == nil {
+				npcs = data.Room.Npcs
+				for _, player := range data.Room.Players {
+					if player != m.pseudo {
+						players = append(players, player)
+					}
+				}
+			}
+		}
+	}
+
+	// Create new panel
+	m.Interaction = panel.NewInteractionComponent(
+		m.app,
+		m.popup,
+		npcs,
+		players,
+		m.router.Inputs,
+		m.OnOpenPopup,
+		m.ShowGamePage,
+	)
+
+	// Add new panel
+	m.grid.AddItem(m.Interaction.Layout, 0, 2, 2, 1, 0, 0, false)
+	m.setupMatrix()
+	m.ShowGamePage()
+}
+
+func (m *MyApp) GroupListenOutputs(res pr.ServerResponse) {
+	// Remove previous item panel
+	m.grid.RemoveItem(m.Group.Layout)
+
+	if strings.HasPrefix(res.Msg, "EVT GROUP INVITE") {
+		invitation := strings.SplitN(res.Msg, "INVITE ", 2)[1]
+		invitations = append(invitations, invitation)
+
+	} else if strings.HasPrefix(res.Msg, "EVT GROUP JOIN") {
+		new_member := strings.SplitN(res.Msg, "JOIN ", 2)[1]
+		if !slices.Contains(in_group_users, new_member) {
+			m.router.Inputs <- "GROUPED"
+		}
+
+	} else if strings.HasPrefix(res.Msg, "EVT GROUP KICK") {
+		previous_member := strings.SplitN(res.Msg, "KICK ", 2)[1]
+
+		if previous_member == m.pseudo {
+			promotion = false
+			send_promotion = false
+			leader = false
+			group = ""
+			in_group_users = make([]string, 0)
+		}
+		m.router.Inputs <- "GROUPED"
+
+	} else if strings.HasPrefix(res.Msg, "EVT GROUP LEAVE") {
+		in_group_users = make([]string, 0)
+		m.router.Inputs <- "GROUPED"
+
+	} else if strings.HasPrefix(res.Msg, "EVT GROUP PROMOTE ACCEPTED") {
+		newLeader := strings.SplitN(res.Msg, "EVT GROUP PROMOTE ACCEPTED ", 2)[1]
+		promotion = false
+		send_promotion = false
+		leader = (newLeader == m.pseudo)
+		m.router.Inputs <- "GROUPED"
+
+	} else if strings.HasPrefix(res.Msg, "EVT GROUP PROMOTE DECLINED") {
+		promotion = false
+
+		if leader {
+			send_promotion = false
+		}
+		m.router.Inputs <- "GROUPED"
+
+	} else if strings.HasPrefix(res.Msg, "EVT new_leader=") {
+		newLeader := strings.SplitN(res.Msg, "new_leader=", 2)[1]
+		promotion = false
+		send_promotion = false
+		leader = (newLeader == m.pseudo)
+		m.router.Inputs <- "GROUPED"
+
+	} else if strings.HasPrefix(res.Msg, "EVT GROUP PROMOTE") {
+		promotion = true
+
+	} else if strings.HasPrefix(res.Msg, "OK group=") {
+		group = strings.Split(res.Msg, "group=")[1]
+		if m.router.LastCommand == pr.CreateGroup {
+			leader = true
+		}
+		m.router.Inputs <- "GROUPED"
+
+	} else if strings.HasPrefix(res.Msg, "OK pending_leader=") {
+		pending_leader := strings.Split(res.Msg, "pending_leader=")[1]
+		leader = pending_leader == m.pseudo
+		if m.router.LastCommand == pr.PromoteGroup {
+			send_promotion = true
+		}
+		m.router.Inputs <- "GROUPED"
+
+	} else if strings.HasPrefix(res.Msg, "OK new_leader=") {
+		last_kick = ""
+		leader = true
+		promotion = false
+		send_promotion = false
+		m.router.Inputs <- "GROUPED"
+
+	} else if res.Msg == "OK" {
+		switch m.router.LastCommand {
+		case pr.LeaveGroup:
+			group = ""
+			leader = false
+			in_group_users = make([]string, 0)
+
+		case pr.DeclinePromoteGroup:
+			promotion = false
+		case pr.KickGroup:
+			m.router.Inputs <- "GROUPED"
+
+		case pr.CmdUnGrouped:
+			raw, err := json.Marshal(res.Datas)
+			if err == nil {
+				var data pr.UnGroupedCommandData
+				if err := json.Unmarshal(raw, &data); err == nil {
+					filteredUsers := filterUngrouped(data.UnGrouped, in_group_users)
+
+					not_in_group_users = make([]string, 0, len(filteredUsers))
+					not_in_group_users = append(not_in_group_users, filteredUsers...)
+				}
+			}
+		case pr.CmdGrouped:
+			raw, err := json.Marshal(res.Datas)
+			if err == nil {
+				var data pr.GroupedCommandData
+				if err := json.Unmarshal(raw, &data); err == nil {
+					in_group_users = make([]string, 0, len(data.Grouped))
+					in_group_users = append(in_group_users, data.Grouped...)
+				}
+			}
+			m.router.Inputs <- "UNGROUPED"
+		}
+	}
+
+	// Create new panel
+	m.Group = panel.NewGroupComponent(
+		m.app,
+		m.popup,
+		panel.GroupDatas{
+			Group:         group,
+			LastKick:      &last_kick,
+			Leader:        leader,
+			Promotion:     promotion,
+			SendPromotion: send_promotion,
+			Invitations:   &invitations,
+			UnGrouped:     &not_in_group_users,
+			Grouped:       &in_group_users,
+		},
+		m.router.Inputs,
+		m.OnOpenPopup,
+		m.ShowGamePage,
+	)
+
+	// Add new panel
+	m.grid.AddItem(m.Group.Layout, 1, 0, 1, 1, 0, 0, false)
+	m.setupMatrix()
+	m.ShowGamePage()
+}
+
+func filterUngrouped(ungrouped []string, members []string) []string {
+	var filtered []string
+	for _, user := range ungrouped {
+		isMember := false
+		for _, member := range members {
+			if user == member {
+				isMember = true
+				break
+			}
+		}
+		if !isMember {
+			filtered = append(filtered, user)
+		}
+	}
+	return filtered
+}
+
+--- FILE: ./client/tui/router.go ---
+package tui
+
+import (
+	"context"
+	"slices"
+	"strings"
+	panel "tap/client/tui/panels"
+	pr "tap/protocol"
+)
+
+type Router struct {
+	app            *MyApp
+	Inputs         chan<- string
+	Outputs        <-chan pr.ServerResponse
+	pendingCmds    chan string
+	GameUpdateChan chan pr.ServerResponse
+
+	ChatChan        chan pr.ServerResponse
+	CommandLineChan chan pr.ServerResponse
+	ServerChan      chan pr.ServerResponse
+	NavChan         chan pr.ServerResponse
+	GroupChan       chan pr.ServerResponse
+	ItemsChan       chan pr.ServerResponse
+	InteractionChan chan pr.ServerResponse
+	DatasChan       chan pr.ServerResponse
+	QuitChan        <-chan struct{}
+	LastCommand     string
+	ctx             context.Context
+}
+
+func NewRouter(ctx context.Context, inputs chan string, outputs <-chan pr.ServerResponse) *Router {
+
+	return &Router{
+		Inputs:         inputs,
+		Outputs:        outputs,
+		pendingCmds:    make(chan string, 50),
+		GameUpdateChan: make(chan pr.ServerResponse, 100),
+
+		ChatChan:        make(chan pr.ServerResponse, 100),
+		CommandLineChan: make(chan pr.ServerResponse, 100),
+		ServerChan:      make(chan pr.ServerResponse, 100),
+		NavChan:         make(chan pr.ServerResponse, 100),
+		GroupChan:       make(chan pr.ServerResponse, 100),
+		ItemsChan:       make(chan pr.ServerResponse, 100),
+		InteractionChan: make(chan pr.ServerResponse, 100),
+		DatasChan:       make(chan pr.ServerResponse, 100),
+		LastCommand:     "",
+		ctx:             ctx,
+	}
+}
+
+func (r *Router) Start(app *MyApp) {
+	r.app = app
+	go func() {
+		for res := range r.GameUpdateChan {
+			r.app.app.QueueUpdateDraw(func() {
+				r.app.NavListenOutputs(res)
+				r.app.ItemListenOutputs(res)
+				r.app.InteractionListenOutputs(res)
+
+				r.app.app.Sync()
+			})
+		}
+	}()
+
+	for {
+		select {
+		case res := <-r.Outputs:
+			switch {
+			case panel.IsOKResponse(res):
+				r.handleLastCommandResponse(res)
+			case panel.IsErrorResponse(res):
+				r.handleLastCommandResponse(res)
+
+			case panel.IsEventResponse(res):
+				r.HandleEvents(res)
+			}
+			r.ServerChan <- res
+			r.DatasChan <- res
+			r.CommandLineChan <- res
+		case <-r.ctx.Done():
+			r.Stop()
+			return
+		}
+	}
+}
+
+func (r *Router) Stop() {
+	close(r.ChatChan)
+	close(r.CommandLineChan)
+	close(r.ServerChan)
+	close(r.NavChan)
+	close(r.GroupChan)
+	close(r.ItemsChan)
+	close(r.InteractionChan)
+	close(r.DatasChan)
+}
+
+func (m *MyApp) UpdateRouterLayout() {
+	if m.grid != nil {
+		m.grid.Clear()
+	}
+
+	if m.Navigation != nil {
+		m.grid.AddItem(m.Navigation.Layout, 0, 0, 1, 1, 0, 0, true)
+	}
+}
+
+func (r *Router) handleLastCommandResponse(res pr.ServerResponse) {
+	// Get last command
+	var lastCmd string
+	select {
+	case lastCmd = <-r.pendingCmds:
+	default:
+		lastCmd = ""
+	}
+	r.LastCommand = lastCmd
+
+	// Handle Group commands
+	group_commands := []string{
+		pr.CmdUnGrouped,
+		pr.CmdGrouped,
+		pr.PromoteGroup,
+		pr.AcceptPromoteGroup,
+		pr.DeclinePromoteGroup,
+		pr.JoinGroup,
+		pr.CreateGroup,
+		pr.LeaveGroup,
+		pr.KickGroup,
+	}
+	if slices.Contains(group_commands, lastCmd) {
+		r.GroupChan <- res
+
+		if lastCmd == pr.CmdGrouped || lastCmd == pr.CmdUnGrouped {
+			r.DatasChan <- res
+		}
+
+	} else {
+		switch lastCmd {
+		case pr.CmdConnect:
+			go func() {
+				r.Inputs <- "UNGROUPED"
+				r.Inputs <- "LOOK"
+			}()
+		case pr.CmdLook:
+			r.GameUpdateChan <- res
+		case pr.CmdChat:
+			r.ChatChan <- res
+		default:
+
+		}
+	}
+}
+
+func (r *Router) HandleEvents(res pr.ServerResponse) {
+	// Update INVITE datas
+	if strings.HasPrefix(res.Msg, "EVT STATS") || strings.HasPrefix(res.Msg, "EVT ROOM PRESENCE") {
+		r.Inputs <- "UNGROUPED"
+		r.Inputs <- "LOOK"
+	}
+
+	// Handle CHAT responses
+	global := strings.HasPrefix(res.Msg, "EVT GLOBAL CHAT")
+	room := strings.HasPrefix(res.Msg, "EVT ROOM CHAT")
+	group := strings.HasPrefix(res.Msg, "EVT GROUP CHAT")
+	if global || room || group {
+		r.ChatChan <- res
+	}
+
+	// Handle ITEM responses
+	if strings.HasPrefix(res.Msg, "EVT ITEM") {
+		r.ItemsChan <- res
+	}
+
+	// Handle PRESENCE responses
+	if strings.HasPrefix(res.Msg, "EVT ROOM PRESENCE") {
+		r.InteractionChan <- res
+	}
+
+	// Handle GROUP responses
+	if strings.HasPrefix(res.Msg, "EVT GROUP") || strings.HasPrefix(res.Msg, "EVT new_leader=") {
+		r.GroupChan <- res
+	}
+}
+
+--- FILE: ./client/tui/tui_client.go ---
+package tui
+
+import (
+	"bufio"
+	"context"
+	"fmt"
+	"net"
+	"strings"
+	"sync"
+	pr "tap/protocol"
+)
+
+type TuiClient struct {
+	app           *MyApp
+	inputs        chan string
+	outputs       chan pr.ServerResponse
+	conn          net.Conn
+	wg            sync.WaitGroup
+	disconnectMsg string
+	stopOnce      sync.Once
+	ctx           context.Context
+	cancelFunc    context.CancelFunc
+}
+
+func NewTuiClient(conn net.Conn) *TuiClient {
+	// Init Client
+	ctx, cancel := context.WithCancel(context.Background())
+	cli := TuiClient{
+		inputs:     make(chan string, 10),
+		outputs:    make(chan pr.ServerResponse, 100),
+		conn:       conn,
+		ctx:        ctx,
+		cancelFunc: cancel,
+	}
+
+	router := NewRouter(cli.ctx, cli.inputs, cli.outputs)
+	cli.app = NewMyApp(cli.ctx, &cli.wg, router)
+
+	return &cli
+}
+
+func (tui *TuiClient) startRouter() {
+	defer tui.wg.Done()
+	tui.app.router.Start(tui.app)
+}
+
+func (tui *TuiClient) handleInput() {
+	defer tui.wg.Done()
+
+	router := tui.app.router
+	for {
+		select {
+		case input := <-tui.inputs:
+			// Send command to the server
+			fmt.Fprint(tui.conn, input+"\n")
+
+			// Save the last command to handle server returns
+			cmd := strings.ToUpper(strings.Fields(input)[0])
+			if cmd == "GROUP" && len(strings.Fields(input)) > 1 {
+				cmd = strings.ToUpper(strings.Fields(input)[1])
+			}
+			router.pendingCmds <- cmd
+
+		case <-tui.ctx.Done():
+			return
+		}
+	}
+}
+
+func (tui *TuiClient) listenResponses() {
+	defer tui.wg.Done()
+	scanner := bufio.NewScanner(tui.conn)
+	tui.disconnectMsg = "Closed the app and the connection gracefully."
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == "" {
+			continue
+		}
+
+		res := convertServerResponse(line)
+		tui.outputs <- res
+		if res.Msg == "OK bye" {
+			break
+		}
+		if res.Msg == "OK connected" {
+			tui.app.app.QueueUpdateDraw(func() {
+				tui.app.ShowGamePage()
+			})
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		tui.disconnectMsg = fmt.Sprintf("Server connection lost with error: %v", err)
+	}
+
+	tui.Stop()
+}
+
+func (tui *TuiClient) Stop() {
+	tui.stopOnce.Do(func() {
+		tui.app.Stop()
+		tui.cancelFunc()
+		tui.conn.Close()
+	})
+
+}
+
+func (tui *TuiClient) Start() {
+	// handle router
+	tui.wg.Add(1)
+	go tui.startRouter()
+
+	// Handle input
+	tui.wg.Add(1)
+	go tui.handleInput()
+
+	// handle server responses
+	tui.wg.Add(1)
+	go tui.listenResponses()
+
+	err := tui.app.Run()
+
+	tui.Stop()
+
+	tui.wg.Wait()
+	if err != nil {
+		fmt.Printf("TUI encountered fatal error: %v\n", err)
+	}
+	if tui.disconnectMsg != "" {
+		fmt.Println(tui.disconnectMsg)
+	}
+
+}
+
+--- FILE: ./client/tui/utils.go ---
+package tui
+
+import (
+	"encoding/json"
+	"strings"
+	pr "tap/protocol"
+)
+
+func findJsonStartIndex(line string) int {
+	idx := -1
+	for i := 0; i < len(line)-1; i++ {
+		if line[i] == ' ' && (line[i+1] == '{' || line[i+1] == '[') {
+			idx = i
+			break
+		}
+	}
+	return idx
+}
+
+func convertServerResponse(line string) pr.ServerResponse {
+
+	line = strings.TrimSpace(line)
+	jsonIndex := findJsonStartIndex(line)
+	isChatEvent := strings.HasPrefix(line, "EVT ") && strings.Contains(line, " CHAT ")
+
+	if jsonIndex != -1 && !isChatEvent {
+		msg := strings.TrimSpace(line[:jsonIndex])
+		datas := line[jsonIndex:]
+
+		var data_json any
+		err := json.Unmarshal([]byte(datas), &data_json)
+		if err != nil {
+			return pr.ServerResponse{Msg: line}
+		}
+		return pr.ServerResponse{Msg: msg, Datas: data_json}
+
+	} else {
+		return pr.ServerResponse{Msg: line}
+	}
+}
+
+--- FILE: ./cmd/server/main.go ---
+package main
+
+import (
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+	"tap/engine"
+	pr "tap/protocol"
+	"tap/server"
+)
+
+func main() {
+	var (
+		world     *engine.Map
+		err       error
+		exchanger pr.Exchanger
+	)
+	exchanger = pr.Exchanger{ServerInput: make(chan pr.ServerRequest, 100),
+		ServerOutput: make(chan pr.EngineResponse, 100),
+		JoinChan:     make(chan string, 10),
+		LeaveChan:    make(chan string, 10)}
+
+	world, err = engine.Get_map("world.json")
+	if err != nil {
+		fmt.Println("ERROR", err.Error())
+		return
+	}
+
+	var s *server.Server
+	s, err = server.NewServer("localhost:8080", exchanger)
+	if err != nil {
+		fmt.Println("Server couldn't start:", err)
+		return
+	}
+
+	e := engine.NewEngine(world, exchanger)
+	go e.Start()
+
+	go s.Start()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	<-quit
+	fmt.Println("\n Stopping the server due to Signal...")
+
+	s.Stop()
+	e.Stop()
+
+	fmt.Println("Server and Engine stopped with success.")
+}
+
+--- FILE: ./cmd/client/tui/main.go ---
+package main
+
+import (
+	"fmt"
+	"net"
+	"os"
+	"tap/client/tui"
+)
+
+func main() {
+
+	// Connect to server
+	conn, err := net.Dial("tcp", "localhost:8080")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Connection error:", err)
+		os.Exit(1)
+	}
+	// Initialize client
+	cli := tui.NewTuiClient(conn)
+
+	cli.Start()
+}
+
+--- FILE: ./go.sum ---
+github.com/gdamore/encoding v1.0.1 h1:YzKZckdBL6jVt2Gc+5p82qhrGiqMdG/eNs6Wy0u3Uhw=
+github.com/gdamore/encoding v1.0.1/go.mod h1:0Z0cMFinngz9kS1QfMjCP8TY7em3bZYeeklsSDPivEo=
+github.com/gdamore/tcell/v2 v2.13.10 h1:Afs3JKt83HnhuUKdZ3MnxUgOqQRWftj5JyDqv1LLynA=
+github.com/gdamore/tcell/v2 v2.13.10/go.mod h1:+Wfe208WDdB7INEtCsNrAN6O2m+wsTPk1RAovjaILlo=
+github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/lucasb-eyer/go-colorful v1.3.0 h1:2/yBRLdWBZKrf7gB40FoiKfAWYQ0lqNcbuQwVHXptag=
+github.com/lucasb-eyer/go-colorful v1.3.0/go.mod h1:R4dSotOR9KMtayYi1e77YzuveK+i7ruzyGqttikkLy0=
+github.com/rivo/tview v0.42.0 h1:b/ftp+RxtDsHSaynXTbJb+/n/BxDEi+W3UfF5jILK6c=
+github.com/rivo/tview v0.42.0/go.mod h1:cSfIYfhpSGCjp3r/ECJb+GKS7cGJnqV8vfjQPwoXyfY=
+github.com/rivo/uniseg v0.4.7 h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=
+github.com/rivo/uniseg v0.4.7/go.mod h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUcx88=
+github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
+golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
+golang.org/x/crypto v0.0.0-20210921155107-089bfa567519/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
+golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4/go.mod h1:jJ57K6gSWd91VN4djpZkiMVwK6gcyfeH4XE8wZrZaV4=
+golang.org/x/mod v0.8.0/go.mod h1:iBbtSCu2XBx23ZKBPSOrRkjjQPZFPuis4dIYUhu/chs=
+golang.org/x/net v0.0.0-20190620200207-3b0461eec859/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
+golang.org/x/net v0.0.0-20210226172049-e18ecbb05110/go.mod h1:m0MpNAwzfU5UDzcl9v0D8zg8gWTRqZa9RBIspLL5mdg=
+golang.org/x/net v0.0.0-20220722155237-a158d28d115b/go.mod h1:XRhObCWvk6IyKnWLug+ECip1KBveYUHfp+8e9klMJ9c=
+golang.org/x/net v0.6.0/go.mod h1:2Tu9+aMcznHK/AK1HMvgo6xiTLG5rD5rZLDS+rp2Bjs=
+golang.org/x/sync v0.0.0-20190423024810-112230192c58/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
+golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
+golang.org/x/sync v0.1.0/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
+golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
+golang.org/x/sys v0.0.0-20201119102817-f84b799fce68/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.5.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.38.0 h1:3yZWxaJjBmCWXqhN1qh02AkOnCQ1poK6oF+a7xWL6Gc=
+golang.org/x/sys v0.38.0/go.mod h1:OgkHotnGiDImocRcuBABYBEXf8A9a87e/uXjp9XT3ks=
+golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
+golang.org/x/term v0.0.0-20210927222741-03fcf44c2211/go.mod h1:jbD1KX2456YbFQfuXm/mYQcufACuNUgVhRMnK/tPxf8=
+golang.org/x/term v0.5.0/go.mod h1:jMB1sMXY+tzblOD4FWmEbocvup2/aLOaQEp7JmGp78k=
+golang.org/x/term v0.37.0 h1:8EGAD0qCmHYZg6J17DvsMy9/wJ7/D/4pV/wfnld5lTU=
+golang.org/x/term v0.37.0/go.mod h1:5pB4lxRNYYVZuTLmy8oR2BH8dflOR+IbTYFD8fi3254=
+golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
+golang.org/x/text v0.3.3/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=
+golang.org/x/text v0.3.7/go.mod h1:u+2+/6zg+i71rQMx5EYifcz6MCKuco9NR6JIITiCfzQ=
+golang.org/x/text v0.7.0/go.mod h1:mrYo+phRRbMaCq/xk9113O4dZlRixOauAjOtrjsXDZ8=
+golang.org/x/text v0.14.0/go.mod h1:18ZOQIKpY8NJVqYksKHtTdi31H5itFRjB5/qKTNYzSU=
+golang.org/x/text v0.31.0 h1:aC8ghyu4JhP8VojJ2lEHBnochRno1sgL6nEi9WGFGMM=
+golang.org/x/text v0.31.0/go.mod h1:tKRAlv61yKIjGGHX/4tP1LTbc13YSec1pxVEWXzfoeM=
+golang.org/x/tools v0.0.0-20180917221912-90fa682c2a6e/go.mod h1:n7NCudcB/nEzxVGmLbDWY5pfWTLqBcC2KZ6jyYvM4mQ=
+golang.org/x/tools v0.0.0-20191119224855-298f0cb1881e/go.mod h1:b+2E5dAYhXwXZwtnZ6UAqBI28+e2cm9otk0dWdXHAEo=
+golang.org/x/tools v0.1.12/go.mod h1:hNGJHUnrk76NpqgfD5Aqm5Crs+Hm0VOH/i9J2+nxYbc=
+golang.org/x/tools v0.6.0/go.mod h1:Xwgl3UAJ/d3gWutnCtw505GrjyAbvKui8lOU390QaIU=
+golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
+
+--- FILE: ./protocol/events.go ---
+package protocol
+
+const (
+	CategoryRoom   = "ROOM"
+	CategoryGlobal = "GLOBAL"
+	CategoryGroup  = "GROUP"
+	CategoryStats  = "STATS"
+)
+
+const (
+	TypePresenceEnter = "PRESENCE ENTER"
+	TypePresenceLeave = "PRESENCE LEAVE"
+	TypeChat          = "CHAT"
+	TypeInvite        = "INVITE"
+	TypeJoin          = "JOIN"
+	TypeLeave         = "LEAVE"
+	TypePlayers       = "PLAYERS"
+)
+
+type ServerEvent struct {
+	Category string
+	Type     string
+	Data     string
+}
+
+--- FILE: ./protocol/error_messages.go ---
+package protocol
+
+// Session creation, enter in game errors
+const (
+	ErrNameInUse    = "ERR 201 NAME_IN_USE"
+	ErrNotConnected = "ERR 200 NOT_CONNECTED"
+	ErrInvalidName  = "ERR 202 INVALID_NAME"
+)
+
+// Movement errors
+const (
+	ErrNoExit = "ERR 301 NO_EXIT"
+)
+
+// 400 codes are GAME LOGIC ERRORS
+// Group errors 401, 402
+const (
+	ErrInvalidCommand    = "ERR 400 INVALID_COMMAND"
+	ErrNotInGroup        = "ERR 401 NOT_IN_GROUP"
+	ErrAlreadyInGroup    = "ERR 402 ALREADY_IN_GROUP"
+	ErrNotInvitedToGroup = "ERR 403 NOT_INVITED_TO_GROUP"
+	ErrUnknownUser       = "ERR 410 UNKNOWN_USER"
+	ErrNoPermission      = "ERR 411 NO_PERMISSION"
+	ErrAlreadyLeader     = "ERR 412 ALREADY_LEADER"
+	ErrNotPromoted       = "ERR 413 NOT_PROMOTED"
+)
+
+// Items & Inventory errors
+const (
+	ErrItemNotFound       = "ERR 404 ITEM_NOT_FOUND"
+	ErrItemNotInInventory = "ERR 404 ITEM_NOT_IN_INVENTORY"
+)
+
+// NPCs & Quests
+const (
+	ErrNpcNotFound       = "ERR 404 NPC_NOT_FOUND"
+	ErrNpcNotHostile     = "ERR 405 NPC_NOT_HOSTILE"
+	ErrNoQuestAvailable  = "ERR 406 NO_QUEST_AVAILABLE"
+	ErrNotYourTurnToPlay = "ERR 407 NOT_YOUR_TURN"
+	ErrNoAllyAttack      = "ERR 408 NO_ALLY_ATTACK"
+)
+
+// Internal server
+const (
+	ErrInternalServer = "ERR 500 INTERNAL_SERVER_ERROR"
+)
+
+// Authentication & Connection errors
+const (
+	ErrConnectionFailed = "ERR 900 CONNECTION_FAILED"
+	ErrSendFailed       = "ERR 901 SEND_FAILED"
+	ErrSpam             = "ERR 902 CONNECTION_CLOSED_DUE_TO_SPAM"
+	ErrServerFull       = "ERR 901 SERVER_FULL"
+)
+
+// MORE errors (NOT IN RFC protocol) 500+ codes
+
+--- FILE: ./protocol/commands.go ---
+package protocol
+
+const (
+	CmdConnect   = "CONNECT"
+	CmdLook      = "LOOK"
+	CmdMove      = "MOVE"
+	CmdChat      = "CHAT"
+	CmdTake      = "TAKE"
+	CmdDrop      = "DROP"
+	CmdInventory = "INVENTORY"
+	CmdTalk      = "TALK"
+	CmdAttack    = "ATTACK"
+	CmdStatus    = "STATUS"
+	CmdQuest     = "QUEST"
+	CmdQuests    = "QUESTS"
+	CmdWho       = "WHO"
+	CmdUnGrouped = "UNGROUPED"
+	CmdGrouped   = "GROUPED"
+	CmdGroup     = "GROUP"
+	CmdQuit      = "QUIT"
+
+	GlobalChat = "GLOBAL"
+	RoomChat   = "ROOM"
+	GroupChat  = "GROUP"
+
+	CreateGroup         = "CREATE"
+	InviteGroup         = "INVITE"
+	KickGroup           = "KICK"
+	JoinGroup           = "JOIN"
+	LeaveGroup          = "LEAVE"
+	PromoteGroup        = "PROMOTE"
+	AcceptPromoteGroup  = "ACCEPT"
+	DeclinePromoteGroup = "DECLINE"
+)
+
+--- FILE: ./protocol/commands_struct.go ---
+package protocol
+
+type ExitsData struct {
+	North string `json:"north"`
+	East  string `json:"east"`
+	West  string `json:"west"`
+	South string `json:"south"`
+}
+
+type RoomData struct {
+	Id          string    `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Exits       ExitsData `json:"exits"`
+	Players     []string  `json:"players"`
+	Items       []string  `json:"items"`
+	Npcs        []string  `json:"npcs"`
+}
+
+type LookCommandData struct {
+	Room RoomData
+}
+
+type StatusCommandData struct {
+	Hp     int    `json:"hp"`
+	MaxHp  int    `json:"max_hp"`
+	Status string `json:"status"`
+}
+
+type InventoryCommandData struct {
+	ItemsInInventory []string
+}
+
+type UnGroupedCommandData struct {
+	UnGrouped []string
+}
+
+type GroupedCommandData struct {
+	Grouped []string
+}
+
+type QuestData struct {
+	Id          string `json:"quest_id"`
+	Status      string `json:"status"`
+	Description string `json:"description"`
+
+	Reward string `json:"reward"`
+}
+
+type TrackedQuestData struct {
+	Id       string `json:"quest_id"`
+	Status   string `json:"status"`
+	Progress string `json:"progress"`
+}
+
+type QuestsCommandData struct {
+	Quests []TrackedQuestData
+}
+
+type AttackCommandData struct {
+	AttackerHp int    `json:"attacker_hp"`
+	TargetHp   int    `json:"target_hp"`
+	Damage     int    `json:"damage"`
+	Status     string `json:"status"`
+}
+
+--- FILE: ./protocol/protocol.go ---
+package protocol
+
+// server to engine
+type ServerRequest struct {
+	Id  string
+	Msg string
+}
+
+// engine to server
+type EngineResponse struct {
+	Id    string
+	Msg   string
+	Datas any
+	Err   error
+}
+
+// server to client
+type ServerResponse struct {
+	Msg   string `json:"msg"`
+	Datas any    `json:"datas,omitempty"`
+}
+
+type Exchanger struct {
+	ServerInput  chan ServerRequest
+	ServerOutput chan EngineResponse
+	JoinChan     chan string
+	LeaveChan    chan string
+}
+
+--- FILE: ./server/timestamp.go ---
+package server
+
+import (
+	"time"
+)
+
+func (s *Server) get_timestamp() map[string]int {
+	// Get timestamp value
+	time := time.Now().Unix()
+	timestamp := time - s.t_start
+
+	// Convert it and stock it inside a map
+	res := make(map[string]int)
+
+	res["days"] = int(timestamp / 86400)
+	res["hours"] = int((timestamp / 3600) % 24)
+	res["min"] = int((timestamp / 60) % 60)
+	res["sec"] = int(timestamp % 60)
+
+	return res
+}
+
+--- FILE: ./server/rate_limiter.go ---
+package server
+
+import "time"
+
+type RateLimiter struct {
+	tokens     int
+	maxTokens  int
+	refillRate time.Duration
+	lastRefill time.Time
+}
+
+func NewRateLimiter(max int, rate time.Duration) *RateLimiter {
+	return &RateLimiter{
+		tokens:     max,
+		maxTokens:  max,
+		refillRate: rate,
+		lastRefill: time.Now(),
+	}
+}
+
+func (rl *RateLimiter) Allow() bool {
+	now := time.Now()
+	elapsed := now.Sub(rl.lastRefill)
+	tokensToAdd := int(elapsed / rl.refillRate)
+
+	if tokensToAdd > 0 {
+		rl.tokens += tokensToAdd
+		if rl.tokens > rl.maxTokens {
+			rl.tokens = rl.maxTokens
+		}
+		rl.lastRefill = rl.lastRefill.Add(time.Duration(tokensToAdd) * rl.refillRate)
+	}
+
+	if rl.tokens > 0 {
+		rl.tokens--
+		return true
+	}
+	return false
+}
+
+--- FILE: ./server/constants.go ---
+package server
+
+const MaxPlayerLimit int = 50
+const MaxFloodLimit int = 5
+const MaxPayloadSize int = 1024
+const MaxClientTimeOutMinutes int = 15
+const MaxTokens int = 5
+
+--- FILE: ./server/client.go ---
+package server
+
+import (
+	"bufio"
+	"encoding/json"
+	"fmt"
+	"net"
+	pr "tap/protocol"
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type Client struct {
+	conn        net.Conn               `json:"-"`
+	ch          chan pr.ServerResponse `json:"-"`
+	id          string
+	spamWarning int
+}
+
+type ClientRequest struct {
+	id  string
+	msg string
+}
+
+func newClient(conn net.Conn, ch chan pr.ServerResponse) *Client {
+	return &Client{
+		conn: conn,
+		ch:   ch,
+		id:   uuid.New().String(),
+	}
+}
+
+func (s *Server) stopClient(cli *Client, writerDone <-chan struct{}) {
+	// SELECT PATTERN: Escape Hatch / Circuit Breaker
+	// Attempts to send the client to the leaving queue.
+	// If the server is shutting down (s.quit is closed), the send operation is
+	// immediately aborted to prevent a deadlock.
+	select {
+	case s.leaving <- cli:
+	case <-s.quit:
+	}
+
+	<-writerDone
+	cli.conn.Close()
+	<-s.playerSlots
+}
+
+func (s *Server) handleClient(conn net.Conn) {
+	defer s.wg.Done()
+	responses := make(chan pr.ServerResponse, 20)
+	cli := newClient(conn, responses)
+	writerDone := make(chan struct{})
+
+	// when connection interrupts,
+	// closes the client channel and removes him from the clients map
+	// waits for client writer ends sending its messages.
+	defer s.stopClient(cli, writerDone)
+
+	s.wg.Add(1)
+	go s.clientWriter(cli, responses, writerDone)
+
+	cli.ch <- pr.ServerResponse{Msg: "OK hello proto=1"}
+	s.entering <- cli
+
+	s.readClientInput(cli)
+}
+
+func (s *Server) readClientInput(cli *Client) {
+	input := bufio.NewScanner(cli.conn)
+	input.Buffer(make([]byte, 0, MaxPayloadSize), MaxPayloadSize)
+	limiter := NewRateLimiter(MaxTokens, 200*time.Millisecond)
+
+	for {
+		cli.conn.SetReadDeadline(time.Now().Add(s.IdleTimeout))
+
+		if !input.Scan() {
+			break
+		}
+		if limiter.Allow() {
+			cli.spamWarning = 0
+			s.requests <- ClientRequest{id: cli.id, msg: input.Text()}
+		} else {
+			if s.handleSpam(cli) {
+				break
+			}
+		}
+	}
+}
+
+func (s *Server) handleSpam(cli *Client) bool {
+	cli.spamWarning++
+	if cli.spamWarning > 2 {
+		cli.ch <- pr.ServerResponse{Msg: pr.ErrSpam}
+		return true
+	}
+	return false
+}
+
+func (s *Server) clientWriter(cli *Client, responses <-chan pr.ServerResponse, done chan struct{}) {
+	defer s.wg.Done()
+	defer close(done)
+
+	for {
+		select {
+		case <-s.quit:
+			return
+
+		case res, ok := <-responses:
+			if !ok {
+				return
+			}
+			output := formatResponse(res)
+			if _, err := cli.conn.Write([]byte(output)); err != nil {
+				return
+			}
+		}
+	}
+}
+func formatResponse(res pr.ServerResponse) string {
+	if res.Datas != nil && res.Datas != "" {
+		jsonData, _ := json.Marshal(res.Datas)
+		return fmt.Sprintf("%s %s\n", res.Msg, string(jsonData))
+	}
+	return fmt.Sprintf("%s\n", res.Msg)
+}
+
+--- FILE: ./server/server.go ---
+package server
+
+import (
+	"sync"
+	pr "tap/protocol"
+	"time"
+
+	"net"
+)
+
+type Log struct {
+	Timestamp string         `json:"timestamp"`
+	Level     string         `json:"level"`
+	Message   string         `json:"message"`
+	Datas     map[string]any `json:"datas,omitempty"`
+}
+
+type Server struct {
+	ln      net.Listener
+	clients map[string]*Client
+
+	requests chan ClientRequest
+	logs     chan Log
+
+	entering    chan *Client
+	leaving     chan *Client
+	quit        chan struct{}
+	playerSlots chan struct{}
+
+	wg sync.WaitGroup
+
+	exchanger pr.Exchanger
+
+	t_start     int64
+	IdleTimeout time.Duration
+}
+
+func (s *Server) handleNewConnection(conn net.Conn) {
+	// SELECT PATTERN: Non-Blocking Send / Load Shedding
+	// Attempts to consume a player slot.
+	// If a slot is available, the client is connected.
+	// Otherwise (default), the server is full, and we instantly reject the connection without blocking.
+	select {
+	case s.playerSlots <- struct{}{}:
+		s.wg.Add(1)
+		go s.handleClient(conn)
+	default:
+		conn.Write([]byte(pr.ErrServerFull + "\n"))
+		conn.Close()
+	}
+}
+
+func (s *Server) broadcaster() {
+	defer s.wg.Done()
+	// PATTERN: Event Loop / Multiplexer
+	// The central dispatcher of the server: guarantees that only one event (connection,
+	// disconnection, message) is processed at a time. This protects the s.clients map
+	// from Data Races without the need for sync.Mutex locks.
+	for {
+		select {
+		case req := <-s.requests:
+			s.exchanger.ServerInput <- pr.ServerRequest{Id: req.id, Msg: req.msg}
+		case cli := <-s.entering:
+			s.addClient(cli)
+			s.exchanger.JoinChan <- cli.id
+		case cli := <-s.leaving:
+			s.removeClient(cli)
+			s.exchanger.LeaveChan <- cli.id
+		case output := <-s.exchanger.ServerOutput:
+			s.sendToClient(output)
+		case <-s.quit:
+			s.shutdown()
+			return
+		}
+	}
+}
+
+func (s *Server) addClient(cli *Client) {
+	s.clients[cli.id] = cli
+}
+
+func (s *Server) removeClient(cli *Client) {
+	if c, ok := s.clients[cli.id]; ok {
+		delete(s.clients, cli.id)
+		close(c.ch)
+	}
+}
+
+func (s *Server) sendToClient(output pr.EngineResponse) {
+
+	cli, exists := s.clients[output.Id]
+	if !exists {
+		return
+	}
+
+	res, datas := output.Msg, output.Datas
+	if output.Err != nil {
+		res, datas = output.Err.Error(), ""
+	}
+
+	// SELECT PATTERN: Non-Blocking Send
+	// Attempts to send the message to the client. If their channel buffer is full
+	// we force a disconnection via the default case
+	// rather than paralyzing the entire server broadcast loop.
+	select {
+	case cli.ch <- pr.ServerResponse{Msg: res, Datas: datas}:
+	default:
+		cli.conn.Close()
+	}
+}
+
+func (s *Server) shutdown() {
+	for _, c := range s.clients {
+		close(c.ch)
+		c.conn.Close()
+	}
+}
+
+func (s *Server) GetAddress() string {
+	return s.ln.Addr().String()
+}
+
+func NewServer(listenAddr string, exchanger pr.Exchanger) (*Server, error) {
+	listener, err := net.Listen("tcp", listenAddr)
+	if err != nil {
+		return nil, err
+	}
+	return &Server{
+		ln:          listener,
+		clients:     make(map[string]*Client),
+		requests:    make(chan ClientRequest, 100),
+		logs:        make(chan Log, 500),
+		entering:    make(chan *Client, 50),
+		leaving:     make(chan *Client, 50),
+		playerSlots: make(chan struct{}, MaxPlayerLimit),
+		quit:        make(chan struct{}),
+
+		exchanger:   exchanger,
+		t_start:     time.Now().Unix(),
+		IdleTimeout: time.Duration(MaxClientTimeOutMinutes) * time.Minute,
+	}, nil
+}
+
+func (s *Server) Start() {
+
+	s.wg.Add(1)
+	defer s.wg.Done()
+
+	s.wg.Add(1)
+	go s.broadcaster()
+
+	for {
+		conn, err := s.ln.Accept()
+		if err != nil {
+			return
+		}
+		s.handleNewConnection(conn)
+	}
+}
+
+func (s *Server) Stop() {
+
+	if s.ln != nil {
+		s.ln.Close()
+	}
+	// if the channel already has been closed
+	// does nothing. else it closes it
+	select {
+	case <-s.quit:
+	default:
+		close(s.quit)
+	}
+	s.wg.Wait()
+}
+
+--- FILE: ./utils/lore_ideas.txt ---
+
+CHOOSEN ONE:
+
+	- Supermarket with old people:
+		- rooms = rayon / étal de marché
+		- npcs = old people
+		- quest = Buy dentier using thousands of coins / Run to be the first to buy suppo/couches
+		- items = IN PROGRESS
+
+-------------------------------------------------------------------------------------------------------
+
+FIRST:
+
+	- Seek body of someone:
+		- rooms = organs
+		- npcs = neurons/cells/virus
+		- quest = treat a cold/
+		- items = medics/energy/coffee/food
+
+	- Policier / Criminel:
+		- description = Assiste a une scene de crime/delit, traquer le criminel
+		- rooms = places/rues etc. ville connue?
+		- npcs = refs a des personnages celebres/ pnjs de collegues
+		- quests = Adelina en camionette nous propose de l'aide 
+		- items = menottes
+
+-------------------------------------------------------------------------------------------------------
+
+SECOND:
+	- Administration:
+		- rooms = Departements
+		- npcs = Employees
+		- quest = Prendre rdv / Remplir formulaire rapidement
+		- items = Tampon / Lettre recommandé/Timbre
+
+--- FILE: ./utils/map_formats.txt ---
+
+MAP FORMATS:
+
+	- ROOM:
+
+		"start": {
+      		"name": "Village Square",
+      		"description": "A bustling square with cobblestone paths.",
+      		"exits": {
+      			"east": "shop",
+				"north": "tavern"
+      	  	},
+      	  	"items": [],
+      	  	"npcs": ["guard"]
+      	}
+
+	- ITEM:
+
+		"ale": {
+      		"name": "Frothy Ale",
+      		"description": "A refreshing drink that restores energy.",
+      		"obtainable": true
+      	}
+
+	- NPC:
+
+		"guard": {
+      		"name": "Village Guard",
+      		"description": "A stern-looking guard watching over the square.",
+      		"dialogue": ["Stay safe, traveler.", "The roads can be dangerous."],
+      		"role": "dialogue",
+			"quest_id": "",
+      		"stats": {
+      			"hp": 20,
+      			"max_hp": 20,
+				"status": "healthy"
+      		}
+      	}
+
+	- QUEST:
+
+		"fetch_herbs": {
+			"description": "Bring me 3 healing herbs",
+			"reward": "gold_coin",
+			"status": "available"
+		}
+
+--- FILE: ./utils/improvements.txt ---
+
+- QUESTS:
+	-Adapt progress datas and
+
+- ATTACK:
+	- Check that npc is hostile
+	- Adapt combat damage
+	- Update values after combat
+
+--- FILE: ./engine/fighter.go ---
+package engine
+
+const (
+	StatusNormal    string = "normal"
+	StatusParalysed string = "paralysed"
+	StatusSleeping  string = "sleeping"
+	StatusSleepy    string = "sleepy"
+)
+
+type CombatStats struct {
+	Hp         int    `json:"hp"`
+	Initiative int    `json:"initiative"`
+	HpMax      int    `json:"max_hp"`
+	CombatId   string `json:"combat_id,omitempty"`
+	Status     string `json:"status,omitempty"`
+}
+
+func (cs *CombatStats) Clone() *CombatStats {
+	if cs == nil {
+		return nil
+	}
+	cp := *cs
+	return &cp
+}
+
+type Fighter interface {
+	takeDamage(amount int)
+	isDead() bool
+	getName() string
+	getHp() int
+	getInitiative() int
+	playCombatTurn(target Fighter) *CombatTurnResult
+}
+
+--- FILE: ./engine/items.go ---
+package engine
+
+type Item struct {
+	Id          string `json:"-"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Obtainable  bool   `json:"obtainable"`
+	Type        string `json:"type"`
+	Tradable    bool   `json:"tradable"`
+	Worth       int    `json:"worth"`
+
+	Damage int `json:"damage,omitempty"`
+
+	TargetStat string `json:"target_stat,omitempty"`
+	Amount     int    `json:"amount,omitempty"`
+	EffectType string `json:"effect_type,omitempty"`
+	Duration   int    `json:"duration,omitempty"`
+	Charges    int    `json:"charges,omitempty"`
+}
+type Weapon struct {
+	*Item
+	Damage int `json:"damage"`
+}
+
+type Ressource struct {
+	*Item
+}
+
+type Consumable struct {
+	*Item
+	TargetStat string `json:"target_stat"`
+	Amount     int    `json:"amount"`
+	EffectType string `json:"effect_type"`
+	Duration   int    `json:"duration"`
+	Charges    int    `json:"charges"`
+}
+
+func (item *Item) Clone() *Item {
+	// no slices or objects in item so we make a quick copy
+	cp := *item
+	return &cp
+}
+
+func (item *Item) ConvertToWeapon() *Weapon {
+	if item.Type != "weapon" {
+		return nil
+	}
+	return &Weapon{
+		Item:   item,
+		Damage: item.Damage,
+	}
+}
+
+--- FILE: ./engine/npcs.go ---
+package engine
+
+import (
+	"slices"
+)
+
+type Npc struct {
+	Name        string       `json:"name"`
+	Description string       `json:"description"`
+	Dialogue    []string     `json:"dialogue"`
+	Role        string       `json:"role"`
+	QuestId     string       `json:"quest_id"`
+	Stats       *CombatStats `json:"stats,omitempty"`
+	Hostile     bool         `json:"hostile"`
+	Damage      int          `json:"damage"`
+	InCombat    bool         `json:"omitempty"`
+	Fighter
+}
+
+func (n *Npc) isDead() bool {
+	if n.Stats.Hp <= 0 {
+		return true
+	}
+	return false
+}
+
+func (n *Npc) takeDamage(amount int) {
+	n.Stats.Hp -= amount
+	// maybe here substraction with defense of entity
+}
+func (n *Npc) getHp() int {
+	return n.Stats.Hp
+}
+
+func (n *Npc) getInitiative() int {
+	return n.Stats.Initiative
+}
+
+func (n *Npc) playCombatTurn(target Fighter) *CombatTurnResult {
+	target.takeDamage(n.Damage)
+	turn_result := &CombatTurnResult{AttackerHp: n.getHp(), TargetHp: target.getHp(), Damage: n.Damage, Status: "combat"}
+	return turn_result
+}
+
+func (n *Npc) Clone() *Npc {
+	if n == nil {
+		return nil
+	}
+	// copies only primitives (int strings bools)
+	cp := *n
+	// copies deep all elements like slices, objects CombatStats custom Clone method
+	cp.Stats = n.Stats.Clone()
+	cp.Dialogue = slices.Clone(n.Dialogue)
+	return &cp
+}
+
+func isNpcInRoom(room *Room, npcName string) bool {
+	for _, npc_name := range room.Npcs {
+		if npc_name == npcName {
+			return true
+		}
+	}
+	return false
+}
+
+func (n *Npc) getName() string {
+	return n.Name
+}
+
+--- FILE: ./engine/parser.go ---
+package engine
+
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
+)
+
+func Get_map(map_path string) (*Map, error) {
+	// Get map file content
+	file, err := os.ReadFile(map_path)
+	if err != nil {
+		return nil, errors.New("Invalid file path: Permission denied or File doesn't exist")
+	}
+	var worlds []Map
+
+	reader := bytes.NewReader(file)
+	dec := json.NewDecoder(reader)
+	dec.DisallowUnknownFields()
+	err = dec.Decode(&worlds)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid file: JSON file must be parsable:\n%s\n", err)
+	}
+
+	// Handle invalid values
+	err = IsValidMap(&worlds[0])
+	if err != nil {
+		return nil, err
+	}
+
+	for id, item := range worlds[0].Items {
+		item.Id = id
+	}
+
+	return &worlds[0], nil
+}
+
+--- FILE: ./engine/valid_values.go ---
+package engine
+
+import (
+	"errors"
+	"fmt"
+)
+
+const (
+	RoomEntrance     = "entrance"
+	RoomHealthAisle  = "health_aisle"
+	RoomFreshSection = "fresh_section"
+)
+
+const (
+	South = "south"
+	North = "north"
+	East  = "east"
+	West  = "west"
+)
+
+var (
+	valid_maps = []string{
+		RoomEntrance,
+		RoomHealthAisle,
+		RoomFreshSection,
+	}
+
+	exits = []string{
+		North,
+		South,
+		East,
+		West,
+	}
+
+	directions = map[string]string{
+		North: South,
+		South: North,
+		West:  East,
+		East:  West,
+	}
+
+	roles = []string{
+		"quest",
+		"dialogue",
+	}
+
+	npc_status = []string{
+		"healthy",
+		"dead",
+	}
+
+	quest_status = []string{
+		"available",
+		"progress",
+		"unavailable",
+	}
+	item_types = []string{
+		"ressource",
+		"consumable",
+		"weapon",
+	}
+	consumable_type_effects = []string{
+		"heal",
+		"buff",
+		"cure",
+	}
+	consumable_target_stats = []string{
+		"hp",
+		"mana",
+		"max_hp",
+		"status",
+		"initiative",
+	}
+)
+
+func is_inside(elements []string, value string) bool {
+	for _, element := range elements {
+		if element == value {
+			return true
+		}
+	}
+
+	return false
+}
+func IsValidRoom(room *Room, m *Map, room_id string) error {
+	// Check exits
+	for exit_dir, exit_room := range room.Exits {
+		if !is_inside(exits, exit_dir) {
+			return fmt.Errorf("Invalid map: '%s' exits doesn't exist", exit_dir)
+		}
+		if _, exists := m.Rooms[exit_room]; !exists {
+			return fmt.Errorf("Invalid map: '%s' room doesn't exist", exit_room)
+		}
+	}
+
+	// Check items
+	for _, item := range room.Items {
+		if _, exists := m.Items[item]; !exists {
+			return fmt.Errorf("Invalid map: '%s' item doesn't exist", item)
+		}
+	}
+
+	// Check npcs
+	for _, npc := range room.Npcs {
+		if _, exists := m.Npcs[npc]; !exists {
+			return fmt.Errorf("Invalid map: '%s' npc doesn't exist", npc)
+		}
+	}
+
+	for exit_dir, exit_room := range room.Exits {
+		if _, ok := directions[exit_dir]; !ok || m.Rooms[exit_room].Exits[directions[exit_dir]] != room_id {
+			return errors.New("Invalid map: exits aren't consistents")
+		}
+	}
+
+	return nil
+}
+
+func IsValidNpc(npc *Npc, m *Map) error {
+	// Check role
+	if !is_inside(roles, npc.Role) {
+		return fmt.Errorf("Invalid map: '%s' role isn't valid", npc.Role)
+	}
+
+	if npc.QuestId != "" {
+		if _, exists := m.Quests[npc.QuestId]; !exists {
+			return fmt.Errorf("Invalid map: '%s' quest id doesn't exist", npc.QuestId)
+		}
+	}
+	if npc.Hostile {
+		// Check stats
+		if npc.Stats.Hp < 0 {
+			return fmt.Errorf(
+				"Invalid map: hp must be a positive integer != '%d'",
+				npc.Stats.Hp,
+			)
+		} else if npc.Stats.Hp > npc.Stats.HpMax {
+			return fmt.Errorf(
+				"Invalid map: max_hp must be a positive integer != '%d' and greater or equal than hp (%d)",
+				npc.Stats.HpMax,
+				npc.Stats.Hp,
+			)
+		} else if !is_inside(npc_status, npc.Stats.Status) {
+			return fmt.Errorf("Invalid map: '%s' status doesn't exist", npc.Stats.Status)
+		} else if npc.Stats.Initiative <= 0 {
+			return fmt.Errorf("Invalid map: '%s' initiative can't be under or equal to 0", npc.Name)
+
+		}
+	}
+
+	return nil
+}
+
+func IsValidQuest(quest *Quest) error {
+	if !is_inside(quest_status, quest.Status) {
+		return fmt.Errorf("Invalid map: '%s' status doesn't exist", quest.Status)
+	}
+
+	return nil
+}
+
+func IsValidMap(m *Map) error {
+	var err error
+
+	// Check each rooms
+	for room_id, room := range m.Rooms {
+		err = IsValidRoom(room, m, room_id)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Check each npcs
+	for _, npc := range m.Npcs {
+		err = IsValidNpc(npc, m)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Check each quests
+	for _, quest := range m.Quests {
+		err = IsValidQuest(quest)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, item := range m.Items {
+		err = isValidItem(item)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func isValidItem(item *Item) error {
+	if !is_inside(item_types, item.Type) {
+		return fmt.Errorf("Invalid item: type '%s'  doesn't exist", item.Type)
+	}
+	if item.Name == "" {
+		return fmt.Errorf("Invalid name of item. item: %s", item.Name)
+	}
+	if item.Worth < 0 {
+		return fmt.Errorf("Invalid item's worth is < 0 item: %s", item.Name)
+	}
+	switch item.Type {
+	case "ressource":
+	case "consumable":
+		if item.EffectType == "" || !is_inside(consumable_type_effects, item.EffectType) {
+			return fmt.Errorf("Invalid item effect type %s", item.EffectType)
+		}
+		if item.TargetStat == "" || !is_inside(consumable_target_stats, item.TargetStat) {
+			return fmt.Errorf("Invalid target_stat for consumable item.  item: %s", item.Name)
+		}
+		if item.Charges <= 0 {
+			return fmt.Errorf("Invalid number of charge on consumable item (must be > 0) item: %s", item.Name)
+		}
+		if item.Duration <= 0 {
+			return fmt.Errorf("Invalid number of duration on consumable item (must be > 0) item: %s", item.Name)
+		}
+		if item.Amount <= 0 {
+			return fmt.Errorf("Invalid amount on consumable item (must be > 0) item: %s", item.Name)
+		}
+	case "weapon":
+		if item.Damage <= 0 {
+			return fmt.Errorf("Invalid weapon damage on weapon item (must be > 0): %s", item.Name)
+		}
+	}
+	return nil
+}
+
+--- FILE: ./engine/command.go ---
+package engine
+
+import (
+	"errors"
+	"fmt"
+	"slices"
+	"strings"
+	pr "tap/protocol"
+)
+
+func (e *Engine) handleCmdConnect(id string, req []string) (string, any, error) {
+	if len(req) != 2 {
+		return "", "", errors.New(pr.ErrInvalidName)
+	}
+
+	// check if session is already connected
+	if e.sessions[id] != "" {
+		return "", "", errors.New(pr.ErrNameInUse)
+	}
+	pseudo := req[1]
+	if _, exists := e.players[pseudo]; exists {
+		return "", "", errors.New(pr.ErrNameInUse)
+	}
+
+	player, err := e.createNewPlayerInstance(pseudo, id)
+	if err != nil {
+		return "", "", err
+	}
+	e.players[pseudo] = player
+	e.sessions[id] = pseudo
+	e.dialogues[pseudo] = make(map[string]int)
+
+	e.inform_all(player, fmt.Sprintf("EVT STATS players=%d", len(e.players)))
+	e.inform_room(player, player.room, "EVT ROOM PRESENCE ENTER "+player.name)
+
+	return "OK connected", "", nil
+}
+
+func (e *Engine) playerQuits(player *Player) {
+	delete(e.players, player.name)
+	e.inform_room(player, player.room, "EVT ROOM PRESENCE LEAVE "+player.name)
+	e.inform_all(player, fmt.Sprintf("EVT STATS players=%d", len(e.players)))
+}
+
+func (e *Engine) handleCmdQuit(player *Player, req []string) (string, any, error) {
+	// Handle invalid command
+	if len(req) != 1 {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
+	for _, obj := range player.inventory {
+		player.room.Items = append(player.room.Items, obj.Id)
+		e.inform_room(player, player.room, "EVT ITEM DROPPED "+obj.Id)
+	}
+	player.inventory = make([]*Item, 0)
+
+	e.playerQuits(player)
+	return "OK bye", "", nil
+}
+
+func (e *Engine) handleCmdWho(req []string) (string, any, error) {
+	// Handle invalid command
+	if len(req) != 1 {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
+	return fmt.Sprintf("OK players=%d", len(e.players)), "", nil
+}
+
+func (e *Engine) handleCmdUnGrouped(player *Player, req []string) (string, any, error) {
+	// Handle invalid command
+	if len(req) != 1 {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
+	// Get players
+	users := make([]string, 0)
+	for _, cli := range e.players {
+		if cli.name != player.name && cli.group == "" && !slices.Contains(cli.invitations, player.group) {
+			users = append(users, cli.name)
+		}
+	}
+
+	return "OK", pr.UnGroupedCommandData{UnGrouped: users}, nil
+}
+
+func (e *Engine) handleCmdGrouped(player *Player, req []string) (string, any, error) {
+	// Handle invalid command
+	if len(req) != 1 {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
+	// Get players
+	users := make([]string, 0)
+	for _, cli := range e.players {
+		if cli.name != player.name && cli.group == player.group && player.group != "" {
+			users = append(users, cli.name)
+		}
+	}
+
+	return "OK", pr.GroupedCommandData{Grouped: users}, nil
+}
+
+func (e *Engine) handleCmdLook(player *Player, req []string) (string, any, error) {
+	// Handle invalid command
+	if len(req) != 1 {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
+	players := make([]string, 0)
+
+	// Get present players
+	for pseudo, p := range e.players {
+		if player.room == p.room {
+			players = append(players, pseudo)
+		}
+	}
+
+	// Format response
+
+	exits := pr.ExitsData{
+		North: player.room.Exits["north"],
+		South: player.room.Exits["south"],
+		East:  player.room.Exits["east"],
+		West:  player.room.Exits["west"],
+	}
+	Room := pr.RoomData{
+		Id:          "room." + player.room.Name,
+		Name:        player.room.Name,
+		Description: player.room.Description,
+		Exits:       exits,
+		Players:     players,
+		Items:       player.room.Items,
+		Npcs:        player.room.Npcs,
+	}
+	res := pr.LookCommandData{
+		Room: Room,
+	}
+
+	return "OK", res, nil
+}
+
+func (e *Engine) handleCmdMove(player *Player, req []string) (string, any, error) {
+	// Handle invalid command
+	if len(req) != 2 {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
+	direction := req[1]
+
+	// Check room is valid
+	nextRoomName, exists := player.room.Exits[direction]
+	if !exists {
+		return "", "", errors.New(pr.ErrNoExit)
+	}
+	nextRoom := e.world.Rooms[nextRoomName]
+	e.inform_room(player, player.room, "EVT ROOM PRESENCE LEAVE "+player.name)
+
+	// Change the player room variable
+	player.room = nextRoom
+
+	e.inform_room(player, player.room, "EVT ROOM PRESENCE ENTER "+player.name)
+
+	return fmt.Sprintf("OK room=%s", nextRoom.Name), "", nil
+}
+
+func (e *Engine) handleCmdChat(player *Player, req []string) (string, any, error) {
+	// Handle invalid command
+	if len(req) < 3 {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
+	var chat string
+	scope := strings.ToUpper(req[1])
+	msg := strings.Join(req[2:], " ")
+
+	// Check scope exist
+	if !slices.Contains([]string{pr.GlobalChat, pr.RoomChat, pr.GroupChat}, scope) {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
+	for pseudo, p := range e.players {
+		if pseudo != player.name {
+
+			// Compare scopes with other player datas
+			is_global := scope == pr.GlobalChat
+			is_group := scope == pr.GroupChat && player.group != "" && p.group == player.group
+			is_room := scope == pr.RoomChat && p.room == player.room
+
+			// Send chat to player
+			if is_global || is_group || is_room {
+				chat = fmt.Sprintf("EVT %s CHAT %s %s", scope, player.name, msg)
+				e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: chat}
+			}
+		}
+	}
+	return "OK", "", nil
+}
+
+func (e *Engine) handleCmdGroup(player *Player, req []string) (string, any, error) {
+	var err error
+	var res string
+	scope := strings.ToUpper(req[1])
+
+	// Handle invalid command
+	contains_commands := []string{
+		pr.CreateGroup,
+		pr.LeaveGroup,
+		pr.AcceptPromoteGroup,
+		pr.DeclinePromoteGroup,
+	}
+	contains := slices.Contains(contains_commands, scope)
+	if (len(req) != 3 && !contains) || (len(req) > 2 && contains) {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
+	var arg string
+	if !contains {
+		arg = req[2]
+	}
+
+	// Handle group scopes
+	switch scope {
+	case pr.CreateGroup:
+		res, err = e.create_group(player)
+	case pr.InviteGroup:
+		res, err = e.invite_user_in_group(player, arg)
+	case pr.KickGroup:
+		res, err = e.kick_user_in_group(player, arg)
+	case pr.JoinGroup:
+		res, err = e.join_group(player, arg)
+	case pr.LeaveGroup:
+		res, err = e.leave_group(player)
+	case pr.PromoteGroup:
+		res, err = e.promote_user(player, arg)
+	case pr.AcceptPromoteGroup:
+		res, err = e.accept_promotion(player)
+	case pr.DeclinePromoteGroup:
+		res, err = e.decline_promotion(player)
+	default:
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
+	if err != nil {
+		return "", "", err
+	}
+
+	return res, "", nil
+}
+
+func (e *Engine) handleCmdStatus(player *Player, req []string) (string, any, error) {
+	// Handle invalid command
+	if len(req) != 1 {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
+	// Format response
+	res := pr.StatusCommandData{
+		Hp:     player.stats.Hp,
+		MaxHp:  player.stats.HpMax,
+		Status: player.stats.Status,
+	}
+
+	return "OK", res, nil
+}
+
+func (e *Engine) handleCmdTake(player *Player, req []string) (string, any, error) {
+	// Handle invalid command
+	if len(req) != 2 {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
+	object := req[1]
+	for obj_index, item_name := range player.room.Items {
+		item := e.world.Items[item_name]
+		if item_name == object {
+			player.inventory = append(player.inventory, item)
+			player.room.Items = append(player.room.Items[:obj_index], player.room.Items[obj_index+1:]...)
+
+			e.inform_room(player, player.room, "EVT ITEM TOOK "+object)
+
+			return "OK taken=" + object, "", nil
+		}
+	}
+
+	return "", "", errors.New(pr.ErrItemNotFound)
+}
+
+func (e *Engine) handleCmdDrop(player *Player, req []string) (string, any, error) {
+	// Handle invalid command
+	if len(req) != 2 {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
+	object := req[1]
+	for obj_index, obj := range player.inventory {
+		if obj.Id == object {
+			player.inventory = append(player.inventory[:obj_index], player.inventory[obj_index+1:]...)
+			player.room.Items = append(player.room.Items, object)
+
+			e.inform_room(player, player.room, "EVT ITEM DROPPED "+object)
+
+			return "OK dropped=" + object, "", nil
+		}
+	}
+
+	return "", "", errors.New(pr.ErrItemNotInInventory)
+}
+
+func (e *Engine) handleCmdInventory(player *Player, req []string) (string, any, error) {
+	// Handle invalid command
+	if len(req) != 1 {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+	return "OK", player.inventory, nil
+}
+
+func (e *Engine) handleCmdQuest(player *Player, req []string) (string, any, error) {
+	// Handle invalid command
+	if len(req) != 2 {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
+	npc := req[1]
+	for npc_name, npc_datas := range e.world.Npcs {
+		if npc_name == npc {
+			for _, room_npc := range player.room.Npcs {
+				if room_npc == npc {
+					if npc_datas.QuestId == "" || e.world.Quests[npc_datas.QuestId].Status == "unavailable" {
+						return "", "", errors.New(pr.ErrNoQuestAvailable)
+					}
+
+					// Format response
+					quest := e.world.Quests[npc_datas.QuestId]
+					res := pr.QuestData{
+
+						Id:          npc_datas.QuestId,
+						Reward:      quest.Reward,
+						Description: quest.Description,
+						Status:      quest.Status,
+					}
+
+					return "OK", res, nil
+				}
+			}
+		}
+	}
+	return "", "", errors.New(pr.ErrNpcNotFound)
+}
+
+func (e *Engine) handleCmdQuests(player *Player, req []string) (string, any, error) {
+	// Handle invalid command
+	if len(req) != 1 {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+	res := player.quests
+
+	return "OK", res, nil
+}
+func (e *Engine) handleCmdTalk(player *Player, req []string) (string, any, error) {
+	// Handle invalid command
+	if len(req) != 2 {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
+	npc := req[1]
+	// Find npc
+	for npc_name, npc_datas := range e.world.Npcs {
+		if npc_name == npc {
+			for _, room_npc := range player.room.Npcs {
+				if room_npc == npc {
+					// Get npc dialogue
+					_, ok := e.dialogues[player.name][npc_name]
+					if !ok {
+						e.dialogues[player.name][npc_name] = 0
+					}
+
+					npc_index := e.dialogues[player.name][npc_name]
+					Datas := npc_datas.Dialogue[npc_index%len(npc_datas.Dialogue)]
+					e.dialogues[player.name][npc_name]++
+
+					return "OK", Datas, nil
+				}
+			}
+		}
+	}
+
+	return "", "", errors.New(pr.ErrNpcNotFound)
+}
+
+// Dans la commande attack tout en bas, je voudrais:
+
+// 1. d'abord verifier que la target est valide, si le Npc est dans la room pour l'instanciation du combat, ou si le Npc est dans les Fighters du combat session. ensuite recuperer le Npc_copy de cette fonction ou une erreur.
+
+// 2. Dans l'instanciation, arranger le slice fighters par rapport  a l'initiative de chacun
+
+func (e *Engine) handleCmdAttack(player *Player, req []string) (string, any, error) {
+
+	if len(req) != 2 {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+	npcName := req[1]
+	npc_copy, err := e.getValidTarget(player, npcName)
+	if err != nil {
+		return "", "", err
+	}
+	combat_session, exists := e.activeCombats[player.stats.CombatId]
+	if !exists {
+		return e.initiateCombat(player, npcName)
+	}
+	if !combat_session.isFighterTurn(player) {
+		return "", "", errors.New(pr.ErrNotYourTurnToPlay)
+	}
+	return combat_session.processCombatTurn(player, npc_copy)
+}
+
+--- FILE: ./engine/engine.go ---
+package engine
+
+import (
+	pr "tap/protocol"
+)
+
+type Engine struct {
+	world *Map
+	//sessions store id to pseudos
+	sessions map[string]string
+	//players store pseudos to Player
+	players       map[string]*Player
+	groups        map[string]*Group
+	dialogues     map[string]map[string]int
+	activeCombats map[string]*CombatSession
+	exchanger     pr.Exchanger
+	quit          chan struct{}
+}
+
+func NewEngine(world *Map, exchanger pr.Exchanger) *Engine {
+	return &Engine{
+		world:         world,
+		sessions:      make(map[string]string),
+		players:       make(map[string]*Player),
+		groups:        make(map[string]*Group),
+		dialogues:     make(map[string]map[string]int),
+		activeCombats: make(map[string]*CombatSession),
+		quit:          make(chan struct{}),
+		exchanger:     exchanger,
+	}
+}
+
+func (e *Engine) Start() {
+	e.broadcaster()
+}
+func (e *Engine) Stop() {
+	select {
+	case <-e.quit:
+	default:
+		close(e.quit)
+	}
+}
+
+func (e *Engine) broadcaster() {
+	for {
+		select {
+		case id := <-e.exchanger.JoinChan:
+			// ghost session stored in sessions when a new client arrives
+			e.sessions[id] = ""
+		case id := <-e.exchanger.LeaveChan:
+			e.handlePlayerLeave(id)
+
+		case req := <-e.exchanger.ServerInput:
+			res, datas, err := e.handleCommands(req)
+			e.exchanger.ServerOutput <- pr.EngineResponse{
+				Id:    req.Id,
+				Msg:   res,
+				Datas: datas,
+				Err:   err,
+			}
+		case <-e.quit:
+			return
+		}
+
+	}
+}
+
+func (e *Engine) handlePlayerLeave(id string) {
+	pseudo := e.sessions[id]
+
+	if pseudo != "" {
+		if player, exists := e.players[pseudo]; exists {
+			e.playerQuits(player)
+			delete(e.players, pseudo)
+		}
+	}
+	delete(e.sessions, id)
+}
+
+--- FILE: ./engine/group.go ---
+package engine
+
+import (
+	"errors"
+	"fmt"
+	"slices"
+	pr "tap/protocol"
+
+	"github.com/google/uuid"
+)
+
+func (e *Engine) remove_user_in_group(player *Player, group *Group) *Group {
+	// Get user index inside group
+	cli_index := -1
+	for i, user := range group.players {
+		if user.name == player.name {
+			cli_index = i
+			break
+		}
+	}
+
+	// Remove user
+	if cli_index != -1 {
+		group.players = append(group.players[:cli_index], group.players[cli_index+1:]...)
+	}
+
+	return group
+}
+
+func (e *Engine) create_group(player *Player) (string, error) {
+	// Create group ID
+	group_id := uuid.New().String()
+
+	// Check user already in a group
+	if player.group != "" {
+		return "", errors.New(pr.ErrAlreadyInGroup)
+	}
+
+	// Set group
+	e.groups[group_id] = &Group{
+		id:      group_id,
+		leader:  player,
+		players: []*Player{player},
+	}
+	player.group = group_id
+
+	return "OK group=" + group_id, nil
+}
+
+func (e *Engine) invite_user_in_group(player *Player, user_name string) (string, error) {
+	// Handle non existant groups
+	group, ok := e.groups[player.group]
+	if !ok {
+		return "", errors.New(pr.ErrNotInGroup)
+	}
+
+	// Check player is group's leader
+	if group.leader.name != player.name {
+		return "", errors.New(pr.ErrNoPermission)
+	}
+
+	// Handle users already in group
+	for _, user := range group.players {
+		if user.name == user_name {
+			return "", errors.New(pr.ErrAlreadyInGroup)
+		}
+	}
+
+	// Get target user from e.players
+	targetPlayer, exists := e.players[user_name]
+	if !exists {
+		return "", errors.New(pr.ErrUnknownUser)
+	}
+
+	// Check that invitations isn't already present
+	for _, invite := range targetPlayer.invitations {
+		if invite == player.group {
+			return "", errors.New("ERR Invitation already send")
+		}
+	}
+
+	// Add invitations to user
+	targetPlayer.invitations = append(targetPlayer.invitations, player.group)
+
+	e.inform_user(targetPlayer, "EVT GROUP INVITE "+player.name)
+
+	return "OK", nil
+}
+
+func (e *Engine) kick_user_in_group(player *Player, user_name string) (string, error) {
+	// Handle non existant groups
+	_, ok := e.groups[player.group]
+	if !ok {
+		return "", errors.New(pr.ErrNotInGroup)
+	}
+
+	// Check player is group's leader
+	if e.groups[player.group].players[0].name != player.name {
+		return "", errors.New(pr.ErrNoPermission)
+	}
+
+	// Handle users not in group
+	for _, user := range e.groups[player.group].players {
+		if user.name == user_name {
+			// Get target user from e.players
+			targetPlayer, exists := e.players[user_name]
+			if !exists {
+				return "", errors.New(pr.ErrUnknownUser)
+			}
+
+			e.inform_group(player, player.group, "EVT GROUP KICK "+targetPlayer.name)
+
+			// Remove user from his current group
+			groupSlice := e.groups[player.group]
+			groupSlice = e.remove_user_in_group(targetPlayer, groupSlice)
+			e.groups[player.group] = groupSlice
+
+			targetPlayer.group = ""
+
+			return "OK", nil
+		}
+	}
+
+	return "", errors.New(pr.ErrNotInGroup)
+}
+
+func (e *Engine) join_group(player *Player, leader_name string) (string, error) {
+	group_name := ""
+
+	// Handle users already in group
+	for group_id, group := range e.groups {
+		// Find leader group
+		if group.leader.name == leader_name {
+			group_name = group_id
+		}
+
+		for _, user := range group.players {
+			if user.name == player.name {
+				return "", errors.New(pr.ErrAlreadyInGroup)
+			}
+		}
+	}
+
+	// Handle non existant groups
+	if group_name == "" {
+		return "", errors.New(pr.ErrInternalServer)
+	}
+	group, ok := e.groups[group_name]
+	if !ok {
+		return "", errors.New(pr.ErrInternalServer)
+	}
+
+	// Check that user is invited
+	invited := false
+	for _, invite := range player.invitations {
+		if invite == group_name {
+			invited = true
+			break
+		}
+	}
+	if !invited {
+		return "", errors.New(pr.ErrNotInvitedToGroup)
+	}
+
+	// Add user in group
+	group.players = append(group.players, player)
+	player.group = group_name
+	e.inform_group(player, group.id, "EVT GROUP JOIN "+player.name)
+
+	// Delete invitations
+	invite_index := -1
+	for i, invite := range player.invitations {
+		if invite == group_name {
+			invite_index = i
+			break
+		}
+	}
+
+	if invite_index != -1 {
+		player.invitations = append(player.invitations[:invite_index], player.invitations[invite_index+1:]...)
+	}
+
+	return "OK group=" + group_name, nil
+}
+
+func (e *Engine) leave_group(player *Player) (string, error) {
+	// Check user is inside the group
+	if player.group == "" {
+		return "", errors.New(pr.ErrNotInGroup)
+	}
+
+	// Delete promotion
+	player.promotion = false
+
+	// Check leader
+	was_leader := (e.groups[player.group].players[0].name == player.name)
+
+	// Remove user from his current group
+	group := e.groups[player.group]
+	group = e.remove_user_in_group(player, group)
+	e.groups[player.group] = group
+
+	e.inform_group(player, group.id, "EVT GROUP LEAVE "+player.name)
+
+	// Remove group if needed
+	if len(group.players) == 0 {
+		delete(e.groups, player.group)
+
+	} else if was_leader {
+		e.inform_group(player, player.group, "EVT new_leader="+e.groups[player.group].players[0].name)
+	}
+
+	// Re initialize his group value
+	player.group = ""
+
+	return "OK", nil
+}
+
+func (e *Engine) promote_user(player *Player, new_leader string) (string, error) {
+	// Handle invalid command
+	if player.group == "" {
+		return "", errors.New(pr.ErrNotInGroup)
+	}
+
+	// Find the group
+	group := e.groups[player.group]
+
+	// Handle invalid rights
+	if group.leader.name != player.name {
+		return "", errors.New(pr.ErrNoPermission)
+
+	} else if player.name == new_leader {
+		return "", errors.New(pr.ErrAlreadyLeader)
+
+	} else if player.send_promotion {
+		return "", errors.New(pr.ErrNoPermission)
+	}
+
+	// Find new_leader in e.players
+	targetPlayer, exists := e.players[new_leader]
+	if !exists {
+		return "", fmt.Errorf(pr.ErrInternalServer)
+	}
+
+	// Check new_leader is inside group
+	if !slices.Contains(group.players, targetPlayer) {
+		return "", errors.New(pr.ErrNotInGroup)
+	}
+
+	// Send promotion
+	player.send_promotion = true
+	targetPlayer.promotion = true
+	e.inform_user(targetPlayer, "EVT GROUP PROMOTE "+new_leader)
+
+	return "OK pending_leader=" + player.name, nil
+}
+
+func (e *Engine) accept_promotion(player *Player) (string, error) {
+	// Check user have a group promotion
+	if player.group == "" {
+		return "", errors.New(pr.ErrNotInGroup)
+	} else if !player.promotion {
+		return "", errors.New(pr.ErrNotPromoted)
+	}
+
+	oldLeader := e.groups[player.group].players[0]
+	oldLeader.send_promotion = false
+
+	// Update promotion and leadership
+	player.promotion = false
+	new_leader_index := GetElementIndex(e.groups[player.group].players, player)
+
+	groupSlice := e.groups[player.group].players
+	MoveElement(groupSlice, new_leader_index, 0)
+	e.groups[player.group].players = groupSlice
+
+	e.groups[player.group].leader = player
+	e.inform_group(player, e.groups[player.group].id, "EVT GROUP PROMOTE ACCEPTED "+player.name)
+	e.inform_group_invitations(player, e.groups[player.group].id, "EVT GROUP PROMOTE ACCEPTED "+player.name)
+
+	return "OK new_leader=" + player.name, nil
+}
+
+func (e *Engine) decline_promotion(player *Player) (string, error) {
+	// Check user have a group promotion
+	if player.group == "" {
+		return "", errors.New(pr.ErrNotInGroup)
+	} else if !player.promotion {
+		return "", errors.New(pr.ErrNotPromoted)
+	}
+
+	// Update promotion
+	player.promotion = false
+	_, exists := e.groups[player.group]
+	if !exists {
+		return "", errors.New(pr.ErrInternalServer)
+	}
+
+	// Change leader promotion status
+	e.groups[player.group].players[0].send_promotion = false
+
+	e.inform_group(player, player.group, "EVT GROUP PROMOTE DECLINED "+player.name)
+	e.inform_group_invitations(player, player.group, "EVT GROUP PROMOTE DECLINED "+player.name)
+
+	return "OK", nil
+}
+
+func (e *Engine) getPlayerGroup(player *Player) (*Group, bool) {
+	currentGroup, isInGroup := e.groups[player.group]
+	if !isInGroup {
+		return nil, false
+	}
+	return currentGroup, true
+}
+
+--- FILE: ./engine/handle_commands.go ---
+package engine
+
+import (
+	"errors"
+	"strings"
+	pr "tap/protocol"
+)
+
+func (e *Engine) validateSession(id string, cmd string) (string, error) {
+	pseudo, exists := e.sessions[id]
+
+	if !exists {
+		return "", errors.New(pr.ErrInternalServer)
+	}
+
+	if cmd != pr.CmdConnect && pseudo == "" {
+		return "", errors.New(pr.ErrNotConnected)
+	}
+
+	return pseudo, nil
+}
+
+func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
+	req := strings.SplitN(request.Msg, " ", 5)
+	cmd := strings.ToUpper(req[0])
+
+	// validates session if player is connected
+	pseudo, err := e.validateSession(request.Id, cmd)
+	if err != nil {
+		return "", nil, err
+	}
+
+	if cmd == pr.CmdConnect {
+		return e.handleCmdConnect(request.Id, req)
+	}
+	player := e.players[pseudo]
+
+	// Handle the command types for authentified players
+	switch cmd {
+	case pr.CmdQuit:
+		return e.handleCmdQuit(player, req)
+	case pr.CmdWho:
+		return e.handleCmdWho(req)
+	case pr.CmdLook:
+		return e.handleCmdLook(player, req)
+	case pr.CmdUnGrouped:
+		return e.handleCmdUnGrouped(player, req)
+	case pr.CmdGrouped:
+		return e.handleCmdGrouped(player, req)
+	case pr.CmdMove:
+		return e.handleCmdMove(player, req)
+	case pr.CmdChat:
+		return e.handleCmdChat(player, req)
+	case pr.CmdGroup:
+		return e.handleCmdGroup(player, req)
+	case pr.CmdStatus:
+		return e.handleCmdStatus(player, req)
+	case pr.CmdTake:
+		return e.handleCmdTake(player, req)
+	case pr.CmdDrop:
+		return e.handleCmdDrop(player, req)
+	case pr.CmdInventory:
+		return e.handleCmdInventory(player, req)
+	case pr.CmdQuest:
+		return e.handleCmdQuest(player, req)
+	case pr.CmdQuests:
+		return e.handleCmdQuests(player, req)
+	case pr.CmdTalk:
+		return e.handleCmdTalk(player, req)
+	case pr.CmdAttack:
+		return e.handleCmdAttack(player, req)
+
+	default:
+		return "", nil, errors.New(pr.ErrInvalidCommand)
+	}
+
+}
+
+--- FILE: ./engine/player.go ---
+package engine
+
+import (
+	"errors"
+	pr "tap/protocol"
+)
+
+type Player struct {
+	id             string
+	name           string
+	room           *Room
+	group          string
+	inventory      []*Item
+	quests         []*Quest
+	invitations    []string
+	promotion      bool
+	send_promotion bool
+	inCombat       bool
+	equippedWeapon *Weapon
+	stats          *CombatStats
+	Fighter
+}
+
+type Group struct {
+	id      string
+	leader  *Player
+	players []*Player
+}
+
+func (p *Player) isDead() bool {
+	if p.stats.Hp <= 0 {
+		return true
+	}
+	return false
+}
+
+func (p *Player) getHp() int {
+	return p.stats.Hp
+}
+
+func (p *Player) takeDamage(amount int) {
+	p.stats.Hp -= amount
+}
+
+func (p *Player) playCombatTurn(target Fighter) *CombatTurnResult {
+	target.takeDamage(p.equippedWeapon.Damage)
+	turn_result := &CombatTurnResult{AttackerHp: p.getHp(), TargetHp: target.getHp(), Damage: p.equippedWeapon.Damage, Status: "combat"}
+	return turn_result
+}
+func (p *Player) getName() string {
+	return p.name
+}
+func (p *Player) getInitiative() int {
+	return p.stats.Initiative
+}
+func (e *Engine) createNewPlayerInstance(pseudo string, id string) (*Player, error) {
+	base_item, exists := e.world.Items["sword"]
+	if !exists {
+		return nil, errors.New(pr.ErrInternalServer)
+	}
+
+	start_item_copy := base_item.Clone()
+
+	weapon_start := start_item_copy.ConvertToWeapon()
+	if weapon_start == nil {
+		return nil, errors.New(pr.ErrInternalServer)
+	}
+
+	return &Player{
+		name:           pseudo,
+		room:           e.world.Rooms[RoomEntrance],
+		equippedWeapon: weapon_start,
+		stats: &CombatStats{
+			Hp:         100,
+			HpMax:      100,
+			Initiative: 100,
+			Status:     StatusNormal,
+		},
+		id: id,
+	}, nil
+}
+
+--- FILE: ./engine/utils.go ---
+package engine
+
+import (
+	"slices"
+	pr "tap/protocol"
+)
+
+func (e *Engine) inform_user(player *Player, msg string) {
+	e.exchanger.ServerOutput <- pr.EngineResponse{Id: player.id, Msg: msg}
+}
+
+func (e *Engine) inform_room(player *Player, room *Room, msg string) {
+	for pseudo, p := range e.players {
+		if player.room == room && pseudo != player.name {
+			e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: msg}
+		}
+	}
+}
+
+func (e *Engine) inform_group(player *Player, group string, msg string) {
+	for pseudo, p := range e.players {
+		if p.group == group && pseudo != player.name {
+			e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: msg}
+		}
+	}
+}
+
+func (e *Engine) inform_group_invitations(player *Player, group string, msg string) {
+	for pseudo, p := range e.players {
+		if slices.Contains(player.invitations, group) && pseudo != player.name {
+			e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: msg}
+		}
+	}
+}
+
+func (e *Engine) inform_all(player *Player, msg string) {
+	for pseudo, p := range e.players {
+		if pseudo != player.name {
+			e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: msg}
+		}
+	}
+}
+
+func GetElementIndex[T comparable](slice []T, element_need T) int {
+	for index, element_possible := range slice {
+		if element_possible == element_need {
+			return index
+		}
+	}
+
+	return -1
+}
+
+func MoveElement[T any](slice []T, from int, to int) []T {
+	n := len(slice)
+
+	// Check slice limits
+	if from < 0 || from >= n || to < 0 || to >= n || from == to {
+		return slice
+	}
+
+	elem := slice[from]
+
+	// Delete element from his initial position
+	slice = append(slice[:from], slice[from+1:]...)
+
+	// Add element to his final position
+	slice = append(slice[:to], append([]T{elem}, slice[to:]...)...)
+
+	return slice
+}
+
+--- FILE: ./engine/combat_system.go ---
+package engine
+
+import (
+	"errors"
+	"sort"
+	pr "tap/protocol"
+
+	"github.com/google/uuid"
+)
+
+// =========================================
+//         COMBAT SYSTEM DESIGN
+// =========================================
+//
+//
+// SYSTEM:
+// - when ATTACK occurs for the 1st time, state of Player/s (if grouped) enters in Combat (leader or not).
+// - a POPUP displays:
+//     * displaying ascii art for the player/s.
+//     * a panel for the actions and the turn of the person.
+// - you have 20 seconds to play your turn.
+//
+// INITIATIVE:
+// - the 1st who start dependS ON INITIATIVE formula.
+//
+// IN COMBAT PER TURN POSSIBILITES:
+// - Can use an item (but can't attack) then passes your turn.
+// - Can change weapon (illimited) and then attack the enemy.
+// - Can use a SPELL (if you have the mana) then passes your turn.
+// - You can try to escape, then you only escape even if you are in a group, then it sends EVENT on the others user in combat.
+// - You can still CHAT (only command authorized during combat)
+//
+//
+//
+// ENDING:
+// - if noone is in combat anymore (everyone fleed) or one PART died, the combat ends.
+
+type CombatSession struct {
+	Id          string
+	Fighters    []Fighter
+	CurrentTurn int
+	Win         bool
+	Cancelled   bool
+}
+
+type CombatTurnResult struct {
+	AttackerHp int    `json:"attacker_hp"`
+	TargetHp   int    `json:"target_hp"`
+	Damage     int    `json:"damage"`
+	Status     string `json:"status"`
+}
+
+func (e *Engine) getValidTarget(player *Player, targetName string) (*Npc, error) {
+	// if npc doesn't exist in word
+	npcBase, exists := e.world.Npcs[targetName]
+	if !exists {
+		return nil, errors.New(pr.ErrNpcNotFound)
+	}
+	room, ok := e.world.Rooms[player.room.Name]
+	if !ok {
+		return nil, errors.New(pr.ErrInternalServer)
+	}
+	if !isNpcInRoom(room, targetName) {
+		return nil, errors.New(pr.ErrNpcNotFound)
+	}
+	if !npcBase.Hostile {
+		return nil, errors.New(pr.ErrNpcNotHostile)
+	}
+
+	// if player is not in combat return npc found that has been attacked
+	if !player.inCombat {
+		return npcBase.Clone(), nil
+	}
+	// if player in combat, check if targetName is in Fighters of the combat and is a NPC
+	combat_session, exists := e.activeCombats[player.stats.CombatId]
+	if !exists {
+		return nil, errors.New(pr.ErrInternalServer)
+	}
+	for _, fighter := range combat_session.Fighters {
+		switch verifTarget := fighter.(type) {
+		case *Player:
+			return nil, errors.New(pr.ErrNoAllyAttack)
+		case *Npc:
+			// return target clone
+			return verifTarget.Clone(), nil
+		default:
+			return nil, errors.New(pr.ErrInternalServer)
+		}
+	}
+	return npcBase, nil
+}
+
+func (e *Engine) initiateCombat(player *Player, npcName string) (string, *CombatTurnResult, error) {
+	npcBase, err := e.getValidTarget(player, npcName)
+	if err != nil {
+		return "", nil, err
+	}
+
+	combatID := uuid.New().String()
+	combatNpc := npcBase.Clone()
+
+	combat_session := &CombatSession{Id: combatID, Fighters: []Fighter{}}
+	group, exists := e.getPlayerGroup(player)
+
+	combat_session.addNpcToCombat(combatNpc)
+	if !exists {
+		combat_session.addPlayerToCombat(player)
+	} else {
+		for _, p := range group.players {
+			combat_session.addPlayerToCombat(p)
+		}
+	}
+
+	//TODO
+	combat_session.sortTurnsOrderByInitiative()
+	// play a turn once here
+	return combat_session.processCombatTurn(player, combatNpc)
+
+}
+
+func (cs *CombatSession) sortTurnsOrderByInitiative() {
+	sort.Slice(cs.Fighters, func(i, j int) bool {
+		initiativeI := cs.Fighters[i].getInitiative()
+		initiativeJ := cs.Fighters[j].getInitiative()
+		return initiativeI > initiativeJ
+	})
+}
+
+// infinite cycle on even on current Turn == 100
+func (cs *CombatSession) currentTurnIndex() int {
+	return cs.CurrentTurn % len(cs.Fighters)
+}
+
+func (cs *CombatSession) isFighterTurn(fighter Fighter) bool {
+	// currentTurnIndex() renvoie l'index exact de celui qui doit jouer
+	expectedFighter := cs.Fighters[cs.currentTurnIndex()]
+
+	// On compare simplement les noms via l'interface
+	return expectedFighter.getName() == fighter.getName()
+}
+
+func (cs *CombatSession) processCombatTurn(attacker Fighter, target Fighter) (string, *CombatTurnResult, error) {
+	if !cs.isFighterTurn(attacker) {
+		return "", nil, errors.New(pr.ErrNotYourTurnToPlay)
+	}
+
+	turn_result := attacker.playCombatTurn(target)
+	if target.isDead() {
+		cs.Win = true
+	} else {
+		cs.CurrentTurn++
+	}
+	return "OK", turn_result, nil
+}
+
+func (cs *CombatSession) addPlayerToCombat(player *Player) {
+	player.inCombat = true
+	player.stats.CombatId = cs.Id
+	cs.Fighters = append(cs.Fighters, player)
+}
+
+func (cs *CombatSession) addNpcToCombat(npc *Npc) {
+	npc.InCombat = true
+	npc.Stats.CombatId = cs.Id
+	cs.Fighters = append(cs.Fighters, npc)
+
+}
+
+--- FILE: ./engine/data_models.go ---
+package engine
+
+// type PlayerInfo struct {
+// 	Name      string   `json:"name"`
+// 	Location  string   `json:"location"`
+// 	Hp        int      `json:"hp"`
+// 	HpMax     int      `json:"hp_max"`
+// 	Room      string   `json:"room"`
+// 	Group     string   `json:"group"`
+// 	Inventory []string `json:"inventory"`
+// 	Quests    []Quest  `json:"quests"`
+// }
+
+type Quest struct {
+	Description string `json:"description"`
+	Reward      string `json:"reward"`
+	Status      string `json:"status"`
+}
+
+type Room struct {
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	Exits       map[string]string `json:"exits"`
+	Items       []string          `json:"items"`
+	Npcs        []string          `json:"npcs"`
+}
+
+type Map struct {
+	Rooms  map[string]*Room  `json:"rooms"`
+	Items  map[string]*Item  `json:"items"`
+	Npcs   map[string]*Npc   `json:"npcs"`
+	Quests map[string]*Quest `json:"quests"`
+}
+
+
+
+--- FILE: ./engine/duplicate_keys.go ---
+package engine
+
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+)
+
+func IsValidKeys(file []byte) error {
+	// Unmarshal into generic structure
+	var world []map[string]any
+	if err := json.Unmarshal(file, &world); err != nil || len(world) == 0 {
+		return errors.New("Invalid file: JSON file must be parsable")
+	}
+
+	// Initialize the decoder
+	dec := json.NewDecoder(bytes.NewReader(file))
+
+	var stack []map[string]bool
+
+	for {
+		// Read next token
+		t, err := dec.Token()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return errors.New("Invalid file: JSON file must be parsable")
+		}
+
+		// Handle delimiters
+		if delim, ok := t.(json.Delim); ok {
+			if delim == '{' {
+				stack = append(stack, make(map[string]bool))
+
+			} else if delim == '}' {
+				if len(stack) > 0 {
+					stack = stack[:len(stack)-1]
+				}
+			}
+			continue
+		}
+
+		// Handle keys
+		if str, ok := t.(string); ok && len(stack) > 0 {
+			currentLevelKeys := stack[len(stack)-1]
+
+			// Compare counts to detect duplicate keys
+			if currentLevelKeys[str] {
+				return fmt.Errorf("Invalid map: duplicate key '%s' detected", str)
+			}
+			currentLevelKeys[str] = true
+
+			// Read next token
+			next, err := dec.Token()
+			if err != nil {
+				return errors.New("Invalid file: JSON file must be parsable")
+			}
+
+			if d, ok := next.(json.Delim); ok && d == '{' {
+				stack = append(stack, make(map[string]bool))
+			} else {
+				// Skip the value to avoid sub keys or lists
+				if err := skipNextValue(dec, next); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func skipNextValue(dec *json.Decoder, currentToken json.Token) error {
+	// Check if token is a single value
+	_, ok := currentToken.(json.Delim)
+	if !ok {
+		return nil
+	}
+
+	// Skip object or list until matching closure
+	depth := 1
+	for depth > 0 {
+		t, err := dec.Token()
+		if err != nil {
+			return err
+		}
+
+		if delim, ok := t.(json.Delim); ok {
+			if delim == '{' || delim == '[' {
+				depth++
+
+			} else if delim == '}' || delim == ']' {
+				depth--
+			}
+		}
+	}
+	return nil
+}
+
+func skipValue(dec *json.Decoder) error {
+	// Read next token
+	t, err := dec.Token()
+	if err != nil {
+		return err
+	}
+
+	// Check if token is a single value
+	_, ok := t.(json.Delim)
+	if !ok {
+		return nil
+	}
+
+	// Skip object or list until matching closure
+	depth := 1
+	for depth > 0 {
+		t, err = dec.Token()
+		if err != nil {
+			return err
+		}
+
+		if d, ok := t.(json.Delim); ok {
+			if d == '{' || d == '[' {
+				depth++
+
+			} else if d == '}' || d == ']' {
+				depth--
+			}
+		}
+	}
+	return nil
+}
+
+--- FILE: ./tests/scenarios/actions.go ---
+package scenarios
+
+import (
+	"tap/protocol"
+)
+
+var connectAlice = ScenariosCommandTest{
+	Name:    "CONNECT user",
+	Command: "CONNECT alice",
+	ExpectedReplies: []Reply{
+		{"OK connected", "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var connectBob = ScenariosCommandTest{
+	Name:    "CONNECT user",
+	Command: "CONNECT bob",
+	ExpectedReplies: []Reply{
+		{"OK connected", "bob"},
+		{"EVT STATS players=", "alice"},
+		{"EVT ROOM PRESENCE ENTER", "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "bob",
+}
+
+// GROUP SCENARIOS
+
+var aliceCreatesGroup = ScenariosCommandTest{
+	Name:    "Alice creates a group",
+	Command: "GROUP CREATE",
+	ExpectedReplies: []Reply{
+		{"OK group=", "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceInvitesBobInGroup = ScenariosCommandTest{
+	Name:    "Alice invites Bob in group",
+	Command: "GROUP INVITE bob",
+	ExpectedReplies: []Reply{
+		{"OK", "alice"},
+		{"EVT GROUP INVITE", "bob"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var bobJoinAliceGroup = ScenariosCommandTest{
+	Name:    "Bob accepts Alice's invitation",
+	Command: "GROUP JOIN alice",
+	ExpectedReplies: []Reply{
+		{"OK group=", "bob"},
+		{"EVT GROUP JOIN bob", "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "bob",
+}
+var aliceLeavesGroup = ScenariosCommandTest{
+	Name:    "Alice leaves group",
+	Command: "GROUP LEAVE",
+	ExpectedReplies: []Reply{
+		{"OK", "alice"},
+		{"EVT GROUP LEAVE alice", "bob"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+// MOVE NORMAL SCENARIOS
+var aliceInvalidMovement = ScenariosCommandTest{
+	Name:    "Alice invalid movement",
+	Command: "MOVE nowhere",
+	ExpectedReplies: []Reply{
+		{protocol.ErrNoExit, "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceMovesEast = ScenariosCommandTest{
+	Name:    "Alice valid movement east",
+	Command: "MOVE east",
+	ExpectedReplies: []Reply{
+		{"OK room=", "alice"},
+		{"EVT ROOM PRESENCE LEAVE alice", "bob"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceMovesWest = ScenariosCommandTest{
+	Name:    "Alice valid movement west",
+	Command: "MOVE west",
+	ExpectedReplies: []Reply{
+		{"OK room=", "alice"},
+		{"EVT ROOM PRESENCE LEAVE alice", "bob"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceMovesNorth = ScenariosCommandTest{
+	Name:    "Alice valid movement north",
+	Command: "MOVE north",
+	ExpectedReplies: []Reply{
+		{"OK room=", "alice"},
+		{"EVT ROOM PRESENCE LEAVE alice", "bob"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceMovesSouth = ScenariosCommandTest{
+	Name:    "Alice valid movement south",
+	Command: "MOVE south",
+	ExpectedReplies: []Reply{
+		{"OK room=", "alice"},
+		{"EVT ROOM PRESENCE LEAVE alice", "bob"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+// CHAT NORMAL SCENARIOS
+var aliceChatGlobal = ScenariosCommandTest{
+	Name:    "Alice global chat",
+	Command: "CHAT GLOBAL Hello World!",
+	ExpectedReplies: []Reply{
+		{"OK", "alice"},
+		{"EVT GLOBAL CHAT alice Hello World!", "bob"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceChatRoom = ScenariosCommandTest{
+	Name:    "Alice room chat",
+	Command: "CHAT ROOM Hello Room!",
+	ExpectedReplies: []Reply{
+		{"OK", "alice"},
+		{"EVT ROOM CHAT alice Hello Room!", "bob"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceChatGroup = ScenariosCommandTest{
+	Name:    "Alice group chat",
+	Command: "CHAT GROUP Hello Team!",
+	ExpectedReplies: []Reply{
+		{"OK", "alice"},
+		{"EVT GROUP CHAT alice Hello Team!", "bob"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+// BASIC COMMANDS NORMAL SCENARIOS
+
+var aliceLooks = ScenariosCommandTest{
+	Name:    "Alice look command",
+	Command: "LOOK",
+	ExpectedReplies: []Reply{
+		{"OK", "alice"},
+	},
+	ExpectsJSON:      true,
+	TestOnConnection: "alice",
+}
+
+var aliceWho = ScenariosCommandTest{
+	Name:    "Alice who command",
+	Command: "WHO",
+	ExpectedReplies: []Reply{
+		{"OK players=", "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceQuits = ScenariosCommandTest{
+	Name:    "Alice quits the game",
+	Command: "QUIT",
+	ExpectedReplies: []Reply{
+		{"OK bye", "alice"},
+		{"EVT ROOM PRESENCE LEAVE alice", "bob"},
+		{"EVT STATS players=", "bob"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceTakesItem = ScenariosCommandTest{
+	Name:    "Alice takes an item in map",
+	Command: "TAKE sword",
+	ExpectedReplies: []Reply{
+		{"OK taken=", "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceDropsItem = ScenariosCommandTest{
+	Name:    "Alice drops an item in map",
+	Command: "DROP sword",
+	ExpectedReplies: []Reply{
+		{"OK dropped=", "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceChecksInventory = ScenariosCommandTest{
+	Name:    "Alice checks inventory",
+	Command: "INVENTORY",
+	ExpectedReplies: []Reply{
+		{"OK", "alice"},
+	},
+	ExpectsJSON:      true,
+	TestOnConnection: "alice",
+}
+
+var aliceTalksToNPC = ScenariosCommandTest{
+	Name:    "Alice talks to NPC in entrance",
+	Command: "TALK granny_jeanine",
+	ExpectedReplies: []Reply{
+		{"OK", "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceAttacksHostileNPC = ScenariosCommandTest{
+
+	Name:    "Attack hostile NPC",
+	Command: "ATTACK granny_jeanine",
+	ExpectedReplies: []Reply{
+		{"OK", "alice"},
+	},
+	ExpectsJSON:      true,
+	TestOnConnection: "alice",
+}
+
+--- FILE: ./tests/scenarios/attack_scenarios.go ---
+package scenarios
+
+import "tap/protocol"
+
+var attackHostileNPCScenario = []ScenariosCommandTest{
+	connectAlice,
+	aliceAttacksHostileNPC,
+}
+
+var attackNonHostileNPCScenario = []ScenariosCommandTest{
+	connectAlice,
+	{
+		Name:    "Attack NON hostile NPC",
+		Command: "ATTACK Nonostil",
+		ExpectedReplies: []Reply{
+			{protocol.ErrNpcNotHostile, "alice"},
+		},
+		ExpectsJSON:      false,
+		TestOnConnection: "alice",
+	},
+}
+
+var attackUnexistantNPCScenario = []ScenariosCommandTest{
+	connectAlice,
+	{
+		Name:    "Attack unexistant NPC",
+		Command: "ATTACK osdojx",
+		ExpectedReplies: []Reply{
+			{protocol.ErrNpcNotFound, "alice"},
+		},
+		ExpectsJSON:      false,
+		TestOnConnection: "alice",
+	},
+}
+
+var attackScenarioFamily = ScenarioFamily{
+	FamilyName: "Attack scenario family",
+	Scenarios: []ScenarioEntry{
+		{
+			Name:  "attack hostile NPC",
+			Steps: attackHostileNPCScenario,
+		},
+		{
+			Name:  "attack non hostile NPC",
+			Steps: attackNonHostileNPCScenario,
+		},
+		{
+			Name:  "attack unexistant NPC",
+			Steps: attackUnexistantNPCScenario,
+		},
+	},
+}
+
+--- FILE: ./tests/scenarios/concurrency_scenarios.go ---
+package scenarios
+
+import (
+	"strings"
+	"testing"
+)
+
+var TakeItemRaceCondition = ConcurrentScenario{
+	Name: "Concurrent TAKE on same item",
+
+	SetupSteps: []ScenariosCommandTest{
+		connectAlice,
+		connectBob,
+	},
+
+	ConcurrentCmds: map[string]string{
+		"alice": "TAKE sword",
+		"bob":   "TAKE sword",
+	},
+
+	ValidationFunc: func(t *testing.T, results map[string]string) {
+		aliceWon := strings.HasPrefix(results["alice"], "OK taken=")
+		bobWon := strings.HasPrefix(results["bob"], "OK taken=")
+
+		if aliceWon && bobWon {
+			t.Fatalf("DEADLOCK/DUPE : Alice and Bob got the item both  !\nAlice: %sBob: %s", results["alice"], results["bob"])
+		}
+
+		if !aliceWon && !bobWon {
+			t.Fatalf("BUG : Noone got the item !\nAlice: %sBob: %s", results["alice"], results["bob"])
+		}
+
+		t.Logf("Success : Concurrency managed correctly. Alice won: %v, Bob won: %v", aliceWon, bobWon)
+	},
+}
+
+--- FILE: ./tests/scenarios/group_scenarios.go ---
+package scenarios
+
+import (
+	"tap/protocol"
+)
+
+var leaveUnexistantGroupScenario = []ScenariosCommandTest{
+	connectAlice,
+	{
+		Name:    "Leave unexistant group",
+		Command: "GROUP LEAVE",
+		ExpectedReplies: []Reply{
+			{protocol.ErrNotInGroup, "alice"},
+		},
+		ExpectsJSON:      false,
+		TestOnConnection: "alice",
+	},
+}
+
+var joinGroupAgainScenario = []ScenariosCommandTest{
+	connectAlice,
+	connectBob,
+	aliceCreatesGroup,
+	aliceInvitesBobInGroup,
+	bobJoinAliceGroup,
+	{
+		Name:    "Bob accepts Alice's invitation",
+		Command: "GROUP JOIN alice",
+		ExpectedReplies: []Reply{
+			{protocol.ErrAlreadyInGroup, "bob"},
+		},
+		ExpectsJSON:      false,
+		TestOnConnection: "bob",
+	},
+}
+
+var leaveTwiceExistantGroupScenario = []ScenariosCommandTest{
+	connectAlice,
+	connectBob,
+	aliceCreatesGroup,
+	aliceInvitesBobInGroup,
+	bobJoinAliceGroup,
+	aliceLeavesGroup,
+	{
+		Name:    "Alice tries to leave group again",
+		Command: "GROUP LEAVE",
+		ExpectedReplies: []Reply{
+			{protocol.ErrNotInGroup, "alice"},
+		},
+		ExpectsJSON:      false,
+		TestOnConnection: "alice",
+	},
+}
+
+var inviteUnexistantPersonScenario = []ScenariosCommandTest{
+	connectAlice,
+	aliceCreatesGroup,
+	{
+		Name:    "Alice tries to invite Unknown in group",
+		Command: "GROUP INVITE Unknown",
+		ExpectedReplies: []Reply{
+			{protocol.ErrUnknownUser, "alice"},
+		},
+		ExpectsJSON:      false,
+		TestOnConnection: "alice",
+	},
+}
+
+var groupScenarioFamily = ScenarioFamily{
+	FamilyName: "Group scenarios family",
+	Scenarios: []ScenarioEntry{
+		{
+			Name:  "Leave unexistant group",
+			Steps: leaveUnexistantGroupScenario,
+		},
+		{
+			Name:  "Join group again (already in group)",
+			Steps: joinGroupAgainScenario,
+		},
+		{
+			Name:  "Leave twice existant group",
+			Steps: leaveTwiceExistantGroupScenario,
+		},
+		{
+			Name:  "Invite unexistant person",
+			Steps: inviteUnexistantPersonScenario,
+		},
+	},
+}
+
+--- FILE: ./tests/scenarios/item_scenarios.go ---
+package scenarios
+
+import "tap/protocol"
+
+var itemTakeScenario = []ScenariosCommandTest{
+	connectAlice,
+	aliceTakesItem,
+}
+
+var itemNotFoundScenario = []ScenariosCommandTest{
+	connectAlice,
+	{
+		Name:    "Tries to take same item",
+		Command: "TAKE clement",
+		ExpectedReplies: []Reply{
+			{protocol.ErrItemNotFound, "alice"},
+		},
+		ExpectsJSON:      false,
+		TestOnConnection: "alice",
+	},
+}
+
+var itemTakeTwiceScenario = []ScenariosCommandTest{
+	connectAlice,
+	aliceTakesItem,
+	{
+		Name:    "Tries to take same item",
+		Command: "TAKE sword",
+		ExpectedReplies: []Reply{
+			{protocol.ErrItemNotFound, "alice"},
+		},
+		ExpectsJSON:      false,
+		TestOnConnection: "alice",
+	},
+}
+
+var itemDropScenario = []ScenariosCommandTest{
+	connectAlice,
+	aliceTakesItem,
+	aliceDropsItem,
+}
+
+var itemDroppedNotInInventoryScenario = []ScenariosCommandTest{
+	connectAlice,
+	{
+		Name:    "Tries to drop item",
+		Command: "DROP sword",
+		ExpectedReplies: []Reply{
+			{protocol.ErrItemNotInInventory, "alice"},
+		},
+		ExpectsJSON:      false,
+		TestOnConnection: "alice",
+	},
+}
+
+var itemDropTwiceScenario = []ScenariosCommandTest{
+	connectAlice,
+	aliceTakesItem,
+	aliceDropsItem,
+	{
+		Name:    "Tries to drop item",
+		Command: "DROP sword",
+		ExpectedReplies: []Reply{
+			{protocol.ErrItemNotInInventory, "alice"},
+		},
+		ExpectsJSON:      false,
+		TestOnConnection: "alice",
+	},
+}
+
+var itemTakeAndCheckInventoryScenario = []ScenariosCommandTest{
+	connectAlice,
+	aliceTakesItem,
+	{
+		Name:    "Alice checks inventory if taken item is in there",
+		Command: "INVENTORY",
+		ExpectedReplies: []Reply{
+			{"OK", "alice"},
+		},
+		ExpectsJSON:      true,
+		TestOnConnection: "alice",
+	},
+}
+
+var itemScenarioFamily = ScenarioFamily{
+	FamilyName: "Item scenarios family",
+	Scenarios: []ScenarioEntry{
+		{
+			Name:  "Take item successfully",
+			Steps: itemTakeScenario,
+		},
+		{
+			Name:  "Try to take a non-existent item",
+			Steps: itemNotFoundScenario,
+		},
+		{
+			Name:  "Try to take the same item twice",
+			Steps: itemTakeTwiceScenario,
+		},
+		{
+			Name:  "Drop item successfully",
+			Steps: itemDropScenario,
+		},
+		{
+			Name:  "Try to drop an item not in inventory",
+			Steps: itemDroppedNotInInventoryScenario,
+		},
+		{
+			Name:  "Try to drop the same item twice",
+			Steps: itemDropTwiceScenario,
+		},
+		{
+			Name:  "Try to take an item and check inventory",
+			Steps: itemTakeAndCheckInventoryScenario,
+		},
+	},
+}
+
+--- FILE: ./tests/scenarios/quest_scenarios.go ---
+package scenarios
+
+// import "tap/protocol"
+
+// var questRequestNPCScenario = []ScenariosCommandTest{
+// 	connectAlice,
+// 	{
+// 		Name:    "quest hostile NPC",
+// 		Command: "quest Granny Jeanine",
+// 		ExpectedReplies: []Reply{
+// 			{"OK", "alice"},
+// 		},
+// 		ExpectsJSON:      true,
+// 		TestOnConnection: "alice",
+// 	},
+// }
+
+// var questRequestHostileNPCScenario = []ScenariosCommandTest{
+// 	connectAlice,
+// 	{
+// 		Name:    "quest NON hostile NPC",
+// 		Command: "quest Nonostil",
+// 		ExpectedReplies: []Reply{
+// 			{protocol.ErrNpcNotHostile, "alice"},
+// 		},
+// 		ExpectsJSON:      false,
+// 		TestOnConnection: "alice",
+// 	},
+// }
+
+// var questUnexistantNPCScenario = []ScenariosCommandTest{
+// 	connectAlice,
+// 	{
+// 		Name:    "quest unexistant NPC",
+// 		Command: "quest osdojx",
+// 		ExpectedReplies: []Reply{
+// 			{protocol.ErrNpcNotFound, "alice"},
+// 		},
+// 		ExpectsJSON:      false,
+// 		TestOnConnection: "alice",
+// 	},
+// }
+
+// var questScenarioFamily = ScenarioFamily{
+// 	FamilyName: "quest scenario family",
+// 	Scenarios: []ScenarioEntry{
+// 		{
+// 			Name:  "quest hostile NPC",
+// 			Steps: questHostileNPCScenario,
+// 		},
+// 		{
+// 			Name:  "quest non hostile NPC",
+// 			Steps: questNonHostileNPCScenario,
+// 		},
+// 		{
+// 			Name:  "quest unexistant NPC",
+// 			Steps: questUnexistantNPCScenario,
+// 		},
+// 	},
+// }
+
+--- FILE: ./tests/scenarios/scenarios.go ---
+package scenarios
+
+import "testing"
+
+type Reply struct {
+	Msg  string
+	User string
+}
+
+type ScenariosCommandTest struct {
+	Name             string
+	Command          string
+	ExpectedReplies  []Reply
+	ExpectsJSON      bool
+	TestOnConnection string
+}
+
+type ConcurrentScenario struct {
+	Name           string
+	SetupSteps     []ScenariosCommandTest
+	ConcurrentCmds map[string]string
+	ValidationFunc func(t *testing.T, results map[string]string)
+}
+
+type ScenarioEntry struct {
+	Name  string
+	Steps []ScenariosCommandTest
+}
+
+type ScenarioFamily struct {
+	FamilyName string
+	Scenarios  []ScenarioEntry
+}
+
+var OrderedScenarioFamilies = []ScenarioFamily{
+	sessionScenarioFamily,
+	groupScenarioFamily,
+	itemScenarioFamily,
+	talkScenarioFamily,
+	attackScenarioFamily,
+}
+
+--- FILE: ./tests/scenarios/session_scenarios.go ---
+package scenarios
+
+import "tap/protocol"
+
+var usernameAlreadyUsedScenario = []ScenariosCommandTest{
+	connectAlice,
+	{
+		Name:    "Invalid connection: Name already used",
+		Command: "CONNECT alice",
+		ExpectedReplies: []Reply{
+			{protocol.ErrNameInUse, "alice"},
+		},
+		ExpectsJSON:      false,
+		TestOnConnection: "alice",
+	},
+}
+
+var sessionScenarioFamily = ScenarioFamily{
+	FamilyName: "Session family",
+	Scenarios: []ScenarioEntry{
+		{
+			Name:  "Try to connect with already used name",
+			Steps: usernameAlreadyUsedScenario,
+		},
+	},
+}
+
+--- FILE: ./tests/scenarios/talk_scenarios.go ---
+package scenarios
+
+import "tap/protocol"
+
+var talkToNpcScenario = []ScenariosCommandTest{
+	connectAlice,
+	aliceTalksToNPC,
+}
+
+var talkToUnexistantNPCScenario = []ScenariosCommandTest{
+	connectAlice,
+	{
+		Name:    "Alice talks to unexistant NPC",
+		Command: "TALK general",
+		ExpectedReplies: []Reply{
+			{protocol.ErrNpcNotFound, "alice"},
+		},
+		ExpectsJSON:      false,
+		TestOnConnection: "alice",
+	},
+}
+
+var talkScenarioFamily = ScenarioFamily{
+	FamilyName: "Talk scenarios family",
+	Scenarios: []ScenarioEntry{
+		{
+			Name:  "Talk to npc successfully",
+			Steps: talkToNpcScenario,
+		},
+		{
+			Name:  "Try to talk to unexistant NPC",
+			Steps: talkToUnexistantNPCScenario,
+		},
+	},
+}
+
+--- FILE: ./tests/scenarios/establish_connection.go ---
+package scenarios
+
+import (
+	"bufio"
+	"net"
+	"strings"
+	"tap/server"
+	"tap/tests/utils"
+	"testing"
+	"time"
+)
+
+func EstablishConnectionForScenario(t *testing.T, s *server.Server, scenario ScenariosCommandTest, connections map[string]net.Conn, readers map[string]*bufio.Reader) {
+	t.Helper()
+	user := scenario.TestOnConnection
+
+	if _, exists := connections[user]; exists {
+		return
+	}
+
+	conn, err := net.DialTimeout("tcp", s.GetAddress(), 2*time.Second)
+	if err != nil {
+		t.Fatalf("%s failed to connect: %v", user, err)
+	}
+
+	connections[user] = conn
+	readers[user] = bufio.NewReader(conn)
+
+	conn.SetReadDeadline(time.Now().Add(1 * time.Second))
+	res, err := readers[user].ReadString('\n')
+	if err != nil {
+		t.Fatalf("Read error during greeting for %s: %v", user, err)
+	}
+
+	if !strings.HasPrefix(res, "OK hello proto=") {
+		t.Error(utils.FormatMismatch(scenario.Command, "OK hello proto=", res))
+	}
+}
+
+--- FILE: ./tests/scenarios/run_concurrent_scenarios.go ---
+package scenarios
+
+import (
+	"bufio"
+	"fmt"
+	"net"
+	"strings"
+	"sync"
+	"tap/tests/utils"
+	"testing"
+	"time"
+)
+
+func RunConcurrentScenario(t *testing.T, scenario ConcurrentScenario) {
+	s, _ := utils.SetupTestServerEngine(t, "../world.json")
+	connections := make(map[string]net.Conn)
+	readers := make(map[string]*bufio.Reader)
+
+	defer func() {
+		for _, conn := range connections {
+			conn.Close()
+		}
+		s.Stop()
+	}()
+
+	for _, step := range scenario.SetupSteps {
+		if strings.HasPrefix(strings.ToLower(step.Command), "connect") {
+			EstablishConnectionForScenario(t, s, step, connections, readers)
+		}
+
+		if step.Command != "" {
+			SendScenarioCommand(t, connections[step.TestOnConnection], step.Command)
+		}
+
+		VerifyExpectedReplies(t, step, connections, readers)
+	}
+
+	var wg sync.WaitGroup
+	startPistol := make(chan struct{})
+
+	var mu sync.Mutex
+	results := make(map[string]string)
+
+	for user, cmd := range scenario.ConcurrentCmds {
+		wg.Add(1)
+
+		go func(u string, c string) {
+			defer wg.Done()
+
+			conn := connections[u]
+			reader := readers[u]
+
+			<-startPistol
+
+			fmt.Fprintf(conn, "%s\n", c)
+
+			conn.SetReadDeadline(time.Now().Add(1 * time.Second))
+			res, _ := reader.ReadString('\n')
+
+			mu.Lock()
+			results[u] = res
+			mu.Unlock()
+		}(user, cmd)
+	}
+
+	close(startPistol)
+	wg.Wait()
+
+	if scenario.ValidationFunc != nil {
+		scenario.ValidationFunc(t, results)
+	}
+}
+
+--- FILE: ./tests/scenarios/run_scenarios.go ---
+package scenarios
+
+import (
+	"bufio"
+	"net"
+	"strings"
+	"tap/tests/utils"
+	"testing"
+)
+
+func RunScenario(t *testing.T, scenarioEntry ScenarioEntry) {
+	s, _ := utils.SetupTestServerEngine(t, "../world.json")
+	connections := make(map[string]net.Conn)
+	readers := make(map[string]*bufio.Reader)
+
+	defer func() {
+		for _, conn := range connections {
+			conn.Close()
+		}
+		s.Stop()
+	}()
+
+	for _, step := range scenarioEntry.Steps {
+		if strings.HasPrefix(strings.ToLower(step.Command), "connect") {
+			EstablishConnectionForScenario(t, s, step, connections, readers)
+		}
+		conn := connections[step.TestOnConnection]
+		if step.Command != "" {
+			if conn == nil {
+				t.Fatalf("CRASH AVOIDED : scenario '%s' tried to send '%s' command pour '%s' user, You maybe forgot TestOnConnection in the Action or Connect In the scenario.",
+					scenarioEntry.Name, step.Command, step.TestOnConnection)
+			}
+			SendScenarioCommand(t, conn, step.Command)
+		}
+
+		VerifyExpectedReplies(t, step, connections, readers)
+	}
+}
+
+--- FILE: ./tests/scenarios/scenarios_test.go ---
+package scenarios
+
+import (
+	"testing"
+)
+
+func TestScenariosCommands(t *testing.T) {
+	for _, family := range OrderedScenarioFamilies {
+
+		t.Run(family.FamilyName, func(t *testing.T) {
+
+			for _, scenarioEntry := range family.Scenarios {
+				t.Run(scenarioEntry.Name, func(t *testing.T) {
+					RunScenario(t, scenarioEntry)
+				})
+			}
+		})
+	}
+}
+
+func TestConcurrency(t *testing.T) {
+	t.Run(TakeItemRaceCondition.Name, func(t *testing.T) {
+		RunConcurrentScenario(t, TakeItemRaceCondition)
+	})
+}
+
+--- FILE: ./tests/scenarios/send_scenarios_command.go ---
+package scenarios
+
+import (
+	"fmt"
+	"net"
+	"testing"
+)
+
+func SendScenarioCommand(t *testing.T, conn net.Conn, cmd string) {
+	t.Helper()
+
+	_, err := fmt.Fprintf(conn, "%s\n", cmd)
+	if err != nil {
+		t.Fatalf("Send error: %v", err)
+	}
+}
+
+--- FILE: ./tests/scenarios/verify_expected_replies.go ---
+package scenarios
+
+import (
+	"bufio"
+	"net"
+	"tap/tests/utils"
+	"testing"
+	"time"
+)
+
+func VerifyExpectedReplies(t *testing.T, scenario ScenariosCommandTest, connections map[string]net.Conn, readers map[string]*bufio.Reader) {
+	t.Helper()
+
+	for _, reply := range scenario.ExpectedReplies {
+		conn, exists := connections[reply.User]
+		if !exists {
+			t.Fatalf("Test setup error: No connection found for user '%s' to receive message '%s'", reply.User, reply.Msg)
+		}
+
+		conn.SetReadDeadline(time.Now().Add(1 * time.Second))
+		res, err := readers[reply.User].ReadString('\n')
+		if err != nil {
+			t.Fatalf("Read error (timeout) for %s: %v", reply.User, err)
+		}
+
+		utils.AssertResponse(t, scenario.Command, reply.Msg, res, scenario.ExpectsJSON)
+	}
+}
+
+--- FILE: ./tests/utils/formatters.go ---
+package utils
+
+import "fmt"
+
+const (
+	colorReset = "\033[0m"
+	colorRed   = "\033[31m"
+	colorGreen = "\033[32m"
+	colorCyan  = "\033[36m"
+)
+
+func Truncate(s string) string {
+	max := 40
+	if len(s) > max {
+		return s[:max] + "..."
+	}
+	return s
+}
+
+func FormatMismatch(Command, wanted, got string) string {
+	return fmt.Sprintf("\n\t%s📡 COMMAND :%s %s\n\t%s🎯 WANTED  :%s %s\n\t%s❌ GOT     :%s %s\n",
+		colorCyan, colorReset, Command,
+		colorGreen, colorReset, wanted,
+		colorRed, colorReset, Truncate(got))
+}
+
+func FormatInvalidJSON(got string) string {
+	return fmt.Sprintf("\n\t%s⚠️  JSON INVALID%s\n\t%s❌ GOT     :%s %s\n",
+		colorRed, colorReset, colorRed, colorReset, Truncate(got))
+}
+
+--- FILE: ./tests/utils/send_commands.go ---
+package utils
+
+import (
+	"bufio"
+	"fmt"
+	"net"
+	"strings"
+	"testing"
+)
+
+func SendCommand(t *testing.T, conn net.Conn, cmd string) string {
+	t.Helper()
+
+	_, err := fmt.Fprintf(conn, "%s\n", cmd)
+	if err != nil {
+		t.Fatalf("Send error: %v", err)
+	}
+
+	reader := bufio.NewReader(conn)
+	response, err := reader.ReadString('\n')
+	if err != nil {
+		t.Fatalf("Read error: %v", err)
+	}
+
+	return strings.TrimSpace(response)
+}
+
+
+
+--- FILE: ./tests/utils/validators.go ---
+package utils
+
+import (
+	"encoding/json"
+	"strings"
+	"testing"
+)
+
+func AssertResponse(t *testing.T, command, wanted, got string, expectsJSON bool) {
+	t.Helper()
+
+	if expectsJSON {
+		jsonPart := strings.TrimPrefix(got, wanted+" ")
+		jsonPart = strings.TrimSpace(jsonPart)
+
+		if !strings.HasPrefix(got, wanted) {
+			t.Error(FormatMismatch(command, wanted, got))
+		} else if !json.Valid([]byte(jsonPart)) {
+			t.Error(FormatInvalidJSON(jsonPart))
+		}
+	} else {
+		if !strings.HasPrefix(got, wanted) {
+			t.Error(FormatMismatch(command, wanted, got))
+		}
+	}
+}
+
+--- FILE: ./tests/utils/connect_and_greet.go ---
+package utils
+
+import (
+	"bufio"
+	"net"
+	"testing"
+	"time"
+)
+
+func ConnectAndGreet(t *testing.T, addr string) (net.Conn, *bufio.Reader) {
+	conn, err := net.DialTimeout("tcp", addr, 2*time.Second)
+	if err != nil {
+		t.Fatalf("Helper failed to connect: %v", err)
+	}
+
+	reader := bufio.NewReader(conn)
+
+	conn.SetReadDeadline(time.Now().Add(1 * time.Second))
+	_, err = reader.ReadString('\n')
+	if err != nil {
+		t.Fatalf("Helper failed to read greeting: %v", err)
+	}
+
+	conn.SetReadDeadline(time.Time{})
+
+	return conn, reader
+}
+
+--- FILE: ./tests/utils/setup_server_engine.go ---
+package utils
+
+import (
+	"io"
+	"log"
+	"tap/engine"
+	pr "tap/protocol"
+	"tap/server"
+	"testing"
+	"time"
+)
+
+func SetupTestServerEngine(t *testing.T, world_path string) (*server.Server, *engine.Engine) {
+	t.Helper()
+	exchanger := pr.Exchanger{ServerInput: make(chan pr.ServerRequest, 100),
+		ServerOutput: make(chan pr.EngineResponse, 100),
+		JoinChan:     make(chan string, 10),
+		LeaveChan:    make(chan string, 10)}
+
+	var err error
+	var world *engine.Map
+	world, err = engine.Get_map(world_path)
+	if err != nil {
+		t.Fatalf("ERROR parsing: %v", err.Error())
+	}
+
+	// Initialize server
+	var s *server.Server
+	s, err = server.NewServer("localhost:0", exchanger)
+	if err != nil {
+		t.Fatalf("Server couldn't start %v", err)
+	}
+
+	// Initialize and start engine
+	e := engine.NewEngine(world, exchanger)
+	go e.Start()
+	time.Sleep(10 * time.Millisecond)
+	// Start the serveur
+	go s.Start()
+	time.Sleep(10 * time.Millisecond)
+
+	t.Cleanup(func() {
+		s.Stop()
+		e.Stop()
+	})
+	log.SetOutput(io.Discard)
+
+	return s, e
+}
+
+--- FILE: ./tests/logs/logs.go ---
+package logs
+
+import (
+	"bytes"
+	"log"
+	"net"
+	"strings"
+	"tap/tests/utils"
+	"testing"
+	"time"
+)
+
+func TestServerLogsNewConnection(t *testing.T) {
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
+	defer log.SetOutput(nil)
+
+	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+
+	clientConn, err := net.DialTimeout("tcp", s.GetAddress(), 2*time.Second)
+	if err != nil {
+		t.Fatalf("Client failed to connect: %v", err)
+	}
+	clientConn.Close()
+
+	time.Sleep(20 * time.Millisecond)
+
+	logsOutput := buf.String()
+	if !strings.Contains(logsOutput, "127.0.0.1") {
+		t.Error(utils.FormatMismatch("", "CLIENT IP", logsOutput))
+	}
+}
+
+--- FILE: ./tests/network/accept_new_tcp_connection_test.go ---
+package network
+
+import (
+	"bufio"
+	"net"
+	"strings"
+	"tap/tests/utils"
+	"testing"
+	"time"
+)
+
+func TestServerSendsGreeting(t *testing.T) {
+	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+
+	clientConn, err := net.DialTimeout("tcp", s.GetAddress(), 2*time.Second)
+	if err != nil {
+		t.Fatalf("Client failed to connect: %v", err)
+	}
+	defer clientConn.Close()
+
+	reader := bufio.NewReader(clientConn)
+	res, err := reader.ReadString('\n')
+	if err != nil {
+		t.Fatalf("Failed to read server response: %v", err)
+	}
+
+	res = strings.TrimSpace(res)
+
+	if res != "OK hello proto=1" {
+		t.Error(utils.FormatMismatch("", "OK hello proto=1", res))
+	}
+}
+
+--- FILE: ./tests/network/max_player_limit_test.go ---
+package network
+
+import (
+	"bufio"
+	"net"
+	"tap/tests/utils"
+	"testing"
+	"time"
+)
+
+func TestMaxPlayersLimit(t *testing.T) {
+	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+	addr := s.GetAddress()
+
+	const maxPlayers = 50
+	var connections []net.Conn
+
+	defer func() {
+		for _, c := range connections {
+			c.Close()
+		}
+	}()
+
+	for i := 0; i < maxPlayers; i++ {
+		conn, err := net.DialTimeout("tcp", addr, 1*time.Second)
+		if err != nil {
+			t.Fatalf("Failed to connect client %d: %v", i, err)
+		}
+		connections = append(connections, conn)
+
+		bufio.NewReader(conn).ReadString('\n')
+	}
+
+	intruderConn, err := net.DialTimeout("tcp", addr, 1*time.Second)
+	if err != nil {
+		t.Log("SUCCESS : Server refused the connection.")
+		return
+	}
+	defer intruderConn.Close()
+
+	intruderConn.SetReadDeadline(time.Now().Add(500 * time.Millisecond))
+	reader := bufio.NewReader(intruderConn)
+	res, err := reader.ReadString('\n')
+
+	if err == nil {
+		if res == "ERR 901 SERVER_FULL\n" {
+			t.Logf("SUCCESS : Server politely refused the connection with the correct error message: %s.", res)
+		} else {
+			t.Fatalf("FAIL: Server accepted the %dth player and answered with an unexpected message : %s", maxPlayers+1, res)
+		}
+	} else {
+		t.Logf("SUCCESS : Server closed the connection. Error read: %v", err)
+	}
+}
+
+--- FILE: ./tests/network/server_lifecycle_test.go ---
+package network
+
+import (
+	"net"
+	"tap/tests/utils"
+	"testing"
+	"time"
+)
+
+func TestServerGracefulShutdown_RefuseNewConnections(t *testing.T) {
+	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+	addr := s.GetAddress()
+
+	conn, err := net.DialTimeout("tcp", addr, 1*time.Second)
+	if err != nil {
+		t.Fatalf("Premature failure: the server should accept connections when active: %v", err)
+	}
+	conn.Close()
+
+	s.Stop()
+
+	lateConn, err := net.DialTimeout("tcp", addr, 1*time.Second)
+
+	if err == nil {
+		lateConn.Close()
+		t.Fatal("Fail: The server accepted a new connection when it was supposed to be stopped.")
+	}
+
+	t.Logf("Success: The server successfully refused the connection (Received error: %v)", err)
+}
+
+--- FILE: ./tests/network/tcp_many_connections_test.go ---
+package network
+
+import (
+	"net"
+	"sync"
+	"tap/tests/utils"
+	"testing"
+	"time"
+)
+
+func TestConcurrentClientConnections(t *testing.T) {
+	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+	addr := s.GetAddress()
+
+	const numClients = 1000
+	var wg sync.WaitGroup
+
+	// Channel to safely collect errors from goroutines
+	errCh := make(chan error, numClients)
+
+	// Launch all clients at the same time
+	for i := 0; i < numClients; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			conn, err := net.DialTimeout("tcp", addr, 3*time.Second)
+			if err != nil {
+				errCh <- err
+				return
+			}
+			defer conn.Close()
+
+			// Small delay to simulate an active user maintaining the connection
+			time.Sleep(100 * time.Millisecond)
+		}()
+	}
+
+	// Wait for all goroutines to finish
+	wg.Wait()
+	close(errCh)
+
+	// Check if any goroutine reported an error
+	var errors []error
+	for err := range errCh {
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		t.Fatalf("Fail: %d out of %d clients failed to connect simultaneously. First error: %v", len(errors), numClients, errors[0])
+	}
+
+	t.Logf("Success: Server successfully handled %d concurrent connections without crashing.", numClients)
+}
+
+--- FILE: ./tests/network/unknown_commands_test.go ---
+package network
+
+import (
+	"bufio"
+	"net"
+	"strings"
+	"tap/tests/utils"
+	"testing"
+	"time"
+)
+
+func TestUnknownCommandBehavior(t *testing.T) {
+	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+	addr := s.GetAddress()
+
+	conn, err := net.DialTimeout("tcp", addr, 2*time.Second)
+	if err != nil {
+		t.Fatalf("Connection failed: %v", err)
+	}
+	defer conn.Close()
+
+	reader := bufio.NewReader(conn)
+	_, _ = reader.ReadString('\n')
+
+	_, err = conn.Write([]byte("DO_A_BARREL_ROLL\n"))
+	if err != nil {
+		t.Fatalf("Failed to send unknown command: %v", err)
+	}
+
+	conn.SetReadDeadline(time.Now().Add(1 * time.Second))
+	res, err := reader.ReadString('\n')
+
+	if err != nil {
+		t.Fatalf("Server dropped connection instead of returning an error message: %v", err)
+	}
+
+	if !strings.HasPrefix(res, "ERR") {
+		t.Errorf("Expected response to start with 'ERR', got: '%s'", res)
+	} else {
+		t.Logf("Success: Server handled unknown command gracefully with response: %s", strings.TrimSpace(res))
+	}
+}
+
+--- FILE: ./tests/network/anti_flood_test.go ---
+package network
+
+import (
+	"bytes"
+	"strings"
+	pr "tap/protocol"
+	"tap/tests/utils"
+	"testing"
+	"time"
+)
+
+func TestAntiFloodProtection(t *testing.T) {
+	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+	conn, reader := utils.ConnectAndGreet(t, s.GetAddress())
+	defer conn.Close()
+
+	burstPayload := bytes.Repeat([]byte("ACTION\n"), 10)
+	if _, err := conn.Write(burstPayload); err != nil {
+		t.Fatalf("Failed to send burst commands: %v", err)
+	}
+
+	spamErrorFound := false
+	conn.SetReadDeadline(time.Now().Add(1 * time.Second))
+
+	for {
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			break
+		}
+
+		if strings.Contains(line, pr.ErrSpam) {
+			spamErrorFound = true
+			break
+		}
+	}
+
+	// 3. Bilan du test
+	if !spamErrorFound {
+		t.Error("Fail: The server did not detect the spam, did not send error, or kept the connection open.")
+	} else {
+		t.Log("Success: Spam detected, error sent to the client, and connection successfully terminated.")
+	}
+}
+
+--- FILE: ./tests/network/client_disconnection_test.go ---
+package network
+
+import (
+	"net"
+	"tap/tests/utils"
+	"testing"
+	"time"
+)
+
+func TestClientDisconnection(t *testing.T) {
+	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+	addr := s.GetAddress()
+
+	conn, err := net.DialTimeout("tcp", addr, 2*time.Second)
+	if err != nil {
+		t.Fatalf("Connection failed: %v", err)
+	}
+
+	conn.Close()
+
+	time.Sleep(100 * time.Millisecond)
+
+	conn2, err := net.DialTimeout("tcp", addr, 2*time.Second)
+	if err != nil {
+		t.Fatalf("Fail: Server appears to have crashed after a client disconnected: %v", err)
+	}
+	defer conn2.Close()
+
+	t.Log("Success: Server survived client disconnection.")
+}
+
+func TestHardResetDisconnection(t *testing.T) {
+	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+	addr := s.GetAddress()
+
+	conn, err := net.DialTimeout("tcp", addr, 2*time.Second)
+	if err != nil {
+		t.Fatalf("Connection failed: %v", err)
+	}
+
+	// On cast la connexion en *net.TCPConn pour avoir accès aux options bas niveau
+	tcpConn, ok := conn.(*net.TCPConn)
+	if !ok {
+		t.Fatal("Failed to cast to TCPConn")
+	}
+
+	// SetLinger(0) forces the OS to throw the remaining buffer
+	// and sends  TCP RST immediatly when Close().
+	tcpConn.SetLinger(0)
+	tcpConn.Close()
+
+	time.Sleep(100 * time.Millisecond)
+
+	conn2, err := net.DialTimeout("tcp", addr, 2*time.Second)
+	if err != nil {
+		t.Fatalf("Server crashed after client abrupt disconnection (TCP RST): %v", err)
+	}
+	conn2.Close()
+	t.Log("Success : Server survived to abrupt disconnection (TCP RST) (Connection reset by peer).")
+}
+
+--- FILE: ./tests/network/empty_commands_test.go ---
+package network
+
+import (
+	"strings"
+	"tap/tests/utils"
+	"testing"
+	"time"
+)
+
+func TestEmptyAndWhitespaceCommands(t *testing.T) {
+	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+	conn, reader := utils.ConnectAndGreet(t, s.GetAddress())
+	defer conn.Close()
+
+	payloads := []string{"\n", "    \n", "\r\n", "\t\t\n"}
+
+	for _, payload := range payloads {
+		if _, err := conn.Write([]byte(payload)); err != nil {
+			t.Fatalf("Failed to send empty payload: %v", err)
+		}
+	}
+
+	if _, err := conn.Write([]byte("CONNECT test_user\n")); err != nil {
+		t.Fatalf("Failed to send valid command: %v", err)
+	}
+
+	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+	success := false
+
+	for {
+		res, err := reader.ReadString('\n')
+		if err != nil {
+			t.Fatalf("Server crashed or disconnected while reading responses: %v", err)
+		}
+
+		if strings.HasPrefix(strings.TrimSpace(res), "OK connected") {
+			success = true
+			break
+		}
+	}
+
+	if !success {
+		t.Errorf("Never received the 'OK connected' response.")
+	} else {
+		t.Log("Success: Server survived empty lines and processed the subsequent command.")
+	}
+}
+
+--- FILE: ./tests/network/invalid_utf8_payload_test.go ---
+package network
+
+import (
+	"tap/tests/utils"
+	"testing"
+	"time"
+)
+
+func TestInvalidUTF8Payload(t *testing.T) {
+	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+	conn, reader := utils.ConnectAndGreet(t, s.GetAddress())
+	defer conn.Close()
+
+	// (0xFF et 0xFE are forbidden in UTF8)
+	invalidPayload := []byte{0xff, 0xfe, 0xfd, '\n'}
+
+	if _, err := conn.Write(invalidPayload); err != nil {
+		t.Fatalf("Failed to write invalid utf-8: %v", err)
+	}
+
+	conn.SetReadDeadline(time.Now().Add(1 * time.Second))
+	res, err := reader.ReadString('\n')
+	if err != nil {
+		t.Fatalf("Server crashed instead of managing invalid non-utf8 caracters: %v", err)
+	}
+
+	t.Logf("Success : Server survived to non-UTF8 caracter injection, response : %s", res)
+}
+
+--- FILE: ./tests/network/server_graceful_shutdown_idle_test.go ---
+package network
+
+import (
+	"runtime"
+	"tap/tests/utils"
+	"testing"
+	"time"
+)
+
+func TestServerGracefulShutdown_Idle(t *testing.T) {
+	time.Sleep(50 * time.Millisecond)
+	baseline := runtime.NumGoroutine()
+
+	s, e := utils.SetupTestServerEngine(t, "../../world.json")
+
+	defer e.Stop()
+	defer s.Stop()
+
+	s.Stop()
+	e.Stop()
+
+	success := false
+	for i := 0; i < 100; i++ {
+		if runtime.NumGoroutine() <= baseline {
+			success = true
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	if !success {
+		current := runtime.NumGoroutine()
+		t.Errorf("Go goroutines leaks detected: started with %d, ended with %d.", baseline, current)
+	} else {
+		t.Log("Success: server shutdown correctly without any leak.")
+	}
+}
+
+--- FILE: ./tests/network/server_graceful_shutdown_with_disconnecting_clients_test.go ---
+package network
+
+import (
+	"net"
+	"runtime"
+	"tap/tests/utils"
+	"testing"
+	"time"
+)
+
+func TestServerGracefulShutdown_WithDisconnectingClients(t *testing.T) {
+	time.Sleep(50 * time.Millisecond)
+	baseline := runtime.NumGoroutine()
+
+	s, e := utils.SetupTestServerEngine(t, "../../world.json")
+
+	defer e.Stop()
+	defer s.Stop()
+
+	addr := s.GetAddress()
+
+	conn, err := net.DialTimeout("tcp", addr, 1*time.Second)
+	if err != nil {
+		t.Fatalf("Connection failed: %v", err)
+	}
+
+	// Collision, 1 connection closes, and the server stops at the ~same moment
+	conn.Close()
+	s.Stop()
+	e.Stop()
+
+	success := false
+	for i := 0; i < 100; i++ {
+		if runtime.NumGoroutine() <= baseline {
+			success = true
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	if !success {
+		current := runtime.NumGoroutine()
+		t.Errorf("Go goroutines leaks detected: started with %d, ended with %d.", baseline, current)
+	} else {
+		t.Log("Success: server shutdown correctly without any leak.")
+	}
+}
+
+--- FILE: ./tests/network/tcp_fragment_coalescing_test.go ---
+package network
+
+import (
+	"strings"
+	"tap/tests/utils"
+	"testing"
+	"time"
+)
+
+func TestTCPFragmentation(t *testing.T) {
+	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+	conn, reader := utils.ConnectAndGreet(t, s.GetAddress())
+	defer conn.Close()
+
+	if _, err := conn.Write([]byte("CONN")); err != nil {
+		t.Fatalf("Failed to write first chunk: %v", err)
+	}
+
+	time.Sleep(50 * time.Millisecond)
+
+	if _, err := conn.Write([]byte("ECT alice\n")); err != nil {
+		t.Fatalf("Failed to write second chunk: %v", err)
+	}
+
+	conn.SetReadDeadline(time.Now().Add(1 * time.Second))
+	res, err := reader.ReadString('\n')
+	if err != nil {
+		t.Fatalf("Server failed to respond to fragmented command: %v", err)
+	}
+
+	if strings.TrimSpace(res) != "OK connected" {
+		t.Errorf("Expected 'OK connected', got: '%s'", res)
+	} else {
+		t.Log("Success: Server correctly buffered and processed the fragmented command.")
+	}
+}
+
+func TestTCPCoalescing(t *testing.T) {
+	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+	conn, reader := utils.ConnectAndGreet(t, s.GetAddress())
+	defer conn.Close()
+
+	payload := []byte("CONNECT bob\nLOOK\n")
+	if _, err := conn.Write(payload); err != nil {
+		t.Fatalf("Failed to write coalesced chunk: %v", err)
+	}
+
+	conn.SetReadDeadline(time.Now().Add(1 * time.Second))
+
+	res1, err := reader.ReadString('\n')
+	if err != nil || !strings.HasPrefix(res1, "OK connected") {
+		t.Fatalf("Failed on first response. Got: '%s', Err: %v", res1, err)
+	}
+
+	res2, err := reader.ReadString('\n')
+	if err != nil || (!strings.HasPrefix(res2, "OK {") && !strings.HasPrefix(res2, "ERR")) {
+		t.Fatalf("Failed on second response. Got: '%s', Err: %v", res2, err)
+	}
+
+	t.Log("Success: Server correctly separated and processed coalesced commands.")
+}
+
+--- FILE: ./tests/network/tcp_huge_payload_test.go ---
+package network
+
+import (
+	"bytes"
+	"net"
+	"tap/server"
+	"tap/tests/utils"
+	"testing"
+	"time"
+)
+
+// 1024 bytes per line maximum
+func TestProtectionAgainstHugePayloads(t *testing.T) {
+	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+	conn, _ := utils.ConnectAndGreet(t, s.GetAddress())
+	defer conn.Close()
+
+	overflowSize := server.MaxPayloadSize
+	hugePayload := bytes.Repeat([]byte("A"), overflowSize)
+
+	_, err := conn.Write(hugePayload)
+	if err != nil {
+		t.Fatalf("Failed to send huge payload: %v", err)
+	}
+
+	buf := make([]byte, 10)
+	conn.SetReadDeadline(time.Now().Add(500 * time.Millisecond))
+	_, err = conn.Read(buf)
+
+	if err == nil {
+		t.Error("Fail: The server kept the connection open after receiving a huge payload. It should have dropped it to prevent memory exhaustion.")
+	} else if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+		t.Error("Fail: The server kept the connection open (Test timed out waiting for the server to close the socket).")
+	} else {
+		t.Logf("Success: Server dropped the connection upon receiving a huge payload (Error: %v)", err)
+	}
+}
+
+--- FILE: ./tests/network/zombie_client_timeout_test.go ---
+package network
+
+import (
+	"runtime"
+	"tap/engine"
+	pr "tap/protocol"
+	"tap/server"
+	"tap/tests/utils"
+	"testing"
+	"time"
+)
+
+func TestZombieClientTimeout(t *testing.T) {
+	time.Sleep(50 * time.Millisecond)
+	baseline := runtime.NumGoroutine()
+
+	exchanger := pr.Exchanger{ServerInput: make(chan pr.ServerRequest, 100),
+		ServerOutput: make(chan pr.EngineResponse, 100),
+		JoinChan:     make(chan string, 10),
+		LeaveChan:    make(chan string, 10)}
+
+	world, err := engine.Get_map("../../world.json")
+	if err != nil {
+		t.Fatalf("ERROR parsing: %v", err)
+	}
+
+	s, err := server.NewServer("localhost:0", exchanger)
+	if err != nil {
+		t.Fatalf("Server couldn't be created %v", err)
+	}
+
+	e := engine.NewEngine(world, exchanger)
+
+	s.IdleTimeout = 1 * time.Second
+
+	go e.Start()
+	go s.Start()
+
+	t.Cleanup(func() {
+		s.Stop()
+		e.Stop()
+	})
+
+	conn, _ := utils.ConnectAndGreet(t, s.GetAddress())
+
+	time.Sleep(2 * s.IdleTimeout)
+
+	conn.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
+	buf := make([]byte, 1)
+	_, err = conn.Read(buf)
+	if err == nil {
+		t.Fatalf("Fail: zombie connection still active. server didn't close it with timeout.")
+	}
+
+	s.Stop()
+	e.Stop()
+	time.Sleep(100 * time.Millisecond)
+
+	current := runtime.NumGoroutine()
+	if current > baseline {
+		t.Errorf("Fail:  Zombie connection, input.scan() is blocked and goroutines are not properly stopped.")
+	} else {
+		t.Log("Success: server detected inactivity and cut the connection properly.")
+	}
+}
+
+--- FILE: ./tests/testTUI/normal_disconnection_test.go ---
+package testTUI
+
+import (
+	"net"
+	"os"
+	"runtime"
+	"runtime/pprof"
+	"tap/client/tui"
+	"tap/tests/utils"
+	"testing"
+	"time"
+)
+
+func TestTUINormalDisconnection(t *testing.T) {
+	s, e := utils.SetupTestServerEngine(t, "../../world.json")
+
+	conn, err := net.Dial("tcp", s.GetAddress())
+	if err != nil {
+		t.Fatalf("Connection error: %s", err)
+	}
+
+	baseline := runtime.NumGoroutine()
+
+	cli := tui.NewTuiClient(conn)
+
+	go cli.Start()
+	time.Sleep(200 * time.Millisecond)
+	cli.Stop()
+	s.Stop()
+	e.Stop()
+
+	success := false
+	for i := 0; i < 2000; i++ {
+		if runtime.NumGoroutine() <= baseline {
+			success = true
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	if !success {
+		current := runtime.NumGoroutine()
+		t.Errorf("Go goroutines leaks detected: started with %d, ended with %d.", baseline, current)
+		pprof.Lookup("goroutine").WriteTo(os.Stderr, 1)
+	} else {
+		t.Log("Success: tui shutdown correctly without any leak.")
+	}
+}
+
+--- FILE: ./world.json ---
+[
+    {
+        "rooms": {
+            "entrance": {
+                "name": "Supermarket Entrance",
+                "description": "The main entrance with shopping carts. Tension is high as senior citizens stretch their calves.",
+                "exits": {
+                    "north": "health_aisle",
+                    "east": "fresh_section"
+                },
+                "items": ["sword"],
+                "npcs": ["granny_jeanine"]
+            },
+            "health_aisle": {
+                "name": "Health & Pharmacy Aisle",
+                "description": "The epicenter of today's special offers. A crowd of octogenarians clusters in front of the shelves.",
+                "exits": {
+                    "south": "entrance"
+                },
+                "items": ["gold_denture", "suppository_box"],
+                "npcs": ["grandpa_gaston"]
+            },
+            "fresh_section": {
+                "name": "Meat & Deli Counter",
+                "description": "It smells like cured meats and nostalgia.",
+                "exits": {
+                    "west": "entrance"
+                },
+                "items": ["coin_bag"],
+                "npcs": []
+            }
+        },
+        "items": {
+            "gold_denture": {
+                "name": "Solid Gold Denture",
+                "description": "A premium set of false teeth, perfect for chewing tough meat.",
+                "obtainable": true,
+                "type": "weapon",
+                "tradable": true,
+                "worth": 10,
+                "damage": 6
+            },
+            "suppository_box": {
+                "name": "Discounted Suppository Box",
+                "description": "The very last pack on the shelf. Everyone is fighting for it.",
+                "obtainable": true,
+                "type": "consumable",
+                "target_stat": "hp",
+                "amount": 10,
+                "effect_type": "heal",
+                "charges": 6,
+                "duration": 1
+            },
+            "coin_bag": {
+                "name": "Bag of Small Coins",
+                "description": "A heavy bag filled with thousands of tiny copper coins.",
+                "obtainable": true,
+                "type": "ressource"
+            },
+            "sword": {
+                "name": "Sword",
+                "description": "A sword",
+                "obtainable": true,
+                "type": "weapon",
+                "damage": 10
+            }
+        },
+        "npcs": {
+            "granny_jeanine": {
+                "name": "Granny Jeanine",
+                "description": "An elderly lady in a hurry who pays exclusively in 1-cent coins.",
+                "dialogue": [
+                    "Out of my way, youngster!",
+                    "If you want that denture, you'll need to bring me thousands of coins!"
+                ],
+                "role": "quest",
+                "quest_id": "buy_denture",
+                "hostile": false
+            },
+            "grandpa_gaston": {
+                "name": "Grandpa Gaston",
+                "description": "A veteran sprinter ready to do anything to snag the best discounts.",
+                "dialogue": [
+                    "First come, first served on the diapers and suppositories!"
+                ],
+                "role": "dialogue",
+                "quest_id": "",
+                "stats": {
+                    "hp": 10,
+                    "max_hp": 10,
+                    "status": "healthy",
+                    "initiative": 100
+                },
+                "hostile": true
+            }
+        },
+        "quests": {
+            "buy_denture": {
+                "description": "Buy the gold denture using thousands of small coins.",
+                "reward": "gold_denture",
+                "status": "available"
+            },
+            "run_for_suppos": {
+                "description": "Sprint to the health aisle to grab the suppository box before Grandpa Gaston.",
+                "reward": "suppository_box",
+                "status": "available"
+            }
+        }
+    }
+]
+--- FILE: ./go.mod ---
+module tap
+
+go 1.24.0
+
+require (
+	github.com/gdamore/tcell/v2 v2.13.10
+	github.com/rivo/tview v0.42.0
+)
+
+require (
+	github.com/gdamore/encoding v1.0.1 // indirect
+	github.com/google/uuid v1.6.0 // direct
+	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/term v0.37.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
+)
+
+--- FILE: ./project.txt ---

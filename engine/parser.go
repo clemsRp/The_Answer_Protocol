@@ -30,5 +30,9 @@ func Get_map(map_path string) (*Map, error) {
 		return nil, err
 	}
 
+	for id, item := range worlds[0].Items {
+		item.Id = id
+	}
+
 	return &worlds[0], nil
 }
