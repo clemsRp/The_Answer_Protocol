@@ -1,13 +1,13 @@
 package protocol
 
 type ExitsData struct {
-	North string `json:"north"`
-	East  string `json:"east"`
-	West  string `json:"west"`
-	South string `json:"south"`
+	North string `json:"north,omitempty"`
+	East  string `json:"east,omitempty"`
+	West  string `json:"west,omitempty"`
+	South string `json:"south,omitempty"`
 }
 
-type RoomData struct {
+type LookCommandData struct {
 	Id          string    `json:"id"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
@@ -17,26 +17,10 @@ type RoomData struct {
 	Npcs        []string  `json:"npcs"`
 }
 
-type LookCommandData struct {
-	Room RoomData
-}
-
 type StatusCommandData struct {
 	Hp     int    `json:"hp"`
 	MaxHp  int    `json:"max_hp"`
 	Status string `json:"status"`
-}
-
-type InventoryCommandData struct {
-	ItemsInInventory []string
-}
-
-type UnGroupedCommandData struct {
-	UnGrouped []string
-}
-
-type GroupedCommandData struct {
-	Grouped []string
 }
 
 type QuestData struct {
@@ -51,10 +35,6 @@ type TrackedQuestData struct {
 	Id       string `json:"quest_id"`
 	Status   string `json:"status"`
 	Progress string `json:"progress"`
-}
-
-type QuestsCommandData struct {
-	Quests []TrackedQuestData
 }
 
 type AttackCommandData struct {

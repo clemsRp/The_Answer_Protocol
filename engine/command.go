@@ -81,7 +81,7 @@ func (e *Engine) handleCmdUnGrouped(player *Player, req []string) (string, any, 
 		}
 	}
 
-	return "OK", pr.UnGroupedCommandData{UnGrouped: users}, nil
+	return "OK", users, nil
 }
 
 func (e *Engine) handleCmdGrouped(player *Player, req []string) (string, any, error) {
@@ -98,7 +98,7 @@ func (e *Engine) handleCmdGrouped(player *Player, req []string) (string, any, er
 		}
 	}
 
-	return "OK", pr.GroupedCommandData{Grouped: users}, nil
+	return "OK", users, nil
 }
 
 func (e *Engine) handleCmdLook(player *Player, req []string) (string, any, error) {
@@ -116,6 +116,10 @@ func (e *Engine) handleCmdLook(player *Player, req []string) (string, any, error
 		}
 	}
 
+	if len(players) == 0 {
+		players = append(players, player.name)
+	}
+
 	// Format response
 
 	exits := pr.ExitsData{
@@ -124,7 +128,7 @@ func (e *Engine) handleCmdLook(player *Player, req []string) (string, any, error
 		East:  player.room.Exits["east"],
 		West:  player.room.Exits["west"],
 	}
-	Room := pr.RoomData{
+	res := pr.LookCommandData{
 		Id:          "room." + player.room.Name,
 		Name:        player.room.Name,
 		Description: player.room.Description,
@@ -132,9 +136,6 @@ func (e *Engine) handleCmdLook(player *Player, req []string) (string, any, error
 		Players:     players,
 		Items:       player.room.Items,
 		Npcs:        player.room.Npcs,
-	}
-	res := pr.LookCommandData{
-		Room: Room,
 	}
 
 	return "OK", res, nil

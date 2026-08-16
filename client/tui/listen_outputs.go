@@ -38,7 +38,7 @@ func (m *MyApp) NavListenOutputs(res pr.ServerResponse) {
 	if err == nil {
 		var data pr.LookCommandData
 		if err := json.Unmarshal(raw, &data); err == nil {
-			exits := data.Room.Exits
+			exits := data.Exits
 			if exits.North != "" {
 				opts["north"] = exits.North
 			}
@@ -99,7 +99,7 @@ func (m *MyApp) ItemListenOutputs(res pr.ServerResponse) {
 		if err == nil {
 			var data pr.LookCommandData
 			if err := json.Unmarshal(raw, &data); err == nil {
-				opts = data.Room.Items
+				opts = data.Items
 				items = opts
 			}
 		}
@@ -147,8 +147,8 @@ func (m *MyApp) InteractionListenOutputs(res pr.ServerResponse) {
 		if err == nil {
 			var data pr.LookCommandData
 			if err := json.Unmarshal(raw, &data); err == nil {
-				npcs = data.Room.Npcs
-				for _, player := range data.Room.Players {
+				npcs = data.Npcs
+				for _, player := range data.Players {
 					if player != m.pseudo {
 						players = append(players, player)
 					}
@@ -266,9 +266,9 @@ func (m *MyApp) GroupListenOutputs(res pr.ServerResponse) {
 		case pr.CmdUnGrouped:
 			raw, err := json.Marshal(res.Datas)
 			if err == nil {
-				var data pr.UnGroupedCommandData
+				var data []string
 				if err := json.Unmarshal(raw, &data); err == nil {
-					filteredUsers := filterUngrouped(data.UnGrouped, in_group_users)
+					filteredUsers := filterUngrouped(data, in_group_users)
 
 					not_in_group_users = make([]string, 0, len(filteredUsers))
 					not_in_group_users = append(not_in_group_users, filteredUsers...)
@@ -277,10 +277,10 @@ func (m *MyApp) GroupListenOutputs(res pr.ServerResponse) {
 		case pr.CmdGrouped:
 			raw, err := json.Marshal(res.Datas)
 			if err == nil {
-				var data pr.GroupedCommandData
+				var data []string
 				if err := json.Unmarshal(raw, &data); err == nil {
-					in_group_users = make([]string, 0, len(data.Grouped))
-					in_group_users = append(in_group_users, data.Grouped...)
+					in_group_users = make([]string, 0, len(data))
+					in_group_users = append(in_group_users, data...)
 				}
 			}
 			m.router.Inputs <- "UNGROUPED"

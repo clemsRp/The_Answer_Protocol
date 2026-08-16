@@ -11,7 +11,7 @@ func (e *Engine) inform_user(player *Player, msg string) {
 
 func (e *Engine) inform_room(player *Player, room *Room, msg string) {
 	for pseudo, p := range e.players {
-		if player.room == room && pseudo != player.name {
+		if p.room == room && pseudo != player.name {
 			e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: msg}
 		}
 	}
