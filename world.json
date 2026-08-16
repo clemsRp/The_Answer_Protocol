@@ -34,22 +34,35 @@
             "gold_denture": {
                 "name": "Solid Gold Denture",
                 "description": "A premium set of false teeth, perfect for chewing tough meat.",
-                "obtainable": true
+                "obtainable": true,
+                "type": "weapon",
+                "tradable": true,
+                "worth": 10,
+                "damage": 6
             },
             "suppository_box": {
                 "name": "Discounted Suppository Box",
                 "description": "The very last pack on the shelf. Everyone is fighting for it.",
-                "obtainable": true
+                "obtainable": true,
+                "type": "consumable",
+                "target_stat": "hp",
+                "amount": 10,
+                "effect_type": "heal",
+                "charges": 6,
+                "duration": 1
             },
             "coin_bag": {
                 "name": "Bag of Small Coins",
                 "description": "A heavy bag filled with thousands of tiny copper coins.",
-                "obtainable": true
+                "obtainable": true,
+                "type": "ressource"
             },
             "sword": {
                 "name": "Sword",
                 "description": "A sword",
-                "obtainable": true
+                "obtainable": true,
+                "type": "weapon",
+                "damage": 10
             }
         },
         "npcs": {
@@ -62,11 +75,7 @@
                 ],
                 "role": "quest",
                 "quest_id": "buy_denture",
-                "stats": {
-                    "hp": 15,
-                    "max_hp": 15,
-                    "status": "healthy"
-                }
+                "hostile": false
             },
             "grandpa_gaston": {
                 "name": "Grandpa Gaston",
@@ -79,8 +88,10 @@
                 "stats": {
                     "hp": 10,
                     "max_hp": 10,
-                    "status": "healthy"
-                }
+                    "status": "healthy",
+                    "initiative": 100
+                },
+                "hostile": true
             }
         },
         "quests": {

@@ -108,6 +108,7 @@ func (m *MyApp) setupComponents() {
 	m.Server.QuitBtn.
 		SetSelectedFunc(func() {
 			m.router.Inputs <- "QUIT"
+			m.app.Stop()
 		})
 }
 

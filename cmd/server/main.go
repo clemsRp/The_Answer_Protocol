@@ -6,25 +6,22 @@ import (
 	"os/signal"
 	"syscall"
 	"tap/engine"
-	"tap/engine/parser"
 	pr "tap/protocol"
 	"tap/server"
-	"time"
-)
-
-var (
-	t_start = time.Now().Unix()
-	world   parser.Map
 )
 
 func main() {
-	exchanger := pr.Exchanger{ServerInput: make(chan pr.ServerRequest, 100),
+	var (
+		world     *engine.Map
+		err       error
+		exchanger pr.Exchanger
+	)
+	exchanger = pr.Exchanger{ServerInput: make(chan pr.ServerRequest, 100),
 		ServerOutput: make(chan pr.EngineResponse, 100),
 		JoinChan:     make(chan string, 10),
 		LeaveChan:    make(chan string, 10)}
-	var err error
 
-	world, err = parser.Get_map("world.json")
+	world, err = engine.Get_map("world.json")
 	if err != nil {
 		fmt.Println("ERROR", err.Error())
 		return

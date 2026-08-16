@@ -29,9 +29,4 @@ const (
 	PromoteGroup        = "PROMOTE"
 	AcceptPromoteGroup  = "ACCEPT"
 	DeclinePromoteGroup = "DECLINE"
-
-	South = "south"
-	North = "north"
-	East  = "east"
-	West  = "west"
 )
