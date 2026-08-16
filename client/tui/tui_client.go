@@ -41,12 +41,13 @@ func NewTuiClient(world parser.Map) *TuiClient {
 		for input := range cli.inputs {
 			// Send command to the server
 			fmt.Fprint(conn, input+"\n")
-			// Save the last command to handle server returns
-			router.LastCommand = strings.ToUpper(strings.Split(input, " ")[0])
 
-			if strings.ToUpper(router.LastCommand) == "GROUP" {
-				router.LastCommand = strings.ToUpper(strings.Split(input, " ")[1])
+			// Save the last command to handle server returns
+			cmd := strings.ToUpper(strings.Fields(input)[0])
+			if cmd == "GROUP" && len(strings.Fields(input)) > 1 {
+				cmd = strings.ToUpper(strings.Fields(input)[1])
 			}
+			router.pendingCmds <- cmd
 		}
 	}()
 

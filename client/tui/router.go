@@ -7,8 +7,9 @@ import (
 )
 
 type Router struct {
-	Inputs  chan<- string
-	Outputs <-chan pr.ServerResponse
+	Inputs      chan<- string
+	Outputs     <-chan pr.ServerResponse
+	pendingCmds chan string
 
 	ChatChan        chan pr.ServerResponse
 	CommandLineChan chan pr.ServerResponse
@@ -23,8 +24,10 @@ type Router struct {
 
 func NewRouter(inputs chan string, outputs <-chan pr.ServerResponse) *Router {
 	return &Router{
-		Inputs:          inputs,
-		Outputs:         outputs,
+		Inputs:      inputs,
+		Outputs:     outputs,
+		pendingCmds: make(chan string, 50),
+
 		ChatChan:        make(chan pr.ServerResponse, 100),
 		CommandLineChan: make(chan pr.ServerResponse, 100),
 		ServerChan:      make(chan pr.ServerResponse, 100),
@@ -101,6 +104,14 @@ func (m *MyApp) UpdateRouterLayout() {
 }
 
 func (r *Router) handleLastCommandResponse(res pr.ServerResponse) {
+	// Get last command
+	var lastCmd string
+	select {
+	case lastCmd = <-r.pendingCmds:
+	default:
+		lastCmd = ""
+	}
+
 	// Handle Group commands
 	group_commands := []string{
 		pr.CmdUnGrouped,
@@ -113,15 +124,15 @@ func (r *Router) handleLastCommandResponse(res pr.ServerResponse) {
 		pr.LeaveGroup,
 		pr.KickGroup,
 	}
-	if slices.Contains(group_commands, r.LastCommand) {
+	if slices.Contains(group_commands, lastCmd) {
 		r.GroupChan <- res
 
-		if r.LastCommand == pr.CmdGrouped || r.LastCommand == pr.CmdUnGrouped {
+		if lastCmd == pr.CmdGrouped || lastCmd == pr.CmdUnGrouped {
 			r.DatasChan <- res
 		}
 
 	} else {
-		switch r.LastCommand {
+		switch lastCmd {
 		case pr.CmdConnect:
 			r.Inputs <- "UNGROUPED"
 			r.Inputs <- "LOOK"
