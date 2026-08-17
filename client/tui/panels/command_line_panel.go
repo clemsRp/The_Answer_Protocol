@@ -109,7 +109,7 @@ func (c *CommandLineComponent) ListenOutputs(ctx context.Context, wg *sync.WaitG
 				msg := fmt.Sprintf("%s %+v", res.Msg, datas)
 
 				app.QueueUpdateDraw(func() {
-					fmt.Fprint(c.History, msg+"\n")
+					fmt.Fprint(c.History, tview.Escape(msg)+"\n")
 				})
 			}
 		}

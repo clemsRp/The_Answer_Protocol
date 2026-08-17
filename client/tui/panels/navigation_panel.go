@@ -7,19 +7,20 @@ import (
 func NewNavigationComponent(
 	app *tview.Application,
 	popupGrid *tview.Grid,
+	room_name string,
 	exits map[string]string,
 	inputs chan<- string,
 	onOpenPopup func(popup *PopupComponent),
 	onClosePopup func(),
 ) *ChoiceListComponent {
-	options := ConvertExits(exits, inputs)
+	options := ConvertExits(room_name, exits, inputs)
 
 	src := NewChoiceListComponent(app, popupGrid, "Rooms", options, onOpenPopup, onClosePopup, false)
 
 	return src
 }
 
-func ConvertExits(exits map[string]string, inputs chan<- string) OptionsMap {
+func ConvertExits(room_name string, exits map[string]string, inputs chan<- string) map[string]OptionsMap {
 	res := make(OptionsMap)
 
 	for exit, room := range exits {
@@ -33,5 +34,5 @@ func ConvertExits(exits map[string]string, inputs chan<- string) OptionsMap {
 		}
 	}
 
-	return res
+	return map[string]OptionsMap{room_name: res}
 }

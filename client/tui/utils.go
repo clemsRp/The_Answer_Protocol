@@ -18,7 +18,6 @@ func findJsonStartIndex(line string) int {
 }
 
 func convertServerResponse(line string) pr.ServerResponse {
-
 	line = strings.TrimSpace(line)
 	jsonIndex := findJsonStartIndex(line)
 	isChatEvent := strings.HasPrefix(line, "EVT ") && strings.Contains(line, " CHAT ")

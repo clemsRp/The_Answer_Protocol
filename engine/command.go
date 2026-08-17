@@ -313,7 +313,14 @@ func (e *Engine) handleCmdInventory(player *Player, req []string) (string, any, 
 	if len(req) != 1 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
-	return "OK", player.inventory, nil
+
+	inventory := make([]string, 0)
+
+	for _, inv := range player.inventory {
+		inventory = append(inventory, inv.Id)
+	}
+
+	return "OK", inventory, nil
 }
 
 func (e *Engine) handleCmdQuest(player *Player, req []string) (string, any, error) {

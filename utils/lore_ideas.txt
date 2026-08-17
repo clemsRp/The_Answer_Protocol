@@ -7,6 +7,12 @@ CHOOSEN ONE:
 		- quest = Buy dentier using thousands of coins / Run to be the first to buy suppo/couches
 		- items = IN PROGRESS
 
+ASSETS:
+
+	- https://comshadow.itch.io/post-apocalyptic-abandoned-supermarket-tileset
+	- https://comshadow.itch.io/post-apocalyptic-abandoned-supermarket-top-down-pixel-art-tileset
+	- https://comshadow.itch.io/cyberpunk-city-tileset-pixel-art-asset-pack
+
 -------------------------------------------------------------------------------------------------------
 
 FIRST:

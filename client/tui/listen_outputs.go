@@ -32,12 +32,17 @@ func (m *MyApp) NavListenOutputs(res pr.ServerResponse) {
 	m.grid.RemoveItem(m.Navigation.Layout)
 
 	// Get new rooms
+	var room_name string
 	opts := make(map[string]string)
 
 	raw, err := json.Marshal(res.Datas)
 	if err == nil {
 		var data pr.LookCommandData
 		if err := json.Unmarshal(raw, &data); err == nil {
+			// Room_name
+			room_name = data.Name
+
+			// Exits
 			exits := data.Exits
 			if exits.North != "" {
 				opts["north"] = exits.North
@@ -58,6 +63,7 @@ func (m *MyApp) NavListenOutputs(res pr.ServerResponse) {
 	m.Navigation = panel.NewNavigationComponent(
 		m.app,
 		m.popup,
+		room_name,
 		opts,
 		m.router.Inputs,
 		m.OnOpenPopup,

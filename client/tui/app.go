@@ -70,7 +70,7 @@ func (m *MyApp) setupComponents() {
 	m.CommandLine = panel.NewCommandLineComponent(m.app, m.router.Inputs)
 	m.Server = panel.NewServerResponseComponent(m.app)
 	m.Group = panel.NewGroupComponent(m.app, m.popup, panel.GroupDatas{}, m.router.Inputs, m.OnOpenPopup, m.ShowGamePage)
-	m.Navigation = panel.NewNavigationComponent(m.app, m.popup, map[string]string{}, m.router.Inputs, m.OnOpenPopup, m.ShowGamePage)
+	m.Navigation = panel.NewNavigationComponent(m.app, m.popup, "", map[string]string{}, m.router.Inputs, m.OnOpenPopup, m.ShowGamePage)
 	m.Items = panel.NewItemsComponent(m.app, m.popup, []string{}, m.router.Inputs, m.OnOpenPopup, m.ShowGamePage)
 	m.Interaction = panel.NewInteractionComponent(m.app, m.popup, []string{}, []string{}, m.router.Inputs, m.OnOpenPopup, m.ShowGamePage)
 	m.Datas = panel.NewDatasComponent(m.app)
