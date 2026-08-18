@@ -84,6 +84,7 @@ func is_inside(elements []string, value string) bool {
 }
 func IsValidRoom(room *Room, m *Map, room_id string) error {
 	// Check exits
+	room.Id = room_id
 	for exit_dir, exit_room := range room.Exits {
 		if !is_inside(exits, exit_dir) {
 			return fmt.Errorf("Invalid map: '%s' exits doesn't exist", exit_dir)

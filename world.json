@@ -9,7 +9,7 @@
                     "east": "fresh_section"
                 },
                 "items": ["sword"],
-                "npcs": ["granny_jeanine"]
+                "npcs": ["grandpa_gaston"]
             },
             "health_aisle": {
                 "name": "Health & Pharmacy Aisle",
@@ -18,7 +18,7 @@
                     "south": "entrance"
                 },
                 "items": ["gold_denture", "suppository_box"],
-                "npcs": ["grandpa_gaston"]
+                "npcs": ["granny_jeanine"]
             },
             "fresh_section": {
                 "name": "Meat & Deli Counter",
@@ -62,7 +62,7 @@
                 "description": "A sword",
                 "obtainable": true,
                 "type": "weapon",
-                "damage": 10
+                "damage": 4
             }
         },
         "npcs": {

@@ -24,10 +24,10 @@ func (cs *CombatStats) Clone() *CombatStats {
 }
 
 type Fighter interface {
-	takeDamage(amount int)
+	takeDamage(amount int) int
 	isDead() bool
 	getName() string
 	getHp() int
 	getInitiative() int
-	playCombatTurn(target Fighter) *CombatTurnResult
+	getDamage() int
 }

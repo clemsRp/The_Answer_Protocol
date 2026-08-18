@@ -18,6 +18,7 @@ type Quest struct {
 }
 
 type Room struct {
+	Id          string            `json:"id"`
 	Name        string            `json:"name"`
 	Description string            `json:"description"`
 	Exits       map[string]string `json:"exits"`
@@ -31,5 +32,3 @@ type Map struct {
 	Npcs   map[string]*Npc   `json:"npcs"`
 	Quests map[string]*Quest `json:"quests"`
 }
-
-

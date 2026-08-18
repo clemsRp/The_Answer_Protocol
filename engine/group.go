@@ -304,11 +304,3 @@ func (e *Engine) decline_promotion(player *Player) (string, error) {
 
 	return "OK", nil
 }
-
-func (e *Engine) getPlayerGroup(player *Player) (*Group, bool) {
-	currentGroup, isInGroup := e.groups[player.group]
-	if !isInGroup {
-		return nil, false
-	}
-	return currentGroup, true
-}

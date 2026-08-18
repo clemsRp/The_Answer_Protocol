@@ -23,7 +23,8 @@ func Get_map(map_path string) (*Map, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Invalid file: JSON file must be parsable:\n%s\n", err)
 	}
-
+	
+	
 	// Handle invalid values
 	err = IsValidMap(&worlds[0])
 	if err != nil {
