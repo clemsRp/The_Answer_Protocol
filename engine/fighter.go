@@ -8,18 +8,19 @@ const (
 )
 
 type CombatStats struct {
-	Hp         int    `json:"hp"`
-	Initiative int    `json:"initiative"`
-	HpMax      int    `json:"max_hp"`
+	Hp         int    `json:"hp" validate:"gte=0"`
+	HpMax      int    `json:"max_hp" validate:"gt=0,gtefield=Hp"`
+	Mana       int    `json:"mana" validate:"gte=0"`
+	Initiative int    `json:"initiative" validate:"gt=0"`
 	CombatId   string `json:"combat_id,omitempty"`
-	Status     string `json:"status,omitempty"`
+	Status     string `json:"status" validate:"required,valid_npc_status"`
 }
 
-func (cs *CombatStats) Clone() *CombatStats {
-	if cs == nil {
+func (c *CombatStats) Clone() *CombatStats {
+	if c == nil {
 		return nil
 	}
-	cp := *cs
+	cp := *c
 	return &cp
 }
 

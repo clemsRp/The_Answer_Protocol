@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net"
 	pr "tap/protocol"
 	"time"
@@ -15,6 +16,7 @@ type Client struct {
 	conn        net.Conn               `json:"-"`
 	ch          chan pr.ServerResponse `json:"-"`
 	id          string
+	ip          string
 	spamWarning int
 }
 
@@ -28,6 +30,7 @@ func newClient(conn net.Conn, ch chan pr.ServerResponse) *Client {
 		conn: conn,
 		ch:   ch,
 		id:   uuid.New().String(),
+		ip:   conn.LocalAddr().String(),
 	}
 }
 
@@ -90,11 +93,14 @@ func (s *Server) readClientInput(cli *Client) {
 
 func (s *Server) handleSpam(cli *Client) bool {
 	cli.spamWarning++
-	if cli.spamWarning > 2 {
-		cli.ch <- pr.ServerResponse{Msg: pr.ErrSpam}
-		return true
+	if cli.spamWarning < 5 {
+		cli.ch <- pr.ServerResponse{Msg: pr.WarnSpam}
+		slog.Warn("Command spam", "result", pr.WarnSpam)
+		return false
 	}
-	return false
+	slog.Error("Command spam", "result", pr.ErrSpam)
+	cli.ch <- pr.ServerResponse{Msg: pr.ErrSpam}
+	return true
 }
 
 func (s *Server) clientWriter(cli *Client, responses <-chan pr.ServerResponse, done chan struct{}) {

@@ -2,6 +2,7 @@ package engine
 
 import (
 	"errors"
+	"log/slog"
 	"strings"
 	pr "tap/protocol"
 )
@@ -24,8 +25,14 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
 	req := strings.SplitN(request.Msg, " ", 5)
 	cmd := strings.ToUpper(req[0])
 
+	// Define variables
+	var pseudo string
+	var res string
+	var datas any
+	var err error
+
 	// validates session if player is connected
-	pseudo, err := e.validateSession(request.Id, cmd)
+	pseudo, err = e.validateSession(request.Id, cmd)
 	if err != nil {
 		return "", nil, err
 	}
@@ -38,40 +45,53 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
 	// Handle the command types for authentified players
 	switch cmd {
 	case pr.CmdQuit:
-		return e.handleCmdQuit(player, req)
+		res, datas, err = e.handleCmdQuit(player, req)
 	case pr.CmdWho:
-		return e.handleCmdWho(req)
+		res, datas, err = e.handleCmdWho(req)
 	case pr.CmdLook:
-		return e.handleCmdLook(player, req)
+		res, datas, err = e.handleCmdLook(player, req)
 	case pr.CmdUnGrouped:
-		return e.handleCmdUnGrouped(player, req)
+		res, datas, err = e.handleCmdUnGrouped(player, req)
 	case pr.CmdGrouped:
-		return e.handleCmdGrouped(player, req)
+		res, datas, err = e.handleCmdGrouped(player, req)
 	case pr.CmdMove:
-		return e.handleCmdMove(player, req)
+		res, datas, err = e.handleCmdMove(player, req)
 	case pr.CmdChat:
-		return e.handleCmdChat(player, req)
+		res, datas, err = e.handleCmdChat(player, req)
 	case pr.CmdGroup:
-		return e.handleCmdGroup(player, req)
+		res, datas, err = e.handleCmdGroup(player, req)
 	case pr.CmdStatus:
-		return e.handleCmdStatus(player, req)
+		res, datas, err = e.handleCmdStatus(player, req)
 	case pr.CmdTake:
-		return e.handleCmdTake(player, req)
+		res, datas, err = e.handleCmdTake(player, req)
 	case pr.CmdDrop:
-		return e.handleCmdDrop(player, req)
+		res, datas, err = e.handleCmdDrop(player, req)
 	case pr.CmdInventory:
-		return e.handleCmdInventory(player, req)
+		res, datas, err = e.handleCmdInventory(player, req)
 	case pr.CmdQuest:
-		return e.handleCmdQuest(player, req)
+		res, datas, err = e.handleCmdQuest(player, req)
 	case pr.CmdQuests:
-		return e.handleCmdQuests(player, req)
+		res, datas, err = e.handleCmdQuests(player, req)
 	case pr.CmdTalk:
-		return e.handleCmdTalk(player, req)
+		res, datas, err = e.handleCmdTalk(player, req)
 	case pr.CmdAttack:
-		return e.handleCmdAttack(player, req)
+		res, datas, err = e.handleCmdAttack(player, req)
 
 	default:
-		return "", nil, errors.New(pr.ErrInvalidCommand)
+		res, datas, err = "", nil, errors.New(pr.ErrInvalidCommand)
 	}
 
+	// Log server response
+	if err != nil {
+		res = err.Error()
+		slog.Error("Server response", "response", res, "command", request.Msg)
+
+	} else if datas != "" {
+		slog.Info("Server response", "response", res, "datas", datas, "command", request.Msg)
+
+	} else {
+		slog.Info("Server response", "response", res, "command", request.Msg)
+	}
+
+	return res, datas, err
 }

@@ -14,22 +14,20 @@ package engine
 type Quest struct {
 	Description string `json:"description"`
 	Reward      string `json:"reward"`
-	Status      string `json:"status"`
+	Status      string `json:"status" validate:"required,valid_quest_status"`
 }
 
 type Room struct {
-	Name        string            `json:"name"`
+	Name        string            `json:"name" validate:"required"`
 	Description string            `json:"description"`
-	Exits       map[string]string `json:"exits"`
-	Items       []string          `json:"items"`
-	Npcs        []string          `json:"npcs"`
+	Exits       map[string]string `json:"exits" validate:"dive,keys,valid_exit,endkeys,room_exists"`
+	Items       []string          `json:"items" validate:"dive,item_exists"`
+	Npcs        []string          `json:"npcs" validate:"dive,npc_exists"`
 }
 
 type Map struct {
-	Rooms  map[string]*Room  `json:"rooms"`
-	Items  map[string]*Item  `json:"items"`
-	Npcs   map[string]*Npc   `json:"npcs"`
-	Quests map[string]*Quest `json:"quests"`
+	Rooms  map[string]*Room  `json:"rooms" validate:"dive"`
+	Items  map[string]*Item  `json:"items" validate:"dive"`
+	Npcs   map[string]*Npc   `json:"npcs" validate:"dive"`
+	Quests map[string]*Quest `json:"quests" validate:"dive"`
 }
-
-

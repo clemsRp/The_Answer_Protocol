@@ -2,20 +2,20 @@ package engine
 
 type Item struct {
 	Id          string `json:"-"`
-	Name        string `json:"name"`
+	Name        string `json:"name" validate:"required"`
 	Description string `json:"description"`
 	Obtainable  bool   `json:"obtainable"`
-	Type        string `json:"type"`
+	Type        string `json:"type" validate:"required,valid_item_type"`
 	Tradable    bool   `json:"tradable"`
-	Worth       int    `json:"worth"`
+	Worth       int    `json:"worth" validate:"gte=0"`
 
-	Damage int `json:"damage,omitempty"`
+	Damage int `json:"damage,omitempty" validate:"required_if=Type weapon,omitempty,gt=0"`
 
-	TargetStat string `json:"target_stat,omitempty"`
-	Amount     int    `json:"amount,omitempty"`
-	EffectType string `json:"effect_type,omitempty"`
-	Duration   int    `json:"duration,omitempty"`
-	Charges    int    `json:"charges,omitempty"`
+	TargetStat string `json:"target_stat,omitempty" validate:"required_if=Type consumable,omitempty,valid_target_stat"`
+	Amount     int    `json:"amount,omitempty" validate:"required_if=Type consumable,omitempty,gt=0"`
+	EffectType string `json:"effect_type,omitempty" validate:"required_if=Type consumable,omitempty,valid_effect_type"`
+	Duration   int    `json:"duration,omitempty" validate:"required_if=Type consumable,omitempty,gt=0"`
+	Charges    int    `json:"charges,omitempty" validate:"required_if=Type consumable,omitempty,gt=0"`
 }
 type Weapon struct {
 	*Item

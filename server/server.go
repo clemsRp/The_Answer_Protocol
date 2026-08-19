@@ -1,6 +1,7 @@
 package server
 
 import (
+	"log/slog"
 	"sync"
 	pr "tap/protocol"
 	"time"
@@ -59,15 +60,22 @@ func (s *Server) broadcaster() {
 	for {
 		select {
 		case req := <-s.requests:
+			slog.Info("Client request", "command", req.msg)
 			s.exchanger.ServerInput <- pr.ServerRequest{Id: req.id, Msg: req.msg}
+
 		case cli := <-s.entering:
+			slog.Info("Client connection", "ip", cli.ip)
 			s.addClient(cli)
 			s.exchanger.JoinChan <- cli.id
+
 		case cli := <-s.leaving:
+			slog.Info("Client disconnection", "ip", cli.ip)
 			s.removeClient(cli)
 			s.exchanger.LeaveChan <- cli.id
+
 		case output := <-s.exchanger.ServerOutput:
 			s.sendToClient(output)
+
 		case <-s.quit:
 			s.shutdown()
 			return

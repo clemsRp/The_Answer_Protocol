@@ -5,16 +5,16 @@ import (
 )
 
 type Npc struct {
-	Name        string       `json:"name"`
+	Name        string       `json:"name" validate:"required"`
 	Description string       `json:"description"`
 	Dialogue    []string     `json:"dialogue"`
-	Role        string       `json:"role"`
-	QuestId     string       `json:"quest_id"`
-	Stats       *CombatStats `json:"stats,omitempty"`
+	Role        string       `json:"role" validate:"required,valid_role"`
+	QuestId     string       `json:"quest_id" validate:"omitempty,quest_exists"`
+	Stats       *CombatStats `json:"stats,omitempty" validate:"required_if=Hostile true"`
 	Hostile     bool         `json:"hostile"`
 	Damage      int          `json:"damage"`
 	InCombat    bool         `json:"omitempty"`
-	Fighter
+	Fighter     `validate:"-"`
 }
 
 func (n *Npc) isDead() bool {

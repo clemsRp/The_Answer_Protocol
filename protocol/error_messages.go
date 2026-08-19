@@ -49,6 +49,7 @@ const (
 const (
 	ErrConnectionFailed = "ERR 900 CONNECTION_FAILED"
 	ErrSendFailed       = "ERR 901 SEND_FAILED"
+	WarnSpam            = "ERR 902 WARNING_DUE_TO_SPAM"
 	ErrSpam             = "ERR 902 CONNECTION_CLOSED_DUE_TO_SPAM"
 	ErrServerFull       = "ERR 901 SERVER_FULL"
 )

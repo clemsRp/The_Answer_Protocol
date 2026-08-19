@@ -1,12 +1,27 @@
 package engine
 
 import (
+	"log/slog"
 	"slices"
+	"strings"
 	pr "tap/protocol"
 )
 
+func send_log(msg string) {
+	// Log changes
+	change_type := "world"
+	if strings.HasPrefix(msg, "EVT GROUP") {
+		change_type = "group"
+	}
+	slog.Info(change_type+" state changed", "changes", msg)
+}
+
 func (e *Engine) inform_user(player *Player, msg string) {
+	// Inform user
 	e.exchanger.ServerOutput <- pr.EngineResponse{Id: player.id, Msg: msg}
+
+	// Log server
+	send_log(msg)
 }
 
 func (e *Engine) inform_room(player *Player, room *Room, msg string) {
@@ -15,6 +30,9 @@ func (e *Engine) inform_room(player *Player, room *Room, msg string) {
 			e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: msg}
 		}
 	}
+
+	// Log server
+	send_log(msg)
 }
 
 func (e *Engine) inform_group(player *Player, group string, msg string) {
@@ -23,6 +41,9 @@ func (e *Engine) inform_group(player *Player, group string, msg string) {
 			e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: msg}
 		}
 	}
+
+	// Log server
+	send_log(msg)
 }
 
 func (e *Engine) inform_group_invitations(player *Player, group string, msg string) {
@@ -31,6 +52,9 @@ func (e *Engine) inform_group_invitations(player *Player, group string, msg stri
 			e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: msg}
 		}
 	}
+
+	// Log server
+	send_log(msg)
 }
 
 func (e *Engine) inform_all(player *Player, msg string) {
@@ -39,6 +63,9 @@ func (e *Engine) inform_all(player *Player, msg string) {
 			e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: msg}
 		}
 	}
+
+	// Log server
+	send_log(msg)
 }
 
 func GetElementIndex[T comparable](slice []T, element_need T) int {
