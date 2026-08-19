@@ -114,6 +114,16 @@ var aliceMovesNorth = ScenariosCommandTest{
 	TestOnConnection: "alice",
 }
 
+var aliceMovesToHealthAisle = ScenariosCommandTest{
+	Name:    "Alice moves to the health aisle",
+	Command: "MOVE north",
+	ExpectedReplies: []Reply{
+		{"OK room=", "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
 var aliceMovesSouth = ScenariosCommandTest{
 	Name:    "Alice valid movement south",
 	Command: "MOVE south",
@@ -225,7 +235,7 @@ var aliceChecksInventory = ScenariosCommandTest{
 
 var aliceTalksToNPC = ScenariosCommandTest{
 	Name:    "Alice talks to NPC in entrance",
-	Command: "TALK granny_jeanine",
+	Command: "TALK grandpa_gaston",
 	ExpectedReplies: []Reply{
 		{"OK", "alice"},
 	},
@@ -236,10 +246,86 @@ var aliceTalksToNPC = ScenariosCommandTest{
 var aliceAttacksHostileNPC = ScenariosCommandTest{
 
 	Name:    "Attack hostile NPC",
-	Command: "ATTACK granny_jeanine",
+	Command: "ATTACK grandpa_gaston",
 	ExpectedReplies: []Reply{
+		{"EVT COMBAT TURN Grandpa Gaston", "alice"},
+		{"EVT COMBAT TURN alice", "alice"},
 		{"OK", "alice"},
 	},
-	ExpectsJSON:      true,
+	ExpectsJSON:      false,
 	TestOnConnection: "alice",
+}
+
+var aliceAttacksHostileNPCAgain = ScenariosCommandTest{
+	Name:    "Alice attacks hostile NPC on her first turn",
+	Command: "ATTACK grandpa_gaston",
+	ExpectedReplies: []Reply{
+		{"EVT COMBAT TURN Grandpa Gaston", "alice"},
+		{"EVT COMBAT TURN alice", "alice"},
+		{"OK", "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceDefeatsHostileNPC = ScenariosCommandTest{
+	Name:    "Alice defeats hostile NPC",
+	Command: "ATTACK grandpa_gaston",
+	ExpectedReplies: []Reply{
+		{"EVT COMBAT TURN alice", "alice"},
+		{"EVT COMBAT VICTORY", "alice"},
+		{"OK", "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceStartsGroupCombat = ScenariosCommandTest{
+	Name:    "Alice starts combat with Bob",
+	Command: "ATTACK grandpa_gaston",
+	ExpectedReplies: []Reply{
+		{"EVT COMBAT TURN Grandpa Gaston", "alice"},
+		{"EVT COMBAT TURN alice", "alice"},
+		{"OK", "alice"},
+		{"EVT COMBAT FIGHT_STARTED", "bob"},
+		{"EVT COMBAT TURN Grandpa Gaston", "bob"},
+		{"EVT COMBAT TURN alice", "bob"},
+		{"EVT COMBAT UPDATE", "bob"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceFleesCombat = ScenariosCommandTest{
+	Name:    "Alice flees combat",
+	Command: "FLEE",
+	ExpectedReplies: []Reply{
+		{"OK", "alice"},
+		{"EVT COMBAT TURN bob", "bob"},
+		{"EVT COMBAT ALLY_LEAVE_COMBAT alice", "bob"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var bobAttacksAfterAliceFlees = ScenariosCommandTest{
+	Name:    "Bob attacks after Alice flees",
+	Command: "ATTACK grandpa_gaston",
+	ExpectedReplies: []Reply{
+		{"EVT COMBAT TURN Grandpa Gaston", "bob"},
+		{"EVT COMBAT TURN bob", "bob"},
+		{"OK", "bob"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "bob",
+}
+
+var bobFleesLastFromCombat = ScenariosCommandTest{
+	Name:    "Bob flees as the last combatant",
+	Command: "FLEE",
+	ExpectedReplies: []Reply{
+		{"OK", "bob"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "bob",
 }

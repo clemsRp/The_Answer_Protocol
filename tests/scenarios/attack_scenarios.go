@@ -5,19 +5,34 @@ import "tap/protocol"
 var attackHostileNPCScenario = []ScenariosCommandTest{
 	connectAlice,
 	aliceAttacksHostileNPC,
+	aliceAttacksHostileNPCAgain,
+	aliceDefeatsHostileNPC,
 }
 
 var attackNonHostileNPCScenario = []ScenariosCommandTest{
 	connectAlice,
+	aliceMovesToHealthAisle,
 	{
 		Name:    "Attack NON hostile NPC",
-		Command: "ATTACK Nonostil",
+		Command: "ATTACK granny_jeanine",
 		ExpectedReplies: []Reply{
 			{protocol.ErrNpcNotHostile, "alice"},
 		},
 		ExpectsJSON:      false,
 		TestOnConnection: "alice",
 	},
+}
+
+var attackGroupAndFleeScenario = []ScenariosCommandTest{
+	connectAlice,
+	connectBob,
+	aliceCreatesGroup,
+	aliceInvitesBobInGroup,
+	bobJoinAliceGroup,
+	aliceStartsGroupCombat,
+	aliceFleesCombat,
+	bobAttacksAfterAliceFlees,
+	bobFleesLastFromCombat,
 }
 
 var attackUnexistantNPCScenario = []ScenariosCommandTest{
@@ -47,6 +62,10 @@ var attackScenarioFamily = ScenarioFamily{
 		{
 			Name:  "attack unexistant NPC",
 			Steps: attackUnexistantNPCScenario,
+		},
+		{
+			Name:  "group combat survives an ally fleeing",
+			Steps: attackGroupAndFleeScenario,
 		},
 	},
 }

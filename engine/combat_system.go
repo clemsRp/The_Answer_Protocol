@@ -203,6 +203,9 @@ func (cs *CombatSession) processNpcsTurn() {
 				break
 			}
 		}
+		if current_target == nil {
+			return
+		}
 		inflicted := current_target.takeDamage(npcFighter.getDamage())
 		if cs.checkIfPlayersAreDead() {
 			cs.State = StateDefeat
@@ -301,6 +304,9 @@ func (cs *CombatSession) addNpcToCombat(npc *Npc) {
 }
 
 func (e *Engine) end_combat(cs *CombatSession) {
+	if cs.State == StateVictory {
+		e.inform_combat_players(cs, nil, "EVT COMBAT VICTORY")
+	}
 	for _, player := range cs.Players {
 		player.stats.CombatId = ""
 		player.inCombat = false
@@ -313,7 +319,6 @@ func (e *Engine) end_combat(cs *CombatSession) {
 		}
 		if cs.State == StateVictory {
 			//reward
-			e.inform_combat_players(cs, nil, "EVT COMBAT VICTORY")
 			for _, npc := range cs.Npcs {
 				fmt.Println("npc ID", npc.Id)
 				player.DefeatedNpcs = append(player.DefeatedNpcs, npc.Id)
