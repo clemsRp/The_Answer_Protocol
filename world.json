@@ -67,6 +67,7 @@
         },
         "npcs": {
             "granny_jeanine": {
+                "id": "granny_jeanine",
                 "name": "Granny Jeanine",
                 "description": "An elderly lady in a hurry who pays exclusively in 1-cent coins.",
                 "dialogue": [
@@ -76,8 +77,10 @@
                 "role": "quest",
                 "quest_id": "buy_denture",
                 "hostile": false
+
             },
             "grandpa_gaston": {
+                  "id": "grandpa_gaston",
                 "name": "Grandpa Gaston",
                 "description": "A veteran sprinter ready to do anything to snag the best discounts.",
                 "dialogue": [

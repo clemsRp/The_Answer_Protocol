@@ -38,6 +38,7 @@ const (
 	ErrNoQuestAvailable  = "ERR 406 NO_QUEST_AVAILABLE"
 	ErrNotYourTurnToPlay = "ERR 407 NOT_YOUR_TURN"
 	ErrNoAllyAttack      = "ERR 408 NO_ALLY_ATTACK"
+	ErrNotInCombat       = "ERR 409 NOT_IN_COMBAT"
 )
 
 // Internal server

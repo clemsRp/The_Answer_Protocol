@@ -128,6 +128,12 @@ func (e *Engine) handleCmdLook(player *Player, req []string) (string, any, error
 		East:  player.room.Exits["east"],
 		West:  player.room.Exits["west"],
 	}
+	npcs := make([]string, 0)
+	for _, npc := range player.room.Npcs {
+		if !slices.Contains(player.DefeatedNpcs, npc) {
+			npcs = append(npcs, npc)
+		}
+	}
 	res := pr.LookCommandData{
 		Id:          "room." + player.room.Name,
 		Name:        player.room.Name,
@@ -135,7 +141,7 @@ func (e *Engine) handleCmdLook(player *Player, req []string) (string, any, error
 		Exits:       exits,
 		Players:     players,
 		Items:       player.room.Items,
-		Npcs:        player.room.Npcs,
+		Npcs:        npcs,
 	}
 
 	return "OK", res, nil
@@ -397,22 +403,69 @@ func (e *Engine) handleCmdTalk(player *Player, req []string) (string, any, error
 }
 
 func (e *Engine) handleCmdAttack(player *Player, req []string) (string, any, error) {
-
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
+
 	npcName := req[1]
 	npc_copy, err := e.getValidTarget(player, npcName)
 	if err != nil {
 		return "", "", err
 	}
+
 	combat_session, exists := e.activeCombats[player.stats.CombatId]
+
+	var res string
+	var fullResponse *FullTurnResponse
+
 	if !exists {
-		return e.initiateCombat(player, npc_copy)
+		combat_session, res, fullResponse = e.initiateCombat(player, npc_copy)
+	} else {
+		if !combat_session.isFighterTurn(player) {
+			return "", nil, errors.New(pr.ErrNotYourTurnToPlay)
+		}
+		res, fullResponse = combat_session.processCombatTurn(player, npc_copy)
 	}
-	if !combat_session.isFighterTurn(player) {
-		return "", nil, errors.New(pr.ErrNotYourTurnToPlay)
+	if len(combat_session.Players) > 1 {
+		eventMsg, jsonErr := convertObjectToJson("EVT COMBAT UPDATE", fullResponse)
+		if jsonErr == nil {
+			e.inform_combat_players(combat_session, player, eventMsg)
+		} else {
+			return "", nil, errors.New(pr.ErrInternalServer)
+		}
 	}
 
-	return combat_session.processCombatTurn(player, npc_copy, false)
+	if combat_session.State != StateOngoing {
+		e.end_combat(combat_session)
+	}
+
+	return res, fullResponse, nil
+}
+
+func (e *Engine) handleCmdFlee(player *Player, req []string) (string, any, error) {
+	if len(req) != 1 {
+		return "", nil, errors.New(pr.ErrInvalidCommand)
+	}
+	cs, isInCombat := e.activeCombats[player.stats.CombatId]
+	if !isInCombat {
+		return "", nil, errors.New(pr.ErrNotInCombat)
+	}
+	err := cs.leaveCombat(player)
+	if err != nil {
+		return "", nil, err
+	}
+	combat_end := true
+	for _, p := range cs.Players {
+		if p.inCombat {
+			combat_end = false
+		}
+	}
+	if combat_end {
+		cs.State = StateCancelled
+	}
+
+	msgEvent := fmt.Sprintf("EVT COMBAT ALLY_LEAVE_COMBAT %s", player.name)
+	e.inform_combat_players(cs, player, msgEvent)
+	return "OK", nil, nil
+
 }

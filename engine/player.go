@@ -13,6 +13,7 @@ type Player struct {
 	inventory      []*Item
 	quests         []*Quest
 	invitations    []string
+	DefeatedNpcs   []string
 	promotion      bool
 	send_promotion bool
 	inCombat       bool
@@ -50,6 +51,7 @@ func (p *Player) getDamage() int {
 func (p *Player) getName() string {
 	return p.name
 }
+
 func (p *Player) getInitiative() int {
 	return p.stats.Initiative
 }

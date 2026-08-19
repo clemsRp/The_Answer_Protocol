@@ -69,6 +69,8 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
 		return e.handleCmdTalk(player, req)
 	case pr.CmdAttack:
 		return e.handleCmdAttack(player, req)
+	case pr.CmdFlee:
+		return e.handleCmdFlee(player, req)
 
 	default:
 		return "", nil, errors.New(pr.ErrInvalidCommand)

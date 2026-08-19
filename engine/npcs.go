@@ -15,6 +15,8 @@ type Npc struct {
 	Hostile     bool         `json:"hostile"`
 	Damage      int          `json:"damage"`
 	InCombat    bool         `json:"omitempty"`
+	XpReward    int          `json:"xp_reward,omitempty"`
+	ItemsReward []*Item      `json:"items_reward,omitempty"`
 	Fighter
 }
 

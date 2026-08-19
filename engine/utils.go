@@ -1,6 +1,9 @@
 package engine
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
 	"slices"
 	pr "tap/protocol"
 )
@@ -20,6 +23,14 @@ func (e *Engine) inform_room(player *Player, room *Room, msg string) {
 func (e *Engine) inform_group(player *Player, group string, msg string) {
 	for pseudo, p := range e.players {
 		if p.group == group && pseudo != player.name {
+			e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: msg}
+		}
+	}
+}
+
+func (e *Engine) inform_combat_players(cs *CombatSession, player *Player, msg string) {
+	for _, p := range cs.Players {
+		if p.inCombat && (player == nil || player.name != p.name) {
 			e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: msg}
 		}
 	}
@@ -68,4 +79,13 @@ func MoveElement[T any](slice []T, from int, to int) []T {
 	slice = append(slice[:to], append([]T{elem}, slice[to:]...)...)
 
 	return slice
+}
+
+func convertObjectToJson[T any](message string, datas T) (string, error) {
+	jsonDatas, err := json.Marshal(datas)
+	if err != nil {
+		return "", errors.New(pr.ErrInternalServer)
+	}
+	fullMsg := fmt.Sprintf("%s %s", message, jsonDatas)
+	return fullMsg, nil
 }

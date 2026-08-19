@@ -5,6 +5,7 @@ const (
 	CategoryGlobal = "GLOBAL"
 	CategoryGroup  = "GROUP"
 	CategoryStats  = "STATS"
+	CategoryCombat = "COMBAT"
 )
 
 const (
@@ -15,6 +16,7 @@ const (
 	TypeJoin          = "JOIN"
 	TypeLeave         = "LEAVE"
 	TypePlayers       = "PLAYERS"
+	TypeAllyTurn      = "ALLY_TURN"
 )
 
 type ServerEvent struct {
