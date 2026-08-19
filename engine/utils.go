@@ -1,6 +1,9 @@
 package engine
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
 	"log/slog"
 	"slices"
 	"strings"
@@ -44,6 +47,14 @@ func (e *Engine) inform_group(player *Player, group string, msg string) {
 
 	// Log server
 	send_log(msg)
+}
+
+func (e *Engine) inform_combat_players(cs *CombatSession, player *Player, msg string) {
+	for _, p := range cs.Players {
+		if p.inCombat && (player == nil || player.name != p.name) {
+			e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: msg}
+		}
+	}
 }
 
 func (e *Engine) inform_group_invitations(player *Player, group string, msg string) {
@@ -95,4 +106,13 @@ func MoveElement[T any](slice []T, from int, to int) []T {
 	slice = append(slice[:to], append([]T{elem}, slice[to:]...)...)
 
 	return slice
+}
+
+func convertObjectToJson[T any](message string, datas T) (string, error) {
+	jsonDatas, err := json.Marshal(datas)
+	if err != nil {
+		return "", errors.New(pr.ErrInternalServer)
+	}
+	fullMsg := fmt.Sprintf("%s %s", message, jsonDatas)
+	return fullMsg, nil
 }

@@ -1,8 +1,9 @@
+- Quests system
+- world.json
+- Tests:
+combat system - flee, defend, ATTACK
+tests engine scenarios
 
-- QUESTS:
-	-Adapt progress datas and
-
-- ATTACK:
-	- Check that npc is hostile
-	- Adapt combat damage
-	- Update values after combat
+- tui combat panel
+- tui data panel
+- gui -> 

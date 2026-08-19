@@ -52,8 +52,17 @@ func Get_map(map_path string) (*Map, error) {
 		return nil, err
 	}
 
+	// Add ids to map structures
 	for id, item := range world.Items {
 		item.Id = id
+	}
+
+	for id, room := range world.Rooms {
+		room.Id = id
+	}
+
+	for id, npc := range world.Npcs {
+		npc.Id = id
 	}
 
 	return world, nil

@@ -13,6 +13,7 @@ type Player struct {
 	inventory      []*Item
 	quests         []*Quest
 	invitations    []string
+	DefeatedNpcs   []string
 	promotion      bool
 	send_promotion bool
 	inCombat       bool
@@ -38,18 +39,19 @@ func (p *Player) getHp() int {
 	return p.stats.Hp
 }
 
-func (p *Player) takeDamage(amount int) {
+func (p *Player) takeDamage(amount int) int {
 	p.stats.Hp -= amount
+	return amount
 }
 
-func (p *Player) playCombatTurn(target Fighter) *CombatTurnResult {
-	target.takeDamage(p.equippedWeapon.Damage)
-	turn_result := &CombatTurnResult{AttackerHp: p.getHp(), TargetHp: target.getHp(), Damage: p.equippedWeapon.Damage, Status: "combat"}
-	return turn_result
+func (p *Player) getDamage() int {
+	return p.equippedWeapon.Damage
 }
+
 func (p *Player) getName() string {
 	return p.name
 }
+
 func (p *Player) getInitiative() int {
 	return p.stats.Initiative
 }

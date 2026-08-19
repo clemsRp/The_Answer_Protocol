@@ -10,6 +10,7 @@ const (
 	CmdInventory = "INVENTORY"
 	CmdTalk      = "TALK"
 	CmdAttack    = "ATTACK"
+	CmdFlee      = "FLEE"
 	CmdStatus    = "STATUS"
 	CmdQuest     = "QUEST"
 	CmdQuests    = "QUESTS"

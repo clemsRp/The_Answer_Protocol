@@ -18,6 +18,7 @@ type Quest struct {
 }
 
 type Room struct {
+	Id          string            `json:"-" validate:"-"`
 	Name        string            `json:"name" validate:"required"`
 	Description string            `json:"description"`
 	Exits       map[string]string `json:"exits" validate:"dive,keys,valid_exit,endkeys,room_exists"`

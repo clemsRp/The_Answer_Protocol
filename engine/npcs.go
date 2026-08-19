@@ -5,6 +5,7 @@ import (
 )
 
 type Npc struct {
+	Id          string       `json:"-" validate:"-"`
 	Name        string       `json:"name" validate:"required"`
 	Description string       `json:"description"`
 	Dialogue    []string     `json:"dialogue"`
@@ -14,6 +15,8 @@ type Npc struct {
 	Hostile     bool         `json:"hostile"`
 	Damage      int          `json:"damage"`
 	InCombat    bool         `json:"omitempty"`
+	XpReward    int          `json:"xp_reward,omitempty"`
+	ItemsReward []*Item      `json:"items_reward,omitempty"`
 	Fighter     `validate:"-"`
 }
 
@@ -24,8 +27,9 @@ func (n *Npc) isDead() bool {
 	return false
 }
 
-func (n *Npc) takeDamage(amount int) {
+func (n *Npc) takeDamage(amount int) int {
 	n.Stats.Hp -= amount
+	return amount
 	// maybe here substraction with defense of entity
 }
 func (n *Npc) getHp() int {
@@ -36,10 +40,8 @@ func (n *Npc) getInitiative() int {
 	return n.Stats.Initiative
 }
 
-func (n *Npc) playCombatTurn(target Fighter) *CombatTurnResult {
-	target.takeDamage(n.Damage)
-	turn_result := &CombatTurnResult{AttackerHp: n.getHp(), TargetHp: target.getHp(), Damage: n.Damage, Status: "combat"}
-	return turn_result
+func (n *Npc) getDamage() int {
+	return n.Damage
 }
 
 func (n *Npc) Clone() *Npc {
