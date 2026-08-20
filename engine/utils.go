@@ -116,3 +116,4 @@ func convertObjectToJson[T any](message string, datas T) (string, error) {
 	fullMsg := fmt.Sprintf("%s %s", message, jsonDatas)
 	return fullMsg, nil
 }
+

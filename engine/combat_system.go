@@ -62,7 +62,7 @@ type CombatTurnResult struct {
 	TargetHp     int         `json:"target_hp"`
 	Damage       int         `json:"damage"`
 	Status       CombatState `json:"status"`
-	IsTargetDead bool        `json:"is_attacker_dead"`
+	IsTargetDead bool        `json:"is_target_dead"`
 }
 
 type ActionLog struct {
@@ -72,7 +72,7 @@ type ActionLog struct {
 }
 
 type FullTurnResponse struct {
-	PlayerAction ActionLog   `json:"player_action"`
+	PlayerAction *ActionLog  `json:"player_action"`
 	NpcReactions []ActionLog `json:"npc_reactions"`
 	CombatState  CombatState `json:"combat_state"`
 }
@@ -130,7 +130,7 @@ func (e *Engine) initiateCombat(player *Player, npc_copy *Npc) (*CombatSession, 
 	} else {
 		for _, p := range group.players {
 			// add players in the combat only if they are in the same room
-			if p.room == player.room && !p.inCombat {
+			if cs.RoomId == p.room.Id && !p.inCombat && !p.isDead() {
 				if !slices.Contains(p.DefeatedNpcs, npc_copy.Id) {
 					msg := fmt.Sprintf("%s%s", pr.EventCombatStarted, player.name)
 					e.inform_user(p, msg)
@@ -173,7 +173,7 @@ func (cs *CombatSession) processCombatTurn(attacker Fighter, target Fighter) (st
 		cs.TurnResponse.CombatState = cs.State
 	}
 	player_turn_result := &CombatTurnResult{AttackerHp: attacker.getHp(), TargetHp: target.getHp(), Damage: inflicted_damage, Status: cs.State, IsTargetDead: target.isDead()}
-	cs.TurnResponse.PlayerAction = ActionLog{
+	cs.TurnResponse.PlayerAction = &ActionLog{
 		ActorName:  attacker.getName(),
 		TargetName: target.getName(),
 		Result:     player_turn_result,
@@ -288,6 +288,9 @@ func (cs *CombatSession) nextTurn() {
 			}
 		}
 		if canPlay {
+			if cs.State != StateOngoing {
+				break
+			}
 			current_player := cs.Fighters[cs.CurrentTurn]
 			msg := fmt.Sprintf("%s%s", pr.EventCombatTurn, current_player.getName())
 			cs.Engine.inform_combat_players(cs, nil, msg)
@@ -324,7 +327,8 @@ func (e *Engine) end_combat(cs *CombatSession) {
 		e.inform_combat_players(cs, nil, pr.EventCombatVictory)
 		for _, player := range cs.Players {
 			if !player.isDead() && player.inCombat && player.stats.CombatId == cs.Id && player.room.Id == cs.Id {
-
+				player.inCombat = false
+				player.stats.CombatId = ""
 				for _, npc := range cs.Npcs {
 					player.DefeatedNpcs = append(player.DefeatedNpcs, npc.Id)
 				}
@@ -346,6 +350,8 @@ func (cs *CombatSession) leaveCombat(player *Player) error {
 	}
 	player.inCombat = false
 	player.stats.CombatId = ""
+	cs.TurnResponse.PlayerAction = nil
+	cs.TurnResponse.NpcReactions = []ActionLog{}
 	cs.nextTurn()
 	cs.processNpcsTurn()
 	return nil

@@ -18,7 +18,7 @@
                     "south": "entrance"
                 },
                 "items": ["gold_denture", "suppository_box"],
-                "npcs": ["granny_jeanine"]
+                "npcs": ["granny_jeanine", "killer2"]
             },
             "fresh_section": {
                 "name": "Meat & Deli Counter",
@@ -107,6 +107,21 @@
             },
             "killer": {
                 "name": "Killer",
+                "description": "NPC uniquement utilisé par les tests de combat.",
+                "dialogue": [],
+                "role": "dialogue",
+                "quest_id": "",
+                "hostile": true,
+                "damage": 100,
+                "stats": {
+                    "hp": 100,
+                    "max_hp": 100,
+                    "status": "healthy",
+                    "initiative": 110
+                }
+                },
+             "killer2": {
+                "name": "Killer2",
                 "description": "NPC uniquement utilisé par les tests de combat.",
                 "dialogue": [],
                 "role": "dialogue",

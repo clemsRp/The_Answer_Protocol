@@ -135,7 +135,7 @@ func (e *Engine) handleCmdLook(player *Player, req []string) (string, any, error
 		}
 	}
 	res := pr.LookCommandData{
-		Id:          "room." + player.room.Name,
+		Id:          player.room.Id,
 		Name:        player.room.Name,
 		Description: player.room.Description,
 		Exits:       exits,
@@ -210,6 +210,10 @@ func (e *Engine) handleCmdChat(player *Player, req []string) (string, any, error
 func (e *Engine) handleCmdGroup(player *Player, req []string) (string, any, error) {
 	var err error
 	var res string
+	if len(req) <= 1 {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+
+	}
 	scope := strings.ToUpper(req[1])
 
 	// Handle invalid command
@@ -481,6 +485,14 @@ func (e *Engine) handleCmdFlee(player *Player, req []string) (string, any, error
 
 	msgEvent := fmt.Sprintf("%s%s", pr.EventCombatAllyLeaveCombat, player.name)
 	e.inform_combat_players(cs, player, msgEvent)
+	if len(cs.Players) > 1 {
+		eventMsg, jsonErr := convertObjectToJson("EVT COMBAT UPDATE", cs.TurnResponse)
+		if jsonErr == nil {
+			e.inform_combat_players(cs, player, eventMsg)
+		} else {
+			return "", nil, errors.New(pr.ErrInternalServer)
+		}
+	}
 	return "OK", nil, nil
 
 }
