@@ -9,7 +9,7 @@
                     "east": "fresh_section"
                 },
                 "items": ["sword"],
-                "npcs": ["grandpa_gaston", "samus", "quest_giver"]
+                "npcs": ["grandpa_gaston", "samus", "quest_giver", "killer"]
             },
             "health_aisle": {
                 "name": "Health & Pharmacy Aisle",
@@ -101,9 +101,25 @@
                     "max_hp": 10,
                     "status": "healthy",
                     "initiative": 110
+            
                 },
                 "hostile": true
             },
+            "killer": {
+                "name": "Killer",
+                "description": "NPC uniquement utilisé par les tests de combat.",
+                "dialogue": [],
+                "role": "dialogue",
+                "quest_id": "",
+                "hostile": true,
+                "damage": 100,
+                "stats": {
+                    "hp": 100,
+                    "max_hp": 100,
+                    "status": "healthy",
+                    "initiative": 110
+                }
+                },
             "samus": {
                 "name": "samus",
                 "description": "A test hostile NPC",

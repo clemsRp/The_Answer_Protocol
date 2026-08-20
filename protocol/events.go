@@ -27,6 +27,7 @@ const (
 	EventCombatDefeat                    = "EVT COMBAT DEFEAT new_room="
 	EventCombatStarted                   = "EVT COMBAT STARTED launcher="
 	EventCombatAllyLeaveCombat           = "EVT COMBAT ALLY_LEAVE_COMBAT player="
+	EventCombatPlayerDied                = "EVT COMBAT PLAYER_DIED player="
 	EventDistantGroupCombatStartedCombat = "EVT GROUP DISTANT_COMBAT_START launcher="
 
 	// Room Events

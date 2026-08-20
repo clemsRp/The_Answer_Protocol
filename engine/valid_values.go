@@ -3,15 +3,12 @@ package engine
 import (
 	"fmt"
 	"reflect"
+	pr "tap/protocol"
 
 	"github.com/go-playground/validator/v10"
 )
 
-const (
-	RoomEntrance     = "entrance"
-	RoomHealthAisle  = "health_aisle"
-	RoomFreshSection = "fresh_section"
-)
+
 
 const (
 	South = "south"
@@ -22,9 +19,9 @@ const (
 
 var (
 	valid_maps = []string{
-		RoomEntrance,
-		RoomHealthAisle,
-		RoomFreshSection,
+		pr.RoomEntrance,
+		pr.RoomHealthAisle,
+		pr.RoomFreshSection,
 	}
 
 	exits = []string{

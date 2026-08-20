@@ -25,6 +25,17 @@ var connectBob = ScenariosCommandTest{
 	ExpectsJSON:      false,
 	TestOnConnection: "bob",
 }
+var connectCarl = ScenariosCommandTest{
+	Name:    "CONNECT user",
+	Command: "CONNECT carl",
+	ExpectedReplies: []Reply{
+		{"OK connected", "carl"},
+		{protocol.EventStatsPlayers, "carl"},
+		{protocol.EventRoomPresenceEnter, "carl"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "bob",
+}
 
 // GROUP SCENARIOS
 
@@ -59,6 +70,8 @@ var bobJoinAliceGroup = ScenariosCommandTest{
 	ExpectsJSON:      false,
 	TestOnConnection: "bob",
 }
+
+
 var aliceLeavesGroup = ScenariosCommandTest{
 	Name:    "Alice leaves group",
 	Command: "GROUP LEAVE",
@@ -304,6 +317,37 @@ var aliceStartsAnotherGroupCombat = ScenariosCommandTest{
 		{protocol.EventCombatTurn + "samus", "alice"},
 		{protocol.EventCombatTurn + "alice", "alice"},
 		{protocol.EventDistantGroupCombatStartedCombat + "alice", "bob"},
+		{"OK", "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceStartsGroupCombatAgainstKillerAndDiesToRespawnWithLessHp = ScenariosCommandTest{
+	Name:    "Alice starts fatal combat vs Killer",
+	Command: "ATTACK killer",
+	ExpectedReplies: []Reply{
+		{protocol.EventCombatStarted + "alice", "alice"},
+		{protocol.EventCombatTurn + "Killer", "alice"},
+		{protocol.EventCombatDefeat + protocol.RoomEntrance, "alice"},
+		{"OK", "alice"},
+		{protocol.EventCombatStarted + "alice", "bob"},
+		{protocol.EventCombatTurn + "Killer", "bob"},
+		{protocol.EventCombatPlayerDied + "alice", "bob"},
+		{protocol.EventCombatTurn + "bob", "bob"},
+		{protocol.EventCombatUpdate, "bob"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceStartsCombatAgainstKillerAndDiesToRespawnWithLessHp = ScenariosCommandTest{
+	Name:    "Alice starts fatal combat vs Killer",
+	Command: "ATTACK killer",
+	ExpectedReplies: []Reply{
+		{protocol.EventCombatStarted + "alice", "alice"},
+		{protocol.EventCombatTurn + "Killer", "alice"},
+		{protocol.EventCombatDefeat + protocol.RoomEntrance, "alice"},
 		{"OK", "alice"},
 	},
 	ExpectsJSON:      false,

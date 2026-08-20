@@ -68,6 +68,20 @@ var attackNPCGrouppedFleeThenAttackAnotherNPCWhileGroupped = []ScenariosCommandT
 	aliceStartsAnotherGroupCombat,
 }
 
+var deadPlayerInGroupRespawnsElsewhereWithLessHp = []ScenariosCommandTest{
+	connectAlice,
+	connectBob,
+	aliceCreatesGroup,
+	aliceInvitesBobInGroup,
+	bobJoinAliceGroup,
+	aliceStartsGroupCombatAgainstKillerAndDiesToRespawnWithLessHp,
+}
+
+var deadPlayerRespawnsElsewhereWithLessHp = []ScenariosCommandTest{
+	connectAlice,
+	aliceStartsCombatAgainstKillerAndDiesToRespawnWithLessHp,
+}
+
 var attackScenarioFamily = ScenarioFamily{
 	FamilyName: "Attack scenario family",
 	Scenarios: []ScenarioEntry{
@@ -94,6 +108,10 @@ var attackScenarioFamily = ScenarioFamily{
 		{
 			Name:  "Attack NPC while groupped, then flee with one and try to attack another npc",
 			Steps: attackNPCGrouppedFleeThenAttackAnotherNPCWhileGroupped,
+		},
+		{
+			Name:  "Alice dies in group combat and respawns with less hp",
+			Steps: deadPlayerInGroupRespawnsElsewhereWithLessHp,
 		},
 	},
 }

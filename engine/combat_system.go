@@ -58,15 +58,12 @@ const (
 )
 
 type CombatTurnResult struct {
-	AttackerHp int         `json:"attacker_hp"`
-	TargetHp   int         `json:"target_hp"`
-	Damage     int         `json:"damage"`
-	Status     CombatState `json:"status"`
+	AttackerHp   int         `json:"attacker_hp"`
+	TargetHp     int         `json:"target_hp"`
+	Damage       int         `json:"damage"`
+	Status       CombatState `json:"status"`
+	IsTargetDead bool        `json:"is_attacker_dead"`
 }
-
-// en plus de check si un camp a gagne ou perdu
-// on doit check si un player est mort suite a un tour,
-// si oui, il faut lui dire qu'il est mort en lui envoyant un event defeat
 
 type ActionLog struct {
 	ActorName  string            `json:"actor_name"`
@@ -175,7 +172,7 @@ func (cs *CombatSession) processCombatTurn(attacker Fighter, target Fighter) (st
 		cs.State = StateVictory
 		cs.TurnResponse.CombatState = cs.State
 	}
-	player_turn_result := &CombatTurnResult{AttackerHp: attacker.getHp(), TargetHp: target.getHp(), Damage: inflicted_damage, Status: cs.State}
+	player_turn_result := &CombatTurnResult{AttackerHp: attacker.getHp(), TargetHp: target.getHp(), Damage: inflicted_damage, Status: cs.State, IsTargetDead: target.isDead()}
 	cs.TurnResponse.PlayerAction = ActionLog{
 		ActorName:  attacker.getName(),
 		TargetName: target.getName(),
@@ -222,7 +219,7 @@ func (cs *CombatSession) processNpcsTurn() {
 		}
 		cs.nextTurn()
 		cs.TurnResponse.CombatState = cs.State
-		cs.TurnResponse.NpcReactions = append(cs.TurnResponse.NpcReactions, ActionLog{ActorName: npcFighter.Name, TargetName: current_target.getName(), Result: &CombatTurnResult{AttackerHp: npcFighter.getHp(), TargetHp: current_target.getHp(), Damage: inflicted, Status: cs.State}})
+		cs.TurnResponse.NpcReactions = append(cs.TurnResponse.NpcReactions, ActionLog{ActorName: npcFighter.Name, TargetName: current_target.getName(), Result: &CombatTurnResult{AttackerHp: npcFighter.getHp(), TargetHp: current_target.getHp(), Damage: inflicted, Status: cs.State, IsTargetDead: current_target.isDead()}})
 	}
 }
 
@@ -230,11 +227,12 @@ func (cs *CombatSession) handlePlayerDeath(fighter Fighter) {
 	if p, ok := fighter.(*Player); ok && p.isDead() {
 		p.inCombat = false
 		p.stats.CombatId = ""
-
 		p.stats.Hp = p.stats.HpMax / 2
-		p.room = cs.Engine.world.Rooms[RoomEntrance]
-		msg := fmt.Sprintf("%s%s", pr.EventCombatDefeat, RoomEntrance)
+		p.room = cs.Engine.world.Rooms[pr.RoomEntrance]
+		msg := fmt.Sprintf("%s%s", pr.EventCombatDefeat, pr.RoomEntrance)
 		cs.Engine.inform_user(p, msg)
+		msgForOthers := fmt.Sprintf("%s%s", pr.EventCombatPlayerDied, p.name)
+		cs.Engine.inform_combat_players(cs, p, msgForOthers)
 	}
 }
 
@@ -281,7 +279,7 @@ func (cs *CombatSession) nextTurn() {
 
 		switch f := currentFighter.(type) {
 		case *Player:
-			if f.isDead() || !f.inCombat || f.stats.CombatId != cs.Id {
+			if f.isDead() || !f.inCombat || f.stats.CombatId != cs.Id || f.room.Id != cs.RoomId {
 				canPlay = false
 			}
 		case *Npc:
@@ -324,25 +322,17 @@ func (cs *CombatSession) addNpcToCombat(npc *Npc) {
 func (e *Engine) end_combat(cs *CombatSession) {
 	if cs.State == StateVictory {
 		e.inform_combat_players(cs, nil, pr.EventCombatVictory)
-	}
-	for _, player := range cs.Players {
-		player.stats.CombatId = ""
-		player.inCombat = false
-		// if lost, punished by reducing its HP and sending them to FIRST ROOM
-		if cs.State == StateDefeat {
-			player.stats.Hp = player.stats.HpMax / 2
-			player.room = e.world.Rooms[RoomEntrance]
-			msg := fmt.Sprintf("%s%s", pr.EventCombatDefeat, RoomEntrance)
-			e.inform_combat_players(cs, nil, msg)
-		}
-		if cs.State == StateVictory {
-			//reward
-			for _, npc := range cs.Npcs {
-				player.DefeatedNpcs = append(player.DefeatedNpcs, npc.Id)
+		for _, player := range cs.Players {
+			if !player.isDead() && player.inCombat && player.stats.CombatId == cs.Id && player.room.Id == cs.Id {
+
+				for _, npc := range cs.Npcs {
+					player.DefeatedNpcs = append(player.DefeatedNpcs, npc.Id)
+				}
 			}
 		}
-		delete(e.activeCombats, cs.Id)
 	}
+	delete(e.activeCombats, cs.Id)
+
 }
 
 func (cs *CombatSession) leaveCombat(player *Player) error {
