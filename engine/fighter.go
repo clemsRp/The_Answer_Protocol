@@ -31,4 +31,5 @@ type Fighter interface {
 	getHp() int
 	getInitiative() int
 	getDamage() int
+	
 }

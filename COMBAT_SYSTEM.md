@@ -12,7 +12,7 @@ si un joueur quitte le groupe pendant le combat, il sera toujours dans le combat
 
 si tous les joueurs s'echappent du combat, le combat est annule (aucun gain).
 
-si le combat est gagne mais qu'un ou des joueurs sont morts, tout le monde est considere gagnant et l'experience est distribue a chacun (et les drop aussi)
+si un des joueurs du combat meurt,il perd le combat et reapparait avec moins de pv dans une zone sure.
 
 Lorsque le combat est gagne, les joueurs gardent leur point de vie actuel, si l'experience recue leur fait monter un niveau, leur vie max augmente de +5 et leur hp monte a 100%
 

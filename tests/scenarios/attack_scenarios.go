@@ -48,6 +48,26 @@ var attackUnexistantNPCScenario = []ScenariosCommandTest{
 	},
 }
 
+var tryForbiddenCommandsInCombat = append(
+	[]ScenariosCommandTest{
+		connectAlice,
+		aliceAttacksHostileNPC,
+	},
+	aliceForbiddenActionsInCombat...,
+)
+
+var attackNPCGrouppedFleeThenAttackAnotherNPCWhileGroupped = []ScenariosCommandTest{
+	connectAlice,
+	connectBob,
+	aliceCreatesGroup,
+	aliceInvitesBobInGroup,
+	bobJoinAliceGroup,
+	aliceStartsGroupCombat,
+	aliceFleesCombat,
+	bobAttacksAfterAliceFlees,
+	aliceStartsAnotherGroupCombat,
+}
+
 var attackScenarioFamily = ScenarioFamily{
 	FamilyName: "Attack scenario family",
 	Scenarios: []ScenarioEntry{
@@ -66,6 +86,14 @@ var attackScenarioFamily = ScenarioFamily{
 		{
 			Name:  "group combat survives an ally fleeing",
 			Steps: attackGroupAndFleeScenario,
+		},
+		{
+			Name:  "Try to execute forbidden commands in combat",
+			Steps: tryForbiddenCommandsInCombat,
+		},
+		{
+			Name:  "Attack NPC while groupped, then flee with one and try to attack another npc",
+			Steps: attackNPCGrouppedFleeThenAttackAnotherNPCWhileGroupped,
 		},
 	},
 }

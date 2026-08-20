@@ -152,6 +152,9 @@ func (e *Engine) handleCmdMove(player *Player, req []string) (string, any, error
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
+	if player.inCombat {
+		return "", "", errors.New(pr.ErrForbiddenInCombat)
+	}
 
 	direction := req[1]
 
@@ -276,6 +279,9 @@ func (e *Engine) handleCmdTake(player *Player, req []string) (string, any, error
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
+	if player.inCombat {
+		return "", "", errors.New(pr.ErrForbiddenInCombat)
+	}
 
 	object := req[1]
 	for obj_index, item_name := range player.room.Items {
@@ -297,6 +303,9 @@ func (e *Engine) handleCmdDrop(player *Player, req []string) (string, any, error
 	// Handle invalid command
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+	if player.inCombat {
+		return "", "", errors.New(pr.ErrForbiddenInCombat)
 	}
 
 	object := req[1]
@@ -333,6 +342,9 @@ func (e *Engine) handleCmdQuest(player *Player, req []string) (string, any, erro
 	// Handle invalid command
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+	if player.inCombat {
+		return "", "", errors.New(pr.ErrForbiddenInCombat)
 	}
 
 	npc := req[1]
@@ -375,6 +387,9 @@ func (e *Engine) handleCmdTalk(player *Player, req []string) (string, any, error
 	// Handle invalid command
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+	if player.inCombat {
+		return "", "", errors.New(pr.ErrForbiddenInCombat)
 	}
 
 	npc := req[1]
@@ -464,7 +479,7 @@ func (e *Engine) handleCmdFlee(player *Player, req []string) (string, any, error
 		cs.State = StateCancelled
 	}
 
-	msgEvent := fmt.Sprintf("EVT COMBAT ALLY_LEAVE_COMBAT %s", player.name)
+	msgEvent := fmt.Sprintf("%s%s", pr.EventCombatAllyLeaveCombat, player.name)
 	e.inform_combat_players(cs, player, msgEvent)
 	return "OK", nil, nil
 

@@ -19,8 +19,8 @@ var connectBob = ScenariosCommandTest{
 	Command: "CONNECT bob",
 	ExpectedReplies: []Reply{
 		{"OK connected", "bob"},
-		{"EVT STATS players=", "alice"},
-		{"EVT ROOM PRESENCE ENTER", "alice"},
+		{protocol.EventStatsPlayers, "alice"},
+		{protocol.EventRoomPresenceEnter, "alice"},
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "bob",
@@ -43,7 +43,7 @@ var aliceInvitesBobInGroup = ScenariosCommandTest{
 	Command: "GROUP INVITE bob",
 	ExpectedReplies: []Reply{
 		{"OK", "alice"},
-		{"EVT GROUP INVITE", "bob"},
+		{protocol.EventGroupInvite, "bob"},
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "alice",
@@ -54,7 +54,7 @@ var bobJoinAliceGroup = ScenariosCommandTest{
 	Command: "GROUP JOIN alice",
 	ExpectedReplies: []Reply{
 		{"OK group=", "bob"},
-		{"EVT GROUP JOIN bob", "alice"},
+		{protocol.EventGroupJoin + " bob", "alice"},
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "bob",
@@ -64,7 +64,7 @@ var aliceLeavesGroup = ScenariosCommandTest{
 	Command: "GROUP LEAVE",
 	ExpectedReplies: []Reply{
 		{"OK", "alice"},
-		{"EVT GROUP LEAVE alice", "bob"},
+		{protocol.EventGroupLeave + " alice", "bob"},
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "alice",
@@ -86,7 +86,7 @@ var aliceMovesEast = ScenariosCommandTest{
 	Command: "MOVE east",
 	ExpectedReplies: []Reply{
 		{"OK room=", "alice"},
-		{"EVT ROOM PRESENCE LEAVE alice", "bob"},
+		{protocol.EventRoomPresenceLeave + " alice", "bob"},
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "alice",
@@ -97,7 +97,7 @@ var aliceMovesWest = ScenariosCommandTest{
 	Command: "MOVE west",
 	ExpectedReplies: []Reply{
 		{"OK room=", "alice"},
-		{"EVT ROOM PRESENCE LEAVE alice", "bob"},
+		{protocol.EventRoomPresenceLeave + " alice", "bob"},
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "alice",
@@ -108,7 +108,7 @@ var aliceMovesNorth = ScenariosCommandTest{
 	Command: "MOVE north",
 	ExpectedReplies: []Reply{
 		{"OK room=", "alice"},
-		{"EVT ROOM PRESENCE LEAVE alice", "bob"},
+		{protocol.EventRoomPresenceLeave + " alice", "bob"},
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "alice",
@@ -129,7 +129,7 @@ var aliceMovesSouth = ScenariosCommandTest{
 	Command: "MOVE south",
 	ExpectedReplies: []Reply{
 		{"OK room=", "alice"},
-		{"EVT ROOM PRESENCE LEAVE alice", "bob"},
+		{protocol.EventRoomPresenceLeave + " alice", "bob"},
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "alice",
@@ -141,7 +141,7 @@ var aliceChatGlobal = ScenariosCommandTest{
 	Command: "CHAT GLOBAL Hello World!",
 	ExpectedReplies: []Reply{
 		{"OK", "alice"},
-		{"EVT GLOBAL CHAT alice Hello World!", "bob"},
+		{protocol.EventGlobalChat + " alice Hello World!", "bob"},
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "alice",
@@ -152,7 +152,7 @@ var aliceChatRoom = ScenariosCommandTest{
 	Command: "CHAT ROOM Hello Room!",
 	ExpectedReplies: []Reply{
 		{"OK", "alice"},
-		{"EVT ROOM CHAT alice Hello Room!", "bob"},
+		{protocol.EventRoomChat + " alice Hello Room!", "bob"},
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "alice",
@@ -163,7 +163,7 @@ var aliceChatGroup = ScenariosCommandTest{
 	Command: "CHAT GROUP Hello Team!",
 	ExpectedReplies: []Reply{
 		{"OK", "alice"},
-		{"EVT GROUP CHAT alice Hello Team!", "bob"},
+		{protocol.EventGroupChat + " alice Hello Team!", "bob"},
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "alice",
@@ -196,8 +196,8 @@ var aliceQuits = ScenariosCommandTest{
 	Command: "QUIT",
 	ExpectedReplies: []Reply{
 		{"OK bye", "alice"},
-		{"EVT ROOM PRESENCE LEAVE alice", "bob"},
-		{"EVT STATS players=", "bob"},
+		{protocol.EventRoomPresenceLeave + " alice", "bob"},
+		{protocol.EventStatsPlayers, "bob"},
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "alice",
@@ -248,8 +248,8 @@ var aliceAttacksHostileNPC = ScenariosCommandTest{
 	Name:    "Attack hostile NPC",
 	Command: "ATTACK grandpa_gaston",
 	ExpectedReplies: []Reply{
-		{"EVT COMBAT TURN Grandpa Gaston", "alice"},
-		{"EVT COMBAT TURN alice", "alice"},
+		{protocol.EventCombatTurn + "Grandpa Gaston", "alice"},
+		{protocol.EventCombatTurn + "alice", "alice"},
 		{"OK", "alice"},
 	},
 	ExpectsJSON:      false,
@@ -260,8 +260,8 @@ var aliceAttacksHostileNPCAgain = ScenariosCommandTest{
 	Name:    "Alice attacks hostile NPC on her first turn",
 	Command: "ATTACK grandpa_gaston",
 	ExpectedReplies: []Reply{
-		{"EVT COMBAT TURN Grandpa Gaston", "alice"},
-		{"EVT COMBAT TURN alice", "alice"},
+		{protocol.EventCombatTurn + "Grandpa Gaston", "alice"},
+		{protocol.EventCombatTurn + "alice", "alice"},
 		{"OK", "alice"},
 	},
 	ExpectsJSON:      false,
@@ -272,8 +272,8 @@ var aliceDefeatsHostileNPC = ScenariosCommandTest{
 	Name:    "Alice defeats hostile NPC",
 	Command: "ATTACK grandpa_gaston",
 	ExpectedReplies: []Reply{
-		{"EVT COMBAT TURN alice", "alice"},
-		{"EVT COMBAT VICTORY", "alice"},
+		{protocol.EventCombatTurn + "alice", "alice"},
+		{protocol.EventCombatVictory, "alice"},
 		{"OK", "alice"},
 	},
 	ExpectsJSON:      false,
@@ -284,16 +284,57 @@ var aliceStartsGroupCombat = ScenariosCommandTest{
 	Name:    "Alice starts combat with Bob",
 	Command: "ATTACK grandpa_gaston",
 	ExpectedReplies: []Reply{
-		{"EVT COMBAT TURN Grandpa Gaston", "alice"},
-		{"EVT COMBAT TURN alice", "alice"},
+		{protocol.EventCombatStarted + "alice", "alice"},
+		{protocol.EventCombatTurn + "Grandpa Gaston", "alice"},
+		{protocol.EventCombatTurn + "alice", "alice"},
 		{"OK", "alice"},
-		{"EVT COMBAT FIGHT_STARTED", "bob"},
-		{"EVT COMBAT TURN Grandpa Gaston", "bob"},
-		{"EVT COMBAT TURN alice", "bob"},
-		{"EVT COMBAT UPDATE", "bob"},
+		{protocol.EventCombatStarted + "alice", "bob"},
+		{protocol.EventCombatTurn + "Grandpa Gaston", "bob"},
+		{protocol.EventCombatTurn + "alice", "bob"},
+		{protocol.EventCombatUpdate, "bob"},
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "alice",
+}
+var aliceStartsAnotherGroupCombat = ScenariosCommandTest{
+	Name:    "Alice starts another combat while Bob is in combat in the same room",
+	Command: "ATTACK samus",
+	ExpectedReplies: []Reply{
+		{protocol.EventCombatStarted + "alice", "alice"},
+		{protocol.EventCombatTurn + "samus", "alice"},
+		{protocol.EventCombatTurn + "alice", "alice"},
+		{protocol.EventDistantGroupCombatStartedCombat + "alice", "bob"},
+		{"OK", "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceAttacksInGroupCombat = ScenariosCommandTest{
+	Name:    "Alice attacks NPC while in groupped combat with bob",
+	Command: "ATTACK grandpa_gaston",
+	ExpectedReplies: []Reply{
+		{protocol.EventCombatTurn + "bob", "alice"},
+		{"OK", "alice"},
+		{protocol.EventCombatTurn + "bob", "bob"},
+		{protocol.EventCombatUpdate, "bob"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+var bobAttacksInGroupCombat = ScenariosCommandTest{
+	Name:    "Bob attacks NPC while in groupped combat with Alice",
+	Command: "ATTACK grandpa_gaston",
+	ExpectedReplies: []Reply{
+		{protocol.EventCombatTurn + "Grandpa Gaston", "bob"},
+		{protocol.EventCombatTurn + "alice", "bob"},
+		{"OK", "bob"},
+		{protocol.EventCombatTurn + "Grandpa Gaston", "alice"},
+		{protocol.EventCombatTurn + "alice", "alice"},
+		{protocol.EventCombatUpdate, "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "bob",
 }
 
 var aliceFleesCombat = ScenariosCommandTest{
@@ -301,8 +342,8 @@ var aliceFleesCombat = ScenariosCommandTest{
 	Command: "FLEE",
 	ExpectedReplies: []Reply{
 		{"OK", "alice"},
-		{"EVT COMBAT TURN bob", "bob"},
-		{"EVT COMBAT ALLY_LEAVE_COMBAT alice", "bob"},
+		{protocol.EventCombatTurn + "bob", "bob"},
+		{protocol.EventCombatAllyLeaveCombat + "alice", "bob"},
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "alice",
@@ -312,8 +353,8 @@ var bobAttacksAfterAliceFlees = ScenariosCommandTest{
 	Name:    "Bob attacks after Alice flees",
 	Command: "ATTACK grandpa_gaston",
 	ExpectedReplies: []Reply{
-		{"EVT COMBAT TURN Grandpa Gaston", "bob"},
-		{"EVT COMBAT TURN bob", "bob"},
+		{protocol.EventCombatTurn + "Grandpa Gaston", "bob"},
+		{protocol.EventCombatTurn + "bob", "bob"},
 		{"OK", "bob"},
 	},
 	ExpectsJSON:      false,
@@ -328,4 +369,62 @@ var bobFleesLastFromCombat = ScenariosCommandTest{
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "bob",
+}
+
+var aliceMovesInCombatForbidden = ScenariosCommandTest{
+	Name:    "Move while in combat",
+	Command: "MOVE NORTH",
+	ExpectedReplies: []Reply{
+		{protocol.ErrForbiddenInCombat, "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceTakesInCombatForbidden = ScenariosCommandTest{
+	Name:    "Take while in combat",
+	Command: "TAKE sword",
+	ExpectedReplies: []Reply{
+		{protocol.ErrForbiddenInCombat, "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceDropsInCombatForbidden = ScenariosCommandTest{
+	Name:    "Drop while in combat",
+	Command: "DROP gold_denture",
+	ExpectedReplies: []Reply{
+		{protocol.ErrForbiddenInCombat, "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceQuestInCombatForbidden = ScenariosCommandTest{
+	Name:    "QUEST while in combat",
+	Command: "QUEST quest_giver",
+	ExpectedReplies: []Reply{
+		{protocol.ErrForbiddenInCombat, "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceTalksInCombatForbidden = ScenariosCommandTest{
+	Name:    "Talk while in combat",
+	Command: "TALK quest_giver",
+	ExpectedReplies: []Reply{
+		{protocol.ErrForbiddenInCombat, "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var aliceForbiddenActionsInCombat = []ScenariosCommandTest{
+	aliceMovesInCombatForbidden,
+	aliceTakesInCombatForbidden,
+	aliceDropsInCombatForbidden,
+	aliceQuestInCombatForbidden,
+	aliceTalksInCombatForbidden,
 }
