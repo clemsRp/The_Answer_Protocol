@@ -71,7 +71,6 @@ var bobJoinAliceGroup = ScenariosCommandTest{
 	TestOnConnection: "bob",
 }
 
-
 var aliceLeavesGroup = ScenariosCommandTest{
 	Name:    "Alice leaves group",
 	Command: "GROUP LEAVE",
@@ -285,7 +284,6 @@ var aliceDefeatsHostileNPC = ScenariosCommandTest{
 	Name:    "Alice defeats hostile NPC",
 	Command: "ATTACK grandpa_gaston",
 	ExpectedReplies: []Reply{
-		{protocol.EventCombatTurn + "alice", "alice"},
 		{protocol.EventCombatVictory, "alice"},
 		{"OK", "alice"},
 	},
@@ -388,6 +386,7 @@ var aliceFleesCombat = ScenariosCommandTest{
 		{"OK", "alice"},
 		{protocol.EventCombatTurn + "bob", "bob"},
 		{protocol.EventCombatAllyLeaveCombat + "alice", "bob"},
+		{protocol.EventCombatUpdate, "bob"},
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "alice",
