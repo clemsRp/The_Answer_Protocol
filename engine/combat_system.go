@@ -58,10 +58,11 @@ const (
 )
 
 type CombatTurnResult struct {
-	AttackerHp int         `json:"attacker_hp"`
-	TargetHp   int         `json:"target_hp"`
-	Damage     int         `json:"damage"`
-	Status     CombatState `json:"status"`
+	AttackerHp   int         `json:"attacker_hp"`
+	TargetHp     int         `json:"target_hp"`
+	Damage       int         `json:"damage"`
+	Status       CombatState `json:"status"`
+	IsTargetDead bool        `json:"is_target_dead"`
 }
 
 type ActionLog struct {
@@ -71,7 +72,7 @@ type ActionLog struct {
 }
 
 type FullTurnResponse struct {
-	PlayerAction ActionLog   `json:"player_action"`
+	PlayerAction *ActionLog  `json:"player_action"`
 	NpcReactions []ActionLog `json:"npc_reactions"`
 	CombatState  CombatState `json:"combat_state"`
 }
@@ -129,19 +130,17 @@ func (e *Engine) initiateCombat(player *Player, npc_copy *Npc) (*CombatSession, 
 	} else {
 		for _, p := range group.players {
 			// add players in the combat only if they are in the same room
-			if p.room == player.room {
-				if p.name != player.name && !slices.Contains(p.DefeatedNpcs, npc_copy.Id) {
-					e.inform_user(p, "EVT COMBAT FIGHT_STARTED")
-				}
+			if cs.RoomId == p.room.Id && !p.inCombat && !p.isDead() {
 				if !slices.Contains(p.DefeatedNpcs, npc_copy.Id) {
-
+					msg := fmt.Sprintf("%s%s", pr.EventCombatStarted, player.name)
+					e.inform_user(p, msg)
 					cs.addPlayerToCombat(p)
 				}
 			} else {
 				if p.name != player.name {
 					// else inform the others that some people in the group entered in combat.
-
-					e.inform_user(p, "EVT GROUP DISTANT_ALLIES_COMBAT_START")
+					msg := fmt.Sprintf("%s%s", pr.EventDistantGroupCombatStartedCombat, player.name)
+					e.inform_user(p, msg)
 				}
 			}
 		}
@@ -163,6 +162,8 @@ func (cs *CombatSession) processCombatTurn(attacker Fighter, target Fighter) (st
 	cs.TurnResponse = response
 
 	inflicted_damage := target.takeDamage(attacker.getDamage())
+	cs.handlePlayerDeath(target)
+
 	if cs.checkIfPlayersAreDead() {
 		cs.State = StateDefeat
 		cs.TurnResponse.CombatState = cs.State
@@ -171,8 +172,8 @@ func (cs *CombatSession) processCombatTurn(attacker Fighter, target Fighter) (st
 		cs.State = StateVictory
 		cs.TurnResponse.CombatState = cs.State
 	}
-	player_turn_result := &CombatTurnResult{AttackerHp: attacker.getHp(), TargetHp: target.getHp(), Damage: inflicted_damage, Status: cs.State}
-	cs.TurnResponse.PlayerAction = ActionLog{
+	player_turn_result := &CombatTurnResult{AttackerHp: attacker.getHp(), TargetHp: target.getHp(), Damage: inflicted_damage, Status: cs.State, IsTargetDead: target.isDead()}
+	cs.TurnResponse.PlayerAction = &ActionLog{
 		ActorName:  attacker.getName(),
 		TargetName: target.getName(),
 		Result:     player_turn_result,
@@ -198,12 +199,16 @@ func (cs *CombatSession) processNpcsTurn() {
 		// choose target between players
 		var current_target Fighter
 		for _, p := range cs.Players {
-			if p.inCombat && p.room.Id == cs.RoomId && !p.isDead() {
+			if p.inCombat && p.stats.CombatId == cs.Id && p.room.Id == cs.RoomId && !p.isDead() {
 				current_target = p
 				break
 			}
 		}
+		if current_target == nil {
+			return
+		}
 		inflicted := current_target.takeDamage(npcFighter.getDamage())
+		cs.handlePlayerDeath(current_target)
 		if cs.checkIfPlayersAreDead() {
 			cs.State = StateDefeat
 			cs.TurnResponse.CombatState = cs.State
@@ -214,7 +219,20 @@ func (cs *CombatSession) processNpcsTurn() {
 		}
 		cs.nextTurn()
 		cs.TurnResponse.CombatState = cs.State
-		cs.TurnResponse.NpcReactions = append(cs.TurnResponse.NpcReactions, ActionLog{ActorName: npcFighter.Name, TargetName: current_target.getName(), Result: &CombatTurnResult{AttackerHp: npcFighter.getHp(), TargetHp: current_target.getHp(), Damage: inflicted, Status: cs.State}})
+		cs.TurnResponse.NpcReactions = append(cs.TurnResponse.NpcReactions, ActionLog{ActorName: npcFighter.Name, TargetName: current_target.getName(), Result: &CombatTurnResult{AttackerHp: npcFighter.getHp(), TargetHp: current_target.getHp(), Damage: inflicted, Status: cs.State, IsTargetDead: current_target.isDead()}})
+	}
+}
+
+func (cs *CombatSession) handlePlayerDeath(fighter Fighter) {
+	if p, ok := fighter.(*Player); ok && p.isDead() {
+		p.inCombat = false
+		p.stats.CombatId = ""
+		p.stats.Hp = p.stats.HpMax / 2
+		p.room = cs.Engine.world.Rooms[pr.RoomEntrance]
+		msg := fmt.Sprintf("%s%s", pr.EventCombatDefeat, pr.RoomEntrance)
+		cs.Engine.inform_user(p, msg)
+		msgForOthers := fmt.Sprintf("%s%s", pr.EventCombatPlayerDied, p.name)
+		cs.Engine.inform_combat_players(cs, p, msgForOthers)
 	}
 }
 
@@ -229,8 +247,9 @@ func (cs *CombatSession) sortTurnsOrderByInitiative() {
 func (cs *CombatSession) checkIfPlayersAreDead() bool {
 	allDead := true
 	for _, player := range cs.Players {
-		if !player.isDead() {
+		if !player.isDead() && player.stats.CombatId == cs.Id {
 			allDead = false
+			break
 		}
 	}
 	return allDead
@@ -260,7 +279,7 @@ func (cs *CombatSession) nextTurn() {
 
 		switch f := currentFighter.(type) {
 		case *Player:
-			if f.isDead() || !f.inCombat {
+			if f.isDead() || !f.inCombat || f.stats.CombatId != cs.Id || f.room.Id != cs.RoomId {
 				canPlay = false
 			}
 		case *Npc:
@@ -269,8 +288,11 @@ func (cs *CombatSession) nextTurn() {
 			}
 		}
 		if canPlay {
+			if cs.State != StateOngoing {
+				break
+			}
 			current_player := cs.Fighters[cs.CurrentTurn]
-			msg := fmt.Sprintf("EVT COMBAT TURN %s", current_player.getName())
+			msg := fmt.Sprintf("%s%s", pr.EventCombatTurn, current_player.getName())
 			cs.Engine.inform_combat_players(cs, nil, msg)
 			break
 		}
@@ -301,26 +323,20 @@ func (cs *CombatSession) addNpcToCombat(npc *Npc) {
 }
 
 func (e *Engine) end_combat(cs *CombatSession) {
-	for _, player := range cs.Players {
-		player.stats.CombatId = ""
-		player.inCombat = false
-		// if lost, punished by reducing its HP and sending them to FIRST ROOM
-		if cs.State == StateDefeat {
-			player.stats.Hp = player.stats.HpMax / 2
-			player.room = e.world.Rooms[RoomEntrance]
-			msg := fmt.Sprintf("EVT COMBAT DEFEAT new_room=%s", RoomEntrance)
-			e.inform_combat_players(cs, nil, msg)
-		}
-		if cs.State == StateVictory {
-			//reward
-			e.inform_combat_players(cs, nil, "EVT COMBAT VICTORY")
-			for _, npc := range cs.Npcs {
-				fmt.Println("npc ID", npc.Id)
-				player.DefeatedNpcs = append(player.DefeatedNpcs, npc.Id)
+	if cs.State == StateVictory {
+		e.inform_combat_players(cs, nil, pr.EventCombatVictory)
+		for _, player := range cs.Players {
+			if !player.isDead() && player.inCombat && player.stats.CombatId == cs.Id && player.room.Id == cs.Id {
+				player.inCombat = false
+				player.stats.CombatId = ""
+				for _, npc := range cs.Npcs {
+					player.DefeatedNpcs = append(player.DefeatedNpcs, npc.Id)
+				}
 			}
 		}
-		delete(e.activeCombats, cs.Id)
 	}
+	delete(e.activeCombats, cs.Id)
+
 }
 
 func (cs *CombatSession) leaveCombat(player *Player) error {
@@ -334,6 +350,8 @@ func (cs *CombatSession) leaveCombat(player *Player) error {
 	}
 	player.inCombat = false
 	player.stats.CombatId = ""
+	cs.TurnResponse.PlayerAction = nil
+	cs.TurnResponse.NpcReactions = []ActionLog{}
 	cs.nextTurn()
 	cs.processNpcsTurn()
 	return nil

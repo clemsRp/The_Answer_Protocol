@@ -23,6 +23,7 @@ const (
 	ErrNoPermission      = "ERR 411 NO_PERMISSION"
 	ErrAlreadyLeader     = "ERR 412 ALREADY_LEADER"
 	ErrNotPromoted       = "ERR 413 NOT_PROMOTED"
+	ErrForbiddenInCombat = "ERR 414 FORBIDDEN_IN_COMBAT"
 )
 
 // Items & Inventory errors

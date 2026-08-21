@@ -60,6 +60,7 @@ func (e *Engine) createNewPlayerInstance(pseudo string, id string) (*Player, err
 	if !exists {
 		return nil, errors.New(pr.ErrInternalServer)
 	}
+	gold_denture := e.world.Items["gold_denture"]
 
 	start_item_copy := base_item.Clone()
 
@@ -67,10 +68,11 @@ func (e *Engine) createNewPlayerInstance(pseudo string, id string) (*Player, err
 	if weapon_start == nil {
 		return nil, errors.New(pr.ErrInternalServer)
 	}
+	Inventory := []*Item{gold_denture}
 
 	return &Player{
 		name:           pseudo,
-		room:           e.world.Rooms[RoomEntrance],
+		room:           e.world.Rooms[pr.RoomEntrance],
 		equippedWeapon: weapon_start,
 		stats: &CombatStats{
 			Hp:         100,
@@ -78,6 +80,7 @@ func (e *Engine) createNewPlayerInstance(pseudo string, id string) (*Player, err
 			Initiative: 100,
 			Status:     StatusNormal,
 		},
-		id: id,
+		inventory: Inventory,
+		id:        id,
 	}, nil
 }
