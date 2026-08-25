@@ -82,12 +82,12 @@ func (m *MyApp) ItemListenOutputs(res pr.ServerResponse) {
 
 	var opts []string
 
-	if strings.HasPrefix(res.Msg, "EVT ITEM DROPPED") {
+	if strings.HasPrefix(res.Msg, pr.EventItemDropped) {
 		new_item := strings.SplitN(res.Msg, "DROPPED ", 2)[1]
 		items = append(items, new_item)
 		opts = items
 
-	} else if strings.HasPrefix(res.Msg, "EVT ITEM TOOK") {
+	} else if strings.HasPrefix(res.Msg, pr.EventItemTook) {
 		previous_item := strings.SplitN(res.Msg, "TOOK ", 2)[1]
 
 		for i, p := range items {
@@ -131,11 +131,11 @@ func (m *MyApp) InteractionListenOutputs(res pr.ServerResponse) {
 	// Remove previous item panel
 	m.grid.RemoveItem(m.Interaction.Layout)
 
-	if strings.HasPrefix(res.Msg, "EVT ROOM PRESENCE ENTER") {
+	if strings.HasPrefix(res.Msg, pr.EventRoomPresenceEnter) {
 		new_player := strings.SplitN(res.Msg, "ENTER ", 2)[1]
 		players = append(players, new_player)
 
-	} else if strings.HasPrefix(res.Msg, "EVT ROOM PRESENCE LEAVE") {
+	} else if strings.HasPrefix(res.Msg, pr.EventRoomPresenceLeave) {
 		previous_player := strings.SplitN(res.Msg, "LEAVE ", 2)[1]
 
 		for i, p := range players {
@@ -184,17 +184,17 @@ func (m *MyApp) GroupListenOutputs(res pr.ServerResponse) {
 	// Remove previous item panel
 	m.grid.RemoveItem(m.Group.Layout)
 
-	if strings.HasPrefix(res.Msg, "EVT GROUP INVITE") {
+	if strings.HasPrefix(res.Msg, pr.EventGroupInvite) {
 		invitation := strings.SplitN(res.Msg, "INVITE ", 2)[1]
 		invitations = append(invitations, invitation)
 
-	} else if strings.HasPrefix(res.Msg, "EVT GROUP JOIN") {
+	} else if strings.HasPrefix(res.Msg, pr.EventGroupJoin) {
 		new_member := strings.SplitN(res.Msg, "JOIN ", 2)[1]
 		if !slices.Contains(in_group_users, new_member) {
 			m.router.Inputs <- "GROUPED"
 		}
 
-	} else if strings.HasPrefix(res.Msg, "EVT GROUP KICK") {
+	} else if strings.HasPrefix(res.Msg, pr.EventGroupKicked) {
 		previous_member := strings.SplitN(res.Msg, "KICK ", 2)[1]
 
 		if previous_member == m.pseudo {
@@ -206,18 +206,18 @@ func (m *MyApp) GroupListenOutputs(res pr.ServerResponse) {
 		}
 		m.router.Inputs <- "GROUPED"
 
-	} else if strings.HasPrefix(res.Msg, "EVT GROUP LEAVE") {
+	} else if strings.HasPrefix(res.Msg, pr.EventGroupLeave) {
 		in_group_users = make([]string, 0)
 		m.router.Inputs <- "GROUPED"
 
-	} else if strings.HasPrefix(res.Msg, "EVT GROUP PROMOTE ACCEPTED") {
-		newLeader := strings.SplitN(res.Msg, "EVT GROUP PROMOTE ACCEPTED ", 2)[1]
+	} else if strings.HasPrefix(res.Msg, pr.EventGroupPromoteAccepted) {
+		newLeader := strings.SplitN(res.Msg, pr.EventGroupPromoteAccepted+" ", 2)[1]
 		promotion = false
 		send_promotion = false
 		leader = (newLeader == m.pseudo)
 		m.router.Inputs <- "GROUPED"
 
-	} else if strings.HasPrefix(res.Msg, "EVT GROUP PROMOTE DECLINED") {
+	} else if strings.HasPrefix(res.Msg, pr.EventGroupPromoteDeclined) {
 		promotion = false
 
 		if leader {
@@ -225,37 +225,37 @@ func (m *MyApp) GroupListenOutputs(res pr.ServerResponse) {
 		}
 		m.router.Inputs <- "GROUPED"
 
-	} else if strings.HasPrefix(res.Msg, "EVT new_leader=") {
+	} else if strings.HasPrefix(res.Msg, pr.EventGroupNewLeader) {
 		newLeader := strings.SplitN(res.Msg, "new_leader=", 2)[1]
 		promotion = false
 		send_promotion = false
 		leader = (newLeader == m.pseudo)
-		m.router.Inputs <- "GROUPED"
+		m.router.Inputs <- pr.CmdGrouped
 
-	} else if strings.HasPrefix(res.Msg, "EVT GROUP PROMOTE") {
+	} else if strings.HasPrefix(res.Msg, pr.EventGroupPromote) {
 		promotion = true
 
-	} else if strings.HasPrefix(res.Msg, "OK group=") {
+	} else if strings.HasPrefix(res.Msg, pr.GroupCreateCmdResponse) {
 		group = strings.Split(res.Msg, "group=")[1]
 		if m.router.LastCommand == pr.CreateGroup {
 			leader = true
 		}
-		m.router.Inputs <- "GROUPED"
+		m.router.Inputs <- pr.CmdGrouped
 
-	} else if strings.HasPrefix(res.Msg, "OK pending_leader=") {
+	} else if strings.HasPrefix(res.Msg, pr.GroupPromoteCmdResponse) {
 		pending_leader := strings.Split(res.Msg, "pending_leader=")[1]
 		leader = pending_leader == m.pseudo
 		if m.router.LastCommand == pr.PromoteGroup {
 			send_promotion = true
 		}
-		m.router.Inputs <- "GROUPED"
+		m.router.Inputs <- pr.CmdGrouped
 
-	} else if strings.HasPrefix(res.Msg, "OK new_leader=") {
+	} else if strings.HasPrefix(res.Msg, pr.GroupAcceptPromotionResponse) {
 		last_kick = ""
 		leader = true
 		promotion = false
 		send_promotion = false
-		m.router.Inputs <- "GROUPED"
+		m.router.Inputs <- pr.CmdGrouped
 
 	} else if res.Msg == "OK" {
 		switch m.router.LastCommand {
@@ -267,7 +267,7 @@ func (m *MyApp) GroupListenOutputs(res pr.ServerResponse) {
 		case pr.DeclinePromoteGroup:
 			promotion = false
 		case pr.KickGroup:
-			m.router.Inputs <- "GROUPED"
+			m.router.Inputs <- pr.CmdGrouped
 
 		case pr.CmdUnGrouped:
 			raw, err := json.Marshal(res.Datas)
@@ -289,7 +289,7 @@ func (m *MyApp) GroupListenOutputs(res pr.ServerResponse) {
 					in_group_users = append(in_group_users, data...)
 				}
 			}
-			m.router.Inputs <- "UNGROUPED"
+			m.router.Inputs <- pr.CmdUnGrouped
 		}
 	}
 

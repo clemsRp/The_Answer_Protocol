@@ -31,13 +31,20 @@ const (
 	EventDistantGroupCombatStartedCombat = "EVT GROUP DISTANT_COMBAT_START launcher="
 
 	// Room Events
-	EventRoomPresenceEnter = "EVT ROOM PRESENCE ENTER"
-	EventRoomPresenceLeave = "EVT ROOM PRESENCE LEAVE"
+	EventRoomPresenceEnter  = "EVT ROOM PRESENCE ENTER"
+	EventRoomPresenceLeave  = "EVT ROOM PRESENCE LEAVE"
+	EventPrefixRoomPresence = "EVT ROOM PRESENCE"
 
 	// Group Events
-	EventGroupInvite = "EVT GROUP INVITE"
-	EventGroupJoin   = "EVT GROUP JOIN"
-	EventGroupLeave  = "EVT GROUP LEAVE"
+	EventGroupInvite          = "EVT GROUP INVITE"
+	EventGroupJoin            = "EVT GROUP JOIN"
+	EventGroupLeave           = "EVT GROUP LEAVE"
+	EventPrefixGroup          = "EVT GROUP"
+	EventGroupNewLeader       = "EVT new_leader="
+	EventGroupKicked          = "EVT GROUP KICK"
+	EventGroupPromoteAccepted = "EVT GROUP PROMOTE ACCEPTED"
+	EventGroupPromoteDeclined = "EVT GROUP PROMOTE DECLINED"
+	EventGroupPromote         = "EVT GROUP PROMOTE"
 
 	// Chat Events
 	EventGlobalChat = "EVT GLOBAL CHAT"
@@ -46,6 +53,12 @@ const (
 
 	// Stats Events
 	EventStatsPlayers = "EVT STATS players="
+	EventPrefixStats  = "EVT STATS"
+
+	// Item Events
+	EventPrefixItem = "EVT ITEM"
+	EventItemDropped = "EVT ITEM DROPPED"
+	EventItemTook = "EVT ITEM TOOK"
 )
 
 type ServerEvent struct {

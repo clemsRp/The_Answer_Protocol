@@ -66,6 +66,112 @@ var inviteUnexistantPersonScenario = []ScenariosCommandTest{
 	},
 }
 
+var aliceKickBobFromGroupScenario = []ScenariosCommandTest{
+	connectAlice,
+	connectBob,
+	aliceCreatesGroup,
+	aliceInvitesBobInGroup,
+	bobJoinAliceGroup,
+	aliceKicksBobFromGroup,
+}
+
+var aliceKickUnknownFromGroupScenario = []ScenariosCommandTest{
+	connectAlice,
+	connectBob,
+	aliceCreatesGroup,
+	aliceInvitesBobInGroup,
+	bobJoinAliceGroup,
+	{
+		Name:    "Alice kicks unknown from group",
+		Command: "GROUP KICK unknown",
+		ExpectedReplies: []Reply{
+			{protocol.ErrUnknownUser, "alice"},
+		},
+		ExpectsJSON:      false,
+		TestOnConnection: "alice",
+	},
+}
+
+var alicePromotesBobGroupScenario = []ScenariosCommandTest{
+	connectAlice,
+	connectBob,
+	aliceCreatesGroup,
+	aliceInvitesBobInGroup,
+	bobJoinAliceGroup,
+	alicePromotesBob,
+	bobAcceptsPromotion,
+}
+
+var aliceInvitesBobTwiceScenario = []ScenariosCommandTest{
+	connectAlice,
+	connectBob,
+	aliceCreatesGroup,
+	aliceInvitesBobInGroup,
+	{
+		Name:    "Alice invites Bob in group AGAIN",
+		Command: "GROUP INVITE bob",
+		ExpectedReplies: []Reply{
+			{protocol.ErrInvitationAlreadySent, "alice"},
+		},
+		ExpectsJSON:      false,
+		TestOnConnection: "alice",
+	},
+}
+
+var bobJoinsGhostGroupScenario = []ScenariosCommandTest{
+	connectAlice,
+	connectBob,
+	aliceCreatesGroup,
+	aliceInvitesBobInGroup,
+	aliceLeavesGroupSolo,
+	bobJoinsGhostGroup,
+}
+
+var leaderKicksHimselfScenario = []ScenariosCommandTest{
+	connectAlice,
+	aliceCreatesGroup,
+	aliceKicksHerself,
+}
+
+var promoteBobThenCarlScenario = []ScenariosCommandTest{
+	connectAlice,
+	connectBob,
+	connectCarl,
+	aliceCreatesGroup,
+	aliceInvitesBobInGroup,
+	bobJoinAliceGroup,
+	aliceInvitesCarlInGroup,
+	carlJoinAliceGroup,
+	alicePromotesBob,
+	bobLeavesBigGroup,
+	alicePromotesCarl,
+	carlAcceptsPromotion,
+}
+
+var promoteNonMemberScenario = []ScenariosCommandTest{
+	connectAlice,
+	connectBob,
+	aliceCreatesGroup,
+	alicePromotesBobNotInGroup,
+}
+
+var declinePromotionScenario = []ScenariosCommandTest{
+	connectAlice,
+	connectBob,
+	aliceCreatesGroup,
+	aliceInvitesBobInGroup,
+	bobJoinAliceGroup,
+	alicePromotesBob,
+	bobDeclinesPromotion,
+}
+
+var joinWithoutInviteScenario = []ScenariosCommandTest{
+	connectAlice,
+	connectBob,
+	aliceCreatesGroup,
+	bobJoinsWithoutInvite,
+}
+
 var groupScenarioFamily = ScenarioFamily{
 	FamilyName: "Group scenarios family",
 	Scenarios: []ScenarioEntry{
@@ -84,6 +190,46 @@ var groupScenarioFamily = ScenarioFamily{
 		{
 			Name:  "Invite unexistant person",
 			Steps: inviteUnexistantPersonScenario,
+		},
+		{
+			Name:  "Alice kicks bob from group",
+			Steps: aliceKickBobFromGroupScenario,
+		},
+		{
+			Name:  "Alice tries to kick unknown from group",
+			Steps: aliceKickUnknownFromGroupScenario,
+		},
+		{
+			Name:  "Alice promotes bob",
+			Steps: alicePromotesBobGroupScenario,
+		},
+		{
+			Name:  "Alice invites bob twice in group",
+			Steps: aliceInvitesBobTwiceScenario,
+		},
+		{
+			Name:  "Bob tries to join a deleted group",
+			Steps: bobJoinsGhostGroupScenario,
+		},
+		{
+			Name:  "Leader kicks himself leaving a ghost group",
+			Steps: leaderKicksHimselfScenario,
+		},
+		{
+			Name:  "Promte bob then carl in group",
+			Steps: promoteBobThenCarlScenario,
+		},
+		{
+			Name:  "Alice tries to promote a non-member",
+			Steps: promoteNonMemberScenario,
+		},
+		{
+			Name:  "Bob declines promotion gracefully",
+			Steps: declinePromotionScenario,
+		},
+		{
+			Name:  "Carl tries to join without an invitation",
+			Steps: joinWithoutInviteScenario,
 		},
 	},
 }
