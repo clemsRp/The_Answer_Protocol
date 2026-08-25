@@ -133,9 +133,7 @@ var leaderKicksHimselfScenario = []ScenariosCommandTest{
 	aliceKicksHerself,
 }
 
-// 3. Le test du vol de promotion (Fuite d'état)
-// Alice promeut Bob, mais Bob quitte le groupe sans répondre. Alice tente ensuite de promouvoir Carl.
-var leaderStuckInPromotionScenario = []ScenariosCommandTest{
+var promoteBobThenCarlScenario = []ScenariosCommandTest{
 	connectAlice,
 	connectBob,
 	connectCarl,
@@ -144,11 +142,34 @@ var leaderStuckInPromotionScenario = []ScenariosCommandTest{
 	bobJoinAliceGroup,
 	aliceInvitesCarlInGroup,
 	carlJoinAliceGroup,
-	alicePromotesBob, 
-	bobLeavesGroup,   
-	alicePromotesCarlBlocked,
-	// BUG POTENTIEL : ... mais leave_group ne remet pas group.leader.send_promotion à false !
-	// Alice ne pourra plus jamais promouvoir personne.
+	alicePromotesBob,
+	bobLeavesBigGroup,
+	alicePromotesCarl,
+	carlAcceptsPromotion,
+}
+
+var promoteNonMemberScenario = []ScenariosCommandTest{
+	connectAlice,
+	connectBob,
+	aliceCreatesGroup,
+	alicePromotesBobNotInGroup,
+}
+
+var declinePromotionScenario = []ScenariosCommandTest{
+	connectAlice,
+	connectBob,
+	aliceCreatesGroup,
+	aliceInvitesBobInGroup,
+	bobJoinAliceGroup,
+	alicePromotesBob,
+	bobDeclinesPromotion,
+}
+
+var joinWithoutInviteScenario = []ScenariosCommandTest{
+	connectAlice,
+	connectBob,
+	aliceCreatesGroup,
+	bobJoinsWithoutInvite,
 }
 
 var groupScenarioFamily = ScenarioFamily{
@@ -195,8 +216,20 @@ var groupScenarioFamily = ScenarioFamily{
 			Steps: leaderKicksHimselfScenario,
 		},
 		{
-			Name:  "Leader gets stuck in promotion state if target leaves",
-			Steps: leaderStuckInPromotionScenario,
+			Name:  "Promte bob then carl in group",
+			Steps: promoteBobThenCarlScenario,
+		},
+		{
+			Name:  "Alice tries to promote a non-member",
+			Steps: promoteNonMemberScenario,
+		},
+		{
+			Name:  "Bob declines promotion gracefully",
+			Steps: declinePromotionScenario,
+		},
+		{
+			Name:  "Carl tries to join without an invitation",
+			Steps: joinWithoutInviteScenario,
 		},
 	},
 }

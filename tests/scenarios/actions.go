@@ -30,8 +30,10 @@ var connectCarl = ScenariosCommandTest{
 	Command: "CONNECT carl",
 	ExpectedReplies: []Reply{
 		{"OK connected", "carl"},
-		{protocol.EventStatsPlayers, "carl"},
-		{protocol.EventRoomPresenceEnter, "carl"},
+		{protocol.EventStatsPlayers, "bob"},
+		{protocol.EventRoomPresenceEnter, "bob"},
+		{protocol.EventStatsPlayers, "alice"},
+		{protocol.EventRoomPresenceEnter, "alice"},
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "carl",
@@ -128,7 +130,7 @@ var aliceKicksHerself = ScenariosCommandTest{
 	Name:    "Alice kicks herself from her own group",
 	Command: "GROUP KICK alice",
 	ExpectedReplies: []Reply{
-		{"OK", "alice"}, 
+		{"OK", "alice"},
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "alice",
@@ -154,6 +156,17 @@ var bobLeavesGroup = ScenariosCommandTest{
 	ExpectsJSON:      false,
 	TestOnConnection: "bob",
 }
+var bobLeavesBigGroup = ScenariosCommandTest{
+	Name:    "Bob leaves group",
+	Command: "GROUP LEAVE",
+	ExpectedReplies: []Reply{
+		{"OK", "bob"},
+		{protocol.EventGroupLeave + " bob", "alice"},
+		{protocol.EventGroupLeave + " bob", "carl"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "bob",
+}
 
 var aliceInvitesCarlInGroup = ScenariosCommandTest{
 	Name:    "Alice invites Carl in group",
@@ -172,19 +185,63 @@ var carlJoinAliceGroup = ScenariosCommandTest{
 	ExpectedReplies: []Reply{
 		{"OK group=", "carl"},
 		{protocol.EventGroupJoin + " carl", "alice"},
+		{protocol.EventGroupJoin + " carl", "bob"},
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "carl",
 }
 
-var alicePromotesCarlBlocked = ScenariosCommandTest{
-	Name:    "Alice tries to promote Carl but is blocked by a previous unresolved promotion",
+var alicePromotesCarl = ScenariosCommandTest{
+	Name:    "Alice promotes Carl",
 	Command: "GROUP PROMOTE carl",
 	ExpectedReplies: []Reply{
-		{protocol.ErrNoPermission, "alice"},
+		{protocol.GroupPromoteCmdResponse + "carl", "alice"},
+		{protocol.EventGroupPromote, "carl"},
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "alice",
+}
+
+var carlAcceptsPromotion = ScenariosCommandTest{
+	Name:    "carl accepts promotion",
+	Command: "GROUP ACCEPT",
+	ExpectedReplies: []Reply{
+		{protocol.GroupAcceptPromotionResponse, "carl"},
+		{protocol.EventGroupNewLeader + "carl", "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "carl",
+}
+
+var alicePromotesBobNotInGroup = ScenariosCommandTest{
+	Name:    "Alice tries to promote Carl who is not in the group",
+	Command: "GROUP PROMOTE bob",
+	ExpectedReplies: []Reply{
+		{protocol.ErrNotInGroup, "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "alice",
+}
+
+var bobDeclinesPromotion = ScenariosCommandTest{
+	Name:    "Bob declines Alice's promotion",
+	Command: "GROUP DECLINE",
+	ExpectedReplies: []Reply{
+		{"OK", "bob"},
+		{protocol.EventGroupPromoteDeclined + " bob", "alice"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "bob",
+}
+
+var bobJoinsWithoutInvite = ScenariosCommandTest{
+	Name:    "bob tries to join Alice's group without an invite",
+	Command: "GROUP JOIN alice",
+	ExpectedReplies: []Reply{
+		{protocol.ErrNotInvitedToGroup, "bob"},
+	},
+	ExpectsJSON:      false,
+	TestOnConnection: "bob",
 }
 
 // MOVE NORMAL SCENARIOS
