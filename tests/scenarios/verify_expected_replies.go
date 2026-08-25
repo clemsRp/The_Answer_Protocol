@@ -20,7 +20,7 @@ func VerifyExpectedReplies(t *testing.T, scenario ScenariosCommandTest, connecti
 		conn.SetReadDeadline(time.Now().Add(1 * time.Second))
 		res, err := readers[reply.User].ReadString('\n')
 		if err != nil {
-			t.Fatalf("Read error (timeout) for %s: %v", reply.User, err)
+			t.Fatalf("Read error (timeout) for %s %s: %v", reply.Msg,reply.User, err)
 		}
 
 		utils.AssertResponse(t, scenario.Command, reply.Msg, res, scenario.ExpectsJSON)

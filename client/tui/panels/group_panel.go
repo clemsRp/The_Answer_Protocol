@@ -238,7 +238,6 @@ func CreateOptionBtn(
 			selectedOption = optsList[0]
 		}
 
-		// Mise à jour de la sélection au survol/changement d'index
 		actionList.SetChangedFunc(func(i int, mainText, secondaryText string, shortcut rune) {
 			if i >= 0 && i < len(optsList) {
 				selectedOption = optsList[i]

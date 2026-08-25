@@ -30,16 +30,16 @@ func (e *Engine) handleCmdConnect(id string, req []string) (string, any, error) 
 	e.sessions[id] = pseudo
 	e.dialogues[pseudo] = make(map[string]int)
 
-	e.inform_all(player, fmt.Sprintf("EVT STATS players=%d", len(e.players)))
-	e.inform_room(player, player.room, "EVT ROOM PRESENCE ENTER "+player.name)
+	e.inform_all(player, fmt.Sprintf("%s%d", pr.EventStatsPlayers, len(e.players)))
+	e.inform_room(player, player.room, fmt.Sprintf("%s %s ", pr.EventRoomPresenceEnter, player.name))
 
-	return "OK connected", "", nil
+	return pr.ConnectCmdResponse, "", nil
 }
 
 func (e *Engine) playerQuits(player *Player) {
 	delete(e.players, player.name)
-	e.inform_room(player, player.room, "EVT ROOM PRESENCE LEAVE "+player.name)
-	e.inform_all(player, fmt.Sprintf("EVT STATS players=%d", len(e.players)))
+	e.inform_room(player, player.room, fmt.Sprintf("%s %s ", pr.EventRoomPresenceLeave, player.name))
+	e.inform_all(player, fmt.Sprintf("%s%d", pr.EventStatsPlayers, len(e.players)))
 }
 
 func (e *Engine) handleCmdQuit(player *Player, req []string) (string, any, error) {
@@ -50,12 +50,12 @@ func (e *Engine) handleCmdQuit(player *Player, req []string) (string, any, error
 
 	for _, obj := range player.inventory {
 		player.room.Items = append(player.room.Items, obj.Id)
-		e.inform_room(player, player.room, "EVT ITEM DROPPED "+obj.Id)
+		e.inform_room(player, player.room, fmt.Sprintf("%s %s", pr.EventItemDropped, obj.Id))
 	}
 	player.inventory = make([]*Item, 0)
 
 	e.playerQuits(player)
-	return "OK bye", "", nil
+	return pr.QuitCmdResponse, "", nil
 }
 
 func (e *Engine) handleCmdWho(req []string) (string, any, error) {
@@ -64,7 +64,7 @@ func (e *Engine) handleCmdWho(req []string) (string, any, error) {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
-	return fmt.Sprintf("OK players=%d", len(e.players)), "", nil
+	return fmt.Sprintf("%s%d", pr.WhoCmdResponse, len(e.players)), "", nil
 }
 
 func (e *Engine) handleCmdUnGrouped(player *Player, req []string) (string, any, error) {
@@ -164,14 +164,14 @@ func (e *Engine) handleCmdMove(player *Player, req []string) (string, any, error
 		return "", "", errors.New(pr.ErrNoExit)
 	}
 	nextRoom := e.world.Rooms[nextRoomName]
-	e.inform_room(player, player.room, "EVT ROOM PRESENCE LEAVE "+player.name)
+	e.inform_room(player, player.room, fmt.Sprintf("%s %s", pr.EventRoomPresenceLeave, player.name))
 
 	// Change the player room variable
 	player.room = nextRoom
 
-	e.inform_room(player, player.room, "EVT ROOM PRESENCE ENTER "+player.name)
+	e.inform_room(player, player.room, fmt.Sprintf("%s %s", pr.EventRoomPresenceEnter, player.name))
 
-	return fmt.Sprintf("OK room=%s", nextRoom.Name), "", nil
+	return fmt.Sprintf("%s%s", pr.MoveCmdResponse, nextRoom.Name), "", nil
 }
 
 func (e *Engine) handleCmdChat(player *Player, req []string) (string, any, error) {
@@ -294,9 +294,9 @@ func (e *Engine) handleCmdTake(player *Player, req []string) (string, any, error
 			player.inventory = append(player.inventory, item)
 			player.room.Items = append(player.room.Items[:obj_index], player.room.Items[obj_index+1:]...)
 
-			e.inform_room(player, player.room, "EVT ITEM TOOK "+object)
+			e.inform_room(player, player.room, fmt.Sprintf("%s %s", pr.EventItemTook, object))
 
-			return "OK taken=" + object, "", nil
+			return pr.TakeCmdResponse + object, "", nil
 		}
 	}
 
@@ -318,9 +318,9 @@ func (e *Engine) handleCmdDrop(player *Player, req []string) (string, any, error
 			player.inventory = append(player.inventory[:obj_index], player.inventory[obj_index+1:]...)
 			player.room.Items = append(player.room.Items, object)
 
-			e.inform_room(player, player.room, "EVT ITEM DROPPED "+object)
+			e.inform_room(player, player.room, fmt.Sprintf("%s %s", pr.EventItemDropped, object))
 
-			return "OK dropped=" + object, "", nil
+			return pr.DropCmdResponse + object, "", nil
 		}
 	}
 
@@ -446,7 +446,7 @@ func (e *Engine) handleCmdAttack(player *Player, req []string) (string, any, err
 		res, fullResponse = combat_session.processCombatTurn(player, npc_copy)
 	}
 	if len(combat_session.Players) > 1 {
-		eventMsg, jsonErr := convertObjectToJson("EVT COMBAT UPDATE", fullResponse)
+		eventMsg, jsonErr := convertObjectToJson(pr.EventCombatUpdate, fullResponse)
 		if jsonErr == nil {
 			e.inform_combat_players(combat_session, player, eventMsg)
 		} else {
@@ -486,7 +486,7 @@ func (e *Engine) handleCmdFlee(player *Player, req []string) (string, any, error
 	msgEvent := fmt.Sprintf("%s%s", pr.EventCombatAllyLeaveCombat, player.name)
 	e.inform_combat_players(cs, player, msgEvent)
 	if len(cs.Players) > 1 {
-		eventMsg, jsonErr := convertObjectToJson("EVT COMBAT UPDATE", cs.TurnResponse)
+		eventMsg, jsonErr := convertObjectToJson(pr.EventCombatUpdate, cs.TurnResponse)
 		if jsonErr == nil {
 			e.inform_combat_players(cs, player, eventMsg)
 		} else {

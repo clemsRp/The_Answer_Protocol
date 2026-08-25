@@ -33,3 +33,15 @@ const (
 	AcceptPromoteGroup  = "ACCEPT"
 	DeclinePromoteGroup = "DECLINE"
 )
+
+const (
+	ConnectCmdResponse           = "OK connected"
+	MoveCmdResponse              = "OK room="
+	TakeCmdResponse              = "OK taken="
+	DropCmdResponse              = "OK dropped="
+	QuitCmdResponse              = "OK bye"
+	WhoCmdResponse               = "OK players="
+	GroupCreateCmdResponse       = "OK group="
+	GroupPromoteCmdResponse      = "OK pending_leader="
+	GroupAcceptPromotionResponse = "OK new_leader="
+)

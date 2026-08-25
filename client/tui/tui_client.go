@@ -80,10 +80,10 @@ func (tui *TuiClient) listenResponses() {
 
 		res := convertServerResponse(line)
 		tui.outputs <- res
-		if res.Msg == "OK bye" {
+		if res.Msg == pr.QuitCmdResponse{
 			break
 		}
-		if res.Msg == "OK connected" {
+		if res.Msg == pr.ConnectCmdResponse {
 			tui.app.app.QueueUpdateDraw(func() {
 				tui.app.ShowGamePage()
 			})

@@ -139,8 +139,8 @@ func (r *Router) handleLastCommandResponse(res pr.ServerResponse) {
 		switch lastCmd {
 		case pr.CmdConnect:
 			go func() {
-				r.Inputs <- "UNGROUPED"
-				r.Inputs <- "LOOK"
+				r.Inputs <- pr.CmdUnGrouped
+				r.Inputs <- pr.CmdLook
 			}()
 		case pr.CmdLook:
 			r.GameUpdateChan <- res
@@ -154,31 +154,31 @@ func (r *Router) handleLastCommandResponse(res pr.ServerResponse) {
 
 func (r *Router) HandleEvents(res pr.ServerResponse) {
 	// Update INVITE datas
-	if strings.HasPrefix(res.Msg, "EVT STATS") || strings.HasPrefix(res.Msg, "EVT ROOM PRESENCE") {
-		r.Inputs <- "UNGROUPED"
-		r.Inputs <- "LOOK"
+	if strings.HasPrefix(res.Msg, pr.EventPrefixStats) || strings.HasPrefix(res.Msg, pr.EventPrefixRoomPresence) {
+		r.Inputs <- pr.CmdUnGrouped
+		r.Inputs <- pr.CmdLook
 	}
 
 	// Handle CHAT responses
-	global := strings.HasPrefix(res.Msg, "EVT GLOBAL CHAT")
-	room := strings.HasPrefix(res.Msg, "EVT ROOM CHAT")
-	group := strings.HasPrefix(res.Msg, "EVT GROUP CHAT")
+	global := strings.HasPrefix(res.Msg, pr.EventGlobalChat)
+	room := strings.HasPrefix(res.Msg, pr.EventRoomChat)
+	group := strings.HasPrefix(res.Msg, pr.EventGroupChat)
 	if global || room || group {
 		r.ChatChan <- res
 	}
 
 	// Handle ITEM responses
-	if strings.HasPrefix(res.Msg, "EVT ITEM") {
+	if strings.HasPrefix(res.Msg, pr.EventPrefixItem) {
 		r.ItemsChan <- res
 	}
 
 	// Handle PRESENCE responses
-	if strings.HasPrefix(res.Msg, "EVT ROOM PRESENCE") {
+	if strings.HasPrefix(res.Msg, pr.EventPrefixRoomPresence) {
 		r.InteractionChan <- res
 	}
 
 	// Handle GROUP responses
-	if strings.HasPrefix(res.Msg, "EVT GROUP") || strings.HasPrefix(res.Msg, "EVT new_leader=") {
+	if strings.HasPrefix(res.Msg, pr.EventPrefixGroup) || strings.HasPrefix(res.Msg, pr.EventGroupNewLeader) {
 		r.GroupChan <- res
 	}
 }
