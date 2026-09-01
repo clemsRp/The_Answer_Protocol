@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"slices"
+	"strings"
 	"sync"
 	pr "tap/protocol"
 
@@ -18,7 +19,7 @@ type CommandLineComponent struct {
 	Input   *tview.InputField
 }
 
-func NewCommandLineComponent(app *tview.Application, inputs chan<- string) *CommandLineComponent {
+func NewCommandLineComponent(app *tview.Application, actionsChan chan<- Action) *CommandLineComponent {
 	command_line := &CommandLineComponent{}
 
 	command_line.History = createTextView("", "", true)
@@ -70,7 +71,14 @@ func NewCommandLineComponent(app *tview.Application, inputs chan<- string) *Comm
 			fmt.Fprint(command_line.History, "tap-cli> "+text+"\n")
 
 			command_line.Input.SetText("")
-			inputs <- text
+			if strings.ToUpper(strings.TrimSpace(text)) == pr.CmdQuit {
+				actionsChan <- Action{Type: ActionQuit}
+			} else {
+				actionsChan <- Action{
+					Type:    ActionSendServer,
+					Payload: text,
+				}
+			}
 		}
 	})
 
@@ -83,6 +91,22 @@ func NewCommandLineComponent(app *tview.Application, inputs chan<- string) *Comm
 	})
 
 	return command_line
+}
+
+func (c *CommandLineComponent) AppendText(text string) {
+	fmt.Fprint(c.History, tview.Escape(text)+"\n")
+}
+
+func (c *CommandLineComponent) AppendResponse(res pr.ServerResponse) {
+	b, _ := json.Marshal(res.Datas)
+	datas := string(b)
+
+	if datas == "\"\"" || datas == "null" || datas == "<nil>" {
+		datas = ""
+	}
+
+	msg := fmt.Sprintf("%s %+v", res.Msg, datas)
+	fmt.Fprint(c.History, tview.Escape(msg)+"\n")
 }
 
 func (c *CommandLineComponent) ListenOutputs(ctx context.Context, wg *sync.WaitGroup, app *tview.Application, commandLineChan <-chan pr.ServerResponse) {

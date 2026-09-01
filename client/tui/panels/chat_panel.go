@@ -29,7 +29,7 @@ var (
 	last_chat = SaveChat{Scope: pr.GlobalChat, Msg: ""}
 )
 
-func NewChatComponent(app *tview.Application, inputs chan<- string) *ChatComponent {
+func NewChatComponent(app *tview.Application, actionsChan chan<- Action) *ChatComponent {
 	chat := &ChatComponent{}
 
 	// Init Scope Histories
@@ -106,7 +106,10 @@ func NewChatComponent(app *tview.Application, inputs chan<- string) *ChatCompone
 			last_chat = SaveChat{Scope: canal, Msg: text}
 
 			chat.Input.SetText("")
-			inputs <- fmt.Sprintf("CHAT %s %s", canal, text)
+			actionsChan <- Action{
+				Type:    ActionSendServer,
+				Payload: fmt.Sprintf("%s %s %s", pr.CmdChat, canal, text),
+			}
 		}
 	})
 
@@ -123,6 +126,17 @@ func NewChatComponent(app *tview.Application, inputs chan<- string) *ChatCompone
 	})
 
 	return chat
+}
+
+func (c *ChatComponent) AppendMessage(scope, user, message string) {
+	lineChat := fmt.Sprintf("[green]%s: [white]%s\n", user, message)
+	if historyView, exists := c.Histories[scope]; exists {
+		fmt.Fprint(historyView, lineChat)
+	}
+}
+
+func (c *ChatComponent) GetLastChat() SaveChat {
+	return last_chat
 }
 
 func NewHistoryComponent(scope string) *tview.TextView {
@@ -152,10 +166,13 @@ func (c *ChatComponent) ListenOutputs(ctx context.Context, wg *sync.WaitGroup, a
 				if strings.HasPrefix(res.Msg, "EVT") {
 					split_msg := strings.SplitN(res.Msg, " ", 5)
 
-					if len(split_msg) >= 5 {
+					if len(split_msg) >= 4 {
 						scope := split_msg[1]
 						user := split_msg[3]
-						message := split_msg[4]
+						message := ""
+						if len(split_msg) >= 5 {
+							message = split_msg[4]
+						}
 
 						lineChat := fmt.Sprintf("[green]%s: [white]%s\n", user, message)
 

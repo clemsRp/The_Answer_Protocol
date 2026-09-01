@@ -51,7 +51,7 @@ func (e *Engine) inform_group(player *Player, group string, msg string) {
 
 func (e *Engine) inform_combat_players(cs *CombatSession, player *Player, msg string) {
 	for _, p := range cs.Players {
-		if p.inCombat && p.stats.CombatId == cs.Id && p.room.Id == cs.RoomId && !p.isDead() && (player == nil || player.name != p.name) {
+		if p.inCombat && (player == nil || player.name != p.name) {
 			e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: msg}
 		}
 	}

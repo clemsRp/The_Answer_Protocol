@@ -5,6 +5,20 @@ import (
 	"github.com/rivo/tview"
 )
 
+type PopupAction struct {
+	Label   string
+	OnPress func()
+}
+
+type PopupConfig struct {
+	Type     string
+	Title    string
+	Message  string
+	Options  []string
+	OnSelect func(string)
+	Actions  []PopupAction
+}
+
 type PopupComponent struct {
 	Layout      *tview.Flex
 	LayoutTemp  *tview.Flex

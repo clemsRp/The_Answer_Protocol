@@ -9,9 +9,16 @@ import (
 )
 
 func RunScenario(t *testing.T, scenarioEntry ScenarioEntry) {
-	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+	s, _ := utils.SetupTestServerEngine(t, "../world.json")
 	connections := make(map[string]net.Conn)
 	readers := make(map[string]*bufio.Reader)
+
+	defer func() {
+		for _, conn := range connections {
+			conn.Close()
+		}
+		s.Stop()
+	}()
 
 	for _, step := range scenarioEntry.Steps {
 		if strings.HasPrefix(strings.ToLower(step.Command), "connect") {

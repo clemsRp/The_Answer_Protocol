@@ -1,133 +1,63 @@
 package tui
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"net"
-	"strings"
 	"sync"
-	pr "tap/protocol"
+	"tap/client/controller"
+	"tap/client/network"
+	"tap/client/state"
+	panel "tap/client/tui/panels"
 )
 
 type TuiClient struct {
-	app           *MyApp
-	inputs        chan string
-	outputs       chan pr.ServerResponse
-	conn          net.Conn
-	wg            sync.WaitGroup
-	disconnectMsg string
-	stopOnce      sync.Once
-	ctx           context.Context
-	cancelFunc    context.CancelFunc
+	app         *MyApp
+	netCli      *network.Client
+	controller  *controller.Controller
+	gameState   *state.GameState
+	actionsChan chan panel.Action
+	wg          sync.WaitGroup
+	ctx         context.Context
+	cancelFunc  context.CancelFunc
 }
 
 func NewTuiClient(conn net.Conn) *TuiClient {
-	// Init Client
 	ctx, cancel := context.WithCancel(context.Background())
-	cli := TuiClient{
-		inputs:     make(chan string, 10),
-		outputs:    make(chan pr.ServerResponse, 100),
-		conn:       conn,
-		ctx:        ctx,
-		cancelFunc: cancel,
-	}
+	actionsChan := make(chan panel.Action, 100)
 
-	router := NewRouter(cli.ctx, cli.inputs, cli.outputs)
-	cli.app = NewMyApp(cli.ctx, &cli.wg, router)
+	netCli := network.NewClient(ctx, cancel, conn)
+	gameState := state.New()
 
-	return &cli
-}
+	var wg sync.WaitGroup
+	myApp := NewMyApp(ctx, &wg, actionsChan)
 
-func (tui *TuiClient) startRouter() {
-	defer tui.wg.Done()
-	tui.app.router.Start(tui.app)
-}
+	ctrl := controller.New(ctx, cancel, netCli, gameState, myApp, actionsChan)
 
-func (tui *TuiClient) handleInput() {
-	defer tui.wg.Done()
-
-	router := tui.app.router
-	for {
-		select {
-		case input := <-tui.inputs:
-			// Send command to the server
-			fmt.Fprint(tui.conn, input+"\n")
-
-			// Save the last command to handle server returns
-			cmd := strings.ToUpper(strings.Fields(input)[0])
-			if cmd == "GROUP" && len(strings.Fields(input)) > 1 {
-				cmd = strings.ToUpper(strings.Fields(input)[1])
-			}
-			router.pendingCmds <- cmd
-
-		case <-tui.ctx.Done():
-			return
-		}
+	return &TuiClient{
+		app:         myApp,
+		netCli:      netCli,
+		controller:  ctrl,
+		gameState:   gameState,
+		actionsChan: actionsChan,
+		ctx:         ctx,
+		cancelFunc:  cancel,
 	}
 }
 
-func (tui *TuiClient) listenResponses() {
-	defer tui.wg.Done()
-	scanner := bufio.NewScanner(tui.conn)
-	tui.disconnectMsg = "Closed the app and the connection gracefully."
+func (c *TuiClient) Start() {
+	c.netCli.Start()
 
-	for scanner.Scan() {
-		line := scanner.Text()
-		if line == "" {
-			continue
-		}
-
-		res := convertServerResponse(line)
-		tui.outputs <- res
-		if res.Msg == pr.QuitCmdResponse{
-			break
-		}
-		if res.Msg == pr.ConnectCmdResponse {
-			tui.app.app.QueueUpdateDraw(func() {
-				tui.app.ShowGamePage()
-			})
-		}
-	}
-	if err := scanner.Err(); err != nil {
-		tui.disconnectMsg = fmt.Sprintf("Server connection lost with error: %v", err)
+	if err := c.app.Run(); err != nil {
+		fmt.Printf("Error running application: %v\n", err)
 	}
 
-	tui.Stop()
+	c.netCli.Stop()
+	fmt.Println(c.netCli.DisconnectMsg)
 }
 
-func (tui *TuiClient) Stop() {
-	tui.stopOnce.Do(func() {
-		tui.app.Stop()
-		tui.cancelFunc()
-		tui.conn.Close()
-	})
-
-}
-
-func (tui *TuiClient) Start() {
-	// handle router
-	tui.wg.Add(1)
-	go tui.startRouter()
-
-	// Handle input
-	tui.wg.Add(1)
-	go tui.handleInput()
-
-	// handle server responses
-	tui.wg.Add(1)
-	go tui.listenResponses()
-
-	err := tui.app.Run()
-
-	tui.Stop()
-
-	tui.wg.Wait()
-	if err != nil {
-		fmt.Printf("TUI encountered fatal error: %v\n", err)
-	}
-	if tui.disconnectMsg != "" {
-		fmt.Println(tui.disconnectMsg)
-	}
-
+func (c *TuiClient) Stop() {
+	c.cancelFunc()
+	c.app.Stop()
+	c.netCli.Stop()
 }

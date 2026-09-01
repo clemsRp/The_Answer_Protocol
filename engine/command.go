@@ -30,16 +30,16 @@ func (e *Engine) handleCmdConnect(id string, req []string) (string, any, error) 
 	e.sessions[id] = pseudo
 	e.dialogues[pseudo] = make(map[string]int)
 
-	e.inform_all(player, fmt.Sprintf("%s%d", pr.EventStatsPlayers, len(e.players)))
-	e.inform_room(player, player.room, fmt.Sprintf("%s %s ", pr.EventRoomPresenceEnter, player.name))
+	e.inform_all(player, fmt.Sprintf("EVT STATS players=%d", len(e.players)))
+	e.inform_room(player, player.room, "EVT ROOM PRESENCE ENTER "+player.name)
 
-	return pr.ConnectCmdResponse, "", nil
+	return "OK connected", "", nil
 }
 
 func (e *Engine) playerQuits(player *Player) {
 	delete(e.players, player.name)
-	e.inform_room(player, player.room, fmt.Sprintf("%s %s ", pr.EventRoomPresenceLeave, player.name))
-	e.inform_all(player, fmt.Sprintf("%s%d", pr.EventStatsPlayers, len(e.players)))
+	e.inform_room(player, player.room, "EVT ROOM PRESENCE LEAVE "+player.name)
+	e.inform_all(player, fmt.Sprintf("EVT STATS players=%d", len(e.players)))
 }
 
 func (e *Engine) handleCmdQuit(player *Player, req []string) (string, any, error) {
@@ -50,12 +50,12 @@ func (e *Engine) handleCmdQuit(player *Player, req []string) (string, any, error
 
 	for _, obj := range player.inventory {
 		player.room.Items = append(player.room.Items, obj.Id)
-		e.inform_room(player, player.room, fmt.Sprintf("%s %s", pr.EventItemDropped, obj.Id))
+		e.inform_room(player, player.room, "EVT ITEM DROPPED "+obj.Id)
 	}
 	player.inventory = make([]*Item, 0)
 
 	e.playerQuits(player)
-	return pr.QuitCmdResponse, "", nil
+	return "OK bye", "", nil
 }
 
 func (e *Engine) handleCmdWho(req []string) (string, any, error) {
@@ -64,7 +64,7 @@ func (e *Engine) handleCmdWho(req []string) (string, any, error) {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
-	return fmt.Sprintf("%s%d", pr.WhoCmdResponse, len(e.players)), "", nil
+	return fmt.Sprintf("OK players=%d", len(e.players)), "", nil
 }
 
 func (e *Engine) handleCmdUnGrouped(player *Player, req []string) (string, any, error) {
@@ -135,7 +135,7 @@ func (e *Engine) handleCmdLook(player *Player, req []string) (string, any, error
 		}
 	}
 	res := pr.LookCommandData{
-		Id:          player.room.Id,
+		Id:          "room." + player.room.Name,
 		Name:        player.room.Name,
 		Description: player.room.Description,
 		Exits:       exits,
@@ -152,9 +152,6 @@ func (e *Engine) handleCmdMove(player *Player, req []string) (string, any, error
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
-	if player.inCombat {
-		return "", "", errors.New(pr.ErrForbiddenInCombat)
-	}
 
 	direction := req[1]
 
@@ -164,14 +161,14 @@ func (e *Engine) handleCmdMove(player *Player, req []string) (string, any, error
 		return "", "", errors.New(pr.ErrNoExit)
 	}
 	nextRoom := e.world.Rooms[nextRoomName]
-	e.inform_room(player, player.room, fmt.Sprintf("%s %s", pr.EventRoomPresenceLeave, player.name))
+	e.inform_room(player, player.room, "EVT ROOM PRESENCE LEAVE "+player.name)
 
 	// Change the player room variable
 	player.room = nextRoom
 
-	e.inform_room(player, player.room, fmt.Sprintf("%s %s", pr.EventRoomPresenceEnter, player.name))
+	e.inform_room(player, player.room, "EVT ROOM PRESENCE ENTER "+player.name)
 
-	return fmt.Sprintf("%s%s", pr.MoveCmdResponse, nextRoom.Name), "", nil
+	return fmt.Sprintf("OK room=%s", nextRoom.Name), "", nil
 }
 
 func (e *Engine) handleCmdChat(player *Player, req []string) (string, any, error) {
@@ -185,7 +182,7 @@ func (e *Engine) handleCmdChat(player *Player, req []string) (string, any, error
 	msg := strings.Join(req[2:], " ")
 
 	// Check scope exist
-	if !slices.Contains([]string{pr.GlobalChat, pr.RoomChat, pr.GroupChat}, scope) {
+	if !slices.Contains([]string{pr.GlobalChat, pr.RoomChat, pr.GroupChat, pr.CombatChat}, scope) {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
@@ -196,9 +193,10 @@ func (e *Engine) handleCmdChat(player *Player, req []string) (string, any, error
 			is_global := scope == pr.GlobalChat
 			is_group := scope == pr.GroupChat && player.group != "" && p.group == player.group
 			is_room := scope == pr.RoomChat && p.room == player.room
+			is_combat := scope == pr.CombatChat && player.group != "" && p.group == player.group && p.inCombat
 
 			// Send chat to player
-			if is_global || is_group || is_room {
+			if is_global || is_group || is_room || is_combat {
 				chat = fmt.Sprintf("EVT %s CHAT %s %s", scope, player.name, msg)
 				e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: chat}
 			}
@@ -208,12 +206,13 @@ func (e *Engine) handleCmdChat(player *Player, req []string) (string, any, error
 }
 
 func (e *Engine) handleCmdGroup(player *Player, req []string) (string, any, error) {
+	// Handle invalid command
+	if len(req) < 2 {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
 	var err error
 	var res string
-	if len(req) <= 1 {
-		return "", "", errors.New(pr.ErrInvalidCommand)
-
-	}
 	scope := strings.ToUpper(req[1])
 
 	// Handle invalid command
@@ -262,6 +261,37 @@ func (e *Engine) handleCmdGroup(player *Player, req []string) (string, any, erro
 	return res, "", nil
 }
 
+func (e *Engine) handleCmdCombat(player *Player, req []string) (string, any, error) {
+	// Handle invalid command
+	if len(req) != 2 {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
+	// Check player is in combat
+	if !player.inCombat {
+		return "", "", errors.New(pr.ErrNotInCombat)
+	}
+
+	var err error
+	var datas any
+	var res string
+	scope := strings.ToUpper(req[1])
+
+	// Handle group scopes
+	switch scope {
+	case pr.StatsCombat:
+		res, datas, err = e.get_combat_stats()
+	default:
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
+	if err != nil {
+		return "", "", err
+	}
+
+	return res, datas, nil
+}
+
 func (e *Engine) handleCmdStatus(player *Player, req []string) (string, any, error) {
 	// Handle invalid command
 	if len(req) != 1 {
@@ -283,9 +313,6 @@ func (e *Engine) handleCmdTake(player *Player, req []string) (string, any, error
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
-	if player.inCombat {
-		return "", "", errors.New(pr.ErrForbiddenInCombat)
-	}
 
 	object := req[1]
 	for obj_index, item_name := range player.room.Items {
@@ -294,9 +321,9 @@ func (e *Engine) handleCmdTake(player *Player, req []string) (string, any, error
 			player.inventory = append(player.inventory, item)
 			player.room.Items = append(player.room.Items[:obj_index], player.room.Items[obj_index+1:]...)
 
-			e.inform_room(player, player.room, fmt.Sprintf("%s %s", pr.EventItemTook, object))
+			e.inform_room(player, player.room, "EVT ITEM TOOK "+object)
 
-			return pr.TakeCmdResponse + object, "", nil
+			return "OK taken=" + object, "", nil
 		}
 	}
 
@@ -308,9 +335,6 @@ func (e *Engine) handleCmdDrop(player *Player, req []string) (string, any, error
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
-	if player.inCombat {
-		return "", "", errors.New(pr.ErrForbiddenInCombat)
-	}
 
 	object := req[1]
 	for obj_index, obj := range player.inventory {
@@ -318,9 +342,9 @@ func (e *Engine) handleCmdDrop(player *Player, req []string) (string, any, error
 			player.inventory = append(player.inventory[:obj_index], player.inventory[obj_index+1:]...)
 			player.room.Items = append(player.room.Items, object)
 
-			e.inform_room(player, player.room, fmt.Sprintf("%s %s", pr.EventItemDropped, object))
+			e.inform_room(player, player.room, "EVT ITEM DROPPED "+object)
 
-			return pr.DropCmdResponse + object, "", nil
+			return "OK dropped=" + object, "", nil
 		}
 	}
 
@@ -346,9 +370,6 @@ func (e *Engine) handleCmdQuest(player *Player, req []string) (string, any, erro
 	// Handle invalid command
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
-	}
-	if player.inCombat {
-		return "", "", errors.New(pr.ErrForbiddenInCombat)
 	}
 
 	npc := req[1]
@@ -391,9 +412,6 @@ func (e *Engine) handleCmdTalk(player *Player, req []string) (string, any, error
 	// Handle invalid command
 	if len(req) != 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
-	}
-	if player.inCombat {
-		return "", "", errors.New(pr.ErrForbiddenInCombat)
 	}
 
 	npc := req[1]
@@ -446,7 +464,7 @@ func (e *Engine) handleCmdAttack(player *Player, req []string) (string, any, err
 		res, fullResponse = combat_session.processCombatTurn(player, npc_copy)
 	}
 	if len(combat_session.Players) > 1 {
-		eventMsg, jsonErr := convertObjectToJson(pr.EventCombatUpdate, fullResponse)
+		eventMsg, jsonErr := convertObjectToJson("EVT COMBAT UPDATE", fullResponse)
 		if jsonErr == nil {
 			e.inform_combat_players(combat_session, player, eventMsg)
 		} else {
@@ -483,16 +501,8 @@ func (e *Engine) handleCmdFlee(player *Player, req []string) (string, any, error
 		cs.State = StateCancelled
 	}
 
-	msgEvent := fmt.Sprintf("%s%s", pr.EventCombatAllyLeaveCombat, player.name)
+	msgEvent := fmt.Sprintf("EVT COMBAT ALLY_LEAVE_COMBAT %s", player.name)
 	e.inform_combat_players(cs, player, msgEvent)
-	if len(cs.Players) > 1 {
-		eventMsg, jsonErr := convertObjectToJson(pr.EventCombatUpdate, cs.TurnResponse)
-		if jsonErr == nil {
-			e.inform_combat_players(cs, player, eventMsg)
-		} else {
-			return "", nil, errors.New(pr.ErrInternalServer)
-		}
-	}
 	return "OK", nil, nil
 
 }

@@ -60,6 +60,8 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
 		res, datas, err = e.handleCmdChat(player, req)
 	case pr.CmdGroup:
 		res, datas, err = e.handleCmdGroup(player, req)
+	case pr.CmdCombat:
+		res, datas, err = e.handleCmdCombat(player, req)
 	case pr.CmdStatus:
 		res, datas, err = e.handleCmdStatus(player, req)
 	case pr.CmdTake:

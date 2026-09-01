@@ -6,59 +6,29 @@ const (
 	CategoryGroup  = "GROUP"
 	CategoryStats  = "STATS"
 	CategoryCombat = "COMBAT"
+	CategoryItem   = "ITEM"
 )
 
 const (
-	TypePresenceEnter = "PRESENCE ENTER"
-	TypePresenceLeave = "PRESENCE LEAVE"
-	TypeChat          = "CHAT"
-	TypeInvite        = "INVITE"
-	TypeJoin          = "JOIN"
-	TypeLeave         = "LEAVE"
-	TypePlayers       = "PLAYERS"
-	TypeAllyTurn      = "ALLY_TURN"
+	TypePresenceEnter        = "PRESENCE ENTER"
+	TypePresenceLeave        = "PRESENCE LEAVE"
+	TypeChat                 = "CHAT"
+	TypeInvite               = "INVITE"
+	TypeJoin                 = "JOIN"
+	TypeKick                 = "KICK"
+	TypeLeave                = "LEAVE"
+	TypePlayers              = "PLAYERS"
+	TypeAllyTurn             = "ALLY_TURN"
+	TypeItemDropped          = "ITEM DROPPED"
+	TypeItemTook             = "ITEM TOOK"
+	TypeGroupPromote         = "GROUP PROMOTE"
+	TypeGroupPromoteAccepted = "GROUP PROMOTE ACCEPTED"
+	TypeGroupPromoteDeclined = "GROUP PROMOTE DECLINED"
+	TypeStats                = "STATS"
 )
 
 const (
-	// Combat Events
-	EventCombatUpdate                    = "EVT COMBAT UPDATE"
-	EventCombatTurn                      = "EVT COMBAT TURN player="
-	EventCombatVictory                   = "EVT COMBAT VICTORY"
-	EventCombatDefeat                    = "EVT COMBAT DEFEAT new_room="
-	EventCombatStarted                   = "EVT COMBAT STARTED launcher="
-	EventCombatAllyLeaveCombat           = "EVT COMBAT ALLY_LEAVE_COMBAT player="
-	EventCombatPlayerDied                = "EVT COMBAT PLAYER_DIED player="
-	EventDistantGroupCombatStartedCombat = "EVT GROUP DISTANT_COMBAT_START launcher="
-
-	// Room Events
-	EventRoomPresenceEnter  = "EVT ROOM PRESENCE ENTER"
-	EventRoomPresenceLeave  = "EVT ROOM PRESENCE LEAVE"
-	EventPrefixRoomPresence = "EVT ROOM PRESENCE"
-
-	// Group Events
-	EventGroupInvite          = "EVT GROUP INVITE"
-	EventGroupJoin            = "EVT GROUP JOIN"
-	EventGroupLeave           = "EVT GROUP LEAVE"
-	EventPrefixGroup          = "EVT GROUP"
-	EventGroupNewLeader       = "EVT new_leader="
-	EventGroupKicked          = "EVT GROUP KICK"
-	EventGroupPromoteAccepted = "EVT GROUP PROMOTE ACCEPTED"
-	EventGroupPromoteDeclined = "EVT GROUP PROMOTE DECLINED"
-	EventGroupPromote         = "EVT GROUP PROMOTE"
-
-	// Chat Events
-	EventGlobalChat = "EVT GLOBAL CHAT"
-	EventRoomChat   = "EVT ROOM CHAT"
-	EventGroupChat  = "EVT GROUP CHAT"
-
-	// Stats Events
-	EventStatsPlayers = "EVT STATS players="
-	EventPrefixStats  = "EVT STATS"
-
-	// Item Events
-	EventPrefixItem = "EVT ITEM"
-	EventItemDropped = "EVT ITEM DROPPED"
-	EventItemTook = "EVT ITEM TOOK"
+	PrefixEvtNewLeader = "EVT new_leader="
 )
 
 type ServerEvent struct {

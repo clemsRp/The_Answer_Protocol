@@ -12,7 +12,7 @@ import (
 )
 
 func RunConcurrentScenario(t *testing.T, scenario ConcurrentScenario) {
-	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+	s, _ := utils.SetupTestServerEngine(t, "../world.json")
 	connections := make(map[string]net.Conn)
 	readers := make(map[string]*bufio.Reader)
 

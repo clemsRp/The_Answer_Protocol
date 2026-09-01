@@ -126,3 +126,61 @@ func createVerticalInputField(labelText string, labelColor tcell.Color, inputFie
 
 	return container
 }
+
+func SeparateElements(elements []tview.Primitive, sizes []int, is_row bool) *tview.Flex {
+	flex := tview.NewFlex()
+	var dir int
+	if is_row {
+		dir = tview.FlexColumn
+	} else {
+		dir = tview.FlexRow
+	}
+	flex.SetDirection(dir)
+
+	makeSpacer := func(backgroundColor tcell.Color) *tview.Box {
+		spacer := tview.NewBox()
+		spacer.SetBackgroundColor(backgroundColor)
+		return spacer
+	}
+
+	makeLineSpacer := func() *tview.Box {
+		box := tview.NewBox()
+		box.SetBackgroundColor(AppTheme.PopupBackground)
+
+		box.SetDrawFunc(func(screen tcell.Screen, x, y, width, height int) (int, int, int, int) {
+			style := tcell.StyleDefault.
+				Background(AppTheme.PopupBackground).
+				Foreground(AppTheme.Background)
+
+			if is_row {
+				for row := y; row < y+height; row++ {
+					screen.SetContent(x, row, '│', nil, style)
+				}
+			} else {
+				for col := x; col < x+width; col++ {
+					screen.SetContent(col, y, '─', nil, style)
+				}
+			}
+
+			return x, y, width, height
+		})
+
+		return box
+	}
+
+	for index, ele := range elements {
+		size := 0
+		if index < len(sizes) {
+			size = sizes[index]
+		}
+		flex.AddItem(ele, size, 1, true)
+
+		if index != len(elements)-1 {
+			flex.AddItem(makeSpacer(AppTheme.PopupBackground), 1, 0, false)
+			flex.AddItem(makeLineSpacer(), 1, 0, false)
+			flex.AddItem(makeSpacer(AppTheme.PopupBackground), 1, 0, false)
+		}
+	}
+
+	return flex
+}

@@ -9,7 +9,7 @@
                     "east": "fresh_section"
                 },
                 "items": ["sword"],
-                "npcs": ["grandpa_gaston", "samus", "quest_giver", "killer"]
+                "npcs": ["grandpa_gaston"]
             },
             "health_aisle": {
                 "name": "Health & Pharmacy Aisle",
@@ -18,7 +18,7 @@
                     "south": "entrance"
                 },
                 "items": ["gold_denture", "suppository_box"],
-                "npcs": ["granny_jeanine", "killer2"]
+                "npcs": ["granny_jeanine"]
             },
             "fresh_section": {
                 "name": "Meat & Deli Counter",
@@ -78,16 +78,6 @@
                 "hostile": false
 
             },
-            "quest_giver": {
-                "name": "quest giver",
-                "description": "test quest",
-                "dialogue": [
-                    "helloo test quest"
-                ],
-                "role": "quest",
-                "quest_id": "test_quest",
-                "hostile": false
-            },
             "grandpa_gaston": {
                 "name": "Grandpa Gaston",
                 "description": "A veteran sprinter ready to do anything to snag the best discounts.",
@@ -100,54 +90,7 @@
                     "hp": 10,
                     "max_hp": 10,
                     "status": "healthy",
-                    "initiative": 110
-            
-                },
-                "hostile": true
-            },
-            "killer": {
-                "name": "Killer",
-                "description": "NPC uniquement utilisé par les tests de combat.",
-                "dialogue": [],
-                "role": "dialogue",
-                "quest_id": "",
-                "hostile": true,
-                "damage": 100,
-                "stats": {
-                    "hp": 100,
-                    "max_hp": 100,
-                    "status": "healthy",
-                    "initiative": 110
-                }
-                },
-             "killer2": {
-                "name": "Killer2",
-                "description": "NPC uniquement utilisé par les tests de combat.",
-                "dialogue": [],
-                "role": "dialogue",
-                "quest_id": "",
-                "hostile": true,
-                "damage": 100,
-                "stats": {
-                    "hp": 100,
-                    "max_hp": 100,
-                    "status": "healthy",
-                    "initiative": 110
-                }
-                },
-            "samus": {
-                "name": "samus",
-                "description": "A test hostile NPC",
-                "dialogue": [
-                    "brrr Test"
-                ],
-                "role": "dialogue",
-                "quest_id": "",
-                "stats": {
-                    "hp": 10,
-                    "max_hp": 10,
-                    "status": "healthy",
-                    "initiative": 120
+                    "initiative": 100
                 },
                 "hostile": true
             }
@@ -161,11 +104,6 @@
             "run_for_suppos": {
                 "description": "Sprint to the health aisle to grab the suppository box before Grandpa Gaston.",
                 "reward": "suppository_box",
-                "status": "available"
-            },
-            "test_quest": {
-                "description": "test.",
-                "reward": "test",
                 "status": "available"
             }
         }

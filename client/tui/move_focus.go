@@ -4,10 +4,23 @@ import "github.com/gdamore/tcell/v2"
 
 func (m *MyApp) moveFocusSpatial(dRow, dCol int) {
 	currentFocus := m.app.GetFocus()
+	if currentFocus == nil {
+		return
+	}
 	startRow, startCol := -1, -1
 
-	for r := range 4 {
-		for c := range 4 {
+	numRows := len(m.navMatrix)
+	if numRows == 0 {
+		return
+	}
+
+	numCols := 1
+	if len(m.navMatrix) > 0 {
+		numCols = len(m.navMatrix[0])
+	}
+
+	for r := 0; r < numRows; r++ {
+		for c := 0; c < numCols; c++ {
 			if m.navMatrix[r][c] == currentFocus {
 				startRow, startCol = r, c
 				break
@@ -25,7 +38,7 @@ func (m *MyApp) moveFocusSpatial(dRow, dCol int) {
 		targetRow += dRow
 		targetCol += dCol
 
-		if targetRow < 0 || targetRow >= 4 || targetCol < 0 || targetCol >= 4 {
+		if targetRow < 0 || targetRow >= numRows || targetCol < 0 || targetCol >= numCols {
 			return
 		}
 

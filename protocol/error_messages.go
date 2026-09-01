@@ -15,17 +15,14 @@ const (
 // 400 codes are GAME LOGIC ERRORS
 // Group errors 401, 402
 const (
-	ErrInvalidCommand        = "ERR 400 INVALID_COMMAND"
-	ErrNotInGroup            = "ERR 401 NOT_IN_GROUP"
-	ErrAlreadyInGroup        = "ERR 402 ALREADY_IN_GROUP"
-	ErrNotInvitedToGroup     = "ERR 403 NOT_INVITED_TO_GROUP"
-	ErrGroupDoesntExist      = "ERR 416 GROUP_DOESNT_EXISTS"
-	ErrUnknownUser           = "ERR 410 UNKNOWN_USER"
-	ErrNoPermission          = "ERR 411 NO_PERMISSION"
-	ErrAlreadyLeader         = "ERR 412 ALREADY_LEADER"
-	ErrNotPromoted           = "ERR 413 NOT_PROMOTED"
-	ErrForbiddenInCombat     = "ERR 414 FORBIDDEN_IN_COMBAT"
-	ErrInvitationAlreadySent = "ERR 415 INVITATION_ALREADY_SENT"
+	ErrInvalidCommand    = "ERR 400 INVALID_COMMAND"
+	ErrNotInGroup        = "ERR 401 NOT_IN_GROUP"
+	ErrAlreadyInGroup    = "ERR 402 ALREADY_IN_GROUP"
+	ErrNotInvitedToGroup = "ERR 403 NOT_INVITED_TO_GROUP"
+	ErrUnknownUser       = "ERR 410 UNKNOWN_USER"
+	ErrNoPermission      = "ERR 411 NO_PERMISSION"
+	ErrAlreadyLeader     = "ERR 412 ALREADY_LEADER"
+	ErrNotPromoted       = "ERR 413 NOT_PROMOTED"
 )
 
 // Items & Inventory errors

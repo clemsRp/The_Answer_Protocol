@@ -40,6 +40,24 @@ func NewServerResponseComponent(app *tview.Application) *ServerResponseComponent
 	return src
 }
 
+func (c *ServerResponseComponent) AppendResponse(res pr.ServerResponse) {
+	msg_type := res.Msg
+	msg_text := ""
+
+	if strings.ContainsRune(res.Msg, ' ') {
+		split_msg := strings.SplitN(res.Msg, " ", 2)
+		if len(split_msg) > 0 {
+			msg_type = split_msg[0]
+		}
+		if len(split_msg) > 1 {
+			msg_text = split_msg[1]
+		}
+	}
+
+	color := GetResponseColor(res)
+	fmt.Fprintf(c.History, "[%s]%s [white]%s\n", color, msg_type, msg_text)
+}
+
 func (c *ServerResponseComponent) ListenOutputs(ctx context.Context, wg *sync.WaitGroup, app *tview.Application, ServerChan <-chan pr.ServerResponse) {
 	wg.Add(1)
 	go func() {
@@ -60,8 +78,12 @@ func (c *ServerResponseComponent) ListenOutputs(ctx context.Context, wg *sync.Wa
 
 				if strings.ContainsRune(res.Msg, ' ') {
 					split_msg := strings.SplitN(res.Msg, " ", 2)
-					msg_type = split_msg[0]
-					msg_text = split_msg[1]
+					if len(split_msg) > 0 {
+						msg_type = split_msg[0]
+					}
+					if len(split_msg) > 1 {
+						msg_text = split_msg[1]
+					}
 				}
 
 				color := GetResponseColor(res)

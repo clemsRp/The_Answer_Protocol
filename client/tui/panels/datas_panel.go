@@ -23,6 +23,12 @@ func NewDatasComponent(app *tview.Application) *DatasComponent {
 
 	return src
 }
+
+func (c *DatasComponent) SetDatas(text string) {
+	c.View.Clear()
+	c.View.SetText(text)
+}
+
 func (c *DatasComponent) ListenOutputs(ctx context.Context, wg *sync.WaitGroup, app *tview.Application, datasChan <-chan pr.ServerResponse) {
 	wg.Add(1)
 	go func() {

@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	pr "tap/protocol"
 	"unicode"
 
 	"github.com/gdamore/tcell/v2"
@@ -25,7 +26,7 @@ func SetInputText(input *tview.InputField, text string) {
 	input.SetText(spaces + text)
 }
 
-func NewConnectComponent(m_pseudo *string, inputs chan<- string) tview.Primitive {
+func NewConnectComponent(m_pseudo *string, actionsChan chan<- Action) tview.Primitive {
 	connect := createInputField(" Connect ", false, "")
 
 	connect.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
@@ -65,8 +66,13 @@ func NewConnectComponent(m_pseudo *string, inputs chan<- string) tview.Primitive
 			pseudo = input_pseudo
 
 			SetInputText(connect, "")
-			*m_pseudo = input_pseudo
-			inputs <- "CONNECT " + input_pseudo
+			if m_pseudo != nil {
+				*m_pseudo = input_pseudo
+			}
+			actionsChan <- Action{
+				Type:    ActionSendServer,
+				Payload: pr.CmdConnect + " " + input_pseudo,
+			}
 		}
 	})
 

@@ -26,9 +26,3 @@ type Exchanger struct {
 	JoinChan     chan string
 	LeaveChan    chan string
 }
-
-const (
-	RoomEntrance     = "entrance"
-	RoomHealthAisle  = "health_aisle"
-	RoomFreshSection = "fresh_section"
-)

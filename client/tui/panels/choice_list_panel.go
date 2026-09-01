@@ -75,13 +75,13 @@ func createList(
 			optionsFlex := tview.NewFlex().SetDirection(tview.FlexRow)
 			optionsFlex.SetBackgroundColor(popupBgColor)
 
-			makeSpacer := func(height int) *tview.Box {
+			makeSpacer := func() *tview.Box {
 				spacer := tview.NewBox()
 				spacer.SetBackgroundColor(popupBgColor)
 				return spacer
 			}
 
-			optionsFlex.AddItem(makeSpacer(1), 1, 0, false)
+			optionsFlex.AddItem(makeSpacer(), 1, 0, false)
 
 			actionList := tview.NewList().
 				SetMainTextColor(tcell.ColorWhite).
@@ -117,9 +117,12 @@ func createList(
 				if i >= 0 && i < len(funcsIndices) {
 					selectedFunc = funcsIndices[i]
 
+					itemCount := actionList.GetItemCount()
 					for idx, name := range cmdNames {
-						isSelected := (idx == i)
-						actionList.SetItemText(idx, formatItem(name, isSelected), "")
+						if idx < itemCount {
+							isSelected := (idx == i)
+							actionList.SetItemText(idx, formatItem(name, isSelected), "")
+						}
 					}
 				}
 			})
@@ -190,8 +193,18 @@ func createList(
 }
 
 func transform_name(option string, width int) string {
+	if len(option) >= width {
+		return option
+	}
 	first_len := (width - len(option)) / 2
-	return strings.Repeat(" ", first_len) + option + strings.Repeat(" ", width-first_len-len(option))
+	if first_len < 0 {
+		first_len = 0
+	}
+	remaining := width - first_len - len(option)
+	if remaining < 0 {
+		remaining = 0
+	}
+	return strings.Repeat(" ", first_len) + option + strings.Repeat(" ", remaining)
 }
 
 func (c *ChoiceListComponent) ListenOutputs(ctx context.Context, wg *sync.WaitGroup, app *tview.Application, Chan <-chan pr.ServerResponse, function func(pr.ServerResponse)) {

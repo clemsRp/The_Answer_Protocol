@@ -24,5 +24,3 @@ func SendCommand(t *testing.T, conn net.Conn, cmd string) string {
 
 	return strings.TrimSpace(response)
 }
-
-

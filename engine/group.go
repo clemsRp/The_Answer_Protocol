@@ -44,7 +44,7 @@ func (e *Engine) create_group(player *Player) (string, error) {
 	}
 	player.group = group_id
 
-	return pr.GroupCreateCmdResponse + group_id, nil
+	return "OK group=" + group_id, nil
 }
 
 func (e *Engine) invite_user_in_group(player *Player, user_name string) (string, error) {
@@ -75,45 +75,45 @@ func (e *Engine) invite_user_in_group(player *Player, user_name string) (string,
 	// Check that invitations isn't already present
 	for _, invite := range targetPlayer.invitations {
 		if invite == player.group {
-			return "", errors.New(pr.ErrInvitationAlreadySent)
+			return "", errors.New("ERR Invitation already send")
 		}
 	}
 
 	// Add invitations to user
 	targetPlayer.invitations = append(targetPlayer.invitations, player.group)
 
-	e.inform_user(targetPlayer, fmt.Sprintf("%s %s", pr.EventGroupInvite, player.name))
+	e.inform_user(targetPlayer, "EVT GROUP INVITE "+player.name)
 
 	return "OK", nil
 }
 
 func (e *Engine) kick_user_in_group(player *Player, user_name string) (string, error) {
 	// Handle non existant groups
-	targetPlayer, exists := e.players[user_name]
-	if !exists {
-		return "", errors.New(pr.ErrUnknownUser)
-	}
-	group, ok := e.groups[player.group]
+	_, ok := e.groups[player.group]
 	if !ok {
 		return "", errors.New(pr.ErrNotInGroup)
 	}
 
 	// Check player is group's leader
-	if group.leader.name != player.name {
+	if e.groups[player.group].players[0].name != player.name {
 		return "", errors.New(pr.ErrNoPermission)
 	}
 
 	// Handle users not in group
-	for _, user := range group.players {
+	for _, user := range e.groups[player.group].players {
 		if user.name == user_name {
 			// Get target user from e.players
+			targetPlayer, exists := e.players[user_name]
+			if !exists {
+				return "", errors.New(pr.ErrUnknownUser)
+			}
 
-			e.inform_group(player, player.group, fmt.Sprintf("%s %s", pr.EventGroupKicked, targetPlayer.name))
+			e.inform_group(player, player.group, "EVT GROUP KICK "+targetPlayer.name)
 
 			// Remove user from his current group
-			groupSlice := group
+			groupSlice := e.groups[player.group]
 			groupSlice = e.remove_user_in_group(targetPlayer, groupSlice)
-			group = groupSlice
+			e.groups[player.group] = groupSlice
 
 			targetPlayer.group = ""
 
@@ -143,7 +143,7 @@ func (e *Engine) join_group(player *Player, leader_name string) (string, error) 
 
 	// Handle non existant groups
 	if group_name == "" {
-		return "", errors.New(pr.ErrGroupDoesntExist)
+		return "", errors.New(pr.ErrInternalServer)
 	}
 	group, ok := e.groups[group_name]
 	if !ok {
@@ -165,7 +165,7 @@ func (e *Engine) join_group(player *Player, leader_name string) (string, error) 
 	// Add user in group
 	group.players = append(group.players, player)
 	player.group = group_name
-	e.inform_group(player, group.id, fmt.Sprintf("%s %s", pr.EventGroupJoin, player.name))
+	e.inform_group(player, group.id, "EVT GROUP JOIN "+player.name)
 
 	// Delete invitations
 	invite_index := -1
@@ -180,49 +180,37 @@ func (e *Engine) join_group(player *Player, leader_name string) (string, error) 
 		player.invitations = append(player.invitations[:invite_index], player.invitations[invite_index+1:]...)
 	}
 
-	return pr.GroupCreateCmdResponse + group_name, nil
+	return "OK group=" + group_name, nil
 }
 
 func (e *Engine) leave_group(player *Player) (string, error) {
+	// Check user is inside the group
 	if player.group == "" {
 		return "", errors.New(pr.ErrNotInGroup)
 	}
 
-	group, exists := e.groups[player.group]
-	if !exists {
-		return "", errors.New(pr.ErrInternalServer)
-	}
+	// Delete promotion
+	player.promotion = false
 
-	was_leader := (group.leader.name == player.name)
+	// Check leader
+	was_leader := (e.groups[player.group].players[0].name == player.name)
 
-	if was_leader {
-		for _, p := range group.players {
-			p.promotion = false
-		}
-		player.send_promotion = false
-	} else if player.promotion {
-		group.leader.send_promotion = false
-		player.promotion = false
-	}
-
+	// Remove user from his current group
+	group := e.groups[player.group]
 	group = e.remove_user_in_group(player, group)
+	e.groups[player.group] = group
 
-	if len(group.players) > 0 {
-		e.inform_group(player, group.id, fmt.Sprintf("%s %s", pr.EventGroupLeave, player.name))
-	}
+	e.inform_group(player, group.id, "EVT GROUP LEAVE "+player.name)
 
+	// Remove group if needed
 	if len(group.players) == 0 {
 		delete(e.groups, player.group)
-	} else {
-		if was_leader {
-			group.leader = group.players[0]
-			group.leader.send_promotion = false
-			e.inform_group(player, group.id, fmt.Sprintf("%s%s", pr.EventGroupNewLeader, group.leader.name))
-		}
 
-		e.groups[player.group] = group
+	} else if was_leader {
+		e.inform_group(player, player.group, "EVT new_leader="+e.groups[player.group].players[0].name)
 	}
 
+	// Re initialize his group value
 	player.group = ""
 
 	return "OK", nil
@@ -235,10 +223,8 @@ func (e *Engine) promote_user(player *Player, new_leader string) (string, error)
 	}
 
 	// Find the group
-	group, exists := e.groups[player.group]
-	if !exists {
-		return "", errors.New(pr.ErrInternalServer)
-	}
+	group := e.groups[player.group]
+
 	// Handle invalid rights
 	if group.leader.name != player.name {
 		return "", errors.New(pr.ErrNoPermission)
@@ -264,9 +250,9 @@ func (e *Engine) promote_user(player *Player, new_leader string) (string, error)
 	// Send promotion
 	player.send_promotion = true
 	targetPlayer.promotion = true
-	e.inform_user(targetPlayer, fmt.Sprintf("%s %s", pr.EventGroupPromote, new_leader))
+	e.inform_user(targetPlayer, "EVT GROUP PROMOTE "+new_leader)
 
-	return pr.GroupPromoteCmdResponse + new_leader, nil
+	return "OK pending_leader=" + player.name, nil
 }
 
 func (e *Engine) accept_promotion(player *Player) (string, error) {
@@ -276,24 +262,23 @@ func (e *Engine) accept_promotion(player *Player) (string, error) {
 	} else if !player.promotion {
 		return "", errors.New(pr.ErrNotPromoted)
 	}
-	group, exists := e.groups[player.group]
-	if !exists {
-		return "", errors.New(pr.ErrInternalServer)
-	}
-	oldLeader := group.leader
+
+	oldLeader := e.groups[player.group].players[0]
 	oldLeader.send_promotion = false
 
 	// Update promotion and leadership
 	player.promotion = false
-	new_leader_index := GetElementIndex(group.players, player)
+	new_leader_index := GetElementIndex(e.groups[player.group].players, player)
 
-	groupSlice := group.players
+	groupSlice := e.groups[player.group].players
 	MoveElement(groupSlice, new_leader_index, 0)
-	group.players = groupSlice
+	e.groups[player.group].players = groupSlice
 
-	group.leader = player
-	e.inform_group(player, group.id, fmt.Sprintf("%s%s", pr.EventGroupNewLeader, player.name))
-	return pr.GroupAcceptPromotionResponse + player.name, nil
+	e.groups[player.group].leader = player
+	e.inform_group(player, e.groups[player.group].id, "EVT GROUP PROMOTE ACCEPTED "+player.name)
+	e.inform_group_invitations(player, e.groups[player.group].id, "EVT GROUP PROMOTE ACCEPTED "+player.name)
+
+	return "OK new_leader=" + player.name, nil
 }
 
 func (e *Engine) decline_promotion(player *Player) (string, error) {
@@ -306,16 +291,16 @@ func (e *Engine) decline_promotion(player *Player) (string, error) {
 
 	// Update promotion
 	player.promotion = false
-	group, exists := e.groups[player.group]
+	_, exists := e.groups[player.group]
 	if !exists {
 		return "", errors.New(pr.ErrInternalServer)
 	}
 
 	// Change leader promotion status
-	group.leader.send_promotion = false
+	e.groups[player.group].players[0].send_promotion = false
 
-	e.inform_group(player, player.group, fmt.Sprintf("%s %s", pr.EventGroupPromoteDeclined, player.name))
-	e.inform_group_invitations(player, player.group, fmt.Sprintf("%s %s", pr.EventGroupPromoteDeclined, player.name))
+	e.inform_group(player, player.group, "EVT GROUP PROMOTE DECLINED "+player.name)
+	e.inform_group_invitations(player, player.group, "EVT GROUP PROMOTE DECLINED "+player.name)
 
 	return "OK", nil
 }

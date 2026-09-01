@@ -22,10 +22,11 @@ type Theme struct {
 	ListSelectedTxt tcell.Color
 
 	// Popups and Buttons
-	PopupBackground tcell.Color
-	ButtonRestBg    tcell.Color
-	ButtonActiveBg  tcell.Color
-	ButtonText      tcell.Color
+	PopupBackgroundHexa string
+	PopupBackground     tcell.Color
+	ButtonRestBg        tcell.Color
+	ButtonActiveBg      tcell.Color
+	ButtonText          tcell.Color
 }
 
 var AppTheme = Theme{
@@ -42,8 +43,9 @@ var AppTheme = Theme{
 	ListSelectedBg:  tcell.ColorBlue,
 	ListSelectedTxt: tcell.ColorWhite,
 
-	PopupBackground: tcell.GetColor("#3a3838"),
-	ButtonRestBg:    tcell.GetColor("#474646"),
-	ButtonActiveBg:  tcell.GetColor("#7e7979"),
-	ButtonText:      tcell.ColorWhite,
+	PopupBackgroundHexa: "#3a3838",
+	PopupBackground:     tcell.GetColor("#3a3838"),
+	ButtonRestBg:        tcell.GetColor("#474646"),
+	ButtonActiveBg:      tcell.GetColor("#7e7979"),
+	ButtonText:          tcell.ColorWhite,
 }
