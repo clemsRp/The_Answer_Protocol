@@ -47,7 +47,7 @@ func main() {
 
 	// Initialize server
 	var s *server.Server
-	s, err = server.NewServer("localhost:8080", exchanger)
+	s, err = server.NewServer("localhost:8070", exchanger)
 	if err != nil {
 		fmt.Println("Server couldn't start:", err)
 		return
