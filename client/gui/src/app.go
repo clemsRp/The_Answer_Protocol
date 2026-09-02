@@ -128,6 +128,7 @@ func (app *App) AppendChat(scope, user, msg string)               {}
 func (app *App) AppendCombatChat(user, msg string)                {}
 func (app *App) AppendServerResponse(res protocol.ServerResponse) {}
 func (app *App) AppendCliMessage(text string)                     {}
+func (app *App) AppendCliResponse(res protocol.ServerResponse)    {}
 func (app *App) GetPseudo() string                                { return "" }
 func (app *App) SetPseudo(pseudo string)                          {}
 func (app *App) Stop() {

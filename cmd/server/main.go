@@ -39,7 +39,7 @@ func main() {
 		LeaveChan:    make(chan string, 10)}
 
 	// Get the world map
-	world, err = engine.Get_map("new_world.json")
+	world, err = engine.Get_map("world.json")
 	if err != nil {
 		fmt.Println("ERROR", err.Error())
 		return
