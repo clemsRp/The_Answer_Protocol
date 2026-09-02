@@ -62,12 +62,6 @@ func ConvertRoomItemsList(items []string, actionsChan chan<- Action) OptionsMap 
 					Payload: fmt.Sprintf("%s %s", pr.CmdTake, it),
 				}
 			},
-			pr.CmdInspect: func() {
-				actionsChan <- Action{
-					Type:    ActionSendServer,
-					Payload: fmt.Sprintf("%s %s", pr.CmdInspectItem, it),
-				}
-			},
 		}
 	}
 
@@ -84,24 +78,6 @@ func ConvertInventoryItemsList(items []string, actionsChan chan<- Action) Option
 				actionsChan <- Action{
 					Type:    ActionSendServer,
 					Payload: fmt.Sprintf("%s %s", pr.CmdDrop, it),
-				}
-			},
-			"USE": func() {
-				actionsChan <- Action{
-					Type:    ActionSendServer,
-					Payload: fmt.Sprintf("USE %s", it),
-				}
-			},
-			"EQUIP": func() {
-				actionsChan <- Action{
-					Type:    ActionSendServer,
-					Payload: fmt.Sprintf("EQUIP %s", it),
-				}
-			},
-			pr.CmdInspect: func() {
-				actionsChan <- Action{
-					Type:    ActionSendServer,
-					Payload: fmt.Sprintf("%s %s", pr.CmdInspectInventoryItem, it),
 				}
 			},
 		}

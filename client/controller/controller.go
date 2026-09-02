@@ -28,6 +28,7 @@ type UIApp interface {
 	AppendCombatChat(user, msg string)
 	AppendServerResponse(res protocol.ServerResponse)
 	AppendCliMessage(text string)
+	AppendCliResponse(res protocol.ServerResponse)
 	GetPseudo() string
 	SetPseudo(pseudo string)
 	Stop()
@@ -153,11 +154,6 @@ func (c *Controller) getLastCommand() string {
 }
 
 func (c *Controller) handleServerResponses(res pr.ServerResponse) {
-	c.ui.QueueUpdate(func() {
-		c.ui.AppendServerResponse(res)
-		c.ui.AppendCliMessage(res.Msg)
-	})
-
 	if strings.HasPrefix(res.Msg, pr.MsgEvt) {
 		c.handleEvents(res)
 		return

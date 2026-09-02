@@ -9,6 +9,12 @@ import (
 )
 
 func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
+	// Update CLI/Server panel
+	c.ui.QueueUpdate(func() {
+		c.ui.AppendServerResponse(res)
+		c.ui.AppendCliResponse(res)
+	})
+
 	lastCmd := c.getLastCommand()
 	lastCmdBase := ""
 	cmdFields := strings.Fields(lastCmd)
@@ -34,7 +40,7 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 		})
 		c.sendToNetwork(pr.CmdLook)
 
-	case (lastCmdBase == pr.CmdLook || strings.HasPrefix(lastCmd, pr.CmdMove)) && res.Datas != nil:
+	case lastCmdBase == pr.CmdLook && res.Datas != nil:
 		var lookData protocol.LookCommandData
 		raw, err := json.Marshal(res.Datas)
 		if err == nil && json.Unmarshal(raw, &lookData) == nil {
@@ -42,7 +48,17 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 			c.refreshUI()
 		}
 
-	case (lastCmdBase == pr.CmdStatus || lastCmd == pr.CmdCombatStats || lastCmd == pr.StatsCombat) && res.Datas != nil:
+	case lastCmdBase == pr.CmdInventory && res.Datas != nil:
+		var inventoryData []string
+		raw, err := json.Marshal(res.Datas)
+		if err == nil && json.Unmarshal(raw, &inventoryData) == nil {
+			c.gameState.UpdatePlayer(func(p *state.Player) {
+				p.Inventory = append([]string{}, inventoryData...)
+			})
+			c.refreshUI()
+		}
+
+	case lastCmd == pr.CmdCombatStats && res.Datas != nil:
 		var combatData protocol.CombatStatsCommandData
 		raw, err := json.Marshal(res.Datas)
 		if err == nil && json.Unmarshal(raw, &combatData) == nil {
@@ -115,26 +131,27 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 			})
 		}
 
-	case strings.HasPrefix(lastCmd, pr.CmdTake+" ") && res.Msg == pr.MsgOK:
-		item := strings.TrimSpace(strings.TrimPrefix(lastCmd, pr.CmdTake+" "))
+	case strings.HasPrefix(lastCmd, pr.CmdTake) && strings.HasPrefix(res.Msg, pr.MsgOK):
+		item := strings.SplitN(res.Msg, "taken=", 2)[1]
 		c.gameState.UpdatePlayer(func(p *state.Player) {
 			p.Inventory = append(p.Inventory, item)
 		})
 		c.gameState.UpdateRoom(func(r *protocol.LookCommandData) {
 			for i, it := range r.Items {
-				if it == item && i < len(r.Items) {
+				if it == item {
 					r.Items = append(r.Items[:i], r.Items[i+1:]...)
 					break
 				}
 			}
 		})
+
 		c.refreshUI()
 
-	case strings.HasPrefix(lastCmd, pr.CmdDrop+" ") && res.Msg == pr.MsgOK:
-		item := strings.TrimSpace(strings.TrimPrefix(lastCmd, pr.CmdDrop+" "))
+	case strings.HasPrefix(lastCmd, pr.CmdDrop) && strings.HasPrefix(res.Msg, pr.MsgOK):
+		item := strings.SplitN(res.Msg, "dropped=", 2)[1]
 		c.gameState.UpdatePlayer(func(p *state.Player) {
 			for i, it := range p.Inventory {
-				if it == item && i < len(p.Inventory) {
+				if it == item {
 					p.Inventory = append(p.Inventory[:i], p.Inventory[i+1:]...)
 					break
 				}
@@ -143,6 +160,7 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 		c.gameState.UpdateRoom(func(r *protocol.LookCommandData) {
 			r.Items = append(r.Items, item)
 		})
+
 		c.refreshUI()
 
 	case strings.HasPrefix(res.Msg, pr.PrefixOKGroup):

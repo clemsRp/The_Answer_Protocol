@@ -29,6 +29,10 @@ type CombatComponent struct {
 	Layout  *tview.Flex
 	Input   *tview.InputField
 	History *tview.TextView
+
+	OpponentsList *tview.List
+	TeamList      *tview.List
+	StatsList     *tview.List
 }
 
 var (
@@ -85,8 +89,10 @@ func (c *CombatComponent) NewMainCombatComponent(actionsChan chan<- Action, comb
 
 	// Left part
 	// Add elements lists
-	opponents := c.GetElementList("Opponents", combat_datas.Opponents, nil)
-	team_mates := c.GetElementList("Team", combat_datas.Team, nil)
+	opponents := c.GetElementList("Opponents", combat_datas, combat_datas.Opponents, nil)
+	team_mates := c.GetElementList("Team", combat_datas, combat_datas.Team, nil)
+	c.OpponentsList = opponents
+	c.TeamList = team_mates
 
 	top_part := SeparateElements([]tview.Primitive{opponents, team_mates}, []int{0, 0}, true)
 
@@ -96,6 +102,7 @@ func (c *CombatComponent) NewMainCombatComponent(actionsChan chan<- Action, comb
 		"Leader":       combat_datas.Leader,
 	})
 	stats := c.GetStats(combat_datas)
+	c.StatsList = stats
 	mid_part := SeparateElements([]tview.Primitive{infos, stats}, []int{0, 0}, true)
 
 	// Add buttons
@@ -125,17 +132,53 @@ func (c *CombatComponent) NewMainCombatComponent(actionsChan chan<- Action, comb
 	return main_content, main_content_width, main_content_height
 }
 
-func (c *CombatComponent) GetElementList(element_type string, elements map[string]pr.CombatPersonData, function func()) *tview.List {
-	list := createListView("", false, false, true)
-	list.SetBackgroundColor(AppTheme.PopupBackground)
+// fillElementList (re)populates an element list, highlighting the currently
+// selected person (if any) with a yellow background.
+func (c *CombatComponent) fillElementList(list *tview.List, element_type string, combat_datas CombatDatas, elements map[string]pr.CombatPersonData) {
+	list.Clear()
 
 	// Add elements type
 	list.AddItem(fmt.Sprintf("[yellow:%s]%s:", AppTheme.PopupBackgroundHexa, element_type), "", 0, nil)
 
 	// Add elements
 	for element := range elements {
-		list.AddItem(fmt.Sprintf("[white:%s]- %s", AppTheme.PopupBackgroundHexa, element), "", 0, function)
+		person := element
+
+		background := AppTheme.PopupBackgroundHexa
+		text_color := "white"
+		if combat_datas.SelectedPerson != nil && *combat_datas.SelectedPerson == person {
+			background = AppTheme.TextHighlightHexa
+			text_color = "black"
+		}
+
+		list.AddItem(fmt.Sprintf("[%s:%s]- %s", text_color, background, person), "", 0, func() {
+			*combat_datas.SelectedPerson = person
+			c.RefreshCombatSelection(combat_datas)
+		})
 	}
+}
+
+// RefreshCombatSelection redraws the opponents/team lists (to move the yellow
+// highlight) and the stats panel (to show the newly selected person's stats).
+func (c *CombatComponent) RefreshCombatSelection(combat_datas CombatDatas) {
+	if c.OpponentsList != nil {
+		c.fillElementList(c.OpponentsList, "Opponents", combat_datas, combat_datas.Opponents)
+	}
+
+	if c.TeamList != nil {
+		c.fillElementList(c.TeamList, "Team", combat_datas, combat_datas.Team)
+	}
+
+	if c.StatsList != nil {
+		c.fillStats(c.StatsList, combat_datas)
+	}
+}
+
+func (c *CombatComponent) GetElementList(element_type string, combat_datas CombatDatas, elements map[string]pr.CombatPersonData, function func()) *tview.List {
+	list := createListView("", false, false, true)
+	list.SetBackgroundColor(AppTheme.PopupBackground)
+
+	c.fillElementList(list, element_type, combat_datas, elements)
 
 	return list
 }
@@ -151,9 +194,9 @@ func (c *CombatComponent) GetInfos(datas map[string]string) *tview.List {
 	return list
 }
 
-func (c *CombatComponent) GetStats(combat_datas CombatDatas) *tview.List {
-	list := createListView("", false, false, true)
-	list.SetBackgroundColor(AppTheme.PopupBackground)
+// fillStats (re)populates the stats list based on the currently selected person.
+func (c *CombatComponent) fillStats(list *tview.List, combat_datas CombatDatas) {
+	list.Clear()
 
 	// Get datas
 	var datas pr.CombatPersonData
@@ -168,9 +211,9 @@ func (c *CombatComponent) GetStats(combat_datas CombatDatas) *tview.List {
 		}
 
 		if person_color != "green" {
-			person_color = "red"
 			for person_name, person_datas := range combat_datas.Opponents {
 				if person_name == *combat_datas.SelectedPerson {
+					person_color = "red"
 					datas = person_datas
 					break
 				}
@@ -190,6 +233,13 @@ func (c *CombatComponent) GetStats(combat_datas CombatDatas) *tview.List {
 			list.AddItem(fmt.Sprintf("[white:%s]- %s", AppTheme.PopupBackgroundHexa, item), "", 0, nil)
 		}
 	}
+}
+
+func (c *CombatComponent) GetStats(combat_datas CombatDatas) *tview.List {
+	list := createListView("", false, false, true)
+	list.SetBackgroundColor(AppTheme.PopupBackground)
+
+	c.fillStats(list, combat_datas)
 
 	return list
 }
