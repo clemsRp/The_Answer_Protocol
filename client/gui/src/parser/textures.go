@@ -16,7 +16,7 @@ type Textures map[string]rl.Texture2D
 func LoadTextures() *Textures {
 	textures := make(Textures)
 
-	err := filepath.WalkDir("assets", func(path string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir("client/gui/assets", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -35,7 +35,7 @@ func LoadTextures() *Textures {
 	})
 
 	if err != nil {
-		fmt.Println("Erreur lors du chargement des textures :", err)
+		fmt.Println("Error charging the textures :", err)
 	}
 
 	return &textures
