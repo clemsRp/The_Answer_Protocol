@@ -33,6 +33,10 @@ func ConvertExits(room_name string, exits map[string]string, actionsChan chan<- 
 					Type:    ActionSendServer,
 					Payload: pr.CmdMove + " " + dir,
 				}
+				actionsChan <- Action{
+					Type:    ActionSendServer,
+					Payload: pr.CmdLook,
+				}
 			},
 		}
 	}

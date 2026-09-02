@@ -83,9 +83,9 @@ func (gs *GameState) GetPlayerSnapshot() Player {
 	}
 
 	snap := *gs.Player
-	snap.Inventory = append([]string(nil), gs.Player.Inventory...)
-	snap.Quests = append([]string(nil), gs.Player.Quests...)
-	snap.DefeatedNpcs = append([]string(nil), gs.Player.DefeatedNpcs...)
+	snap.Inventory = append([]string{}, gs.Player.Inventory...)
+	snap.Quests = append([]string{}, gs.Player.Quests...)
+	snap.DefeatedNpcs = append([]string{}, gs.Player.DefeatedNpcs...)
 
 	snap.Room = nil
 	snap.GroupState = nil

@@ -6,10 +6,11 @@ import (
 
 type Theme struct {
 	// Global colors
-	Background    tcell.Color
-	TextPrimary   tcell.Color
-	TextSecondary tcell.Color
-	TextHighlight tcell.Color
+	Background        tcell.Color
+	TextPrimary       tcell.Color
+	TextSecondary     tcell.Color
+	TextHighlight     tcell.Color
+	TextHighlightHexa string
 
 	// Border and titles
 	BorderInactive tcell.Color
@@ -30,10 +31,11 @@ type Theme struct {
 }
 
 var AppTheme = Theme{
-	Background:    tcell.NewRGBColor(0, 0, 0),
-	TextPrimary:   tcell.ColorWhite,
-	TextSecondary: tcell.ColorGray,
-	TextHighlight: tcell.ColorYellow,
+	Background:        tcell.NewRGBColor(0, 0, 0),
+	TextPrimary:       tcell.ColorWhite,
+	TextSecondary:     tcell.ColorGray,
+	TextHighlight:     tcell.ColorYellow,
+	TextHighlightHexa: "#fcca42",
 
 	BorderInactive: tcell.ColorDimGray,
 	BorderActive:   tcell.ColorYellow,

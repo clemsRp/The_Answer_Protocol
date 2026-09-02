@@ -9,8 +9,8 @@ func (e *Engine) get_combat_stats() (string, any, error) {
 		Team: map[string]pr.CombatPersonData{
 			"clement": {
 				Name:      "clement",
-				Hp:        100,
-				Inventory: []string{"sabre", "ton crane humide"},
+				Hp:        75,
+				Inventory: []string{"Heuuuuuuuuuuuuuu"},
 			},
 			"bob": {
 				Name:      "bob",
@@ -21,14 +21,14 @@ func (e *Engine) get_combat_stats() (string, any, error) {
 		Opponents: map[string]pr.CombatPersonData{
 			"grandpa_gaston": {
 				Name:      "grandpa_gaston",
-				Hp:        100,
-				Inventory: []string{"sabre", "ton crane humide"},
+				Hp:        67,
+				Inventory: []string{"sabre"},
 			},
-			"granny_jeanine": {
+			/* "granny_jeanine": {
 				Name:      "granny_jeanine",
-				Hp:        100,
-				Inventory: []string{"sabre", "ton crane humide"},
-			},
+				Hp:        18,
+				Inventory: []string{"bonjour", "hello"},
+			}, */
 		},
 	}
 

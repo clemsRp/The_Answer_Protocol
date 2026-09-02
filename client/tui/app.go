@@ -8,6 +8,7 @@ import (
 	"tap/protocol"
 	pr "tap/protocol"
 
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
@@ -29,7 +30,8 @@ type MyApp struct {
 	Group          *panel.GroupComponent
 	Items          *panel.ChoiceListComponent
 	Interaction    *panel.ChoiceListComponent
-	Datas          *panel.DatasComponent
+	Inspector      *panel.InspectorComponent
+	Quest          *panel.QuestComponent
 	PopupComponent *panel.PopupComponent
 	navMatrix      [4][4]tview.Primitive
 	ctx            context.Context
@@ -81,7 +83,8 @@ func (m *MyApp) setupComponents() {
 	m.Navigation = panel.NewNavigationComponent(m.app, m.popup, "", map[string]string{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
 	m.Items = panel.NewItemsComponent(m.app, m.popup, []string{}, []string{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
 	m.Interaction = panel.NewInteractionComponent(m.app, m.popup, []string{}, []string{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
-	m.Datas = panel.NewDatasComponent(m.app)
+	m.Inspector = panel.NewInspectorComponent(m.app)
+	m.Quest = panel.NewQuestComponent(m.app)
 
 	m.Server.CliBtn.
 		SetSelectedFunc(func() {
@@ -92,7 +95,7 @@ func (m *MyApp) setupComponents() {
 				m.navMatrix = [4][4]tview.Primitive{
 					{m.Navigation.List, m.Items.List, m.Interaction.List, m.Chat.Input},
 					{m.Group.Layout, m.Items.List, m.Interaction.List, m.Chat.Input},
-					{m.Datas.View, m.Datas.View, m.Datas.View, m.Chat.Input},
+					{m.Inspector.View, m.Quest.View, m.Quest.View, m.Chat.Input},
 					{m.Server.History, m.Server.History, m.Server.History, m.Server.History},
 				}
 
@@ -105,7 +108,7 @@ func (m *MyApp) setupComponents() {
 				m.navMatrix = [4][4]tview.Primitive{
 					{m.Navigation.List, m.Items.List, m.Interaction.List, m.Chat.Input},
 					{m.Group.Layout, m.Items.List, m.Interaction.List, m.Chat.Input},
-					{m.Datas.View, m.Datas.View, m.Datas.View, m.Chat.Input},
+					{m.Inspector.View, m.Quest.View, m.Quest.View, m.Chat.Input},
 					{m.CommandLine.Input, m.CommandLine.Input, m.Server.History, m.Server.History},
 				}
 
@@ -123,7 +126,7 @@ func (m *MyApp) setupMatrix() {
 	m.navMatrix = [4][4]tview.Primitive{
 		{m.Navigation.List, m.Items.List, m.Interaction.List, m.Chat.Input},
 		{m.Group.Layout, m.Items.List, m.Interaction.List, m.Chat.Input},
-		{m.Datas.View, m.Datas.View, m.Datas.View, m.Chat.Input},
+		{m.Quest.View, m.Quest.View, m.Quest.View, m.Chat.Input},
 		{m.Server.History, m.Server.History, m.Server.History, m.Server.History},
 	}
 }
@@ -133,7 +136,8 @@ func (m *MyApp) setupGrid() {
 	m.grid.AddItem(m.Group.Layout, 1, 0, 1, 1, 0, 0, false)
 	m.grid.AddItem(m.Items.Layout, 0, 1, 2, 1, 0, 0, false)
 	m.grid.AddItem(m.Interaction.Layout, 0, 2, 2, 1, 0, 0, false)
-	m.grid.AddItem(m.Datas.Layout, 2, 0, 1, 3, 0, 0, false)
+	m.grid.AddItem(m.Inspector.Layout, 2, 0, 1, 1, 0, 0, false)
+	m.grid.AddItem(m.Quest.Layout, 2, 1, 1, 2, 0, 0, false)
 	m.grid.AddItem(m.Chat.Layout, 0, 3, 3, 1, 0, 0, true)
 	m.grid.AddItem(m.Server.Layout, 3, 0, 1, 4, 0, 0, false)
 	m.combat.AddItem(m.Combat.Layout, 1, 1, 1, 1, 0, 0, true)
@@ -335,8 +339,8 @@ func (m *MyApp) UpdateCombat(combatState state.CombatState) {
 }
 
 func (m *MyApp) UpdateDatas(text string) {
-	if m.Datas != nil {
-		m.Datas.SetDatas(text)
+	if m.Quest != nil {
+		m.Quest.SetDatas(text)
 	}
 }
 
@@ -364,6 +368,12 @@ func (m *MyApp) AppendCliMessage(text string) {
 	}
 }
 
+func (m *MyApp) AppendCliResponse(res pr.ServerResponse) {
+	if m.CommandLine != nil {
+		m.CommandLine.AppendResponse(res)
+	}
+}
+
 func (m *MyApp) GetPseudo() string {
 	return m.pseudo
 }
@@ -381,6 +391,18 @@ func (m *MyApp) QueueUpdateDraw(f func()) *tview.Application {
 }
 
 func (m *MyApp) Run() error {
+	m.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyCtrlC || event.Key() == tcell.KeyCtrlD {
+			m.actionsChan <- panel.Action{
+				Type:    panel.ActionSendServer,
+				Payload: pr.CmdQuit,
+			}
+			return nil
+		}
+
+		return event
+	})
+
 	return m.app.Run()
 }
 

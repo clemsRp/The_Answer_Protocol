@@ -50,8 +50,8 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 			c.refreshUI()
 		}
 
-	case strings.HasPrefix(trimmed, pr.CategoryItem+" "+pr.TypeItemDropped):
-		target := strings.TrimSpace(strings.TrimPrefix(trimmed, pr.CategoryItem+" "+pr.TypeItemDropped))
+	case strings.HasPrefix(trimmed, pr.TypeItemDropped):
+		target := strings.SplitN(trimmed, pr.TypeItemDropped+" ", 2)[1]
 		if target != "" {
 			c.gameState.UpdateRoom(func(r *protocol.LookCommandData) {
 				r.Items = append(r.Items, target)
@@ -59,12 +59,12 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 			c.refreshUI()
 		}
 
-	case strings.HasPrefix(trimmed, pr.CategoryItem+" "+pr.TypeItemTook):
-		target := strings.TrimSpace(strings.TrimPrefix(trimmed, pr.CategoryItem+" "+pr.TypeItemTook))
+	case strings.HasPrefix(trimmed, pr.TypeItemTook):
+		target := strings.SplitN(trimmed, pr.TypeItemTook+" ", 2)[1]
 		if target != "" {
 			c.gameState.UpdateRoom(func(r *protocol.LookCommandData) {
 				for i, it := range r.Items {
-					if it == target && i < len(r.Items) {
+					if it == target {
 						r.Items = append(r.Items[:i], r.Items[i+1:]...)
 						break
 					}

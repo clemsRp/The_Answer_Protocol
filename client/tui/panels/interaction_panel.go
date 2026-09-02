@@ -61,12 +61,6 @@ func ConvertNpcsList(npcs []string, actionsChan chan<- Action) OptionsMap {
 					Payload: fmt.Sprintf("%s %s", pr.CmdQuest, n),
 				}
 			},
-			pr.CmdInspect: func() {
-				actionsChan <- Action{
-					Type:    ActionSendServer,
-					Payload: fmt.Sprintf("%s %s", pr.CmdInspectNpc, n),
-				}
-			},
 		}
 	}
 
@@ -83,12 +77,6 @@ func ConvertPlayersList(players []string, actionsChan chan<- Action) OptionsMap 
 				actionsChan <- Action{
 					Type:    ActionSendServer,
 					Payload: fmt.Sprintf("%s %s", pr.CmdAttack, p),
-				}
-			},
-			pr.CmdInspect: func() {
-				actionsChan <- Action{
-					Type:    ActionSendServer,
-					Payload: fmt.Sprintf("%s %s", pr.CmdInspectPlayer, p),
 				}
 			},
 		}
