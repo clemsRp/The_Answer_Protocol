@@ -39,7 +39,7 @@ func main() {
 		LeaveChan:    make(chan string, 10)}
 
 	// Get the world map
-	world, err = engine.Get_map("world.json")
+	world, err = engine.Get_map("new_world.json")
 	if err != nil {
 		fmt.Println("ERROR", err.Error())
 		return
@@ -55,20 +55,37 @@ func main() {
 
 	// Start server/engine
 	e := engine.NewEngine(world, exchanger)
-	go e.Start()
 
-	go s.Start()
+	errChan := make(chan error, 1)
+
+	// Enveloppe tes lancements pour capturer les erreurs fatales
+	go func() {
+		// Si la méthode Start() est bloquante et retourne une erreur quand elle plante
+		if err := e.Start(); err != nil {
+			errChan <- fmt.Errorf("Engine crash: %w", err)
+		}
+	}()
+
+	go func() {
+		if err := s.Start(); err != nil {
+			errChan <- fmt.Errorf("Server crash: %w", err)
+		}
+	}()
 
 	// Handle disconnection
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
-	<-quit
-	fmt.Println("\n Stopping the server due to Signal...")
+	select {
+	case <-quit:
+		fmt.Println("Server and Engine stopped with success.")
+
+	case fatalErr := <-errChan:
+		fmt.Printf("\nFatal crash : %v\nStopping system...\n", fatalErr)
+	}
 
 	// Stop server/engine
 	s.Stop()
 	e.Stop()
 
-	fmt.Println("Server and Engine stopped with success.")
 }

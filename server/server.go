@@ -149,7 +149,7 @@ func NewServer(listenAddr string, exchanger pr.Exchanger) (*Server, error) {
 	}, nil
 }
 
-func (s *Server) Start() {
+func (s *Server) Start() error {
 
 	s.wg.Add(1)
 	defer s.wg.Done()
@@ -160,7 +160,7 @@ func (s *Server) Start() {
 	for {
 		conn, err := s.ln.Accept()
 		if err != nil {
-			return
+			return err
 		}
 		s.handleNewConnection(conn)
 	}

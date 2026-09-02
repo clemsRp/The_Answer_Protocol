@@ -8,11 +8,15 @@ import (
 )
 
 const (
-	RoomEntrance     = "entrance"
-	RoomHealthAisle  = "health_aisle"
-	RoomFreshSection = "fresh_section"
+	RoomEntrance         = "entrance"
+	RoomProduceSection   = "produce_section"
+	RoomMeatCounter      = "meat_counter"
+	RoomFishCounter      = "fish_counter"
+	RoomCleaningProducts = "cleaning_products"
+	RoomPastries         = "pastries"
+	RoomClothingAisle    = "clothing_aisle"
+	RoomCheckoutLanes    = "checkout_lanes"
 )
-
 const (
 	South = "south"
 	North = "north"
@@ -23,8 +27,13 @@ const (
 var (
 	valid_maps = []string{
 		RoomEntrance,
-		RoomHealthAisle,
-		RoomFreshSection,
+		RoomProduceSection,
+		RoomMeatCounter,
+		RoomFishCounter,
+		RoomCleaningProducts,
+		RoomPastries,
+		RoomClothingAisle,
+		RoomCheckoutLanes,
 	}
 
 	exits = []string{
@@ -44,6 +53,7 @@ var (
 	roles = []string{
 		"quest",
 		"dialogue",
+		"enemy",
 	}
 
 	npc_status = []string{
