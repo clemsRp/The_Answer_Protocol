@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	pr "tap/protocol"
 )
 
@@ -30,8 +31,9 @@ func NewEngine(world *Map, exchanger pr.Exchanger) *Engine {
 	}
 }
 
-func (e *Engine) Start() {
-	e.broadcaster()
+func (e *Engine) Start() error {
+	err := e.broadcaster()
+	return err
 }
 func (e *Engine) Stop() {
 	select {
@@ -41,7 +43,12 @@ func (e *Engine) Stop() {
 	}
 }
 
-func (e *Engine) broadcaster() {
+func (e *Engine) broadcaster() (errPanic error) {
+	defer func() {
+		if r := recover(); r != nil {
+			errPanic = fmt.Errorf("Engine panic: %v", r)
+		}
+	}()
 	for {
 		select {
 		case id := <-e.exchanger.JoinChan:
@@ -59,7 +66,7 @@ func (e *Engine) broadcaster() {
 				Err:   err,
 			}
 		case <-e.quit:
-			return
+			return nil
 		}
 
 	}
