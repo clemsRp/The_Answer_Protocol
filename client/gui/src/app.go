@@ -71,12 +71,12 @@ func (app *App) Update() {
 
 func (app *App) Draw() {
 
-	/* app.DrawMap("entrance_floor.json")
-	app.DrawMap("entrance_furnitures.json") */
+	app.DrawMap("entrance_floor.json")
+	app.DrawMap("entrance_furnitures.json")
 }
 
 func (app *App) DrawMap(map_name string) {
-	/* cur_room := app.rooms[app.variables.Current_room]
+	cur_room := app.rooms[app.variables.Current_room]
 	cur_tilesets := cur_room.Tilesets
 
 	for y := range len(cur_tilesets) {
@@ -96,7 +96,7 @@ func (app *App) DrawMap(map_name string) {
 				1, 1, float32(app.variables.Tileset_size/vars.FRAME_WIDTH),
 			)
 		}
-	} */
+	}
 }
 
 func (app *App) Start() {
