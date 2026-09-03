@@ -6,11 +6,10 @@
                 "description": "The main entrance with battered shopping carts. The automatic doors squeak with every passerby.",
                 "exits": {
                     "north": "produce_section",
-                    "east": "clothing_aisle",
-                    "west": "checkout_lanes"
+                    "east": "clothing_aisle"
                 },
                 "items": [],
-                "npcs": []
+                "npcs": ["cashier_cindy"]
             },
             "produce_section": {
                 "name": "Produce Section",
@@ -73,16 +72,8 @@
                 },
                 "items": [],
                 "npcs": ["cat_lady_agnes"]
-            },
-            "checkout_lanes": {
-                "name": "Checkout Lanes",
-                "description": "A dead-end branch leading to the exit. The waiting lines are never-ending.",
-                "exits": {
-                    "east": "entrance"
-                },
-                "items": [],
-                "npcs": ["cashier_cindy"]
             }
+           
         },
         "items": {
             "smelly_mackerel": {
