@@ -65,6 +65,10 @@ func Get_map(map_path string) (*Map, error) {
 		npc.Id = id
 	}
 
+	for id, quest := range world.Quests {
+		quest.Id = id
+	}
+
 	return world, nil
 }
 

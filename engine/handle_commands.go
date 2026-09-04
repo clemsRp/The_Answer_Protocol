@@ -1,3 +1,4 @@
+// engine/handle_commands.go
 package engine
 
 import (
@@ -25,13 +26,11 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
 	req := strings.SplitN(request.Msg, " ", 5)
 	cmd := strings.ToUpper(req[0])
 
-	// Define variables
 	var pseudo string
 	var res string
 	var datas any
 	var err error
 
-	// validates session if player is connected
 	pseudo, err = e.validateSession(request.Id, cmd)
 	if err != nil {
 		return "", nil, err
@@ -42,7 +41,6 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
 	}
 	player := e.players[pseudo]
 
-	// Handle the command types for authentified players
 	switch cmd {
 	case pr.CmdQuit:
 		res, datas, err = e.handleCmdQuit(player, req)
@@ -70,22 +68,27 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
 		res, datas, err = e.handleCmdDrop(player, req)
 	case pr.CmdInventory:
 		res, datas, err = e.handleCmdInventory(player, req)
+	case pr.CmdUseItem:
+		res, datas, err = e.handleCmdUse(player, req)
 	case pr.CmdQuest:
 		res, datas, err = e.handleCmdQuest(player, req)
 	case pr.CmdQuests:
 		res, datas, err = e.handleCmdQuests(player, req)
+	case pr.CmdCompleteQuest:
+		res, datas, err = e.handleCmdCompleteQuest(player, req)
 	case pr.CmdTalk:
 		res, datas, err = e.handleCmdTalk(player, req)
 	case pr.CmdAttack:
 		res, datas, err = e.handleCmdAttack(player, req)
 	case pr.CmdFlee:
 		res, datas, err = e.handleCmdFlee(player, req)
+	case pr.CmdInspect:
+		res, datas, err = e.handleCmdInspect(player, req)
 
 	default:
 		res, datas, err = "", nil, errors.New(pr.ErrInvalidCommand)
 	}
 
-	// Log server response
 	if err != nil {
 		res = err.Error()
 		slog.Error("Server response", "response", res, "command", request.Msg)

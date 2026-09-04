@@ -29,6 +29,19 @@ func (c *QuestComponent) SetDatas(text string) {
 	c.View.SetText(text)
 }
 
+func (c *QuestComponent) SetQuests(quests []pr.TrackedQuestData) {
+	c.View.Clear()
+	if len(quests) == 0 {
+		c.View.SetText("No active quests.")
+		return
+	}
+	text := ""
+	for _, q := range quests {
+		text += "Quest: " + q.Id + "\nStatus: " + q.Status + "\nProgress: " + q.Progress + "\n\n"
+	}
+	c.View.SetText(text)
+}
+
 func (c *QuestComponent) ListenOutputs(ctx context.Context, wg *sync.WaitGroup, app *tview.Application, datasChan <-chan pr.ServerResponse) {
 	wg.Add(1)
 	go func() {

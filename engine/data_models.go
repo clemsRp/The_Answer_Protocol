@@ -12,9 +12,18 @@ package engine
 // }
 
 type Quest struct {
+	Id          string `json:"-" validate:"-"`
 	Description string `json:"description"`
 	Reward      string `json:"reward"`
 	Status      string `json:"status" validate:"required,valid_quest_status"`
+	Progress    string `json:"progress"`
+	TargetItem  string `json:"target_item,omitempty"`
+	TargetNpc   string `json:"target_npc,omitempty"`
+}
+
+func (q *Quest) Clone() *Quest {
+	cp := *q
+	return &cp
 }
 
 type Room struct {

@@ -15,12 +15,13 @@ type Player struct {
 	Name           string
 	Room           *protocol.LookCommandData
 	Inventory      []string
-	Quests         []string
+	Quests         []protocol.TrackedQuestData
 	DefeatedNpcs   []string
 	InCombat       bool
 	EquippedWeapon string
 	Stats          string
 	GroupState     *GroupState
+	NpcDialogues   map[string]string
 }
 
 type GroupState struct {
@@ -53,9 +54,10 @@ type CombatState struct {
 func New() *GameState {
 	return &GameState{
 		Player: &Player{
-			GroupState: &GroupState{},
-			Room:       &protocol.LookCommandData{},
-			Inventory:  make([]string, 0),
+			GroupState:   &GroupState{},
+			Room:         &protocol.LookCommandData{},
+			Inventory:    make([]string, 0),
+			NpcDialogues: make(map[string]string),
 		},
 		Combat: &CombatState{
 			Chats:     make([]CombatChat, 0),
@@ -84,8 +86,13 @@ func (gs *GameState) GetPlayerSnapshot() Player {
 
 	snap := *gs.Player
 	snap.Inventory = append([]string{}, gs.Player.Inventory...)
-	snap.Quests = append([]string{}, gs.Player.Quests...)
+	snap.Quests = append([]protocol.TrackedQuestData{}, gs.Player.Quests...)
 	snap.DefeatedNpcs = append([]string{}, gs.Player.DefeatedNpcs...)
+	
+	snap.NpcDialogues = make(map[string]string)
+	for k, v := range gs.Player.NpcDialogues {
+		snap.NpcDialogues[k] = v
+	}
 
 	snap.Room = nil
 	snap.GroupState = nil

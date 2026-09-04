@@ -55,6 +55,9 @@ func (e *Engine) inform_combat_players(cs *CombatSession, player *Player, msg st
 			e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: msg}
 		}
 	}
+
+	// Log server
+	send_log(msg)
 }
 
 func (e *Engine) inform_group_invitations(player *Player, group string, msg string) {

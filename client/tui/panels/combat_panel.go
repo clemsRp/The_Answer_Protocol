@@ -23,6 +23,8 @@ type CombatDatas struct {
 	Leader           string
 	Current_turn     string
 	SelectedPerson   *string
+	Inventory        []string
+	MyPseudo         string // Ajout du pseudo pour vérifier si c'est notre tour
 }
 
 type CombatComponent struct {
@@ -33,6 +35,7 @@ type CombatComponent struct {
 	OpponentsList *tview.List
 	TeamList      *tview.List
 	StatsList     *tview.List
+	ActionButtons []*tview.Button
 }
 
 var (
@@ -40,7 +43,7 @@ var (
 	CombatWidth  = 160
 )
 
-func NewCombatComponent(actionsChan chan<- Action, combat_datas CombatDatas) *CombatComponent {
+func NewCombatComponent(app *tview.Application, actionsChan chan<- Action, combat_datas CombatDatas) *CombatComponent {
 	src := CombatComponent{
 		Layout: tview.NewFlex().SetDirection(tview.FlexColumn),
 	}
@@ -80,6 +83,52 @@ func NewCombatComponent(actionsChan chan<- Action, combat_datas CombatDatas) *Co
 	src.Layout.AddItem(main_flex, main_content_width, 1, true)
 	src.Layout.AddItem(makeSpacer(), CombatWidth-padding_left-main_content_width, 0, false)
 
+	var focusableItems []tview.Primitive
+	if src.OpponentsList != nil {
+		focusableItems = append(focusableItems, src.OpponentsList)
+	}
+	if src.TeamList != nil {
+		focusableItems = append(focusableItems, src.TeamList)
+	}
+	for _, b := range src.ActionButtons {
+		focusableItems = append(focusableItems, b)
+	}
+	if src.Input != nil {
+		focusableItems = append(focusableItems, src.Input)
+	}
+
+	src.Layout.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyTab {
+			cur := app.GetFocus()
+			for i, item := range focusableItems {
+				if cur == item {
+					nextIdx := (i + 1) % len(focusableItems)
+					app.SetFocus(focusableItems[nextIdx])
+					return nil
+				}
+			}
+			if len(focusableItems) > 0 {
+				app.SetFocus(focusableItems[0])
+			}
+			return nil
+		}
+		if event.Key() == tcell.KeyBacktab {
+			cur := app.GetFocus()
+			for i, item := range focusableItems {
+				if cur == item {
+					prevIdx := (i - 1 + len(focusableItems)) % len(focusableItems)
+					app.SetFocus(focusableItems[prevIdx])
+					return nil
+				}
+			}
+			if len(focusableItems) > 0 {
+				app.SetFocus(focusableItems[len(focusableItems)-1])
+			}
+			return nil
+		}
+		return event
+	})
+
 	return &src
 }
 
@@ -108,19 +157,28 @@ func (c *CombatComponent) NewMainCombatComponent(actionsChan chan<- Action, comb
 	// Add buttons
 	all_btns, btns_height := c.GetAllButtons(actionsChan, combat_datas)
 	btns := tview.NewFlex().SetDirection(tview.FlexRow)
-	for ind, btn := range all_btns {
-		btns.AddItem(btn, 1, 0, true)
+	btns.SetBackgroundColor(AppTheme.PopupBackground)
 
-		if ind != len(all_btns)-1 {
-			box := tview.NewBox()
-			box.SetBackgroundColor(AppTheme.PopupBackground)
-			btns.AddItem(box, 1, 0, false)
+	isMyTurn := (combat_datas.Current_turn != "" && combat_datas.Current_turn == combat_datas.MyPseudo)
+	if !isMyTurn {
+		btns.AddItem(all_btns[0], btns_height, 0, false)
+		btns_box := tview.NewBox()
+		btns_box.SetBackgroundColor(AppTheme.PopupBackground)
+		btns.AddItem(btns_box, 0, 1, false)
+	} else {
+		for ind, btn := range all_btns {
+			btns.AddItem(btn, 1, 0, true)
+
+			if ind != len(all_btns)-1 {
+				box := tview.NewBox()
+				box.SetBackgroundColor(AppTheme.PopupBackground)
+				btns.AddItem(box, 1, 0, false)
+			}
 		}
+		btns_box := tview.NewBox()
+		btns_box.SetBackgroundColor(AppTheme.PopupBackground)
+		btns.AddItem(btns_box, 0, 1, false)
 	}
-
-	btns_box := tview.NewBox()
-	btns_box.SetBackgroundColor(AppTheme.PopupBackground)
-	btns.AddItem(btns_box, 0, 1, false)
 
 	left_flex := SeparateElements([]tview.Primitive{top_part, mid_part, btns}, []int{0, 0, btns_height}, false)
 
@@ -152,7 +210,9 @@ func (c *CombatComponent) fillElementList(list *tview.List, element_type string,
 		}
 
 		list.AddItem(fmt.Sprintf("[%s:%s]- %s", text_color, background, person), "", 0, func() {
-			*combat_datas.SelectedPerson = person
+			if combat_datas.SelectedPerson != nil {
+				*combat_datas.SelectedPerson = person
+			}
 			c.RefreshCombatSelection(combat_datas)
 		})
 	}
@@ -244,38 +304,97 @@ func (c *CombatComponent) GetStats(combat_datas CombatDatas) *tview.List {
 	return list
 }
 
-func (c *CombatComponent) GetAllButtons(actionsChan chan<- Action, combat_datas CombatDatas) ([]*tview.Button, int) {
+// GetAllButtons builds the bottom action row.
+// Displays waiting text if it's not our turn.
+func (c *CombatComponent) GetAllButtons(actionsChan chan<- Action, combat_datas CombatDatas) ([]tview.Primitive, int) {
+	// Vérification de l'état du tour
+	if combat_datas.Current_turn == "" || combat_datas.Current_turn != combat_datas.MyPseudo {
+		turnName := combat_datas.Current_turn
+		if turnName == "" {
+			turnName = "..."
+		}
+		msg := tview.NewTextView().
+			SetDynamicColors(true).
+			SetTextAlign(tview.AlignCenter)
+		msg.SetText(fmt.Sprintf("\n[yellow]Waiting for [-][red]%s[-][yellow] to play...[-]", turnName))
+		msg.SetBackgroundColor(AppTheme.PopupBackground)
+		c.ActionButtons = nil
+		return []tview.Primitive{msg}, 3
+	}
+
+	attack_btn := tview.NewButton("Attack")
+	attack_btn.SetSelectedFunc(func() {
+		// Evalué au moment du clic, garantit qu'on prend la cible actuellement sélectionnée
+		target := ""
+		if combat_datas.SelectedPerson != nil {
+			if _, ok := combat_datas.Opponents[*combat_datas.SelectedPerson]; ok {
+				target = *combat_datas.SelectedPerson
+			}
+		}
+		// Fallback sur le premier ennemi si aucune cible ou allié sélectionné
+		if target == "" {
+			for name := range combat_datas.Opponents {
+				target = name
+				break
+			}
+		}
+		if target == "" {
+			return
+		}
+		actionsChan <- Action{
+			Type:    ActionSendServer,
+			Payload: fmt.Sprintf("%s %s", pr.CmdAttack, target),
+		}
+	})
+
 	flee_btn := tview.NewButton("Flee")
 	flee_btn.SetSelectedFunc(func() {
 		actionsChan <- Action{
 			Type:    ActionSendServer,
-			Payload: pr.CmdChatCombatFlee,
-		}
-		if combat_datas.Last_combat_chat != nil {
-			*combat_datas.Last_combat_chat = pr.CombatActionFlee
+			Payload: pr.CmdFlee,
 		}
 	})
 
-	use_btn := tview.NewButton("Use")
-	use_btn.SetSelectedFunc(func() {
-		actionsChan <- Action{
-			Type:    ActionSendServer,
-			Payload: pr.CmdCombatStats,
-		}
-	})
+	buttons := []*tview.Button{attack_btn, flee_btn}
 
-	attack_btn := tview.NewButton("Attack")
-	attack_btn.SetSelectedFunc(func() {
-		actionsChan <- Action{
-			Type:    ActionSendServer,
-			Payload: pr.CmdChatCombatAttack,
-		}
-		if combat_datas.Last_combat_chat != nil {
-			*combat_datas.Last_combat_chat = pr.CombatActionAttack
-		}
-	})
+	// Regrouper les items par ID avec compteur si plusieurs exemplaires
+	type itemCounter struct {
+		id    string
+		count int
+	}
+	var itemsList []itemCounter
+	itemIndices := make(map[string]int)
 
-	res := []*tview.Button{flee_btn, use_btn, attack_btn}
+	for _, item := range combat_datas.Inventory {
+		if idx, exists := itemIndices[item]; exists {
+			itemsList[idx].count++
+		} else {
+			itemIndices[item] = len(itemsList)
+			itemsList = append(itemsList, itemCounter{id: item, count: 1})
+		}
+	}
+
+	for _, entry := range itemsList {
+		itemName := entry.id
+		btnLabel := fmt.Sprintf("Use %s", itemName)
+		if entry.count > 1 {
+			btnLabel = fmt.Sprintf("Use %s (x%d)", itemName, entry.count)
+		}
+		use_btn := tview.NewButton(btnLabel)
+		use_btn.SetSelectedFunc(func() {
+			actionsChan <- Action{
+				Type:    ActionSendServer,
+				Payload: fmt.Sprintf("%s %s", pr.CmdUseItem, itemName),
+			}
+		})
+		buttons = append(buttons, use_btn)
+	}
+
+	c.ActionButtons = buttons
+	var res []tview.Primitive
+	for _, b := range buttons {
+		res = append(res, b)
+	}
 
 	return res, 2 * len(res)
 }

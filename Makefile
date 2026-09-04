@@ -13,4 +13,3 @@ debug_project:
 
 
 .PHONY: tui gui server debug_project
-

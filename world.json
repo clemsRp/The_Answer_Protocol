@@ -168,12 +168,14 @@
             "feed_the_cats": {
                 "description": "Find the Smelly Mackerel at the Fish Counter and bring it back to Agnes.",
                 "reward": "stale_baguette",
-                "status": "available"
+                "status": "available",
+                "target_item": "smelly_mackerel"
             },
             "clean_the_cleaner": {
                 "description": "Defeat Claude in the Cleaning Products Aisle to get his bleach jug.",
                 "reward": "toxic_bleach",
-                "status": "available"
+                "status": "available",
+                "target_npc": "cleaner_claude"
             }
         }
     }

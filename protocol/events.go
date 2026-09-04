@@ -21,6 +21,8 @@ const (
 	TypeAllyTurn             = "ALLY_TURN"
 	TypeItemDropped          = "ITEM DROPPED"
 	TypeItemTook             = "ITEM TOOK"
+	TypeItemRemoved          = "ITEM REMOVED"
+	TypeQuestCompleted       = "QUEST COMPLETED"
 	TypeGroupPromote         = "GROUP PROMOTE"
 	TypeGroupPromoteAccepted = "GROUP PROMOTE ACCEPTED"
 	TypeGroupPromoteDeclined = "GROUP PROMOTE DECLINED"

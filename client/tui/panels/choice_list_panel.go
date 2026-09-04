@@ -186,7 +186,13 @@ func createList(
 			src.List.AddItem(label, "", 0, itemAction)
 
 		} else {
-			src.List.AddItem("  "+locName+"  ", "", 0, itemAction)
+			parts := strings.SplitN(locName, "\n", 2)
+			mainText := "  " + parts[0] + "  "
+			secondaryText := ""
+			if len(parts) > 1 {
+				secondaryText = parts[1]
+			}
+			src.List.AddItem(mainText, secondaryText, 0, itemAction)
 		}
 		index++
 	}
