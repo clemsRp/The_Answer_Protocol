@@ -51,7 +51,6 @@ func NewApp(actionsChan chan panel.Action) *App {
 }
 
 func (app *App) Update() {
-	// Update player coordinates
 	if rl.IsKeyPressed(rl.KeyEnter) {
 		app.actionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: "CONNECT ali"}
 	}
@@ -76,7 +75,7 @@ func (app *App) Draw() {
 }
 
 func (app *App) DrawMap(map_name string) {
-	cur_room := app.rooms[app.variables.Current_room]
+	/* cur_room := app.rooms[app.variables.Current_room]
 	cur_tilesets := cur_room.Tilesets
 
 	for y := range len(cur_tilesets) {
@@ -96,15 +95,13 @@ func (app *App) DrawMap(map_name string) {
 				1, 1, float32(app.variables.Tileset_size/vars.FRAME_WIDTH),
 			)
 		}
-	}
+	} */
 }
 
 func (app *App) Start() {
 	for !rl.WindowShouldClose() {
-		// Update game state
 		app.Update()
 
-		// Draw game
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.LightGray)
 		app.Draw()
@@ -112,18 +109,21 @@ func (app *App) Start() {
 	}
 }
 
-func (app *App) QueueUpdate(f func())                             {}
-func (app *App) ShowConnectPage()                                 {}
-func (app *App) ShowGamePage()                                    {}
-func (app *App) ShowCombatPage()                                  {}
-func (app *App) ShowPopupPage()                                   {}
-func (app *App) ClosePopup()                                      {}
-func (app *App) UpdateNavigation(room *protocol.LookCommandData)  {}
-func (app *App) UpdateItems(roomItems, inventory []string)        {}
-func (app *App) UpdateInteraction(npcs, players []string)         {}
+func (app *App) QueueUpdate(f func())                            {}
+func (app *App) ShowConnectPage()                                {}
+func (app *App) ShowGamePage()                                   {}
+func (app *App) ShowCombatPage()                                 {}
+func (app *App) ShowPopupPage()                                  {}
+func (app *App) ClosePopup()                                     {}
+func (app *App) UpdateNavigation(room *protocol.LookCommandData) {}
+func (app *App) UpdateItems(roomItems, inventory []string)       {}
+func (app *App) UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string) {
+}
 func (app *App) UpdateGroup(groupState state.GroupState)          {}
 func (app *App) UpdateCombat(combatState state.CombatState)       {}
 func (app *App) UpdateDatas(text string)                          {}
+func (app *App) UpdateQuests(quests []protocol.TrackedQuestData)  {}
+func (app *App) UpdateInspector(text string)                      {}
 func (app *App) AppendChat(scope, user, msg string)               {}
 func (app *App) AppendCombatChat(user, msg string)                {}
 func (app *App) AppendServerResponse(res protocol.ServerResponse) {}

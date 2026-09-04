@@ -41,6 +41,7 @@ type MyApp struct {
 	popupVisible   bool
 	combatVisible  bool
 	selectedPerson string
+	inventory      []string
 }
 
 func NewMyApp(ctx context.Context, wg *sync.WaitGroup, actionsChan chan panel.Action) *MyApp {
@@ -78,12 +79,12 @@ func (m *MyApp) setupComponents() {
 	m.Chat = panel.NewChatComponent(m.app, m.actionsChan)
 	m.CommandLine = panel.NewCommandLineComponent(m.app, m.actionsChan)
 	m.Server = panel.NewServerResponseComponent(m.app)
-	m.Combat = panel.NewCombatComponent(m.actionsChan, panel.CombatDatas{Current_turn: "", Leader: ""})
+	m.Combat = panel.NewCombatComponent(m.app, m.actionsChan, panel.CombatDatas{Current_turn: "", Leader: "", MyPseudo: ""})
 	m.Group = panel.NewGroupComponent(m.app, m.popup, panel.GroupDatas{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
 	m.Navigation = panel.NewNavigationComponent(m.app, m.popup, "", map[string]string{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
 	m.Items = panel.NewItemsComponent(m.app, m.popup, []string{}, []string{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
-	m.Interaction = panel.NewInteractionComponent(m.app, m.popup, []string{}, []string{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
-	m.Inspector = panel.NewInspectorComponent(m.app)
+	m.Interaction = panel.NewInteractionComponent(m.app, m.popup, []string{}, []string{}, map[string]protocol.InspectNPCData{}, map[string]string{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
+	m.Inspector = panel.NewInspectorComponent(m.app, m.actionsChan)
 	m.Quest = panel.NewQuestComponent(m.app)
 
 	m.Server.CliBtn.
@@ -184,12 +185,17 @@ func (m *MyApp) ShowGamePage() {
 func (m *MyApp) ShowCombatPage() {
 	m.pages.ShowPage("Combat")
 	m.pages.SendToFront("Combat")
-	if m.Combat != nil && m.Combat.Input != nil {
-		m.app.SetFocus(m.Combat.Input)
-	}
 
 	panel.SetBlockedInputs(m.grid, false)
 	m.combatVisible = true
+
+	if m.Combat != nil {
+		if len(m.Combat.ActionButtons) > 0 {
+			m.app.SetFocus(m.Combat.ActionButtons[0])
+		} else if m.Combat.Input != nil {
+			m.app.SetFocus(m.Combat.Input)
+		}
+	}
 	m.app.Sync()
 }
 
@@ -252,6 +258,8 @@ func (m *MyApp) UpdateNavigation(room *protocol.LookCommandData) {
 func (m *MyApp) UpdateItems(roomItems, inventory []string) {
 	m.grid.RemoveItem(m.Items.Layout)
 
+	m.inventory = append([]string{}, inventory...)
+
 	m.Items = panel.NewItemsComponent(
 		m.app,
 		m.popup,
@@ -266,7 +274,7 @@ func (m *MyApp) UpdateItems(roomItems, inventory []string) {
 	m.setupMatrix()
 }
 
-func (m *MyApp) UpdateInteraction(npcs, players []string) {
+func (m *MyApp) UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string) {
 	m.grid.RemoveItem(m.Interaction.Layout)
 
 	m.Interaction = panel.NewInteractionComponent(
@@ -274,6 +282,8 @@ func (m *MyApp) UpdateInteraction(npcs, players []string) {
 		m.popup,
 		npcs,
 		players,
+		npcData,
+		npcDialogues,
 		m.actionsChan,
 		m.OnOpenPopup,
 		m.ShowGamePage,
@@ -311,6 +321,12 @@ func (m *MyApp) UpdateGroup(groupState state.GroupState) {
 }
 
 func (m *MyApp) UpdateCombat(combatState state.CombatState) {
+	// Conserver le focus du chat si on est en train d'écrire
+	focusInput := false
+	if m.Combat != nil && m.app.GetFocus() == m.Combat.Input {
+		focusInput = true
+	}
+
 	m.combat.Clear()
 
 	chats := make([]panel.Chat, len(combatState.Chats))
@@ -319,9 +335,28 @@ func (m *MyApp) UpdateCombat(combatState state.CombatState) {
 	}
 
 	lastCombatChat := combatState.LastCombatChat
-	selected := m.selectedPerson
-	if selected == "" {
-		selected = m.pseudo
+
+	// Synchroniser l'inventaire depuis les données de combat de l'équipe si disponible
+	playerInv := make([]string, 0)
+	if myData, ok := combatState.Team[m.pseudo]; ok {
+		playerInv = append([]string{}, myData.Inventory...)
+		m.inventory = append([]string{}, myData.Inventory...)
+	} else {
+		playerInv = append([]string{}, m.inventory...)
+	}
+
+	// Conserver et valider selectedPerson (par défaut cibler le premier adversaire)
+	_, inOpponents := combatState.Opponents[m.selectedPerson]
+	_, inTeam := combatState.Team[m.selectedPerson]
+	if !inOpponents && !inTeam {
+		m.selectedPerson = ""
+		for name := range combatState.Opponents {
+			m.selectedPerson = name
+			break
+		}
+		if m.selectedPerson == "" {
+			m.selectedPerson = m.pseudo
+		}
 	}
 
 	combatDatas := panel.CombatDatas{
@@ -331,16 +366,45 @@ func (m *MyApp) UpdateCombat(combatState state.CombatState) {
 		Leader:           combatState.Leader,
 		Team:             combatState.Team,
 		Opponents:        combatState.Opponents,
-		SelectedPerson:   &selected,
+		SelectedPerson:   &m.selectedPerson,
+		Inventory:        playerInv,
+		MyPseudo:         m.pseudo,
 	}
 
-	m.Combat = panel.NewCombatComponent(m.actionsChan, combatDatas)
+	m.Combat = panel.NewCombatComponent(m.app, m.actionsChan, combatDatas)
 	m.combat.AddItem(m.Combat.Layout, 1, 1, 1, 1, 0, 0, true)
+
+	// Gestion intelligente du focus
+	if m.combatVisible {
+		if focusInput {
+			if m.Combat.Input != nil {
+				m.app.SetFocus(m.Combat.Input)
+			}
+		} else if combatDatas.Current_turn != "" && combatDatas.Current_turn == m.pseudo {
+			if len(m.Combat.ActionButtons) > 0 {
+				m.app.SetFocus(m.Combat.ActionButtons[0])
+			}
+		} else {
+			if m.Combat.Input != nil {
+				m.app.SetFocus(m.Combat.Input)
+			}
+		}
+	}
 }
 
 func (m *MyApp) UpdateDatas(text string) {
+	// Status data was previously pushed here.
+}
+
+func (m *MyApp) UpdateQuests(quests []protocol.TrackedQuestData) {
 	if m.Quest != nil {
-		m.Quest.SetDatas(text)
+		m.Quest.SetQuests(quests)
+	}
+}
+
+func (m *MyApp) UpdateInspector(text string) {
+	if m.Inspector != nil {
+		m.Inspector.SetDatas(text)
 	}
 }
 

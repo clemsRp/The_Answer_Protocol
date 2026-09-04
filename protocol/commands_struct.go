@@ -99,3 +99,9 @@ type InspectItemData struct {
 	Duration   int    `json:"duration,omitempty"`
 	Charges    int    `json:"charges,omitempty"`
 }
+
+type InspectRoomData struct {
+	Players []InspectPlayerData `json:"players"`
+	Npcs    []InspectNPCData    `json:"npcs"`
+	Items   []InspectItemData   `json:"items"`
+}

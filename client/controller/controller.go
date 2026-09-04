@@ -20,10 +20,12 @@ type UIApp interface {
 	ClosePopup()
 	UpdateNavigation(room *protocol.LookCommandData)
 	UpdateItems(roomItems, inventory []string)
-	UpdateInteraction(npcs, players []string)
+	UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string)
+	UpdateQuests(quests []protocol.TrackedQuestData)
 	UpdateGroup(groupState state.GroupState)
 	UpdateCombat(combatState state.CombatState)
 	UpdateDatas(text string)
+	UpdateInspector(text string)
 	AppendChat(scope, user, msg string)
 	AppendCombatChat(user, msg string)
 	AppendServerResponse(res protocol.ServerResponse)
@@ -41,18 +43,22 @@ type Controller struct {
 	actions     chan panel.Action
 	ctx         context.Context
 	cancel      context.CancelFunc
-	lastCommand string
-	cmdMu       sync.Mutex
+	lastCommands []string
+	cmdMu        sync.Mutex
+
+	npcCache   map[string]protocol.InspectNPCData
+	npcCacheMu sync.RWMutex
 }
 
 func New(ctx context.Context, cancel context.CancelFunc, netCli *network.Client, gameState *state.GameState, ui UIApp, actions chan panel.Action) *Controller {
 	c := &Controller{
-		gameState: gameState,
-		netCli:    netCli,
-		ui:        ui,
-		actions:   actions,
-		ctx:       ctx,
-		cancel:    cancel,
+		gameState:    gameState,
+		netCli:       netCli,
+		ui:           ui,
+		actions:      actions,
+		ctx:          ctx,
+		cancel:       cancel,
+		lastCommands: make([]string, 0),
 	}
 
 	go c.eventLoop()
@@ -144,18 +150,27 @@ func (c *Controller) sendToNetwork(cmd string) {
 func (c *Controller) setLastCommand(cmd string) {
 	c.cmdMu.Lock()
 	defer c.cmdMu.Unlock()
-	c.lastCommand = cmd
+	c.lastCommands = append(c.lastCommands, cmd)
 }
 
 func (c *Controller) getLastCommand() string {
 	c.cmdMu.Lock()
 	defer c.cmdMu.Unlock()
-	return c.lastCommand
+	if len(c.lastCommands) > 0 {
+		cmd := c.lastCommands[0]
+		c.lastCommands = c.lastCommands[1:]
+		return cmd
+	}
+	return ""
 }
 
 func (c *Controller) handleServerResponses(res pr.ServerResponse) {
 	if strings.HasPrefix(res.Msg, pr.MsgEvt) {
 		c.handleEvents(res)
+		return
+	}
+	
+	if res.Msg == "OK hello proto=1" {
 		return
 	}
 
@@ -171,6 +186,8 @@ func (c *Controller) refreshUI() {
 		}
 	})
 
+	npcData := c.getNpcCache()
+
 	c.ui.QueueUpdate(func() {
 		c.ui.UpdateNavigation(&roomCopy)
 		c.ui.UpdateItems(roomCopy.Items, playerSnap.Inventory)
@@ -181,8 +198,37 @@ func (c *Controller) refreshUI() {
 				filteredPlayers = append(filteredPlayers, p)
 			}
 		}
-		c.ui.UpdateInteraction(roomCopy.Npcs, filteredPlayers)
+		c.ui.UpdateInteraction(roomCopy.Npcs, filteredPlayers, npcData, playerSnap.NpcDialogues)
 	})
+}
+
+// setNpcCache replaces the whole cache of inspected npc datas (e.g. after a
+// room-wide INSPECT).
+func (c *Controller) setNpcCache(data map[string]protocol.InspectNPCData) {
+	c.npcCacheMu.Lock()
+	defer c.npcCacheMu.Unlock()
+	c.npcCache = data
+}
+
+// cacheNpc stores/updates a single npc's inspect data (e.g. after
+// INSPECT NPC <name>).
+func (c *Controller) cacheNpc(n protocol.InspectNPCData) {
+	c.npcCacheMu.Lock()
+	defer c.npcCacheMu.Unlock()
+	if c.npcCache == nil {
+		c.npcCache = make(map[string]protocol.InspectNPCData)
+	}
+	c.npcCache[n.Id] = n
+}
+
+func (c *Controller) getNpcCache() map[string]protocol.InspectNPCData {
+	c.npcCacheMu.RLock()
+	defer c.npcCacheMu.RUnlock()
+	cp := make(map[string]protocol.InspectNPCData, len(c.npcCache))
+	for k, v := range c.npcCache {
+		cp[k] = v
+	}
+	return cp
 }
 
 func (c *Controller) refreshGroupUI() {

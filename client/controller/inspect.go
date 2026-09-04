@@ -19,13 +19,46 @@ func (c *Controller) handleInspectResponse(res pr.ServerResponse) {
 	entityType := strings.ToUpper(fields[1])
 
 	switch entityType {
+	case pr.EntityTypeRoom:
+		var roomData protocol.InspectRoomData
+		raw, err := json.Marshal(res.Datas)
+		if err != nil || json.Unmarshal(raw, &roomData) != nil {
+			return
+		}
+
+		npcs := make(map[string]protocol.InspectNPCData, len(roomData.Npcs))
+		for _, n := range roomData.Npcs {
+			npcs[n.Id] = n
+		}
+		c.setNpcCache(npcs)
+		// re-render the interaction panel now that we know who is hostile / has a quest
+		c.refreshUI()
+
+		formatted := formatRoom(roomData)
+		c.ui.QueueUpdate(func() {
+			c.ui.UpdateInspector(formatted)
+		})
+
+	case pr.EntityTypeSelf:
+		var playerData protocol.InspectPlayerData
+		raw, err := json.Marshal(res.Datas)
+		if err == nil && json.Unmarshal(raw, &playerData) == nil {
+			formatted := formatPlayer(playerData)
+			c.ui.QueueUpdate(func() {
+				c.ui.UpdateInspector(formatted)
+			})
+		}
+
 	case pr.EntityTypeNpc:
 		var npcData protocol.InspectNPCData
 		raw, err := json.Marshal(res.Datas)
 		if err == nil && json.Unmarshal(raw, &npcData) == nil {
+			c.cacheNpc(npcData)
+			c.refreshUI()
+
 			formatted := formatNPC(npcData)
 			c.ui.QueueUpdate(func() {
-				c.ui.UpdateDatas(formatted)
+				c.ui.UpdateInspector(formatted)
 			})
 		}
 	case pr.EntityTypeItem, pr.EntityTypeInventoryItem:
@@ -34,7 +67,7 @@ func (c *Controller) handleInspectResponse(res pr.ServerResponse) {
 		if err == nil && json.Unmarshal(raw, &itemData) == nil {
 			formatted := formatItem(itemData)
 			c.ui.QueueUpdate(func() {
-				c.ui.UpdateDatas(formatted)
+				c.ui.UpdateInspector(formatted)
 			})
 		}
 	case pr.EntityTypePlayer:
@@ -43,10 +76,57 @@ func (c *Controller) handleInspectResponse(res pr.ServerResponse) {
 		if err == nil && json.Unmarshal(raw, &playerData) == nil {
 			formatted := formatPlayer(playerData)
 			c.ui.QueueUpdate(func() {
-				c.ui.UpdateDatas(formatted)
+				c.ui.UpdateInspector(formatted)
 			})
 		}
 	}
+}
+
+// formatRoom renders a compact overview of everyone/everything inspectable
+// in the current room, flagging hostile npcs and npcs with an available quest.
+func formatRoom(data protocol.InspectRoomData) string {
+	sb := &StatBuilder{}
+	sb.WriteString("[blue]ROOM OVERVIEW[-]\n\n")
+
+	sb.WriteString("[yellow]PLAYERS:[-]\n")
+	if len(data.Players) == 0 {
+		sb.WriteString("  [white]-[-]\n")
+	} else {
+		for _, p := range data.Players {
+			status := "ok"
+			if p.InCombat {
+				status = "in combat"
+			}
+			sb.WriteString(fmt.Sprintf("  [white]- %s (%d/%d hp, %s)[-]\n", p.Name, p.Hp, p.MaxHp, status))
+		}
+	}
+
+	sb.WriteString("\n[yellow]NPCS:[-]\n")
+	if len(data.Npcs) == 0 {
+		sb.WriteString("  [white]-[-]\n")
+	} else {
+		for _, n := range data.Npcs {
+			tags := ""
+			if n.Hostile {
+				tags += " [red](hostile)[-]"
+			}
+			if n.QuestId != "" {
+				tags += " [green](quest)[-]"
+			}
+			sb.WriteString(fmt.Sprintf("  [white]- %s[-]%s\n", n.Name, tags))
+		}
+	}
+
+	sb.WriteString("\n[yellow]ITEMS:[-]\n")
+	if len(data.Items) == 0 {
+		sb.WriteString("  [white]-[-]\n")
+	} else {
+		for _, it := range data.Items {
+			sb.WriteString(fmt.Sprintf("  [white]- %s[-]\n", it.Name))
+		}
+	}
+
+	return strings.TrimSpace(sb.String())
 }
 
 type StatBuilder struct {

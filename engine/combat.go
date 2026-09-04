@@ -1,35 +1,58 @@
 package engine
 
-import pr "tap/protocol"
+import (
+	"errors"
 
-func (e *Engine) get_combat_stats() (string, any, error) {
+	pr "tap/protocol"
+)
+
+func (e *Engine) get_combat_stats(player *Player) (string, any, error) {
+	cs, exists := e.activeCombats[player.stats.CombatId]
+	if !exists {
+		return "", "", errors.New(pr.ErrInternalServer)
+	}
+
+	leaderName := player.name
+	if group, ok := e.groups[player.group]; ok {
+		leaderName = group.leader.name
+	}
+
+	currentTurnName := ""
+	if cs.CurrentTurn >= 0 && cs.CurrentTurn < len(cs.Fighters) {
+		currentTurnName = cs.Fighters[cs.CurrentTurn].getName()
+	}
+
+	team := make(map[string]pr.CombatPersonData)
+	for _, p := range cs.Players {
+		inventory := make([]string, 0, len(p.inventory))
+		for _, item := range p.inventory {
+			inventory = append(inventory, item.Id) // IDs stringified for inventory
+		}
+		team[p.name] = pr.CombatPersonData{
+			Name:      p.name,
+			Hp:        p.stats.Hp,
+			Inventory: inventory,
+		}
+	}
+
+	opponents := make(map[string]pr.CombatPersonData)
+	for _, npc := range cs.Npcs {
+		inventory := make([]string, 0, len(npc.ItemsReward))
+		for _, item := range npc.ItemsReward {
+			inventory = append(inventory, item.Id) // IDs stringified for inventory
+		}
+		opponents[npc.Id] = pr.CombatPersonData{
+			Name:      npc.Name,
+			Hp:        npc.Stats.Hp,
+			Inventory: inventory,
+		}
+	}
+
 	res := pr.CombatStatsCommandData{
-		Leader:      "clement",
-		CurrentTurn: "bob",
-		Team: map[string]pr.CombatPersonData{
-			"clement": {
-				Name:      "clement",
-				Hp:        75,
-				Inventory: []string{"Heuuuuuuuuuuuuuu"},
-			},
-			"bob": {
-				Name:      "bob",
-				Hp:        100,
-				Inventory: []string{"faaaaaaaaaa", "uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu"},
-			},
-		},
-		Opponents: map[string]pr.CombatPersonData{
-			"grandpa_gaston": {
-				Name:      "grandpa_gaston",
-				Hp:        67,
-				Inventory: []string{"sabre"},
-			},
-			/* "granny_jeanine": {
-				Name:      "granny_jeanine",
-				Hp:        18,
-				Inventory: []string{"bonjour", "hello"},
-			}, */
-		},
+		Leader:      leaderName,
+		CurrentTurn: currentTurnName,
+		Team:        team,
+		Opponents:   opponents,
 	}
 
 	return "OK", res, nil

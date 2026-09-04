@@ -9,17 +9,33 @@ import (
 )
 
 type InspectorComponent struct {
-	Layout *tview.Flex
-	View   *tview.TextView
+	Layout  *tview.Flex
+	View    *tview.TextView
+	SelfBtn *tview.Button
 }
 
-func NewInspectorComponent(app *tview.Application) *InspectorComponent {
+func NewInspectorComponent(app *tview.Application, actionsChan chan<- Action) *InspectorComponent {
 	src := &InspectorComponent{}
 
 	src.View = createTextView("", " Inspector ", true)
 	src.View.SetDynamicColors(true).SetWordWrap(true)
 
-	src.Layout = tview.NewFlex().SetDirection(tview.FlexRow).AddItem(src.View, 0, 1, false)
+	src.SelfBtn = tview.NewButton("Self").
+		SetSelectedFunc(func() {
+			actionsChan <- Action{
+				Type:    ActionSendServer,
+				Payload: pr.CmdInspectSelf,
+			}
+		})
+
+	btnRow := tview.NewFlex().SetDirection(tview.FlexColumn).
+		AddItem(nil, 0, 1, false).
+		AddItem(src.SelfBtn, 10, 0, false).
+		AddItem(nil, 1, 0, false)
+
+	src.Layout = tview.NewFlex().SetDirection(tview.FlexRow).
+		AddItem(btnRow, 1, 0, false).
+		AddItem(src.View, 0, 1, false)
 
 	return src
 }
