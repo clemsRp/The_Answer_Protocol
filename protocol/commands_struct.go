@@ -45,9 +45,10 @@ type QuestData struct {
 }
 
 type TrackedQuestData struct {
-	Id       string `json:"quest_id"`
-	Status   string `json:"status"`
-	Progress string `json:"progress"`
+	Id          string `json:"quest_id"`
+	Description string `json:"description"`
+	Status      string `json:"status"`
+	Progress    string `json:"progress"`
 }
 
 type AttackCommandData struct {

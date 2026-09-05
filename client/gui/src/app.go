@@ -109,15 +109,17 @@ func (app *App) Start() {
 	}
 }
 
-func (app *App) QueueUpdate(f func())                            {}
-func (app *App) ShowConnectPage()                                {}
-func (app *App) ShowGamePage()                                   {}
-func (app *App) ShowCombatPage()                                 {}
-func (app *App) ShowPopupPage()                                  {}
-func (app *App) ClosePopup()                                     {}
-func (app *App) UpdateNavigation(room *protocol.LookCommandData) {}
-func (app *App) UpdateItems(roomItems, inventory []string)       {}
-func (app *App) UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string) {
+func (app *App) QueueUpdate(f func())                                  {}
+func (app *App) ShowConnectPage()                                      {}
+func (app *App) ShowGamePage()                                         {}
+func (app *App) ShowCombatPage()                                       {}
+func (app *App) ShowPopupPage()                                        {}
+func (app *App) ClosePopup()                                           {}
+func (app *App) ShowCombatResultPopup(result string, rewards []string) {}
+func (app *App) ShowQuestCompletedPopup(questID, reward string)        {}
+func (app *App) UpdateNavigation(room *protocol.LookCommandData)       {}
+func (app *App) UpdateItems(roomItems, inventory []string)             {}
+func (app *App) UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string) {
 }
 func (app *App) UpdateGroup(groupState state.GroupState)          {}
 func (app *App) UpdateCombat(combatState state.CombatState)       {}

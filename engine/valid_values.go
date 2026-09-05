@@ -134,6 +134,12 @@ func registerCustomValidations(v *validator.Validate) error {
 		}
 	}
 
+	// Règle de niveau "struct" : le tag `validate` classique ne peut pas
+	// croiser un champ parent (Npc.Hostile) avec un champ d'une sous-struct
+	// (Npc.Stats.Damage). On enregistre donc une validation dédiée sur Npc
+	// qui impose un Damage strictement positif dès que le PNJ est hostile.
+	v.RegisterStructValidation(validateHostileNpcDamage, Npc{})
+
 	return nil
 }
 
@@ -158,6 +164,19 @@ func existsIn[T any](get func(*Map) map[string]*T) validator.Func {
 		}
 		_, exists := get(m)[fl.Field().String()]
 		return exists
+	}
+}
+
+// validateHostileNpcDamage garantit que tout PNJ hostile possède des Stats
+// avec un Damage strictement positif. Un PNJ non hostile n'a pas besoin de
+// dégâts puisqu'il n'entre jamais en combat.
+func validateHostileNpcDamage(sl validator.StructLevel) {
+	npc := sl.Current().Interface().(Npc)
+	if !npc.Hostile {
+		return
+	}
+	if npc.Stats == nil || npc.Stats.Damage <= 0 {
+		sl.ReportError(npc.Stats, "Stats.Damage", "Damage", "npc_damage_required", "")
 	}
 }
 

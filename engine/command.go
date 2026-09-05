@@ -382,9 +382,10 @@ func (e *Engine) handleCmdQuests(player *Player, req []string) (string, any, err
 	var res []pr.TrackedQuestData
 	for _, q := range player.quests {
 		res = append(res, pr.TrackedQuestData{
-			Id:       q.Id,
-			Status:   q.Status,
-			Progress: q.Progress,
+			Id:          q.Id,
+			Description: q.Description,
+			Status:      q.Status,
+			Progress:    q.Progress,
 		})
 	}
 	if res == nil {
@@ -463,9 +464,10 @@ func (e *Engine) handleCmdCompleteQuest(player *Player, req []string) (string, a
 	e.inform_all(player, "EVT QUEST COMPLETED "+playerQuest.Id)
 
 	res := pr.TrackedQuestData{
-		Id:       playerQuest.Id,
-		Status:   playerQuest.Status,
-		Progress: playerQuest.Progress,
+		Id:          playerQuest.Id,
+		Description: playerQuest.Description,
+		Status:      playerQuest.Status,
+		Progress:    playerQuest.Progress,
 	}
 
 	return "OK", res, nil

@@ -14,18 +14,19 @@ func NewInteractionComponent(
 	players []string,
 	npcData map[string]pr.InspectNPCData,
 	npcDialogues map[string]string,
+	groupMembers []string,
 	actionsChan chan<- Action,
 	onOpenPopup func(popup *PopupComponent),
 	onClosePopup func(),
 ) *ChoiceListComponent {
-	options := ConvertInteractions(npcs, players, npcData, npcDialogues, actionsChan)
+	options := ConvertInteractions(npcs, players, npcData, npcDialogues, groupMembers, actionsChan)
 
 	src := NewChoiceListComponent(app, popupGrid, "Interactions", options, onOpenPopup, onClosePopup, false)
 
 	return src
 }
 
-func ConvertInteractions(npcs, players []string, npcData map[string]pr.InspectNPCData, npcDialogues map[string]string, actionsChan chan<- Action) map[string]OptionsMap {
+func ConvertInteractions(npcs, players []string, npcData map[string]pr.InspectNPCData, npcDialogues map[string]string, groupMembers []string, actionsChan chan<- Action) map[string]OptionsMap {
 	res := make(map[string]OptionsMap)
 
 	if len(npcs) != 0 {
@@ -33,7 +34,7 @@ func ConvertInteractions(npcs, players []string, npcData map[string]pr.InspectNP
 	}
 
 	if len(players) != 0 {
-		res["PLAYERS"] = ConvertPlayersList(players, actionsChan)
+		res["PLAYERS"] = ConvertPlayersList(players, groupMembers, actionsChan)
 	}
 
 	return res
@@ -46,30 +47,22 @@ func ConvertNpcsList(npcs []string, npcData map[string]pr.InspectNPCData, npcDia
 	res := make(OptionsMap)
 
 	for _, npc := range npcs {
-		n := npc
-
-		// Setup the text with dialogue in gray as secondary text.
-		displayName := n
-		if dialogue, exists := npcDialogues[n]; exists && dialogue != "" {
-			displayName = n + "\n[gray]" + dialogue + "[-]"
-		}
-
 		actions := map[string]func(){
 			pr.CmdTalk: func() {
 				actionsChan <- Action{
 					Type:    ActionSendServer,
-					Payload: fmt.Sprintf("%s %s", pr.CmdTalk, n),
+					Payload: fmt.Sprintf("%s %s", pr.CmdTalk, npc),
 				}
 			},
 			pr.CmdInspect: func() {
 				actionsChan <- Action{
 					Type:    ActionSendServer,
-					Payload: fmt.Sprintf("%s %s %s", pr.CmdInspect, pr.EntityTypeNpc, n),
+					Payload: fmt.Sprintf("%s %s %s", pr.CmdInspect, pr.EntityTypeNpc, npc),
 				}
 			},
 		}
 
-		if data, ok := npcData[n]; ok {
+		if data, ok := npcData[npc]; ok {
 			if data.Hostile {
 				actionName := pr.CmdAttack
 				if data.InCombat {
@@ -78,7 +71,7 @@ func ConvertNpcsList(npcs []string, npcData map[string]pr.InspectNPCData, npcDia
 				actions[actionName] = func() {
 					actionsChan <- Action{
 						Type:    ActionSendServer,
-						Payload: fmt.Sprintf("%s %s", pr.CmdAttack, n),
+						Payload: fmt.Sprintf("%s %s", pr.CmdAttack, npc),
 					}
 				}
 			}
@@ -86,7 +79,7 @@ func ConvertNpcsList(npcs []string, npcData map[string]pr.InspectNPCData, npcDia
 				actions[pr.CmdQuest] = func() {
 					actionsChan <- Action{
 						Type:    ActionSendServer,
-						Payload: fmt.Sprintf("%s %s", pr.CmdQuest, n),
+						Payload: fmt.Sprintf("%s %s", pr.CmdQuest, npc),
 					}
 				}
 				actions["COMPLETE QUEST"] = func() {
@@ -98,24 +91,26 @@ func ConvertNpcsList(npcs []string, npcData map[string]pr.InspectNPCData, npcDia
 			}
 		}
 
-		res[displayName] = actions
+		res[npc] = actions
 	}
 
 	return res
 }
 
-func ConvertPlayersList(players []string, actionsChan chan<- Action) OptionsMap {
+// ConvertPlayersList builds the popup actions for each player in the room.
+// "JOIN COMBAT" is only shown for players who are in the same group as us
+// (i.e. present in groupMembers). All players always have INSPECT.
+func ConvertPlayersList(players []string, groupMembers []string, actionsChan chan<- Action) OptionsMap {
 	res := make(OptionsMap)
+
+	groupSet := make(map[string]bool, len(groupMembers))
+	for _, m := range groupMembers {
+		groupSet[m] = true
+	}
 
 	for _, player := range players {
 		p := player
-		res[p] = map[string]func(){
-			"JOIN COMBAT": func() {
-				actionsChan <- Action{
-					Type:    ActionSendServer,
-					Payload: fmt.Sprintf("%s %s", pr.CmdAttack, p),
-				}
-			},
+		actions := map[string]func(){
 			pr.CmdInspect: func() {
 				actionsChan <- Action{
 					Type:    ActionSendServer,
@@ -123,6 +118,16 @@ func ConvertPlayersList(players []string, actionsChan chan<- Action) OptionsMap 
 				}
 			},
 		}
+		// Only group members can be joined in combat
+		if groupSet[p] {
+			actions["JOIN COMBAT"] = func() {
+				actionsChan <- Action{
+					Type:    ActionSendServer,
+					Payload: fmt.Sprintf("%s %s", pr.CmdAttack, p),
+				}
+			}
+		}
+		res[p] = actions
 	}
 
 	return res

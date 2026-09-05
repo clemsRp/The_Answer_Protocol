@@ -28,7 +28,6 @@ func buildInspectNpcData(n *Npc) pr.InspectNPCData {
 		Role:        n.Role,
 		QuestId:     n.QuestId,
 		Hostile:     n.Hostile,
-		Damage:      n.Damage,
 		InCombat:    n.InCombat,
 		XpReward:    n.XpReward,
 	}
@@ -36,6 +35,7 @@ func buildInspectNpcData(n *Npc) pr.InspectNPCData {
 	if n.Stats != nil {
 		data.Hp = n.Stats.Hp
 		data.HpMax = n.Stats.HpMax
+		data.Damage = n.Stats.Damage
 	}
 
 	for _, reward := range n.ItemsReward {

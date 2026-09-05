@@ -140,7 +140,8 @@
                     "hp": 20,
                     "max_hp": 20,
                     "status": "healthy",
-                    "initiative": 90
+                    "initiative": 90,
+					"damage": 24
                 },
                 "hostile": true
             },

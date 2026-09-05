@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"tap/client/state"
 	"tap/protocol"
@@ -140,16 +141,21 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 		}
 		c.refreshGroupUI()
 
-	case strings.HasPrefix(trimmed, pr.CategoryGroup+" "+pr.TypeGroupPromoteAccepted):
+	case strings.HasPrefix(trimmed, pr.TypeGroupPromoteAccepted):
+		c.gameState.UpdateGroupState(func(gs *state.GroupState) {
+			gs.Leader = false
+			gs.SendPromotion = false
+		})
 		c.sendToNetwork(pr.CmdGrouped)
+		c.refreshGroupUI()
 
-	case strings.HasPrefix(trimmed, pr.CategoryGroup+" "+pr.TypeGroupPromoteDeclined):
+	case strings.HasPrefix(trimmed, pr.TypeGroupPromoteDeclined):
 		c.gameState.UpdateGroupState(func(gs *state.GroupState) {
 			gs.SendPromotion = false
 		})
 		c.refreshGroupUI()
 
-	case strings.HasPrefix(trimmed, pr.CategoryGroup+" "+pr.TypeGroupPromote):
+	case strings.HasPrefix(trimmed, pr.TypeGroupPromote):
 		c.gameState.UpdateGroupState(func(gs *state.GroupState) {
 			gs.Promotion = true
 		})
@@ -200,11 +206,32 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 			// participants du combat.
 			c.sendToNetwork(pr.CmdCombatStats)
 		} else if strings.HasPrefix(trimmed, pr.CategoryCombat+" VICTORY") || strings.HasPrefix(trimmed, pr.CategoryCombat+" DEFEAT") {
+			// Déterminer le résultat
+			combatResult := "DEFEAT"
+			if strings.HasPrefix(trimmed, pr.CategoryCombat+" VICTORY") {
+				combatResult = "VICTORY"
+			}
 			c.gameState.UpdateCombatState(func(cs *state.CombatState) {
 				cs.InCombat = false
 			})
+			rewards := make([]string, 0)
+			if res.Datas != nil {
+				var evtData struct {
+					XpReward    int      `json:"xp_reward,omitempty"`
+					ItemsReward []string `json:"items_reward,omitempty"`
+				}
+				raw, err := json.Marshal(res.Datas)
+				if err == nil && json.Unmarshal(raw, &evtData) == nil {
+					if evtData.XpReward > 0 {
+						rewards = append(rewards, fmt.Sprintf("%d XP", evtData.XpReward))
+					}
+					rewards = append(rewards, evtData.ItemsReward...)
+				}
+			}
+			capturedResult := combatResult
+			capturedRewards := rewards
 			c.ui.QueueUpdate(func() {
-				c.ui.ShowGamePage()
+				c.ui.ShowCombatResultPopup(capturedResult, capturedRewards)
 			})
 			c.sendToNetwork(pr.CmdLook)
 		} else if strings.HasPrefix(trimmed, pr.CategoryCombat+" ALLY_LEAVE_COMBAT") {

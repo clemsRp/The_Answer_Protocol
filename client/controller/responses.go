@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"tap/client/state"
 	"tap/protocol"
@@ -15,18 +16,6 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 	if len(cmdFields) > 0 {
 		lastCmdBase = strings.ToUpper(cmdFields[0])
 	}
-
-	// TALK responses are shown as gray text under the npc's id in the
-	// interaction panel instead of being dumped as raw text in the CLI
-	// panel.
-	isTalkDialogue := lastCmdBase == pr.CmdTalk && res.Msg == pr.MsgOK
-
-	c.ui.QueueUpdate(func() {
-		c.ui.AppendServerResponse(res)
-		if !isTalkDialogue {
-			c.ui.AppendCliResponse(res)
-		}
-	})
 
 	if strings.HasPrefix(res.Msg, pr.MsgErr) {
 		return
@@ -95,7 +84,9 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 
 		if res.Datas != nil {
 			var fullTurn struct {
-				CombatState string `json:"combat_state"`
+				CombatState string   `json:"combat_state"`
+				XpReward    int      `json:"xp_reward,omitempty"`
+				ItemsReward []string `json:"items_reward,omitempty"`
 			}
 			raw, err := json.Marshal(res.Datas)
 			if err == nil && json.Unmarshal(raw, &fullTurn) == nil {
@@ -103,8 +94,15 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 					c.gameState.UpdateCombatState(func(cs *state.CombatState) {
 						cs.InCombat = false
 					})
+					// Construire la liste des récompenses à afficher
+					rewards := make([]string, 0)
+					if fullTurn.XpReward > 0 {
+						rewards = append(rewards, fmt.Sprintf("%d XP", fullTurn.XpReward))
+					}
+					rewards = append(rewards, fullTurn.ItemsReward...)
+					combatResult := fullTurn.CombatState
 					c.ui.QueueUpdate(func() {
-						c.ui.ShowGamePage()
+						c.ui.ShowCombatResultPopup(combatResult, rewards)
 					})
 					c.sendToNetwork(pr.CmdLook)
 					c.sendToNetwork(pr.CmdInventory)
@@ -276,13 +274,36 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 				})
 			}
 
-		case lastCmdBase == pr.CmdQuest || lastCmdBase == pr.CmdCompleteQuest:
+		case lastCmdBase == pr.CmdCompleteQuest:
+			// Récupérer la récompense si disponible
+			reward := ""
+			questID := ""
+			if len(strings.Fields(lastCmd)) >= 2 {
+				questID = strings.Fields(lastCmd)[1]
+			}
+			if res.Datas != nil {
+				var questData protocol.QuestData
+				raw, err := json.Marshal(res.Datas)
+				if err == nil && json.Unmarshal(raw, &questData) == nil {
+					reward = questData.Reward
+					if questData.Id != "" {
+						questID = questData.Id
+					}
+				}
+			}
+			capturedQuestID := questID
+			capturedReward := reward
+			c.ui.QueueUpdate(func() {
+				c.ui.ShowQuestCompletedPopup(capturedQuestID, capturedReward)
+			})
 			// Fetch updated quests list
 			c.sendToNetwork(pr.CmdQuests)
 			c.sendToNetwork(pr.CmdLook)
 			// Completing a quest can consume the target item from the
 			// inventory (server-side), so resync it too.
 			c.sendToNetwork(pr.CmdInventory)
+
+		case lastCmdBase == pr.CmdQuest:
 
 		case lastCmdBase == pr.CmdQuests:
 			var data []protocol.TrackedQuestData

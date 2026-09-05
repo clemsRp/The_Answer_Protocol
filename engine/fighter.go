@@ -12,6 +12,7 @@ type CombatStats struct {
 	HpMax      int    `json:"max_hp" validate:"gt=0,gtefield=Hp"`
 	Mana       int    `json:"mana" validate:"gte=0"`
 	Initiative int    `json:"initiative" validate:"gt=0"`
+	Damage     int    `json:"damage,omitempty" validate:"omitempty,gt=0"`
 	CombatId   string `json:"combat_id,omitempty"`
 	Status     string `json:"status" validate:"required,valid_npc_status"`
 }

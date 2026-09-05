@@ -18,9 +18,11 @@ type UIApp interface {
 	ShowCombatPage()
 	ShowPopupPage()
 	ClosePopup()
+	ShowCombatResultPopup(result string, rewards []string)
+	ShowQuestCompletedPopup(questID, reward string)
 	UpdateNavigation(room *protocol.LookCommandData)
 	UpdateItems(roomItems, inventory []string)
-	UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string)
+	UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string)
 	UpdateQuests(quests []protocol.TrackedQuestData)
 	UpdateGroup(groupState state.GroupState)
 	UpdateCombat(combatState state.CombatState)
@@ -37,12 +39,12 @@ type UIApp interface {
 }
 
 type Controller struct {
-	gameState   *state.GameState
-	netCli      *network.Client
-	ui          UIApp
-	actions     chan panel.Action
-	ctx         context.Context
-	cancel      context.CancelFunc
+	gameState    *state.GameState
+	netCli       *network.Client
+	ui           UIApp
+	actions      chan panel.Action
+	ctx          context.Context
+	cancel       context.CancelFunc
 	lastCommands []string
 	cmdMu        sync.Mutex
 
@@ -165,11 +167,16 @@ func (c *Controller) getLastCommand() string {
 }
 
 func (c *Controller) handleServerResponses(res pr.ServerResponse) {
+	c.ui.QueueUpdate(func() {
+		c.ui.AppendServerResponse(res)
+		c.ui.AppendCliResponse(res)
+	})
+
 	if strings.HasPrefix(res.Msg, pr.MsgEvt) {
 		c.handleEvents(res)
 		return
 	}
-	
+
 	if res.Msg == "OK hello proto=1" {
 		return
 	}
@@ -198,7 +205,7 @@ func (c *Controller) refreshUI() {
 				filteredPlayers = append(filteredPlayers, p)
 			}
 		}
-		c.ui.UpdateInteraction(roomCopy.Npcs, filteredPlayers, npcData, playerSnap.NpcDialogues)
+		c.ui.UpdateInteraction(roomCopy.Npcs, filteredPlayers, npcData, playerSnap.NpcDialogues, playerSnap.GroupState.Grouped)
 	})
 }
 

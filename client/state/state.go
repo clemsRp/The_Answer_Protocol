@@ -88,14 +88,14 @@ func (gs *GameState) GetPlayerSnapshot() Player {
 	snap.Inventory = append([]string{}, gs.Player.Inventory...)
 	snap.Quests = append([]protocol.TrackedQuestData{}, gs.Player.Quests...)
 	snap.DefeatedNpcs = append([]string{}, gs.Player.DefeatedNpcs...)
-	
+
 	snap.NpcDialogues = make(map[string]string)
 	for k, v := range gs.Player.NpcDialogues {
 		snap.NpcDialogues[k] = v
 	}
 
 	snap.Room = nil
-	snap.GroupState = nil
+	snap.GroupState = &GroupState{}
 
 	return snap
 }
