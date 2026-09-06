@@ -41,6 +41,7 @@ func (p *Player) getHp() int {
 
 func (p *Player) takeDamage(amount int) int {
 	p.stats.Hp -= amount
+	p.stats.Hp = max(0, p.stats.Hp)
 	return amount
 }
 

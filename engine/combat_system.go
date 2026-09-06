@@ -299,19 +299,15 @@ func (e *Engine) end_combat(cs *CombatSession) {
 	for _, player := range cs.Players {
 		player.stats.CombatId = ""
 		player.inCombat = false
-		if cs.State == StateDefeat {
+		if cs.State == StateDefeat || player.stats.Hp <= 0 {
 			player.stats.Hp = player.stats.HpMax / 2
 			player.room = e.world.Rooms[RoomEntrance]
-		}
-		if cs.State == StateVictory {
+		} else if cs.State == StateVictory {
 			for _, npc := range cs.Npcs {
 				if !slices.Contains(player.DefeatedNpcs, npc.Id) {
 					player.DefeatedNpcs = append(player.DefeatedNpcs, npc.Id)
 				}
 			}
-			// A freshly defeated npc may fulfil an active quest target, so
-			// recompute progress right away instead of waiting for the
-			// player to ask for it.
 			e.refreshQuestProgress(player)
 		}
 	}

@@ -248,13 +248,11 @@ func (m *MyApp) ShowCombatResultPopup(result string, rewards []string) {
 	// Style identique aux boutons Cancel / Validate
 	okBtn := tview.NewButton("OK").
 		SetSelectedFunc(func() {
-			m.QueueUpdate(func() {
-				m.ShowGamePage()
-			})
+			m.ShowGamePage()
 		})
 
 	m.popup.Clear()
-	createdPopup := panel.NewPopupComponent(m.app, m.popup, content, 8, []*tview.Button{okBtn})
+	createdPopup := panel.NewPopupComponent(m.app, m.popup, content, 12, []*tview.Button{okBtn})
 	createdPopup.FocusItem = okBtn
 
 	m.popup.AddItem(createdPopup.Layout, 1, 1, 1, 1, 0, 0, true)
@@ -280,11 +278,11 @@ func (m *MyApp) ShowQuestCompletedPopup(questID, reward string) {
 	}
 
 	content := tview.NewTextView().
-		SetText(body).
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignCenter)
 	content.SetBorder(false)
 	content.SetBackgroundColor(panel.AppTheme.PopupBackground)
+	content.SetText(body)
 
 	// Style identique aux boutons Cancel / Validate
 	okBtn := tview.NewButton("  OK  ").
@@ -292,14 +290,12 @@ func (m *MyApp) ShowQuestCompletedPopup(questID, reward string) {
 		SetBackgroundColorActivated(tcell.GetColor("#7e7979")).
 		SetLabelColorActivated(tcell.ColorWhite).
 		SetSelectedFunc(func() {
-			m.QueueUpdate(func() {
-				m.ClosePopup()
-			})
+			m.ClosePopup()
 		})
 	okBtn.SetBackgroundColor(tcell.GetColor("#474646"))
 
 	m.popup.Clear()
-	createdPopup := panel.NewPopupComponent(m.app, m.popup, content, 8, []*tview.Button{okBtn})
+	createdPopup := panel.NewPopupComponent(m.app, m.popup, content, 16, []*tview.Button{okBtn})
 	createdPopup.FocusItem = okBtn
 	createdPopup.LayoutTemp.SetTitle(" ✔  Quête complétée ").SetBorder(true).SetBorderColor(panel.AppTheme.BorderActive)
 	createdPopup.LayoutTemp.SetTitleColor(panel.AppTheme.TitleActive)

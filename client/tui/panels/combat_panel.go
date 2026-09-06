@@ -284,7 +284,9 @@ func (c *CombatComponent) fillStats(list *tview.List, combat_datas CombatDatas) 
 		list.AddItem(fmt.Sprintf("[%s:%s]%s [white:%s]stats:", person_color, AppTheme.PopupBackgroundHexa, selected, AppTheme.PopupBackgroundHexa), "", 0, nil)
 	}
 
-	list.AddItem(fmt.Sprintf("[white:%s]Health: [yellow:%s]%d", AppTheme.PopupBackgroundHexa, AppTheme.PopupBackgroundHexa, datas.Hp), "", 0, nil)
+	hp := max(0, datas.Hp)
+
+	list.AddItem(fmt.Sprintf("[white:%s]Health: [yellow:%s]%d", AppTheme.PopupBackgroundHexa, AppTheme.PopupBackgroundHexa, hp), "", 0, nil)
 
 	if len(datas.Inventory) != 0 {
 		list.AddItem(fmt.Sprintf("[white:%s]Inventory:", AppTheme.PopupBackgroundHexa), "", 0, nil)
