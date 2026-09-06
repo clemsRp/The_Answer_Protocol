@@ -84,7 +84,7 @@ func (m *MyApp) setupComponents() {
 	m.Group = panel.NewGroupComponent(m.app, m.popup, panel.GroupDatas{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
 	m.Navigation = panel.NewNavigationComponent(m.app, m.popup, "", map[string]string{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
 	m.Items = panel.NewItemsComponent(m.app, m.popup, []string{}, []string{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
-	m.Interaction = panel.NewInteractionComponent(m.app, m.popup, []string{}, []string{}, map[string]protocol.InspectNPCData{}, map[string]string{}, []string{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
+	m.Interaction = panel.NewInteractionComponent(m.app, m.popup, []string{}, []string{}, map[string]protocol.InspectNPCData{}, map[string]string{}, []string{}, 0, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
 	m.Inspector = panel.NewInspectorComponent(m.app, m.actionsChan)
 	m.Quest = panel.NewQuestComponent(m.app)
 
@@ -269,18 +269,17 @@ func (m *MyApp) ShowCombatResultPopup(result string, rewards []string) {
 // ShowQuestCompletedPopup affiche une popup quand une quête est complétée.
 // Après le clic sur OK, la page de jeu est restaurée.
 func (m *MyApp) ShowQuestCompletedPopup(questID, reward string) {
-	body := "[yellow]Quête accomplie ![-]\n\n"
+	body := "[yellow]Quest accomplished ![-]\n\n"
 	body += "[white]" + questID + "[-]\n\n"
 	if reward != "" {
-		body += "[green]Récompense : " + reward + "[-]"
+		body += "[green]Reward : " + reward + "[-]"
 	} else {
-		body += "[gray]Aucune récompense spécifiée.[-]"
+		body += "[gray]No reward for this quest[-]"
 	}
 
 	content := tview.NewTextView().
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignCenter)
-	content.SetBorder(false)
 	content.SetBackgroundColor(panel.AppTheme.PopupBackground)
 	content.SetText(body)
 
@@ -297,8 +296,7 @@ func (m *MyApp) ShowQuestCompletedPopup(questID, reward string) {
 	m.popup.Clear()
 	createdPopup := panel.NewPopupComponent(m.app, m.popup, content, 16, []*tview.Button{okBtn})
 	createdPopup.FocusItem = okBtn
-	createdPopup.LayoutTemp.SetTitle(" ✔  Quête complétée ").SetBorder(true).SetBorderColor(panel.AppTheme.BorderActive)
-	createdPopup.LayoutTemp.SetTitleColor(panel.AppTheme.TitleActive)
+	createdPopup.LayoutTemp.SetBorderColor(panel.AppTheme.BorderActive)
 
 	m.popup.AddItem(createdPopup.Layout, 1, 1, 1, 1, 0, 0, true)
 	m.PopupComponent = createdPopup
@@ -363,6 +361,11 @@ func (m *MyApp) UpdateItems(roomItems, inventory []string) {
 }
 
 func (m *MyApp) UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogue map[string]string, groupMembers []string) {
+	panelWidth := 0
+	if m.Interaction != nil && m.Interaction.List != nil {
+		_, _, panelWidth, _ = m.Interaction.List.GetRect()
+	}
+
 	m.grid.RemoveItem(m.Interaction.Layout)
 
 	m.Interaction = panel.NewInteractionComponent(
@@ -373,6 +376,7 @@ func (m *MyApp) UpdateInteraction(npcs, players []string, npcData map[string]pro
 		npcData,
 		npcDialogue,
 		groupMembers,
+		panelWidth,
 		m.actionsChan,
 		m.OnOpenPopup,
 		m.ShowGamePage,

@@ -463,11 +463,11 @@ func (e *Engine) handleCmdCompleteQuest(player *Player, req []string) (string, a
 
 	e.inform_all(player, "EVT QUEST COMPLETED "+playerQuest.Id)
 
-	res := pr.TrackedQuestData{
+	res := pr.QuestData{
 		Id:          playerQuest.Id,
 		Description: playerQuest.Description,
 		Status:      playerQuest.Status,
-		Progress:    playerQuest.Progress,
+		Reward:      playerQuest.Reward,
 	}
 
 	return "OK", res, nil

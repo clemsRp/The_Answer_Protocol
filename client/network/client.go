@@ -105,7 +105,7 @@ func (c *Client) listenResponses() {
 func findJsonStartIndex(line string) int {
 	idx := -1
 	for i := 0; i < len(line)-1; i++ {
-		if line[i] == ' ' && (line[i+1] == '{' || line[i+1] == '[') {
+		if line[i] == ' ' && (line[i+1] == '{' || line[i+1] == '[' || line[i+1] == '"') {
 			idx = i
 			break
 		}

@@ -2,10 +2,13 @@ package panel
 
 import (
 	"fmt"
+	"strings"
 	pr "tap/protocol"
 
 	"github.com/rivo/tview"
 )
+
+const npcDialoguePrefix = "   L "
 
 func NewInteractionComponent(
 	app *tview.Application,
@@ -15,6 +18,7 @@ func NewInteractionComponent(
 	npcData map[string]pr.InspectNPCData,
 	npcDialogues map[string]string,
 	groupMembers []string,
+	panel_width int,
 	actionsChan chan<- Action,
 	onOpenPopup func(popup *PopupComponent),
 	onClosePopup func(),
@@ -23,7 +27,89 @@ func NewInteractionComponent(
 
 	src := NewChoiceListComponent(app, popupGrid, "Interactions", options, onOpenPopup, onClosePopup, false)
 
+	attachNpcDialogues(src.List, npcs, npcDialogues, panel_width)
+
 	return src
+}
+
+func dialogueWrapWidth(panel_width int) int {
+	const margin = 4
+
+	width := panel_width - len(npcDialoguePrefix) - margin
+	if width < 20 {
+		width = 20
+	}
+	return width
+}
+
+func wrapDialogue(text string, width int) []string {
+	if width <= 0 {
+		width = 60
+	}
+
+	words := strings.Fields(text)
+	if len(words) == 0 {
+		return nil
+	}
+
+	lines := make([]string, 0, 4)
+	current := words[0]
+	for _, w := range words[1:] {
+		if len(current)+1+len(w) > width {
+			lines = append(lines, current)
+			current = w
+			continue
+		}
+		current += " " + w
+	}
+	lines = append(lines, current)
+
+	return lines
+}
+
+func attachNpcDialogues(list *tview.List, npcs []string, npcDialogues map[string]string, panel_width int) {
+	if list == nil || len(npcDialogues) == 0 {
+		return
+	}
+
+	list.SetSecondaryTextColor(AppTheme.TextSecondary)
+
+	wrapWidth := dialogueWrapWidth(panel_width)
+	indent := strings.Repeat(" ", len(npcDialoguePrefix))
+
+	for _, npc := range npcs {
+		dialogue := strings.TrimSpace(npcDialogues[npc])
+		if dialogue == "" {
+			continue
+		}
+
+		idx, ok := findNpcItemIndex(list, npc)
+		if !ok {
+			continue
+		}
+
+		lines := wrapDialogue(dialogue, wrapWidth)
+		if len(lines) == 0 {
+			continue
+		}
+
+		mainText, _ := list.GetItemText(idx)
+		list.SetItemText(idx, mainText, npcDialoguePrefix+lines[0])
+
+		for j := 1; j < len(lines); j++ {
+			list.InsertItem(idx+j, "", indent+lines[j], 0, nil)
+		}
+	}
+}
+
+func findNpcItemIndex(list *tview.List, npc string) (int, bool) {
+	for i := 0; i < list.GetItemCount(); i++ {
+		mainText, _ := list.GetItemText(i)
+		if strings.TrimSpace(mainText) == npc {
+			return i, true
+		}
+	}
+	return -1, false
 }
 
 func ConvertInteractions(npcs, players []string, npcData map[string]pr.InspectNPCData, npcDialogues map[string]string, groupMembers []string, actionsChan chan<- Action) map[string]OptionsMap {

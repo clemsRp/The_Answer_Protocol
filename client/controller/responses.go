@@ -115,24 +115,28 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 		}
 		c.sendToNetwork(pr.CmdCombatStats)
 
-	case lastCmdBase == pr.CmdTalk && res.Msg == pr.MsgOK:
+	case lastCmdBase == pr.CmdTalk && (res.Msg == pr.MsgOK || strings.HasPrefix(res.Msg, pr.MsgOK)):
 		npcName := ""
 		if len(cmdFields) >= 2 {
 			npcName = cmdFields[1]
 		}
-		if npcName != "" && res.Datas != nil {
-			dialogue, ok := res.Datas.(string)
-			if ok {
-				c.gameState.UpdatePlayer(func(p *state.Player) {
-					if p.NpcDialogues == nil {
-						p.NpcDialogues = make(map[string]string)
-					}
-					p.NpcDialogues[npcName] = dialogue
-				})
-				c.refreshUI()
-				c.sendToNetwork(pr.CmdLook)
-			}
+		if npcName == "" || res.Datas == nil {
+			break
 		}
+
+		dialogue, ok := res.Datas.(string)
+		if !ok || strings.TrimSpace(dialogue) == "" {
+			break
+		}
+
+		c.gameState.UpdatePlayer(func(p *state.Player) {
+			if p.NpcDialogues == nil {
+				p.NpcDialogues = make(map[string]string)
+			}
+			p.NpcDialogues[npcName] = dialogue
+		})
+
+		c.refreshUI()
 
 	case (lastCmdBase == pr.CmdFlee || strings.HasPrefix(lastCmd, pr.CmdFlee) || strings.HasPrefix(lastCmd, pr.CmdChatCombatFlee)) && (res.Msg == pr.MsgOK || strings.HasPrefix(res.Msg, pr.MsgOK)):
 		c.gameState.UpdateCombatState(func(cs *state.CombatState) {
@@ -304,6 +308,7 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 			c.sendToNetwork(pr.CmdInventory)
 
 		case lastCmdBase == pr.CmdQuest:
+			c.sendToNetwork(pr.CmdQuests)
 
 		case lastCmdBase == pr.CmdQuests:
 			var data []protocol.TrackedQuestData
