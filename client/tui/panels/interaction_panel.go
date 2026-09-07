@@ -10,6 +10,13 @@ import (
 
 const npcDialoguePrefix = "   L "
 
+type AvailableQuestData struct {
+	Id     string
+	Status string
+}
+
+var quest_datas map[string]bool
+
 func NewInteractionComponent(
 	app *tview.Application,
 	popupGrid *tview.Grid,
@@ -22,7 +29,16 @@ func NewInteractionComponent(
 	actionsChan chan<- Action,
 	onOpenPopup func(popup *PopupComponent),
 	onClosePopup func(),
+	quests *[]pr.TrackedQuestData,
 ) *ChoiceListComponent {
+	// Update quest ids
+	if quests != nil {
+		quest_datas = make(map[string]bool)
+		for _, quest := range *quests {
+			quest_datas[quest.Id] = quest.Status == "completed"
+		}
+	}
+
 	options := ConvertInteractions(npcs, players, npcData, npcDialogues, groupMembers, actionsChan)
 
 	src := NewChoiceListComponent(app, popupGrid, "Interactions", options, onOpenPopup, onClosePopup, false)
@@ -126,9 +142,6 @@ func ConvertInteractions(npcs, players []string, npcData map[string]pr.InspectNP
 	return res
 }
 
-// ConvertNpcsList builds the popup actions for each npc in the room. TALK and
-// INSPECT are always available; ATTACK only appears once we know (via
-// INSPECT) that the npc is hostile, and QUEST only if it has a quest to give.
 func ConvertNpcsList(npcs []string, npcData map[string]pr.InspectNPCData, npcDialogues map[string]string, actionsChan chan<- Action) OptionsMap {
 	res := make(OptionsMap)
 
@@ -162,17 +175,24 @@ func ConvertNpcsList(npcs []string, npcData map[string]pr.InspectNPCData, npcDia
 				}
 			}
 			if data.QuestId != "" {
-				actions[pr.CmdQuest] = func() {
-					actionsChan <- Action{
-						Type:    ActionSendServer,
-						Payload: fmt.Sprintf("%s %s", pr.CmdQuest, npc),
+				completed, available := quest_datas[data.QuestId]
+
+				if !available {
+					actions[pr.CmdQuest] = func() {
+						actionsChan <- Action{
+							Type:    ActionSendServer,
+							Payload: fmt.Sprintf("%s %s", pr.CmdQuest, npc),
+						}
 					}
-				}
-				actions["COMPLETE QUEST"] = func() {
-					actionsChan <- Action{
-						Type:    ActionSendServer,
-						Payload: fmt.Sprintf("%s %s", pr.CmdCompleteQuest, data.QuestId),
+
+				} else if !completed {
+					actions["COMPLETE QUEST"] = func() {
+						actionsChan <- Action{
+							Type:    ActionSendServer,
+							Payload: fmt.Sprintf("%s %s", pr.CmdCompleteQuest, data.QuestId),
+						}
 					}
+
 				}
 			}
 		}
@@ -183,9 +203,6 @@ func ConvertNpcsList(npcs []string, npcData map[string]pr.InspectNPCData, npcDia
 	return res
 }
 
-// ConvertPlayersList builds the popup actions for each player in the room.
-// "JOIN COMBAT" is only shown for players who are in the same group as us
-// (i.e. present in groupMembers). All players always have INSPECT.
 func ConvertPlayersList(players []string, groupMembers []string, actionsChan chan<- Action) OptionsMap {
 	res := make(OptionsMap)
 

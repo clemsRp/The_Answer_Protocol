@@ -22,7 +22,7 @@ type UIApp interface {
 	ShowQuestCompletedPopup(questID, reward string)
 	UpdateNavigation(room *protocol.LookCommandData)
 	UpdateItems(roomItems, inventory []string)
-	UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string)
+	UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string, quests []protocol.TrackedQuestData)
 	UpdateQuests(quests []protocol.TrackedQuestData)
 	UpdateGroup(groupState state.GroupState)
 	UpdateCombat(combatState state.CombatState)
@@ -205,20 +205,16 @@ func (c *Controller) refreshUI() {
 				filteredPlayers = append(filteredPlayers, p)
 			}
 		}
-		c.ui.UpdateInteraction(roomCopy.Npcs, filteredPlayers, npcData, playerSnap.NpcDialogues, playerSnap.GroupState.Grouped)
+		c.ui.UpdateInteraction(roomCopy.Npcs, filteredPlayers, npcData, playerSnap.NpcDialogues, playerSnap.GroupState.Grouped, playerSnap.Quests)
 	})
 }
 
-// setNpcCache replaces the whole cache of inspected npc datas (e.g. after a
-// room-wide INSPECT).
 func (c *Controller) setNpcCache(data map[string]protocol.InspectNPCData) {
 	c.npcCacheMu.Lock()
 	defer c.npcCacheMu.Unlock()
 	c.npcCache = data
 }
 
-// cacheNpc stores/updates a single npc's inspect data (e.g. after
-// INSPECT NPC <name>).
 func (c *Controller) cacheNpc(n protocol.InspectNPCData) {
 	c.npcCacheMu.Lock()
 	defer c.npcCacheMu.Unlock()

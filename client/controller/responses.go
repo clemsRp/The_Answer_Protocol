@@ -79,7 +79,6 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 			})
 		}
 
-	// Regroupement Attack et UseItem pour gérer la fin du combat sur les 2 actions
 	case (lastCmdBase == pr.CmdAttack || strings.HasPrefix(lastCmd, pr.CmdAttack) || strings.HasPrefix(lastCmd, pr.CmdChatCombatAttack) || lastCmdBase == pr.CmdUseItem || strings.HasPrefix(lastCmd, pr.CmdUseItem)) && (res.Msg == pr.MsgOK || strings.HasPrefix(res.Msg, pr.MsgOK)):
 
 		if res.Datas != nil {
@@ -94,7 +93,6 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 					c.gameState.UpdateCombatState(func(cs *state.CombatState) {
 						cs.InCombat = false
 					})
-					// Construire la liste des récompenses à afficher
 					rewards := make([]string, 0)
 					if fullTurn.XpReward > 0 {
 						rewards = append(rewards, fmt.Sprintf("%d XP", fullTurn.XpReward))
@@ -106,10 +104,8 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 					})
 					c.sendToNetwork(pr.CmdLook)
 					c.sendToNetwork(pr.CmdInventory)
-					// A defeated npc may fulfil a quest target: refresh
-					// progress automatically.
 					c.sendToNetwork(pr.CmdQuests)
-					break // Empêche de demander les Stats d'un combat terminé
+					break
 				}
 			}
 		}
@@ -176,8 +172,6 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 
 	case strings.HasPrefix(lastCmd, pr.CmdTake) && strings.HasPrefix(res.Msg, pr.MsgOK):
 		c.sendToNetwork(pr.CmdLook)
-		// Taking an item can fulfil a quest target: refresh progress
-		// automatically instead of waiting for the player to check.
 		c.sendToNetwork(pr.CmdQuests)
 
 	case strings.HasPrefix(lastCmd, pr.CmdDrop) && strings.HasPrefix(res.Msg, pr.MsgOK):
@@ -279,7 +273,6 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 			}
 
 		case lastCmdBase == pr.CmdCompleteQuest:
-			// Récupérer la récompense si disponible
 			reward := ""
 			questID := ""
 			if len(strings.Fields(lastCmd)) >= 2 {
@@ -300,11 +293,8 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 			c.ui.QueueUpdate(func() {
 				c.ui.ShowQuestCompletedPopup(capturedQuestID, capturedReward)
 			})
-			// Fetch updated quests list
 			c.sendToNetwork(pr.CmdQuests)
 			c.sendToNetwork(pr.CmdLook)
-			// Completing a quest can consume the target item from the
-			// inventory (server-side), so resync it too.
 			c.sendToNetwork(pr.CmdInventory)
 
 		case lastCmdBase == pr.CmdQuest:
@@ -321,6 +311,8 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 					c.ui.UpdateQuests(data)
 				})
 			}
+
+			c.refreshUI()
 		}
 	}
 }

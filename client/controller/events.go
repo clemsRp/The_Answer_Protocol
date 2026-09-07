@@ -75,8 +75,6 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 		}
 
 	case strings.HasPrefix(trimmed, pr.TypeItemRemoved):
-		// An item requested by a quest that just got validated disappears
-		// from the world for every player, wherever it currently is.
 		target := strings.SplitN(trimmed, pr.TypeItemRemoved+" ", 2)[1]
 		if target != "" {
 			c.gameState.UpdateRoom(func(r *protocol.LookCommandData) {
@@ -91,8 +89,6 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 		}
 
 	case strings.HasPrefix(trimmed, pr.TypeQuestCompleted):
-		// Another player validated a quest we might also be tracking:
-		// resync our own quest list and the room (npc quest availability).
 		c.sendToNetwork(pr.CmdQuests)
 		c.sendToNetwork(pr.CmdLook)
 
@@ -199,14 +195,9 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 			c.ui.QueueUpdate(func() {
 				c.ui.UpdateCombat(combatSnap)
 			})
-			// On re-demande systématiquement les stats complètes à chaque
-			// changement de tour, pour tout le monde (pas seulement la
-			// personne dont c'est le tour), afin que le panel de combat
-			// (HP, team, opponents) soit toujours à jour pour tous les
-			// participants du combat.
+
 			c.sendToNetwork(pr.CmdCombatStats)
 		} else if strings.HasPrefix(trimmed, pr.CategoryCombat+" VICTORY") || strings.HasPrefix(trimmed, pr.CategoryCombat+" DEFEAT") {
-			// Déterminer le résultat
 			combatResult := "DEFEAT"
 			if strings.HasPrefix(trimmed, pr.CategoryCombat+" VICTORY") {
 				combatResult = "VICTORY"

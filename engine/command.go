@@ -356,9 +356,6 @@ func (e *Engine) handleCmdQuest(player *Player, req []string) (string, any, erro
 					playerQuest.Progress = "0/1" // Or default progress logic
 					player.quests = append(player.quests, playerQuest)
 
-					// In case the player already carries the target item or
-					// has already defeated the target npc, mark it as ready
-					// right away instead of waiting for a future action.
 					e.refreshQuestProgress(player)
 
 					res := pr.QuestData{
@@ -447,14 +444,10 @@ func (e *Engine) handleCmdCompleteQuest(player *Player, req []string) (string, a
 		}
 	}
 
-	// Once validated, the quest disappears from the world for everyone: no
-	// other player can pick it up again from the npc that gave it.
 	if worldQuest, exists := e.world.Quests[playerQuest.Id]; exists {
 		worldQuest.Status = "unavailable"
 	}
 
-	// The requested item is consumed and removed from the world for every
-	// player (it can no longer be found lying in any room).
 	if playerQuest.TargetItem != "" {
 		removeItemFromInventory(player, playerQuest.TargetItem)
 		e.removeItemFromWorld(playerQuest.TargetItem)
@@ -473,8 +466,6 @@ func (e *Engine) handleCmdCompleteQuest(player *Player, req []string) (string, a
 	return "OK", res, nil
 }
 
-// removeItemFromInventory removes a single occurrence of itemId from the
-// player's inventory, if present.
 func removeItemFromInventory(player *Player, itemId string) {
 	for i, item := range player.inventory {
 		if item.Id == itemId {
@@ -484,9 +475,6 @@ func removeItemFromInventory(player *Player, itemId string) {
 	}
 }
 
-// removeItemFromWorld removes every instance of itemId currently lying in
-// any room of the world, so it disappears for every player once the quest
-// requesting it has been completed and validated.
 func (e *Engine) removeItemFromWorld(itemId string) {
 	for _, room := range e.world.Rooms {
 		for i, it := range room.Items {
@@ -498,10 +486,6 @@ func (e *Engine) removeItemFromWorld(itemId string) {
 	}
 }
 
-// refreshQuestProgress recomputes the progress of every active quest a
-// player carries, based on their current inventory and defeated npcs. This
-// lets quest progress update automatically (after taking/dropping an item or
-// defeating an npc) instead of only changing once COMPLETE_QUEST is called.
 func (e *Engine) refreshQuestProgress(player *Player) {
 	for _, q := range player.quests {
 		if q.Status != "active" {
@@ -576,8 +560,6 @@ func (e *Engine) handleCmdAttack(player *Player, req []string) (string, any, err
 	var fullResponse *FullTurnResponse
 
 	if !exists {
-		// Check if target is an ongoing combat in the room:
-		// Target can be either an NPC in that combat, or an ally player in that combat
 		for _, cs := range e.activeCombats {
 			if cs.RoomId == player.room.Id {
 				for _, n := range cs.Npcs {

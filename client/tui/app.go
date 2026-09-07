@@ -84,7 +84,7 @@ func (m *MyApp) setupComponents() {
 	m.Group = panel.NewGroupComponent(m.app, m.popup, panel.GroupDatas{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
 	m.Navigation = panel.NewNavigationComponent(m.app, m.popup, "", map[string]string{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
 	m.Items = panel.NewItemsComponent(m.app, m.popup, []string{}, []string{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
-	m.Interaction = panel.NewInteractionComponent(m.app, m.popup, []string{}, []string{}, map[string]protocol.InspectNPCData{}, map[string]string{}, []string{}, 0, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
+	m.Interaction = panel.NewInteractionComponent(m.app, m.popup, []string{}, []string{}, map[string]protocol.InspectNPCData{}, map[string]string{}, []string{}, 0, m.actionsChan, m.OnOpenPopup, m.ShowGamePage, nil)
 	m.Inspector = panel.NewInspectorComponent(m.app, m.actionsChan)
 	m.Quest = panel.NewQuestComponent(m.app)
 
@@ -218,16 +218,12 @@ func (m *MyApp) ClosePopup() {
 	m.ShowGamePage()
 }
 
-// ShowCombatResultPopup affiche une popup VICTOIRE ou DÉFAITE avec un bouton OK.
-// La page Combat est masquée, puis le clic sur OK ramène à la page de jeu.
 func (m *MyApp) ShowCombatResultPopup(result string, rewards []string) {
-	// Masquer la page Combat et la mettre en arrière-plan
 	m.pages.HidePage("Combat")
 	m.pages.SendToBack("Combat")
 	m.combatVisible = false
 	panel.SetBlockedInputs(m.grid, true)
 
-	// Titre et couleur selon résultat
 	emote := "⚔"
 	msgColor := "[green]"
 	if result == "DEFEAT" {
@@ -245,7 +241,6 @@ func (m *MyApp) ShowCombatResultPopup(result string, rewards []string) {
 		SetTextAlign(tview.AlignCenter)
 	content.SetBackgroundColor(panel.AppTheme.PopupBackground)
 
-	// Style identique aux boutons Cancel / Validate
 	okBtn := tview.NewButton("OK").
 		SetSelectedFunc(func() {
 			m.ShowGamePage()
@@ -258,7 +253,6 @@ func (m *MyApp) ShowCombatResultPopup(result string, rewards []string) {
 	m.popup.AddItem(createdPopup.Layout, 1, 1, 1, 1, 0, 0, true)
 	m.PopupComponent = createdPopup
 
-	// Afficher la Popup au premier plan, Combat bien derrière
 	m.pages.ShowPage("Popup")
 	m.pages.SendToFront("Popup")
 	panel.SetBlockedInputs(m.grid, false)
@@ -266,8 +260,6 @@ func (m *MyApp) ShowCombatResultPopup(result string, rewards []string) {
 	m.popupVisible = true
 }
 
-// ShowQuestCompletedPopup affiche une popup quand une quête est complétée.
-// Après le clic sur OK, la page de jeu est restaurée.
 func (m *MyApp) ShowQuestCompletedPopup(questID, reward string) {
 	body := "[yellow]Quest accomplished ![-]\n\n"
 	body += "[white]" + questID + "[-]\n\n"
@@ -283,7 +275,6 @@ func (m *MyApp) ShowQuestCompletedPopup(questID, reward string) {
 	content.SetBackgroundColor(panel.AppTheme.PopupBackground)
 	content.SetText(body)
 
-	// Style identique aux boutons Cancel / Validate
 	okBtn := tview.NewButton("  OK  ").
 		SetLabelColor(tcell.ColorWhite).
 		SetBackgroundColorActivated(tcell.GetColor("#7e7979")).
@@ -360,7 +351,14 @@ func (m *MyApp) UpdateItems(roomItems, inventory []string) {
 	m.setupMatrix()
 }
 
-func (m *MyApp) UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogue map[string]string, groupMembers []string) {
+func (m *MyApp) UpdateInteraction(
+	npcs,
+	players []string,
+	npcData map[string]protocol.InspectNPCData,
+	npcDialogue map[string]string,
+	groupMembers []string,
+	quests []protocol.TrackedQuestData,
+) {
 	panelWidth := 0
 	if m.Interaction != nil && m.Interaction.List != nil {
 		_, _, panelWidth, _ = m.Interaction.List.GetRect()
@@ -380,6 +378,7 @@ func (m *MyApp) UpdateInteraction(npcs, players []string, npcData map[string]pro
 		m.actionsChan,
 		m.OnOpenPopup,
 		m.ShowGamePage,
+		&quests,
 	)
 
 	m.grid.AddItem(m.Interaction.Layout, 0, 2, 2, 1, 0, 0, false)

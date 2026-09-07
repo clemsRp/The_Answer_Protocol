@@ -37,10 +37,6 @@ type Server struct {
 }
 
 func (s *Server) handleNewConnection(conn net.Conn) {
-	// SELECT PATTERN: Non-Blocking Send / Load Shedding
-	// Attempts to consume a player slot.
-	// If a slot is available, the client is connected.
-	// Otherwise (default), the server is full, and we instantly reject the connection without blocking.
 	select {
 	case s.playerSlots <- struct{}{}:
 		s.wg.Add(1)
@@ -53,10 +49,6 @@ func (s *Server) handleNewConnection(conn net.Conn) {
 
 func (s *Server) broadcaster() {
 	defer s.wg.Done()
-	// PATTERN: Event Loop / Multiplexer
-	// The central dispatcher of the server: guarantees that only one event (connection,
-	// disconnection, message) is processed at a time. This protects the s.clients map
-	// from Data Races without the need for sync.Mutex locks.
 	for {
 		select {
 		case req := <-s.requests:
@@ -106,10 +98,6 @@ func (s *Server) sendToClient(output pr.EngineResponse) {
 		res, datas = output.Err.Error(), ""
 	}
 
-	// SELECT PATTERN: Non-Blocking Send
-	// Attempts to send the message to the client. If their channel buffer is full
-	// we force a disconnection via the default case
-	// rather than paralyzing the entire server broadcast loop.
 	select {
 	case cli.ch <- pr.ServerResponse{Msg: res, Datas: datas}:
 	default:
@@ -171,8 +159,7 @@ func (s *Server) Stop() {
 	if s.ln != nil {
 		s.ln.Close()
 	}
-	// if the channel already has been closed
-	// does nothing. else it closes it
+	// if the channel already has been closed does nothing. else it closes it
 	select {
 	case <-s.quit:
 	default:

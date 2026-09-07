@@ -1,4 +1,3 @@
-// engine/handle_commands.go
 package engine
 
 import (

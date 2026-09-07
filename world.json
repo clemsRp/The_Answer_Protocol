@@ -8,8 +8,8 @@
                     "north": "produce_section",
                     "east": "clothing_aisle"
                 },
-                "items": ["smelly_mackerel"],
-                "npcs": ["cat_lady_agnes"]
+                "items": ["smelly_mackerel", "plastic_hanger"],
+                "npcs": ["cat_lady_agnes", "cleaner_claude"]
             },
             "produce_section": {
                 "name": "Produce Section",
@@ -51,7 +51,7 @@
                     "south": "pastries"
                 },
                 "items": ["toxic_bleach"],
-                "npcs": ["cleaner_claude"]
+                "npcs": []
             },
             "pastries": {
                 "name": "Pastry Section",
@@ -141,7 +141,7 @@
                     "max_hp": 23,
                     "status": "healthy",
                     "initiative": 90,
-					"damage": 99
+					"damage": 24
                 },
                 "hostile": true
             },

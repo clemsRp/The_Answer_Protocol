@@ -29,7 +29,6 @@ func (n *Npc) isDead() bool {
 func (n *Npc) takeDamage(amount int) int {
 	n.Stats.Hp -= amount
 	return amount
-	// maybe here substraction with defense of entity
 }
 func (n *Npc) getHp() int {
 	return n.Stats.Hp
@@ -39,10 +38,6 @@ func (n *Npc) getInitiative() int {
 	return n.Stats.Initiative
 }
 
-// getDamage renvoie les dégâts infligés par ce PNJ en combat. Le champ vit
-// désormais dans Stats.Damage (et non plus au niveau racine du Npc), et sa
-// présence/validité (entier positif) est garantie à la validation du monde
-// pour tout PNJ hostile (voir validateHostileNpcDamage dans valid_values.go).
 func (n *Npc) getDamage() int {
 	if n.Stats == nil {
 		return 0

@@ -309,7 +309,6 @@ func (c *CombatComponent) GetStats(combat_datas CombatDatas) *tview.List {
 // GetAllButtons builds the bottom action row.
 // Displays waiting text if it's not our turn.
 func (c *CombatComponent) GetAllButtons(actionsChan chan<- Action, combat_datas CombatDatas) ([]tview.Primitive, int) {
-	// Vérification de l'état du tour
 	if combat_datas.Current_turn == "" || combat_datas.Current_turn != combat_datas.MyPseudo {
 		turnName := combat_datas.Current_turn
 		if turnName == "" {
@@ -326,14 +325,12 @@ func (c *CombatComponent) GetAllButtons(actionsChan chan<- Action, combat_datas 
 
 	attack_btn := tview.NewButton("Attack")
 	attack_btn.SetSelectedFunc(func() {
-		// Evalué au moment du clic, garantit qu'on prend la cible actuellement sélectionnée
 		target := ""
 		if combat_datas.SelectedPerson != nil {
 			if _, ok := combat_datas.Opponents[*combat_datas.SelectedPerson]; ok {
 				target = *combat_datas.SelectedPerson
 			}
 		}
-		// Fallback sur le premier ennemi si aucune cible ou allié sélectionné
 		if target == "" {
 			for name := range combat_datas.Opponents {
 				target = name
@@ -358,8 +355,9 @@ func (c *CombatComponent) GetAllButtons(actionsChan chan<- Action, combat_datas 
 	})
 
 	buttons := []*tview.Button{attack_btn, flee_btn}
+	var res []tview.Primitive
+	res = append(res, attack_btn, flee_btn)
 
-	// Regrouper les items par ID avec compteur si plusieurs exemplaires
 	type itemCounter struct {
 		id    string
 		count int
@@ -376,27 +374,50 @@ func (c *CombatComponent) GetAllButtons(actionsChan chan<- Action, combat_datas 
 		}
 	}
 
-	for _, entry := range itemsList {
-		itemName := entry.id
-		btnLabel := fmt.Sprintf("Use %s", itemName)
-		if entry.count > 1 {
-			btnLabel = fmt.Sprintf("Use %s (x%d)", itemName, entry.count)
+	if len(itemsList) > 0 {
+		options := make([]string, len(itemsList))
+		for i, entry := range itemsList {
+			if entry.count > 1 {
+				options[i] = fmt.Sprintf("%s (x%d)", entry.id, entry.count)
+			} else {
+				options[i] = entry.id
+			}
 		}
-		use_btn := tview.NewButton(btnLabel)
+
+		selectedItemIdx := 0
+
+		item_select := createSelectField("", options, selectedItemIdx)
+		item_select.
+			SetFieldBackgroundColor(tcell.GetColor("#d33636")).
+			SetBackgroundColor(AppTheme.PopupBackground)
+		item_select.SetSelectedFunc(func(text string, index int) {
+			selectedItemIdx = index
+		})
+
+		use_btn := tview.NewButton("Use")
 		use_btn.SetSelectedFunc(func() {
+			if selectedItemIdx < 0 || selectedItemIdx >= len(itemsList) {
+				return
+			}
+			itemName := itemsList[selectedItemIdx].id
 			actionsChan <- Action{
 				Type:    ActionSendServer,
 				Payload: fmt.Sprintf("%s %s", pr.CmdUseItem, itemName),
 			}
 		})
+
+		use_flex := tview.NewFlex()
+		use_flex.AddItem(item_select, 15, 0, true)
+		box := tview.NewBox()
+		box.SetBackgroundColor(AppTheme.PopupBackground)
+		use_flex.AddItem(box, 1, 0, false)
+		use_flex.AddItem(use_btn, 0, 1, true)
+
 		buttons = append(buttons, use_btn)
+		res = append(res, use_flex)
 	}
 
 	c.ActionButtons = buttons
-	var res []tview.Primitive
-	for _, b := range buttons {
-		res = append(res, b)
-	}
 
 	return res, 2 * len(res)
 }

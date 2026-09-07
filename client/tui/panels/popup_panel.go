@@ -35,7 +35,7 @@ type InputCapturer interface {
 
 func NewPopupComponent(app *tview.Application, grid *tview.Grid, mainContent tview.Primitive, contentHeight int, buttons []*tview.Button) *PopupComponent {
 	// Color constants
-	bgColor := tcell.GetColor("#3a3838")
+	bgColor := AppTheme.PopupBackground
 
 	popup := PopupComponent{
 		LayoutTemp:  tview.NewFlex().SetDirection(tview.FlexRow),

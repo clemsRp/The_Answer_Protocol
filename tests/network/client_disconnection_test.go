@@ -38,7 +38,6 @@ func TestHardResetDisconnection(t *testing.T) {
 		t.Fatalf("Connection failed: %v", err)
 	}
 
-	// On cast la connexion en *net.TCPConn pour avoir accès aux options bas niveau
 	tcpConn, ok := conn.(*net.TCPConn)
 	if !ok {
 		t.Fatal("Failed to cast to TCPConn")

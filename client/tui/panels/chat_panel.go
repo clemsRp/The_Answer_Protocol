@@ -50,6 +50,7 @@ func NewChatComponent(app *tview.Application, actionsChan chan<- Action) *ChatCo
 	}
 
 	chat.Scope = createSelectField("Canal: ", []string{pr.GlobalChat, pr.RoomChat, pr.GroupChat}, 0)
+	chat.Scope.SetFieldBackgroundColor(tcell.GetColor("#d33636"))
 
 	chat.Input = tview.NewInputField().
 		SetLabel(" Message: ").

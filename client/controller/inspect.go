@@ -31,7 +31,6 @@ func (c *Controller) handleInspectResponse(res pr.ServerResponse) {
 			npcs[n.Id] = n
 		}
 		c.setNpcCache(npcs)
-		// re-render the interaction panel now that we know who is hostile / has a quest
 		c.refreshUI()
 
 		formatted := formatRoom(roomData)
@@ -82,8 +81,6 @@ func (c *Controller) handleInspectResponse(res pr.ServerResponse) {
 	}
 }
 
-// formatRoom renders a compact overview of everyone/everything inspectable
-// in the current room, flagging hostile npcs and npcs with an available quest.
 func formatRoom(data protocol.InspectRoomData) string {
 	sb := &StatBuilder{}
 	sb.WriteString("[blue]ROOM OVERVIEW[-]\n\n")

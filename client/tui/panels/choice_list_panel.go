@@ -21,7 +21,7 @@ type ChoiceListComponent struct {
 }
 
 var (
-	popupBgColor = tcell.GetColor("#3a3838")
+	popupBgColor = AppTheme.PopupBackground
 	btnRestBg    = tcell.GetColor("#474646")
 	btnActiveBg  = tcell.GetColor("#7e7979")
 )

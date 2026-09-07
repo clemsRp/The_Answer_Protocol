@@ -1,4 +1,3 @@
-// engine/inspect.go
 package engine
 
 import (
@@ -63,8 +62,6 @@ func buildInspectItemData(it *Item) pr.InspectItemData {
 	}
 }
 
-// inspectRoom gathers inspect datas for every player, npc and item currently
-// present in the player's room (defeated npcs are excluded, same as LOOK).
 func (e *Engine) inspectRoom(player *Player) pr.InspectRoomData {
 	res := pr.InspectRoomData{
 		Players: make([]pr.InspectPlayerData, 0),
