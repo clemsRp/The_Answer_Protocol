@@ -29,6 +29,7 @@ const (
 const (
 	ErrItemNotFound       = "ERR 404 ITEM_NOT_FOUND"
 	ErrItemNotInInventory = "ERR 404 ITEM_NOT_IN_INVENTORY"
+	ErrItemNotUsable      = "ERR 414 ITEM_NOT_USABLE"
 )
 
 // NPCs & Quests

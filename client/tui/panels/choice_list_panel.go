@@ -2,6 +2,7 @@ package panel
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"sync"
 	pr "tap/protocol"
@@ -21,10 +22,17 @@ type ChoiceListComponent struct {
 }
 
 var (
-	popupBgColor = tcell.GetColor("#3a3838")
+	popupBgColor = AppTheme.PopupBackground
 	btnRestBg    = tcell.GetColor("#474646")
 	btnActiveBg  = tcell.GetColor("#7e7979")
 )
+
+type entryItem struct {
+	isHeader bool
+	locName  string
+	areBtns  bool
+	action   func()
+}
 
 func NewChoiceListComponent[T AllowedOptions](
 	app *tview.Application,
@@ -40,22 +48,79 @@ func NewChoiceListComponent[T AllowedOptions](
 	src.List = createListView(" "+title+" ", true, false, true)
 	src.Layout = tview.NewFlex().SetDirection(tview.FlexRow).AddItem(src.List, 0, 1, false)
 
+	var entries []entryItem
+
 	switch opts := any(options).(type) {
 	case OptionsMap:
-		createList(app, src, popupGrid, opts, onOpenPopup, onClosePopup, are_btns)
+		entries = append(entries, collectOptions(app, src, popupGrid, opts, onOpenPopup, onClosePopup, are_btns)...)
 
 	case map[string]OptionsMap:
 		for subTitle, subOptions := range opts {
-			src.List.AddItem("[yellow:#000000]- "+subTitle+":", "", 0, nil)
-
-			createList(app, src, popupGrid, subOptions, onOpenPopup, onClosePopup, are_btns)
+			entries = append(entries, entryItem{
+				isHeader: true,
+				locName:  subTitle,
+			})
+			entries = append(entries, collectOptions(app, src, popupGrid, subOptions, onOpenPopup, onClosePopup, are_btns)...)
 		}
 	}
+
+	formatItem := func(locName string, areBtns bool, isSelected bool) (string, string) {
+		if areBtns {
+			if isSelected {
+				return "[yellow][ " + locName + " ][-]", ""
+			}
+			return fmt.Sprintf("[yellow:%s][ %s ][-:-]", AppTheme.PopupBackgroundHexa, locName), ""
+		} else {
+			parts := strings.SplitN(locName, "\n", 2)
+			mainContent := parts[0]
+			secondaryContent := ""
+			if len(parts) > 1 {
+				secondaryContent = parts[1]
+			}
+
+			if isSelected {
+				mText := " ●  " + mainContent
+				sText := ""
+				if secondaryContent != "" {
+					sText = secondaryContent
+				}
+				return mText, sText
+			} else {
+				mText := "○  " + mainContent
+				sText := ""
+				if secondaryContent != "" {
+					sText = secondaryContent
+				}
+				return mText, sText
+			}
+		}
+	}
+
+	for idx, entry := range entries {
+		if entry.isHeader {
+			src.List.AddItem("[yellow:#000000]- "+entry.locName+":", "", 0, nil)
+		} else {
+			isSelected := (idx == 0)
+			mText, sText := formatItem(entry.locName, entry.areBtns, isSelected)
+			src.List.AddItem(mText, sText, 0, entry.action)
+		}
+	}
+
+	src.List.SetChangedFunc(func(i int, mainText, secondaryText string, shortcut rune) {
+		for idx, entry := range entries {
+			if entry.isHeader {
+				continue
+			}
+			isSelected := (idx == i)
+			mText, sText := formatItem(entry.locName, entry.areBtns, isSelected)
+			src.List.SetItemText(idx, mText, sText)
+		}
+	})
 
 	return src
 }
 
-func createList(
+func collectOptions(
 	app *tview.Application,
 	src *ChoiceListComponent,
 	popupGrid *tview.Grid,
@@ -63,8 +128,9 @@ func createList(
 	onOpenPopup func(popup *PopupComponent),
 	onClosePopup func(),
 	are_btns bool,
-) {
-	index := 1
+) []entryItem {
+	var entries []entryItem
+
 	for location, actions := range options {
 		locActions := actions
 		locName := location
@@ -93,7 +159,7 @@ func createList(
 			funcsIndices := make([]func(), 0, len(locActions))
 			cmdNames := make([]string, 0, len(locActions))
 
-			formatItem := func(name string, isSelected bool) string {
+			formatPopupItem := func(name string, isSelected bool) string {
 				if isSelected {
 					return "[white:#7e7979]" + transform_name(name, 30)
 				}
@@ -106,7 +172,7 @@ func createList(
 				cmdNames = append(cmdNames, cmdName)
 
 				isFirst := len(cmdNames) == 1
-				actionList.AddItem(formatItem(cmdName, isFirst), "", 0, nil)
+				actionList.AddItem(formatPopupItem(cmdName, isFirst), "", 0, nil)
 			}
 
 			if len(funcsIndices) > 0 {
@@ -121,7 +187,7 @@ func createList(
 					for idx, name := range cmdNames {
 						if idx < itemCount {
 							isSelected := (idx == i)
-							actionList.SetItemText(idx, formatItem(name, isSelected), "")
+							actionList.SetItemText(idx, formatPopupItem(name, isSelected), "")
 						}
 					}
 				}
@@ -181,21 +247,15 @@ func createList(
 			}
 		}
 
-		if are_btns {
-			label := "[yellow][ " + locName + " ][-]"
-			src.List.AddItem(label, "", 0, itemAction)
-
-		} else {
-			parts := strings.SplitN(locName, "\n", 2)
-			mainText := "  " + parts[0] + "  "
-			secondaryText := ""
-			if len(parts) > 1 {
-				secondaryText = parts[1]
-			}
-			src.List.AddItem(mainText, secondaryText, 0, itemAction)
-		}
-		index++
+		entries = append(entries, entryItem{
+			isHeader: false,
+			locName:  locName,
+			areBtns:  are_btns,
+			action:   itemAction,
+		})
 	}
+
+	return entries
 }
 
 func transform_name(option string, width int) string {

@@ -26,7 +26,7 @@ func (e *Engine) get_combat_stats(player *Player) (string, any, error) {
 	for _, p := range cs.Players {
 		inventory := make([]string, 0, len(p.inventory))
 		for _, item := range p.inventory {
-			inventory = append(inventory, item.Id) // IDs stringified for inventory
+			inventory = append(inventory, item.Id)
 		}
 		team[p.name] = pr.CombatPersonData{
 			Name:      p.name,
@@ -39,7 +39,7 @@ func (e *Engine) get_combat_stats(player *Player) (string, any, error) {
 	for _, npc := range cs.Npcs {
 		inventory := make([]string, 0, len(npc.ItemsReward))
 		for _, item := range npc.ItemsReward {
-			inventory = append(inventory, item.Id) // IDs stringified for inventory
+			inventory = append(inventory, item.Id)
 		}
 		opponents[npc.Id] = pr.CombatPersonData{
 			Name:      npc.Name,

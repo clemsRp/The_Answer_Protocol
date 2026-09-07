@@ -13,7 +13,6 @@ type Npc struct {
 	QuestId     string       `json:"quest_id" validate:"omitempty,quest_exists"`
 	Stats       *CombatStats `json:"stats,omitempty" validate:"required_if=Hostile true"`
 	Hostile     bool         `json:"hostile"`
-	Damage      int          `json:"damage"`
 	InCombat    bool         `json:"omitempty"`
 	XpReward    int          `json:"xp_reward,omitempty"`
 	ItemsReward []*Item      `json:"items_reward,omitempty"`
@@ -30,7 +29,6 @@ func (n *Npc) isDead() bool {
 func (n *Npc) takeDamage(amount int) int {
 	n.Stats.Hp -= amount
 	return amount
-	// maybe here substraction with defense of entity
 }
 func (n *Npc) getHp() int {
 	return n.Stats.Hp
@@ -41,7 +39,10 @@ func (n *Npc) getInitiative() int {
 }
 
 func (n *Npc) getDamage() int {
-	return n.Damage
+	if n.Stats == nil {
+		return 0
+	}
+	return n.Stats.Damage
 }
 
 func (n *Npc) Clone() *Npc {

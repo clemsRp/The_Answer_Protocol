@@ -35,10 +35,6 @@ func newClient(conn net.Conn, ch chan pr.ServerResponse) *Client {
 }
 
 func (s *Server) stopClient(cli *Client, writerDone <-chan struct{}) {
-	// SELECT PATTERN: Escape Hatch / Circuit Breaker
-	// Attempts to send the client to the leaving queue.
-	// If the server is shutting down (s.quit is closed), the send operation is
-	// immediately aborted to prevent a deadlock.
 	select {
 	case s.leaving <- cli:
 	case <-s.quit:
@@ -55,9 +51,6 @@ func (s *Server) handleClient(conn net.Conn) {
 	cli := newClient(conn, responses)
 	writerDone := make(chan struct{})
 
-	// when connection interrupts,
-	// closes the client channel and removes him from the clients map
-	// waits for client writer ends sending its messages.
 	defer s.stopClient(cli, writerDone)
 
 	s.wg.Add(1)
@@ -72,7 +65,7 @@ func (s *Server) handleClient(conn net.Conn) {
 func (s *Server) readClientInput(cli *Client) {
 	input := bufio.NewScanner(cli.conn)
 	input.Buffer(make([]byte, 0, MaxPayloadSize), MaxPayloadSize)
-	limiter := NewRateLimiter(MaxTokens, 200*time.Millisecond)
+	limiter := NewRateLimiter(MaxTokens, 50*time.Millisecond)
 
 	for {
 		cli.conn.SetReadDeadline(time.Now().Add(s.IdleTimeout))

@@ -58,6 +58,11 @@ func (e *Engine) broadcaster() (errPanic error) {
 			e.handlePlayerLeave(id)
 
 		case req := <-e.exchanger.ServerInput:
+			if req.Id == "SYSTEM" {
+				e.handleSystemCommand(req.Msg)
+				continue
+			}
+
 			res, datas, err := e.handleCommands(req)
 			e.exchanger.ServerOutput <- pr.EngineResponse{
 				Id:    req.Id,

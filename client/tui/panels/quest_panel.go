@@ -37,7 +37,7 @@ func (c *QuestComponent) SetQuests(quests []pr.TrackedQuestData) {
 	}
 	text := ""
 	for _, q := range quests {
-		text += "Quest: " + q.Id + "\nStatus: " + q.Status + "\nProgress: " + q.Progress + "\n\n"
+		text += "Quest: " + q.Id + "\nDescription: " + q.Description + "\nStatus: " + q.Status + "\nProgress: " + q.Progress + "\n\n"
 	}
 	c.View.SetText(text)
 }

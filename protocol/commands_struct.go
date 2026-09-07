@@ -45,9 +45,10 @@ type QuestData struct {
 }
 
 type TrackedQuestData struct {
-	Id       string `json:"quest_id"`
-	Status   string `json:"status"`
-	Progress string `json:"progress"`
+	Id          string `json:"quest_id"`
+	Description string `json:"description"`
+	Status      string `json:"status"`
+	Progress    string `json:"progress"`
 }
 
 type AttackCommandData struct {
@@ -78,6 +79,7 @@ type InspectNPCData struct {
 	Hp          int      `json:"hp"`
 	HpMax       int      `json:"hp_max"`
 	InCombat    bool     `json:"in_combat,omitempty"`
+	GroupId     string   `json:"group_id,omitempty"`
 	XpReward    int      `json:"xp_reward,omitempty"`
 	ItemsReward []string `json:"items_reward,omitempty"`
 }

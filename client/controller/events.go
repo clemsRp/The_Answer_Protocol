@@ -2,11 +2,14 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"tap/client/state"
 	"tap/protocol"
 	pr "tap/protocol"
 )
+
+var completed_quest_ids = make([]string, 0)
 
 func (c *Controller) handleEvents(res pr.ServerResponse) {
 	if !strings.HasPrefix(res.Msg, pr.MsgEvt) {
@@ -74,8 +77,6 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 		}
 
 	case strings.HasPrefix(trimmed, pr.TypeItemRemoved):
-		// An item requested by a quest that just got validated disappears
-		// from the world for every player, wherever it currently is.
 		target := strings.SplitN(trimmed, pr.TypeItemRemoved+" ", 2)[1]
 		if target != "" {
 			c.gameState.UpdateRoom(func(r *protocol.LookCommandData) {
@@ -90,8 +91,14 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 		}
 
 	case strings.HasPrefix(trimmed, pr.TypeQuestCompleted):
-		// Another player validated a quest we might also be tracking:
-		// resync our own quest list and the room (npc quest availability).
+		quest_id := strings.SplitN(trimmed, pr.TypeQuestCompleted+" ", 2)[1]
+
+		c.gameState.UpdatePlayer(func(p *state.Player) {
+			p.CompletedQuests = append(p.CompletedQuests, quest_id)
+		})
+
+		completed_quest_ids = append(completed_quest_ids, quest_id)
+
 		c.sendToNetwork(pr.CmdQuests)
 		c.sendToNetwork(pr.CmdLook)
 
@@ -140,16 +147,21 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 		}
 		c.refreshGroupUI()
 
-	case strings.HasPrefix(trimmed, pr.CategoryGroup+" "+pr.TypeGroupPromoteAccepted):
+	case strings.HasPrefix(trimmed, pr.TypeGroupPromoteAccepted):
+		c.gameState.UpdateGroupState(func(gs *state.GroupState) {
+			gs.Leader = false
+			gs.SendPromotion = false
+		})
 		c.sendToNetwork(pr.CmdGrouped)
+		c.refreshGroupUI()
 
-	case strings.HasPrefix(trimmed, pr.CategoryGroup+" "+pr.TypeGroupPromoteDeclined):
+	case strings.HasPrefix(trimmed, pr.TypeGroupPromoteDeclined):
 		c.gameState.UpdateGroupState(func(gs *state.GroupState) {
 			gs.SendPromotion = false
 		})
 		c.refreshGroupUI()
 
-	case strings.HasPrefix(trimmed, pr.CategoryGroup+" "+pr.TypeGroupPromote):
+	case strings.HasPrefix(trimmed, pr.TypeGroupPromote):
 		c.gameState.UpdateGroupState(func(gs *state.GroupState) {
 			gs.Promotion = true
 		})
@@ -193,18 +205,34 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 			c.ui.QueueUpdate(func() {
 				c.ui.UpdateCombat(combatSnap)
 			})
-			// On re-demande systématiquement les stats complètes à chaque
-			// changement de tour, pour tout le monde (pas seulement la
-			// personne dont c'est le tour), afin que le panel de combat
-			// (HP, team, opponents) soit toujours à jour pour tous les
-			// participants du combat.
+
 			c.sendToNetwork(pr.CmdCombatStats)
 		} else if strings.HasPrefix(trimmed, pr.CategoryCombat+" VICTORY") || strings.HasPrefix(trimmed, pr.CategoryCombat+" DEFEAT") {
+			combatResult := "DEFEAT"
+			if strings.HasPrefix(trimmed, pr.CategoryCombat+" VICTORY") {
+				combatResult = "VICTORY"
+			}
 			c.gameState.UpdateCombatState(func(cs *state.CombatState) {
 				cs.InCombat = false
 			})
+			rewards := make([]string, 0)
+			if res.Datas != nil {
+				var evtData struct {
+					XpReward    int      `json:"xp_reward,omitempty"`
+					ItemsReward []string `json:"items_reward,omitempty"`
+				}
+				raw, err := json.Marshal(res.Datas)
+				if err == nil && json.Unmarshal(raw, &evtData) == nil {
+					if evtData.XpReward > 0 {
+						rewards = append(rewards, fmt.Sprintf("%d XP", evtData.XpReward))
+					}
+					rewards = append(rewards, evtData.ItemsReward...)
+				}
+			}
+			capturedResult := combatResult
+			capturedRewards := rewards
 			c.ui.QueueUpdate(func() {
-				c.ui.ShowGamePage()
+				c.ui.ShowCombatResultPopup(capturedResult, capturedRewards)
 			})
 			c.sendToNetwork(pr.CmdLook)
 		} else if strings.HasPrefix(trimmed, pr.CategoryCombat+" ALLY_LEAVE_COMBAT") {

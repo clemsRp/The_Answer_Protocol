@@ -34,7 +34,6 @@ func TestAntiFloodProtection(t *testing.T) {
 		}
 	}
 
-	// 3. Bilan du test
 	if !spamErrorFound {
 		t.Error("Fail: The server did not detect the spam, did not send error, or kept the connection open.")
 	} else {

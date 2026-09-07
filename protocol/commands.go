@@ -1,4 +1,3 @@
-// protocol/commands.go
 package protocol
 
 const (

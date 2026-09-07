@@ -6,6 +6,7 @@ import (
 	"slices"
 	"sort"
 	pr "tap/protocol"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -20,6 +21,8 @@ type CombatSession struct {
 	TurnResponse *FullTurnResponse
 	RoomId       string
 	Engine       *Engine
+	TurnCount    int
+	Timer        *time.Timer
 }
 type CombatState string
 
@@ -28,6 +31,8 @@ const (
 	StateVictory   CombatState = "VICTORY"
 	StateDefeat    CombatState = "DEFEAT"
 	StateCancelled CombatState = "CANCELLED"
+
+	MaxTurnSeconds = 5
 )
 
 type CombatTurnResult struct {
@@ -135,6 +140,10 @@ func (e *Engine) initiateCombat(player *Player, npc_copy *Npc) (*CombatSession, 
 }
 
 func (cs *CombatSession) processCombatTurn(attacker Fighter, target Fighter) (string, *FullTurnResponse) {
+	if cs.Timer != nil {
+		cs.Timer.Stop()
+	}
+
 	response := &FullTurnResponse{
 		NpcReactions: []ActionLog{},
 		CombatState:  cs.State,
@@ -253,10 +262,28 @@ func (cs *CombatSession) nextTurn() {
 				canPlay = false
 			}
 		}
+
 		if canPlay {
+			cs.TurnCount++ // Incrémente à chaque nouveau tour valide
+
 			current_player := cs.Fighters[cs.CurrentTurn]
 			msg := fmt.Sprintf("%s %s %s %s", pr.MsgEvt, pr.CategoryCombat, pr.TypeAllyTurn, current_player.getName())
 			cs.Engine.inform_combat_players(cs, nil, msg)
+
+			// Si c'est un joueur, on lance le timer
+			if _, ok := current_player.(*Player); ok {
+				if cs.Timer != nil {
+					cs.Timer.Stop()
+				}
+
+				turnSnapshot := cs.TurnCount
+				cs.Timer = time.AfterFunc(MaxTurnSeconds*time.Second, func() {
+					cs.Engine.exchanger.ServerInput <- pr.ServerRequest{
+						Id:  "SYSTEM",
+						Msg: fmt.Sprintf("COMBAT_TIMEOUT %s %d", cs.Id, turnSnapshot),
+					}
+				})
+			}
 			break
 		}
 	}
@@ -299,19 +326,15 @@ func (e *Engine) end_combat(cs *CombatSession) {
 	for _, player := range cs.Players {
 		player.stats.CombatId = ""
 		player.inCombat = false
-		if cs.State == StateDefeat {
+		if cs.State == StateDefeat || player.stats.Hp <= 0 {
 			player.stats.Hp = player.stats.HpMax / 2
 			player.room = e.world.Rooms[RoomEntrance]
-		}
-		if cs.State == StateVictory {
+		} else if cs.State == StateVictory {
 			for _, npc := range cs.Npcs {
 				if !slices.Contains(player.DefeatedNpcs, npc.Id) {
 					player.DefeatedNpcs = append(player.DefeatedNpcs, npc.Id)
 				}
 			}
-			// A freshly defeated npc may fulfil an active quest target, so
-			// recompute progress right away instead of waiting for the
-			// player to ask for it.
 			e.refreshQuestProgress(player)
 		}
 	}

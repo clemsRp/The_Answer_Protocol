@@ -86,6 +86,12 @@ func ConvertInventoryItemsList(items []string, actionsChan chan<- Action) Option
 					Payload: fmt.Sprintf("%s %s", pr.CmdDrop, it),
 				}
 			},
+			pr.CmdUseItem: func() {
+				actionsChan <- Action{
+					Type:    ActionSendServer,
+					Payload: fmt.Sprintf("%s %s", pr.CmdUseItem, it),
+				}
+			},
 			pr.CmdInspect: func() {
 				actionsChan <- Action{
 					Type:    ActionSendServer,

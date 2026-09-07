@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"tap/client/state"
 	"tap/protocol"
@@ -15,18 +16,6 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 	if len(cmdFields) > 0 {
 		lastCmdBase = strings.ToUpper(cmdFields[0])
 	}
-
-	// TALK responses are shown as gray text under the npc's id in the
-	// interaction panel instead of being dumped as raw text in the CLI
-	// panel.
-	isTalkDialogue := lastCmdBase == pr.CmdTalk && res.Msg == pr.MsgOK
-
-	c.ui.QueueUpdate(func() {
-		c.ui.AppendServerResponse(res)
-		if !isTalkDialogue {
-			c.ui.AppendCliResponse(res)
-		}
-	})
 
 	if strings.HasPrefix(res.Msg, pr.MsgErr) {
 		return
@@ -90,12 +79,13 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 			})
 		}
 
-	// Regroupement Attack et UseItem pour gérer la fin du combat sur les 2 actions
 	case (lastCmdBase == pr.CmdAttack || strings.HasPrefix(lastCmd, pr.CmdAttack) || strings.HasPrefix(lastCmd, pr.CmdChatCombatAttack) || lastCmdBase == pr.CmdUseItem || strings.HasPrefix(lastCmd, pr.CmdUseItem)) && (res.Msg == pr.MsgOK || strings.HasPrefix(res.Msg, pr.MsgOK)):
 
 		if res.Datas != nil {
 			var fullTurn struct {
-				CombatState string `json:"combat_state"`
+				CombatState string   `json:"combat_state"`
+				XpReward    int      `json:"xp_reward,omitempty"`
+				ItemsReward []string `json:"items_reward,omitempty"`
 			}
 			raw, err := json.Marshal(res.Datas)
 			if err == nil && json.Unmarshal(raw, &fullTurn) == nil {
@@ -103,38 +93,47 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 					c.gameState.UpdateCombatState(func(cs *state.CombatState) {
 						cs.InCombat = false
 					})
+					rewards := make([]string, 0)
+					if fullTurn.XpReward > 0 {
+						rewards = append(rewards, fmt.Sprintf("%d XP", fullTurn.XpReward))
+					}
+					rewards = append(rewards, fullTurn.ItemsReward...)
+					combatResult := fullTurn.CombatState
 					c.ui.QueueUpdate(func() {
-						c.ui.ShowGamePage()
+						c.ui.ShowCombatResultPopup(combatResult, rewards)
 					})
 					c.sendToNetwork(pr.CmdLook)
 					c.sendToNetwork(pr.CmdInventory)
-					// A defeated npc may fulfil a quest target: refresh
-					// progress automatically.
 					c.sendToNetwork(pr.CmdQuests)
-					break // Empêche de demander les Stats d'un combat terminé
+					break
 				}
 			}
 		}
 		c.sendToNetwork(pr.CmdCombatStats)
+		c.sendToNetwork(pr.CmdInventory)
 
-	case lastCmdBase == pr.CmdTalk && res.Msg == pr.MsgOK:
+	case lastCmdBase == pr.CmdTalk && (res.Msg == pr.MsgOK || strings.HasPrefix(res.Msg, pr.MsgOK)):
 		npcName := ""
 		if len(cmdFields) >= 2 {
 			npcName = cmdFields[1]
 		}
-		if npcName != "" && res.Datas != nil {
-			dialogue, ok := res.Datas.(string)
-			if ok {
-				c.gameState.UpdatePlayer(func(p *state.Player) {
-					if p.NpcDialogues == nil {
-						p.NpcDialogues = make(map[string]string)
-					}
-					p.NpcDialogues[npcName] = dialogue
-				})
-				c.refreshUI()
-				c.sendToNetwork(pr.CmdLook)
-			}
+		if npcName == "" || res.Datas == nil {
+			break
 		}
+
+		dialogue, ok := res.Datas.(string)
+		if !ok || strings.TrimSpace(dialogue) == "" {
+			break
+		}
+
+		c.gameState.UpdatePlayer(func(p *state.Player) {
+			if p.NpcDialogues == nil {
+				p.NpcDialogues = make(map[string]string)
+			}
+			p.NpcDialogues[npcName] = dialogue
+		})
+
+		c.refreshUI()
 
 	case (lastCmdBase == pr.CmdFlee || strings.HasPrefix(lastCmd, pr.CmdFlee) || strings.HasPrefix(lastCmd, pr.CmdChatCombatFlee)) && (res.Msg == pr.MsgOK || strings.HasPrefix(res.Msg, pr.MsgOK)):
 		c.gameState.UpdateCombatState(func(cs *state.CombatState) {
@@ -174,8 +173,6 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 
 	case strings.HasPrefix(lastCmd, pr.CmdTake) && strings.HasPrefix(res.Msg, pr.MsgOK):
 		c.sendToNetwork(pr.CmdLook)
-		// Taking an item can fulfil a quest target: refresh progress
-		// automatically instead of waiting for the player to check.
 		c.sendToNetwork(pr.CmdQuests)
 
 	case strings.HasPrefix(lastCmd, pr.CmdDrop) && strings.HasPrefix(res.Msg, pr.MsgOK):
@@ -276,13 +273,33 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 				})
 			}
 
-		case lastCmdBase == pr.CmdQuest || lastCmdBase == pr.CmdCompleteQuest:
-			// Fetch updated quests list
+		case lastCmdBase == pr.CmdCompleteQuest:
+			reward := ""
+			questID := ""
+			if len(strings.Fields(lastCmd)) >= 2 {
+				questID = strings.Fields(lastCmd)[1]
+			}
+			if res.Datas != nil {
+				var questData protocol.QuestData
+				raw, err := json.Marshal(res.Datas)
+				if err == nil && json.Unmarshal(raw, &questData) == nil {
+					reward = questData.Reward
+					if questData.Id != "" {
+						questID = questData.Id
+					}
+				}
+			}
+			capturedQuestID := questID
+			capturedReward := reward
+			c.ui.QueueUpdate(func() {
+				c.ui.ShowQuestCompletedPopup(capturedQuestID, capturedReward)
+			})
 			c.sendToNetwork(pr.CmdQuests)
 			c.sendToNetwork(pr.CmdLook)
-			// Completing a quest can consume the target item from the
-			// inventory (server-side), so resync it too.
 			c.sendToNetwork(pr.CmdInventory)
+
+		case lastCmdBase == pr.CmdQuest:
+			c.sendToNetwork(pr.CmdQuests)
 
 		case lastCmdBase == pr.CmdQuests:
 			var data []protocol.TrackedQuestData
@@ -295,6 +312,8 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 					c.ui.UpdateQuests(data)
 				})
 			}
+
+			c.refreshUI()
 		}
 	}
 }

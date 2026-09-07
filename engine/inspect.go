@@ -1,4 +1,3 @@
-// engine/inspect.go
 package engine
 
 import (
@@ -28,7 +27,6 @@ func buildInspectNpcData(n *Npc) pr.InspectNPCData {
 		Role:        n.Role,
 		QuestId:     n.QuestId,
 		Hostile:     n.Hostile,
-		Damage:      n.Damage,
 		InCombat:    n.InCombat,
 		XpReward:    n.XpReward,
 	}
@@ -36,6 +34,7 @@ func buildInspectNpcData(n *Npc) pr.InspectNPCData {
 	if n.Stats != nil {
 		data.Hp = n.Stats.Hp
 		data.HpMax = n.Stats.HpMax
+		data.Damage = n.Stats.Damage
 	}
 
 	for _, reward := range n.ItemsReward {
@@ -63,8 +62,6 @@ func buildInspectItemData(it *Item) pr.InspectItemData {
 	}
 }
 
-// inspectRoom gathers inspect datas for every player, npc and item currently
-// present in the player's room (defeated npcs are excluded, same as LOOK).
 func (e *Engine) inspectRoom(player *Player) pr.InspectRoomData {
 	res := pr.InspectRoomData{
 		Players: make([]pr.InspectPlayerData, 0),

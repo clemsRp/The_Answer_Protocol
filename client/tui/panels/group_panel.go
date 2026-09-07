@@ -244,7 +244,6 @@ func CreateOptionBtn(
 			selectedOption = optsList[0]
 		}
 
-		// Mise à jour de la sélection au survol/changement d'index
 		actionList.SetChangedFunc(func(i int, mainText, secondaryText string, shortcut rune) {
 			if i >= 0 && i < len(optsList) {
 				selectedOption = optsList[i]
@@ -268,7 +267,7 @@ func CreateOptionBtn(
 
 		optionsFlex.AddItem(actionList, len(optsList)*2, 1, true)
 
-		// Bouton Cancel
+		// Button Cancel
 		cancelBtn := tview.NewButton("Cancel").
 			SetLabelColor(tcell.ColorWhite).
 			SetBackgroundColorActivated(btnActiveBg).
@@ -280,7 +279,7 @@ func CreateOptionBtn(
 			})
 		cancelBtn.SetBackgroundColor(btnRestBg)
 
-		// Bouton Validate
+		// Button Validate
 		validateBtn := tview.NewButton("Validate").
 			SetLabelColor(tcell.ColorWhite).
 			SetBackgroundColorActivated(btnActiveBg).

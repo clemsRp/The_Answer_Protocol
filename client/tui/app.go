@@ -2,6 +2,7 @@ package tui
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"tap/client/state"
 	panel "tap/client/tui/panels"
@@ -83,7 +84,7 @@ func (m *MyApp) setupComponents() {
 	m.Group = panel.NewGroupComponent(m.app, m.popup, panel.GroupDatas{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
 	m.Navigation = panel.NewNavigationComponent(m.app, m.popup, "", map[string]string{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
 	m.Items = panel.NewItemsComponent(m.app, m.popup, []string{}, []string{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
-	m.Interaction = panel.NewInteractionComponent(m.app, m.popup, []string{}, []string{}, map[string]protocol.InspectNPCData{}, map[string]string{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
+	m.Interaction = panel.NewInteractionComponent(m.app, m.popup, []string{}, []string{}, map[string]protocol.InspectNPCData{}, map[string]string{}, []string{}, 0, m.actionsChan, m.OnOpenPopup, m.ShowGamePage, nil, []string{})
 	m.Inspector = panel.NewInspectorComponent(m.app, m.actionsChan)
 	m.Quest = panel.NewQuestComponent(m.app)
 
@@ -217,6 +218,82 @@ func (m *MyApp) ClosePopup() {
 	m.ShowGamePage()
 }
 
+func (m *MyApp) ShowCombatResultPopup(result string, rewards []string) {
+	m.pages.HidePage("Combat")
+	m.pages.SendToBack("Combat")
+	m.combatVisible = false
+	panel.SetBlockedInputs(m.grid, true)
+
+	emote := "⚔"
+	msgColor := "[green]"
+	if result == "DEFEAT" {
+		emote = "☠"
+		msgColor = "[red]"
+	}
+
+	msg := fmt.Sprintf(" %s  %s  %s ", emote, result, emote)
+
+	body := msgColor + msg + "[-]"
+
+	content := tview.NewTextView().
+		SetText(body).
+		SetDynamicColors(true).
+		SetTextAlign(tview.AlignCenter)
+	content.SetBackgroundColor(panel.AppTheme.PopupBackground)
+
+	okBtn := tview.NewButton("OK").
+		SetSelectedFunc(func() {
+			m.ShowGamePage()
+		})
+
+	m.popup.Clear()
+	createdPopup := panel.NewPopupComponent(m.app, m.popup, content, 12, []*tview.Button{okBtn})
+	createdPopup.FocusItem = okBtn
+
+	m.popup.AddItem(createdPopup.Layout, 1, 1, 1, 1, 0, 0, true)
+	m.PopupComponent = createdPopup
+
+	m.pages.ShowPage("Popup")
+	m.pages.SendToFront("Popup")
+	panel.SetBlockedInputs(m.grid, false)
+	m.app.SetFocus(okBtn)
+	m.popupVisible = true
+}
+
+func (m *MyApp) ShowQuestCompletedPopup(questID, reward string) {
+	body := "[yellow]Quest accomplished ![-]\n\n"
+	body += "[white]" + questID + "[-]\n\n"
+	if reward != "" {
+		body += "[green]Reward : " + reward + "[-]"
+	} else {
+		body += "[gray]No reward for this quest[-]"
+	}
+
+	content := tview.NewTextView().
+		SetDynamicColors(true).
+		SetTextAlign(tview.AlignCenter)
+	content.SetBackgroundColor(panel.AppTheme.PopupBackground)
+	content.SetText(body)
+
+	okBtn := tview.NewButton("  OK  ").
+		SetLabelColor(tcell.ColorWhite).
+		SetBackgroundColorActivated(tcell.GetColor("#7e7979")).
+		SetLabelColorActivated(tcell.ColorWhite).
+		SetSelectedFunc(func() {
+			m.ClosePopup()
+		})
+	okBtn.SetBackgroundColor(tcell.GetColor("#474646"))
+
+	m.popup.Clear()
+	createdPopup := panel.NewPopupComponent(m.app, m.popup, content, 16, []*tview.Button{okBtn})
+	createdPopup.FocusItem = okBtn
+	createdPopup.LayoutTemp.SetBorderColor(panel.AppTheme.BorderActive)
+
+	m.popup.AddItem(createdPopup.Layout, 1, 1, 1, 1, 0, 0, true)
+	m.PopupComponent = createdPopup
+	m.ShowPopupPage()
+}
+
 // Controller update callbacks
 
 func (m *MyApp) UpdateNavigation(room *protocol.LookCommandData) {
@@ -274,7 +351,20 @@ func (m *MyApp) UpdateItems(roomItems, inventory []string) {
 	m.setupMatrix()
 }
 
-func (m *MyApp) UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string) {
+func (m *MyApp) UpdateInteraction(
+	npcs,
+	players []string,
+	npcData map[string]protocol.InspectNPCData,
+	npcDialogue map[string]string,
+	groupMembers []string,
+	quests []protocol.TrackedQuestData,
+	completed_quests []string,
+) {
+	panelWidth := 0
+	if m.Interaction != nil && m.Interaction.List != nil {
+		_, _, panelWidth, _ = m.Interaction.List.GetRect()
+	}
+
 	m.grid.RemoveItem(m.Interaction.Layout)
 
 	m.Interaction = panel.NewInteractionComponent(
@@ -283,10 +373,14 @@ func (m *MyApp) UpdateInteraction(npcs, players []string, npcData map[string]pro
 		npcs,
 		players,
 		npcData,
-		npcDialogues,
+		npcDialogue,
+		groupMembers,
+		panelWidth,
 		m.actionsChan,
 		m.OnOpenPopup,
 		m.ShowGamePage,
+		&quests,
+		completed_quests,
 	)
 
 	m.grid.AddItem(m.Interaction.Layout, 0, 2, 2, 1, 0, 0, false)

@@ -70,6 +70,7 @@ var (
 		"ressource",
 		"consumable",
 		"weapon",
+		"currency",
 	}
 	consumable_type_effects = []string{
 		"heal",
@@ -82,6 +83,8 @@ var (
 		"max_hp",
 		"status",
 		"initiative",
+		"damage",
+		"shield",
 	}
 )
 
@@ -94,22 +97,8 @@ func is_inside(elements []string, value string) bool {
 	return false
 }
 
-// registerCustomValidations branche toutes les règles custom sur
-// l'instance de validator. C'est le SEUL endroit à toucher pour ajouter
-// une nouvelle règle "liste de valeurs autorisées" ou une nouvelle
-// vérification d'existence croisée entre les maps de Map
-// (rooms / items / npcs / quests).
-//
-// Pour ajouter une nouvelle structure à valider plus tard, il suffit
-// généralement de :
-//  1. ajouter des tags `validate:"..."` sur ses champs
-//  2. éventuellement ajouter une entrée ici si elle a besoin d'une règle
-//     custom (nouvelle liste de valeurs, ou nouvelle existence croisée)
 func registerCustomValidations(v *validator.Validate) error {
 	rules := map[string]validator.Func{
-		// Règles "valeur dans une liste autorisée", basées sur les slices
-		// définies ci-dessus. Ajouter une valeur valide = éditer la slice,
-		// aucun changement de tag ailleurs dans le code.
 		"valid_room_type":    inList(valid_maps),
 		"valid_exit":         inList(exits),
 		"valid_role":         inList(roles),
@@ -119,9 +108,6 @@ func registerCustomValidations(v *validator.Validate) error {
 		"valid_effect_type":  inList(consumable_type_effects),
 		"valid_target_stat":  inList(consumable_target_stats),
 
-		// Règles "existence croisée" : vérifient qu'un id référencé
-		// (string) existe bien comme clé dans la sous-map correspondante
-		// de la Map de premier niveau (récupérée via fl.Top()).
 		"room_exists":  existsIn(func(m *Map) map[string]*Room { return m.Rooms }),
 		"item_exists":  existsIn(func(m *Map) map[string]*Item { return m.Items }),
 		"npc_exists":   existsIn(func(m *Map) map[string]*Npc { return m.Npcs }),
@@ -134,22 +120,17 @@ func registerCustomValidations(v *validator.Validate) error {
 		}
 	}
 
+	v.RegisterStructValidation(validateHostileNpcDamage, Npc{})
+
 	return nil
 }
 
-// inList crée une règle qui vérifie que la valeur du champ (string) fait
-// partie de la liste donnée.
 func inList(list []string) validator.Func {
 	return func(fl validator.FieldLevel) bool {
 		return is_inside(list, fl.Field().String())
 	}
 }
 
-// existsIn crée une règle qui vérifie que la valeur du champ (un id,
-// string) existe comme clé dans la sous-map de Map retournée par `get`.
-// Générique : fonctionne pour n'importe quelle map[string]*T de la Map,
-// donc ajouter une nouvelle vérification d'existence (ex: un nouveau type
-// de ressource référencée par id) tient en une ligne.
 func existsIn[T any](get func(*Map) map[string]*T) validator.Func {
 	return func(fl validator.FieldLevel) bool {
 		m := topMap(fl)
@@ -161,8 +142,16 @@ func existsIn[T any](get func(*Map) map[string]*T) validator.Func {
 	}
 }
 
-// topMap récupère la Map de premier niveau passée à validate.Struct,
-// qu'elle ait été passée par valeur ou par pointeur.
+func validateHostileNpcDamage(sl validator.StructLevel) {
+	npc := sl.Current().Interface().(Npc)
+	if !npc.Hostile {
+		return
+	}
+	if npc.Stats == nil || npc.Stats.Damage <= 0 {
+		sl.ReportError(npc.Stats, "Stats.Damage", "Damage", "npc_damage_required", "")
+	}
+}
+
 func topMap(fl validator.FieldLevel) *Map {
 	top := fl.Top()
 	if top.Kind() == reflect.Ptr {
