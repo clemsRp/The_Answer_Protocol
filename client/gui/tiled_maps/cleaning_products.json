@@ -73,27 +73,27 @@
  "tilesets":[
         {
          "firstgid":1,
-         "source":"8.tsx"
+         "source":"..\/..\/..\/..\/tiled_tap\/8.tsx"
         }, 
         {
          "firstgid":257,
-         "source":"5.tsx"
+         "source":"..\/..\/..\/..\/tiled_tap\/5.tsx"
         }, 
         {
          "firstgid":513,
-         "source":"6.tsx"
+         "source":"..\/..\/..\/..\/tiled_tap\/6.tsx"
         }, 
         {
          "firstgid":769,
-         "source":"3.tsx"
+         "source":"..\/..\/..\/..\/tiled_tap\/3.tsx"
         }, 
         {
          "firstgid":1025,
-         "source":"1.tsx"
+         "source":"..\/..\/..\/..\/tiled_tap\/1.tsx"
         }, 
         {
          "firstgid":1281,
-         "source":"7.tsx"
+         "source":"..\/..\/..\/..\/tiled_tap\/7.tsx"
         }],
  "tilewidth":48,
  "type":"map",
