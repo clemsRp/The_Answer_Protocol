@@ -49,14 +49,14 @@ func NewChatComponent(app *tview.Application, actionsChan chan<- Action) *ChatCo
 		chat.History.AddPage(scope, history, true, focus)
 	}
 
-	chat.Scope = createSelectField("", []string{pr.GlobalChat, pr.RoomChat, pr.GroupChat}, 0)
+	chat.Scope = createSelectField("[white:#d33636]⌄ ", []string{pr.GlobalChat, pr.RoomChat, pr.GroupChat}, 0)
 	chat.Scope.SetFieldBackgroundColor(tcell.GetColor("#d33636"))
 
 	chat.Input = tview.NewInputField().
 		SetLabel("> ").
 		SetFieldWidth(0)
 	inputRow := tview.NewFlex().SetDirection(tview.FlexColumn).
-		AddItem(chat.Scope, 8, 0, false).
+		AddItem(chat.Scope, 9, 0, false).
 		AddItem(chat.Input, 0, 1, true)
 
 	chat.Layout = tview.NewFlex().SetDirection(tview.FlexRow).
