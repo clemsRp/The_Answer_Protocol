@@ -2,11 +2,14 @@ package gui
 
 import (
 	"fmt"
+	"path/filepath"
+	"strings"
 	"sync"
 	"tap/client/gui/src/parser"
 	vars "tap/client/gui/src/variables"
 	"tap/client/state"
 	panel "tap/client/tui/panels"
+	"tap/engine"
 	"tap/protocol"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -38,7 +41,9 @@ func NewApp(actionsChan chan panel.Action) *App {
 	}
 
 	var err error
-	app.rooms, err = parser.ParseRooms([]string{})
+	maps_folder_path := "./client/gui/tiled_maps/"
+	app.rooms, err = parser.ParseRooms([]string{maps_folder_path + engine.RoomEntrance})
+
 	if err != nil {
 		fmt.Println("Error parsing rooms:", err)
 		app.Stop()
@@ -70,34 +75,106 @@ func (app *App) Update() {
 
 func (app *App) Draw() {
 
-	app.DrawMap("entrance_floor.json")
-	app.DrawMap("entrance_furnitures.json")
+	app.DrawMap(engine.RoomEntrance)
 }
-
 func (app *App) DrawMap(map_name string) {
-	/* cur_room := app.rooms[app.variables.Current_room]
+	cur_room := app.rooms[map_name]
+	if cur_room == nil {
+		return
+	}
+
 	cur_tilesets := cur_room.Tilesets
 
-	for y := range len(cur_tilesets) {
-		for x := range len(cur_tilesets[y]) {
-			// Get tileset datas
-			// texture_name, indX, indY := get_tileset_datas(cur_tilesets[y][x])
-			texture_name, indX, indY := "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Objects/Basic Furniture.png", 0, 0
+	const (
+		FLIPPED_HORIZONTALLY_FLAG = 0x80000000
+		FLIPPED_VERTICALLY_FLAG   = 0x40000000
+		FLIPPED_DIAGONALLY_FLAG   = 0x20000000
+	)
 
-			// Calculate tileset coordinates
-			coor_x := x * app.variables.Tileset_size
-			coor_y := y * app.variables.Tileset_size
-
-			parser.DrawImage(
-				(*app.textures)[texture_name],
-				float32(coor_x), float32(coor_y),
-				float32(indX), float32(indY),
-				1, 1, float32(app.variables.Tileset_size/vars.FRAME_WIDTH),
-			)
+	for _, layer := range cur_room.Layers {
+		if !layer.Visible {
+			continue
 		}
-	} */
-}
 
+		for i, rawTile := range layer.Data {
+			if rawTile == 0 {
+				continue
+			}
+
+			flipH := (rawTile & FLIPPED_HORIZONTALLY_FLAG) != 0
+			flipV := (rawTile & FLIPPED_VERTICALLY_FLAG) != 0
+			flipD := (rawTile & FLIPPED_DIAGONALLY_FLAG) != 0
+
+			tile := rawTile & 0x0FFFFFFF
+			if tile == 0 {
+				continue
+			}
+
+			gridX := i % layer.Width
+			gridY := i / layer.Width
+
+			posX := float32(gridX * app.variables.Tileset_size)
+			posY := float32(gridY * app.variables.Tileset_size)
+
+			var activeTileset parser.Tileset
+			for j := len(cur_tilesets) - 1; j >= 0; j-- {
+				if tile >= cur_tilesets[j].FirstGID {
+					activeTileset = cur_tilesets[j]
+					break
+				}
+			}
+
+			if activeTileset.FirstGID == 0 {
+				continue
+			}
+
+			sourcePath := activeTileset.Source
+			baseName := filepath.Base(sourcePath)
+			textureName := strings.TrimSuffix(baseName, filepath.Ext(baseName))
+
+			texture, ok := (*app.textures)[textureName]
+			if !ok {
+				continue
+			}
+
+			localID := tile - activeTileset.FirstGID
+
+			cols := int(texture.Width) / vars.FRAME_WIDTH
+			if cols == 0 {
+				cols = 1
+			}
+
+			indX := float32(localID % cols)
+			indY := float32(localID / cols)
+
+			var rotation float32 = 0
+			var rX, rY float32 = 1, 1
+
+			if flipD {
+				rotation = 90
+				rX = 1
+				rY = -1
+				if flipH {
+					rX = -rX
+				}
+				if flipV {
+					rY = -rY
+				}
+			} else {
+				if flipH {
+					rX = -1
+				}
+				if flipV {
+					rY = -1
+				}
+			}
+
+			zoom := float32(app.variables.Tileset_size) / float32(vars.FRAME_WIDTH)
+
+			parser.DrawImage(texture, posX, posY, indX, indY, rX, rY, zoom, rotation)
+		}
+	}
+}
 func (app *App) Start() {
 	for !rl.WindowShouldClose() {
 		app.Update()

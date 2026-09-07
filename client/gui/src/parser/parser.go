@@ -1,5 +1,7 @@
 package parser
 
+import "path/filepath"
+
 type Room struct {
 	Tilesets [][]int
 }
@@ -12,7 +14,9 @@ func ParseRooms(map_paths []string) (map[string]*Map, error) {
 		if err != nil {
 			return nil, err
 		}
-		res[map_path] = room_map
+		room_key := filepath.Base(map_path)
+
+		res[room_key] = room_map
 	}
 
 	return res, nil

@@ -21,14 +21,14 @@ func LoadTextures() *Textures {
 			return err
 		}
 
-		// Ignore directories, only get files
 		if !d.IsDir() {
 			ext := strings.ToLower(filepath.Ext(path))
 
-			// Get supported files
 			if ext == ".png" || ext == ".jpg" || ext == ".jpeg" {
-				// Get texture
-				textures[path] = rl.LoadTexture(path)
+				baseName := filepath.Base(path)
+				nameWithoutExt := strings.TrimSuffix(baseName, filepath.Ext(baseName))
+
+				textures[nameWithoutExt] = rl.LoadTexture(path)
 			}
 		}
 		return nil
@@ -46,14 +46,21 @@ func (t *Textures) UnloadTextures() {
 		rl.UnloadTexture(texture)
 	}
 }
+func DrawImage(texture rl.Texture2D, posX, posY, indX, indY, ratioX, ratioY, zoom, rotation float32) { //[cite: 18]
+	sourceW := ratioX * float32(vars.FRAME_WIDTH)
+	sourceH := ratioY * float32(vars.FRAME_HEIGHT)
 
-func DrawImage(texture rl.Texture2D, posX, posY, indX, indY, ratioX, ratioY, zoom float32) {
 	sourceRec := rl.NewRectangle(
-		indX*vars.FRAME_WIDTH, indY*vars.FRAME_HEIGHT,
-		ratioX*vars.FRAME_WIDTH, ratioY*vars.FRAME_HEIGHT,
+		indX*float32(vars.FRAME_WIDTH), indY*float32(vars.FRAME_HEIGHT),
+		sourceW, sourceH,
 	)
-	destRec := rl.NewRectangle(posX, posY, sourceRec.Width*zoom, sourceRec.Height*zoom)
-	origin := rl.NewVector2(0, 0)
 
-	rl.DrawTexturePro(texture, sourceRec, destRec, origin, 0, rl.White)
+	destW := float32(vars.FRAME_WIDTH) * zoom
+	destH := float32(vars.FRAME_HEIGHT) * zoom
+
+	destRec := rl.NewRectangle(posX+(destW/2), posY+(destH/2), destW, destH)
+
+	origin := rl.NewVector2(destW/2, destH/2)
+
+	rl.DrawTexturePro(texture, sourceRec, destRec, origin, rotation, rl.White) 
 }
