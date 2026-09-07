@@ -40,13 +40,18 @@ func (p *Player) getHp() int {
 }
 
 func (p *Player) takeDamage(amount int) int {
+	if p.stats.Shield > 0 {
+		absorbed := min(p.stats.Shield, amount)
+		p.stats.Shield -= absorbed
+		amount -= absorbed
+	}
 	p.stats.Hp -= amount
 	p.stats.Hp = max(0, p.stats.Hp)
 	return amount
 }
 
 func (p *Player) getDamage() int {
-	return p.equippedWeapon.Damage
+	return p.equippedWeapon.Damage + p.stats.Damage
 }
 
 func (p *Player) getName() string {
@@ -63,6 +68,7 @@ func (e *Engine) createNewPlayerInstance(pseudo string, id string) (*Player, err
 	}
 
 	start_item_copy := base_item.Clone()
+	start_item_copy.Damage = 0
 
 	weapon_start := start_item_copy.ConvertToWeapon()
 	if weapon_start == nil {
@@ -78,6 +84,7 @@ func (e *Engine) createNewPlayerInstance(pseudo string, id string) (*Player, err
 			HpMax:      100,
 			Initiative: 100,
 			Status:     StatusNormal,
+			Damage:     2,
 		},
 		id: id,
 	}, nil

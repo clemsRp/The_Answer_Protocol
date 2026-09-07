@@ -70,6 +70,7 @@ var (
 		"ressource",
 		"consumable",
 		"weapon",
+		"currency",
 	}
 	consumable_type_effects = []string{
 		"heal",
@@ -82,6 +83,8 @@ var (
 		"max_hp",
 		"status",
 		"initiative",
+		"damage",
+		"shield",
 	}
 )
 

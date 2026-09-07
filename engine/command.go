@@ -698,6 +698,10 @@ func (e *Engine) handleCmdUse(player *Player, req []string) (string, any, error)
 		return "", "", errors.New(pr.ErrItemNotInInventory)
 	}
 
+	if itemToUse.Type != "consumable" && itemToUse.Type != "weapon" {
+		return "", "", errors.New(pr.ErrItemNotUsable)
+	}
+
 	var cs *CombatSession
 	if player.inCombat {
 		var exists bool
@@ -708,10 +712,28 @@ func (e *Engine) handleCmdUse(player *Player, req []string) (string, any, error)
 	}
 
 	// Apply effect
-	if itemToUse.TargetStat == "hp" {
-		player.stats.Hp += itemToUse.Amount
-		if player.stats.Hp > player.stats.HpMax {
-			player.stats.Hp = player.stats.HpMax
+	logAmount := 0
+	switch itemToUse.Type {
+	case "weapon":
+		newWeapon := itemToUse.ConvertToWeapon()
+		if newWeapon == nil {
+			return "", "", errors.New(pr.ErrInternalServer)
+		}
+		player.equippedWeapon = newWeapon
+	case "consumable":
+		switch itemToUse.TargetStat {
+		case "hp":
+			player.stats.Hp += itemToUse.Amount
+			if player.stats.Hp > player.stats.HpMax {
+				player.stats.Hp = player.stats.HpMax
+			}
+			logAmount = itemToUse.Amount
+		case "damage":
+			player.stats.Damage += itemToUse.Amount
+			logAmount = itemToUse.Amount
+		case "shield":
+			player.stats.Shield += itemToUse.Amount
+			logAmount = itemToUse.Amount
 		}
 	}
 
@@ -722,7 +744,7 @@ func (e *Engine) handleCmdUse(player *Player, req []string) (string, any, error)
 		cs.TurnResponse = &FullTurnResponse{
 			PlayerAction: ActionLog{
 				ActorName: player.name, TargetName: player.name,
-				Result: &CombatTurnResult{AttackerHp: player.stats.Hp, TargetHp: player.stats.Hp, Damage: -itemToUse.Amount, Status: cs.State},
+				Result: &CombatTurnResult{AttackerHp: player.stats.Hp, TargetHp: player.stats.Hp, Damage: -logAmount, Status: cs.State},
 			},
 			NpcReactions: []ActionLog{},
 			CombatState:  cs.State,

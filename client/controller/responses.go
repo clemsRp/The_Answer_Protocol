@@ -110,6 +110,7 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 			}
 		}
 		c.sendToNetwork(pr.CmdCombatStats)
+		c.sendToNetwork(pr.CmdInventory)
 
 	case lastCmdBase == pr.CmdTalk && (res.Msg == pr.MsgOK || strings.HasPrefix(res.Msg, pr.MsgOK)):
 		npcName := ""

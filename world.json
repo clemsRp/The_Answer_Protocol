@@ -19,7 +19,7 @@
                     "north": "meat_counter",
                     "east": "cleaning_products"
                 },
-                "items": [],
+                "items": ["spicy_energy_drink"],
                 "npcs": []
             },
             "meat_counter": {
@@ -39,7 +39,7 @@
                     "west": "meat_counter",
                     "south": "cleaning_products"
                 },
-                "items": [],
+                "items": ["bubble_wrap_armor"],
                 "npcs": []
             },
             "cleaning_products": {
@@ -60,7 +60,7 @@
                     "north": "cleaning_products",
                     "west": "clothing_aisle"
                 },
-                "items": ["stale_baguette"],
+                "items": ["stale_baguette", "coins"],
                 "npcs": []
             },
             "clothing_aisle": {
@@ -73,7 +73,7 @@
                 "items": [],
                 "npcs": ["cashier_cindy"]
             }
-           
+
         },
         "items": {
             "smelly_mackerel": {
@@ -92,6 +92,36 @@
                 "effect_type": "heal",
                 "charges": 1,
                 "duration": 1
+            },
+            "spicy_energy_drink": {
+                "name": "Spicy Energy Drink",
+                "description": "Une boisson energisante brulante qui vous met une peche d'enfer. Augmente vos degats.",
+                "obtainable": true,
+                "type": "consumable",
+                "target_stat": "damage",
+                "amount": 5,
+                "effect_type": "buff",
+                "charges": 1,
+                "duration": 1
+            },
+            "bubble_wrap_armor": {
+                "name": "Bubble Wrap Armor",
+                "description": "Une armure improvisee en papier bulle, etonnamment efficace pour amortir les coups. Pose un bouclier.",
+                "obtainable": true,
+                "type": "consumable",
+                "target_stat": "shield",
+                "amount": 10,
+                "effect_type": "buff",
+                "charges": 1,
+                "duration": 1
+            },
+            "coins": {
+                "name": "Loose Coins",
+                "description": "Quelques pieces trouvees au fond d'un caddie. Inutilisables au combat, mais toujours bonnes a echanger.",
+                "obtainable": true,
+                "type": "currency",
+                "tradable": true,
+                "worth": 10
             },
             "toxic_bleach": {
                 "name": "Bleach Jug",
@@ -141,7 +171,7 @@
                     "max_hp": 23,
                     "status": "healthy",
                     "initiative": 90,
-					"damage": 24
+                    "damage": 24
                 },
                 "hostile": true
             },
