@@ -119,7 +119,7 @@ func (app *App) ShowCombatResultPopup(result string, rewards []string) {}
 func (app *App) ShowQuestCompletedPopup(questID, reward string)        {}
 func (app *App) UpdateNavigation(room *protocol.LookCommandData)       {}
 func (app *App) UpdateItems(roomItems, inventory []string)             {}
-func (app *App) UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string, quests []protocol.TrackedQuestData) {
+func (app *App) UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string, quests []protocol.TrackedQuestData, completed_quests []string) {
 }
 func (app *App) UpdateGroup(groupState state.GroupState)          {}
 func (app *App) UpdateCombat(combatState state.CombatState)       {}

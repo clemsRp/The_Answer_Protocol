@@ -9,6 +9,8 @@ import (
 	pr "tap/protocol"
 )
 
+var completed_quest_ids = make([]string, 0)
+
 func (c *Controller) handleEvents(res pr.ServerResponse) {
 	if !strings.HasPrefix(res.Msg, pr.MsgEvt) {
 		return
@@ -89,6 +91,14 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 		}
 
 	case strings.HasPrefix(trimmed, pr.TypeQuestCompleted):
+		quest_id := strings.SplitN(trimmed, pr.TypeQuestCompleted+" ", 2)[1]
+
+		c.gameState.UpdatePlayer(func(p *state.Player) {
+			p.CompletedQuests = append(p.CompletedQuests, quest_id)
+		})
+
+		completed_quest_ids = append(completed_quest_ids, quest_id)
+
 		c.sendToNetwork(pr.CmdQuests)
 		c.sendToNetwork(pr.CmdLook)
 

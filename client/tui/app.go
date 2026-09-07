@@ -84,7 +84,7 @@ func (m *MyApp) setupComponents() {
 	m.Group = panel.NewGroupComponent(m.app, m.popup, panel.GroupDatas{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
 	m.Navigation = panel.NewNavigationComponent(m.app, m.popup, "", map[string]string{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
 	m.Items = panel.NewItemsComponent(m.app, m.popup, []string{}, []string{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
-	m.Interaction = panel.NewInteractionComponent(m.app, m.popup, []string{}, []string{}, map[string]protocol.InspectNPCData{}, map[string]string{}, []string{}, 0, m.actionsChan, m.OnOpenPopup, m.ShowGamePage, nil)
+	m.Interaction = panel.NewInteractionComponent(m.app, m.popup, []string{}, []string{}, map[string]protocol.InspectNPCData{}, map[string]string{}, []string{}, 0, m.actionsChan, m.OnOpenPopup, m.ShowGamePage, nil, []string{})
 	m.Inspector = panel.NewInspectorComponent(m.app, m.actionsChan)
 	m.Quest = panel.NewQuestComponent(m.app)
 
@@ -358,6 +358,7 @@ func (m *MyApp) UpdateInteraction(
 	npcDialogue map[string]string,
 	groupMembers []string,
 	quests []protocol.TrackedQuestData,
+	completed_quests []string,
 ) {
 	panelWidth := 0
 	if m.Interaction != nil && m.Interaction.List != nil {
@@ -379,6 +380,7 @@ func (m *MyApp) UpdateInteraction(
 		m.OnOpenPopup,
 		m.ShowGamePage,
 		&quests,
+		completed_quests,
 	)
 
 	m.grid.AddItem(m.Interaction.Layout, 0, 2, 2, 1, 0, 0, false)

@@ -3,6 +3,7 @@ package engine
 import (
 	"errors"
 	"log/slog"
+	"strconv"
 	"strings"
 	pr "tap/protocol"
 )
@@ -100,4 +101,40 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
 	}
 
 	return res, datas, err
+}
+
+func (e *Engine) handleSystemCommand(msg string) {
+	parts := strings.Split(msg, " ")
+
+	if len(parts) == 3 && parts[0] == "COMBAT_TIMEOUT" {
+		combatId := parts[1]
+		turnCount, _ := strconv.Atoi(parts[2])
+
+		cs, exists := e.activeCombats[combatId]
+
+		if !exists || cs.State != StateOngoing || cs.TurnCount != turnCount {
+			return
+		}
+
+		sysMsg := "EVT COMBAT CHAT SYSTEM No time left"
+		e.inform_combat_players(cs, nil, sysMsg)
+
+		cs.TurnResponse = &FullTurnResponse{
+			CombatState:  cs.State,
+			NpcReactions: []ActionLog{},
+		}
+
+		cs.nextTurn()
+
+		if cs.State == StateOngoing {
+			cs.processNpcsTurn()
+		}
+
+		eventMsg, _ := convertObjectToJson("EVT COMBAT UPDATE", cs.TurnResponse)
+		e.inform_combat_players(cs, nil, eventMsg)
+
+		if cs.State != StateOngoing {
+			e.end_combat(cs)
+		}
+	}
 }

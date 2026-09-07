@@ -2,6 +2,7 @@ package panel
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	pr "tap/protocol"
 
@@ -10,12 +11,12 @@ import (
 
 const npcDialoguePrefix = "   L "
 
-type AvailableQuestData struct {
-	Id     string
-	Status string
+type QuestDatas struct {
+	Completed bool
+	Available bool
 }
 
-var quest_datas map[string]bool
+var quest_datas map[string]QuestDatas
 
 func NewInteractionComponent(
 	app *tview.Application,
@@ -30,16 +31,17 @@ func NewInteractionComponent(
 	onOpenPopup func(popup *PopupComponent),
 	onClosePopup func(),
 	quests *[]pr.TrackedQuestData,
+	completed_quests []string,
 ) *ChoiceListComponent {
 	// Update quest ids
 	if quests != nil {
-		quest_datas = make(map[string]bool)
+		quest_datas = make(map[string]QuestDatas)
 		for _, quest := range *quests {
-			quest_datas[quest.Id] = quest.Status == "completed"
+			quest_datas[quest.Id] = QuestDatas{Completed: quest.Status == "completed", Available: !slices.Contains(completed_quests, quest.Id)}
 		}
 	}
 
-	options := ConvertInteractions(npcs, players, npcData, npcDialogues, groupMembers, actionsChan)
+	options := ConvertInteractions(npcs, players, npcData, npcDialogues, groupMembers, actionsChan, completed_quests)
 
 	src := NewChoiceListComponent(app, popupGrid, "Interactions", options, onOpenPopup, onClosePopup, false)
 
@@ -128,11 +130,11 @@ func findNpcItemIndex(list *tview.List, npc string) (int, bool) {
 	return -1, false
 }
 
-func ConvertInteractions(npcs, players []string, npcData map[string]pr.InspectNPCData, npcDialogues map[string]string, groupMembers []string, actionsChan chan<- Action) map[string]OptionsMap {
+func ConvertInteractions(npcs, players []string, npcData map[string]pr.InspectNPCData, npcDialogues map[string]string, groupMembers []string, actionsChan chan<- Action, completed_quests []string) map[string]OptionsMap {
 	res := make(map[string]OptionsMap)
 
 	if len(npcs) != 0 {
-		res["NPCS"] = ConvertNpcsList(npcs, npcData, npcDialogues, actionsChan)
+		res["NPCS"] = ConvertNpcsList(npcs, npcData, npcDialogues, actionsChan, completed_quests)
 	}
 
 	if len(players) != 0 {
@@ -142,7 +144,7 @@ func ConvertInteractions(npcs, players []string, npcData map[string]pr.InspectNP
 	return res
 }
 
-func ConvertNpcsList(npcs []string, npcData map[string]pr.InspectNPCData, npcDialogues map[string]string, actionsChan chan<- Action) OptionsMap {
+func ConvertNpcsList(npcs []string, npcData map[string]pr.InspectNPCData, npcDialogues map[string]string, actionsChan chan<- Action, completed_quests []string) OptionsMap {
 	res := make(OptionsMap)
 
 	for _, npc := range npcs {
@@ -163,11 +165,7 @@ func ConvertNpcsList(npcs []string, npcData map[string]pr.InspectNPCData, npcDia
 
 		if data, ok := npcData[npc]; ok {
 			if data.Hostile {
-				actionName := pr.CmdAttack
-				if data.InCombat {
-					actionName = "JOIN COMBAT"
-				}
-				actions[actionName] = func() {
+				actions[pr.CmdAttack] = func() {
 					actionsChan <- Action{
 						Type:    ActionSendServer,
 						Payload: fmt.Sprintf("%s %s", pr.CmdAttack, npc),
@@ -175,9 +173,12 @@ func ConvertNpcsList(npcs []string, npcData map[string]pr.InspectNPCData, npcDia
 				}
 			}
 			if data.QuestId != "" {
-				completed, available := quest_datas[data.QuestId]
+				q_datas, available := quest_datas[data.QuestId]
 
-				if !available {
+				completed := q_datas.Completed
+				still_available := !slices.Contains(completed_quests, data.QuestId)
+
+				if !available && still_available {
 					actions[pr.CmdQuest] = func() {
 						actionsChan <- Action{
 							Type:    ActionSendServer,
@@ -185,7 +186,7 @@ func ConvertNpcsList(npcs []string, npcData map[string]pr.InspectNPCData, npcDia
 						}
 					}
 
-				} else if !completed {
+				} else if !completed && still_available {
 					actions["COMPLETE QUEST"] = func() {
 						actionsChan <- Action{
 							Type:    ActionSendServer,

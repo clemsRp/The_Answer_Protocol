@@ -79,6 +79,7 @@ type InspectNPCData struct {
 	Hp          int      `json:"hp"`
 	HpMax       int      `json:"hp_max"`
 	InCombat    bool     `json:"in_combat,omitempty"`
+	GroupId     string   `json:"group_id,omitempty"`
 	XpReward    int      `json:"xp_reward,omitempty"`
 	ItemsReward []string `json:"items_reward,omitempty"`
 }

@@ -2392,6 +2392,7 @@ package panel
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	pr "tap/protocol"
 
@@ -2400,12 +2401,12 @@ import (
 
 const npcDialoguePrefix = "   L "
 
-type AvailableQuestData struct {
-	Id     string
-	Status string
+type QuestDatas struct {
+	Completed bool
+	Available bool
 }
 
-var quest_datas map[string]bool
+var quest_datas map[string]QuestDatas
 
 func NewInteractionComponent(
 	app *tview.Application,
@@ -2420,16 +2421,17 @@ func NewInteractionComponent(
 	onOpenPopup func(popup *PopupComponent),
 	onClosePopup func(),
 	quests *[]pr.TrackedQuestData,
+	completed_quests []string,
 ) *ChoiceListComponent {
 	// Update quest ids
 	if quests != nil {
-		quest_datas = make(map[string]bool)
+		quest_datas = make(map[string]QuestDatas)
 		for _, quest := range *quests {
-			quest_datas[quest.Id] = quest.Status == "completed"
+			quest_datas[quest.Id] = QuestDatas{Completed: quest.Status == "completed", Available: !slices.Contains(completed_quests, quest.Id)}
 		}
 	}
 
-	options := ConvertInteractions(npcs, players, npcData, npcDialogues, groupMembers, actionsChan)
+	options := ConvertInteractions(npcs, players, npcData, npcDialogues, groupMembers, actionsChan, completed_quests)
 
 	src := NewChoiceListComponent(app, popupGrid, "Interactions", options, onOpenPopup, onClosePopup, false)
 
@@ -2518,11 +2520,11 @@ func findNpcItemIndex(list *tview.List, npc string) (int, bool) {
 	return -1, false
 }
 
-func ConvertInteractions(npcs, players []string, npcData map[string]pr.InspectNPCData, npcDialogues map[string]string, groupMembers []string, actionsChan chan<- Action) map[string]OptionsMap {
+func ConvertInteractions(npcs, players []string, npcData map[string]pr.InspectNPCData, npcDialogues map[string]string, groupMembers []string, actionsChan chan<- Action, completed_quests []string) map[string]OptionsMap {
 	res := make(map[string]OptionsMap)
 
 	if len(npcs) != 0 {
-		res["NPCS"] = ConvertNpcsList(npcs, npcData, npcDialogues, actionsChan)
+		res["NPCS"] = ConvertNpcsList(npcs, npcData, npcDialogues, actionsChan, completed_quests)
 	}
 
 	if len(players) != 0 {
@@ -2532,7 +2534,7 @@ func ConvertInteractions(npcs, players []string, npcData map[string]pr.InspectNP
 	return res
 }
 
-func ConvertNpcsList(npcs []string, npcData map[string]pr.InspectNPCData, npcDialogues map[string]string, actionsChan chan<- Action) OptionsMap {
+func ConvertNpcsList(npcs []string, npcData map[string]pr.InspectNPCData, npcDialogues map[string]string, actionsChan chan<- Action, completed_quests []string) OptionsMap {
 	res := make(OptionsMap)
 
 	for _, npc := range npcs {
@@ -2553,11 +2555,7 @@ func ConvertNpcsList(npcs []string, npcData map[string]pr.InspectNPCData, npcDia
 
 		if data, ok := npcData[npc]; ok {
 			if data.Hostile {
-				actionName := pr.CmdAttack
-				if data.InCombat {
-					actionName = "JOIN COMBAT"
-				}
-				actions[actionName] = func() {
+				actions[pr.CmdAttack] = func() {
 					actionsChan <- Action{
 						Type:    ActionSendServer,
 						Payload: fmt.Sprintf("%s %s", pr.CmdAttack, npc),
@@ -2565,9 +2563,12 @@ func ConvertNpcsList(npcs []string, npcData map[string]pr.InspectNPCData, npcDia
 				}
 			}
 			if data.QuestId != "" {
-				completed, available := quest_datas[data.QuestId]
+				q_datas, available := quest_datas[data.QuestId]
 
-				if !available {
+				completed := q_datas.Completed
+				still_available := !slices.Contains(completed_quests, data.QuestId)
+
+				if !available && still_available {
 					actions[pr.CmdQuest] = func() {
 						actionsChan <- Action{
 							Type:    ActionSendServer,
@@ -2575,7 +2576,7 @@ func ConvertNpcsList(npcs []string, npcData map[string]pr.InspectNPCData, npcDia
 						}
 					}
 
-				} else if !completed {
+				} else if !completed && still_available {
 					actions["COMPLETE QUEST"] = func() {
 						actionsChan <- Action{
 							Type:    ActionSendServer,
@@ -3036,7 +3037,7 @@ func (m *MyApp) setupComponents() {
 	m.Group = panel.NewGroupComponent(m.app, m.popup, panel.GroupDatas{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
 	m.Navigation = panel.NewNavigationComponent(m.app, m.popup, "", map[string]string{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
 	m.Items = panel.NewItemsComponent(m.app, m.popup, []string{}, []string{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
-	m.Interaction = panel.NewInteractionComponent(m.app, m.popup, []string{}, []string{}, map[string]protocol.InspectNPCData{}, map[string]string{}, []string{}, 0, m.actionsChan, m.OnOpenPopup, m.ShowGamePage, nil)
+	m.Interaction = panel.NewInteractionComponent(m.app, m.popup, []string{}, []string{}, map[string]protocol.InspectNPCData{}, map[string]string{}, []string{}, 0, m.actionsChan, m.OnOpenPopup, m.ShowGamePage, nil, []string{})
 	m.Inspector = panel.NewInspectorComponent(m.app, m.actionsChan)
 	m.Quest = panel.NewQuestComponent(m.app)
 
@@ -3310,6 +3311,7 @@ func (m *MyApp) UpdateInteraction(
 	npcDialogue map[string]string,
 	groupMembers []string,
 	quests []protocol.TrackedQuestData,
+	completed_quests []string,
 ) {
 	panelWidth := 0
 	if m.Interaction != nil && m.Interaction.List != nil {
@@ -3331,6 +3333,7 @@ func (m *MyApp) UpdateInteraction(
 		m.OnOpenPopup,
 		m.ShowGamePage,
 		&quests,
+		completed_quests,
 	)
 
 	m.grid.AddItem(m.Interaction.Layout, 0, 2, 2, 1, 0, 0, false)
@@ -3547,7 +3550,7 @@ type UIApp interface {
 	ShowQuestCompletedPopup(questID, reward string)
 	UpdateNavigation(room *protocol.LookCommandData)
 	UpdateItems(roomItems, inventory []string)
-	UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string, quests []protocol.TrackedQuestData)
+	UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string, quests []protocol.TrackedQuestData, completed_quests []string)
 	UpdateQuests(quests []protocol.TrackedQuestData)
 	UpdateGroup(groupState state.GroupState)
 	UpdateCombat(combatState state.CombatState)
@@ -3730,7 +3733,7 @@ func (c *Controller) refreshUI() {
 				filteredPlayers = append(filteredPlayers, p)
 			}
 		}
-		c.ui.UpdateInteraction(roomCopy.Npcs, filteredPlayers, npcData, playerSnap.NpcDialogues, playerSnap.GroupState.Grouped, playerSnap.Quests)
+		c.ui.UpdateInteraction(roomCopy.Npcs, filteredPlayers, npcData, playerSnap.NpcDialogues, playerSnap.GroupState.Grouped, playerSnap.Quests, playerSnap.CompletedQuests)
 	})
 }
 
@@ -3794,6 +3797,8 @@ import (
 	"tap/protocol"
 	pr "tap/protocol"
 )
+
+var completed_quest_ids = make([]string, 0)
 
 func (c *Controller) handleEvents(res pr.ServerResponse) {
 	if !strings.HasPrefix(res.Msg, pr.MsgEvt) {
@@ -3875,6 +3880,14 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 		}
 
 	case strings.HasPrefix(trimmed, pr.TypeQuestCompleted):
+		quest_id := strings.SplitN(trimmed, pr.TypeQuestCompleted+" ", 2)[1]
+
+		c.gameState.UpdatePlayer(func(p *state.Player) {
+			p.CompletedQuests = append(p.CompletedQuests, quest_id)
+		})
+
+		completed_quest_ids = append(completed_quest_ids, quest_id)
+
 		c.sendToNetwork(pr.CmdQuests)
 		c.sendToNetwork(pr.CmdLook)
 
@@ -4772,16 +4785,17 @@ type GameState struct {
 }
 
 type Player struct {
-	Name           string
-	Room           *protocol.LookCommandData
-	Inventory      []string
-	Quests         []protocol.TrackedQuestData
-	DefeatedNpcs   []string
-	InCombat       bool
-	EquippedWeapon string
-	Stats          string
-	GroupState     *GroupState
-	NpcDialogues   map[string]string
+	Name            string
+	Room            *protocol.LookCommandData
+	Inventory       []string
+	Quests          []protocol.TrackedQuestData
+	CompletedQuests []string
+	DefeatedNpcs    []string
+	InCombat        bool
+	EquippedWeapon  string
+	Stats           string
+	GroupState      *GroupState
+	NpcDialogues    map[string]string
 }
 
 type GroupState struct {
@@ -4847,6 +4861,7 @@ func (gs *GameState) GetPlayerSnapshot() Player {
 	snap := *gs.Player
 	snap.Inventory = append([]string{}, gs.Player.Inventory...)
 	snap.Quests = append([]protocol.TrackedQuestData{}, gs.Player.Quests...)
+	snap.CompletedQuests = append([]string{}, gs.Player.CompletedQuests...)
 	snap.DefeatedNpcs = append([]string{}, gs.Player.DefeatedNpcs...)
 
 	snap.NpcDialogues = make(map[string]string)
@@ -5961,7 +5976,7 @@ func (app *App) ShowCombatResultPopup(result string, rewards []string) {}
 func (app *App) ShowQuestCompletedPopup(questID, reward string)        {}
 func (app *App) UpdateNavigation(room *protocol.LookCommandData)       {}
 func (app *App) UpdateItems(roomItems, inventory []string)             {}
-func (app *App) UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string, quests []protocol.TrackedQuestData) {
+func (app *App) UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string, quests []protocol.TrackedQuestData, completed_quests []string) {
 }
 func (app *App) UpdateGroup(groupState state.GroupState)          {}
 func (app *App) UpdateCombat(combatState state.CombatState)       {}
@@ -6659,6 +6674,11 @@ func (e *Engine) broadcaster() (errPanic error) {
 			e.handlePlayerLeave(id)
 
 		case req := <-e.exchanger.ServerInput:
+			if req.Id == "SYSTEM" {
+				e.handleSystemCommand(req.Msg)
+				continue
+			}
+
 			res, datas, err := e.handleCommands(req)
 			e.exchanger.ServerOutput <- pr.EngineResponse{
 				Id:    req.Id,
@@ -7018,6 +7038,7 @@ import (
 	"slices"
 	"sort"
 	pr "tap/protocol"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -7032,6 +7053,8 @@ type CombatSession struct {
 	TurnResponse *FullTurnResponse
 	RoomId       string
 	Engine       *Engine
+	TurnCount    int
+	Timer        *time.Timer
 }
 type CombatState string
 
@@ -7040,6 +7063,8 @@ const (
 	StateVictory   CombatState = "VICTORY"
 	StateDefeat    CombatState = "DEFEAT"
 	StateCancelled CombatState = "CANCELLED"
+
+	MaxTurnSeconds = 30
 )
 
 type CombatTurnResult struct {
@@ -7147,6 +7172,10 @@ func (e *Engine) initiateCombat(player *Player, npc_copy *Npc) (*CombatSession, 
 }
 
 func (cs *CombatSession) processCombatTurn(attacker Fighter, target Fighter) (string, *FullTurnResponse) {
+	if cs.Timer != nil {
+		cs.Timer.Stop()
+	}
+
 	response := &FullTurnResponse{
 		NpcReactions: []ActionLog{},
 		CombatState:  cs.State,
@@ -7265,10 +7294,28 @@ func (cs *CombatSession) nextTurn() {
 				canPlay = false
 			}
 		}
+
 		if canPlay {
+			cs.TurnCount++ // Incrémente à chaque nouveau tour valide
+
 			current_player := cs.Fighters[cs.CurrentTurn]
 			msg := fmt.Sprintf("%s %s %s %s", pr.MsgEvt, pr.CategoryCombat, pr.TypeAllyTurn, current_player.getName())
 			cs.Engine.inform_combat_players(cs, nil, msg)
+
+			// Si c'est un joueur, on lance le timer
+			if _, ok := current_player.(*Player); ok {
+				if cs.Timer != nil {
+					cs.Timer.Stop()
+				}
+
+				turnSnapshot := cs.TurnCount
+				cs.Timer = time.AfterFunc(MaxTurnSeconds*time.Second, func() {
+					cs.Engine.exchanger.ServerInput <- pr.ServerRequest{
+						Id:  "SYSTEM",
+						Msg: fmt.Sprintf("COMBAT_TIMEOUT %s %d", cs.Id, turnSnapshot),
+					}
+				})
+			}
 			break
 		}
 	}
@@ -8173,6 +8220,7 @@ package engine
 import (
 	"errors"
 	"log/slog"
+	"strconv"
 	"strings"
 	pr "tap/protocol"
 )
@@ -8270,6 +8318,42 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
 	}
 
 	return res, datas, err
+}
+
+func (e *Engine) handleSystemCommand(msg string) {
+	parts := strings.Split(msg, " ")
+
+	if len(parts) == 3 && parts[0] == "COMBAT_TIMEOUT" {
+		combatId := parts[1]
+		turnCount, _ := strconv.Atoi(parts[2])
+
+		cs, exists := e.activeCombats[combatId]
+
+		if !exists || cs.State != StateOngoing || cs.TurnCount != turnCount {
+			return
+		}
+
+		sysMsg := "EVT COMBAT CHAT SYSTEM No time left"
+		e.inform_combat_players(cs, nil, sysMsg)
+
+		cs.TurnResponse = &FullTurnResponse{
+			CombatState:  cs.State,
+			NpcReactions: []ActionLog{},
+		}
+
+		cs.nextTurn()
+
+		if cs.State == StateOngoing {
+			cs.processNpcsTurn()
+		}
+
+		eventMsg, _ := convertObjectToJson("EVT COMBAT UPDATE", cs.TurnResponse)
+		e.inform_combat_players(cs, nil, eventMsg)
+
+		if cs.State != StateOngoing {
+			e.end_combat(cs)
+		}
+	}
 }
 
 --- FILE: ./engine/inspect.go ---
@@ -9002,6 +9086,7 @@ type InspectNPCData struct {
 	Hp          int      `json:"hp"`
 	HpMax       int      `json:"hp_max"`
 	InCombat    bool     `json:"in_combat,omitempty"`
+	GroupId     string   `json:"group_id,omitempty"`
 	XpReward    int      `json:"xp_reward,omitempty"`
 	ItemsReward []string `json:"items_reward,omitempty"`
 }

@@ -12,16 +12,17 @@ type GameState struct {
 }
 
 type Player struct {
-	Name           string
-	Room           *protocol.LookCommandData
-	Inventory      []string
-	Quests         []protocol.TrackedQuestData
-	DefeatedNpcs   []string
-	InCombat       bool
-	EquippedWeapon string
-	Stats          string
-	GroupState     *GroupState
-	NpcDialogues   map[string]string
+	Name            string
+	Room            *protocol.LookCommandData
+	Inventory       []string
+	Quests          []protocol.TrackedQuestData
+	CompletedQuests []string
+	DefeatedNpcs    []string
+	InCombat        bool
+	EquippedWeapon  string
+	Stats           string
+	GroupState      *GroupState
+	NpcDialogues    map[string]string
 }
 
 type GroupState struct {
@@ -87,6 +88,7 @@ func (gs *GameState) GetPlayerSnapshot() Player {
 	snap := *gs.Player
 	snap.Inventory = append([]string{}, gs.Player.Inventory...)
 	snap.Quests = append([]protocol.TrackedQuestData{}, gs.Player.Quests...)
+	snap.CompletedQuests = append([]string{}, gs.Player.CompletedQuests...)
 	snap.DefeatedNpcs = append([]string{}, gs.Player.DefeatedNpcs...)
 
 	snap.NpcDialogues = make(map[string]string)
