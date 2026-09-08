@@ -40,6 +40,7 @@ func (e *Engine) playerQuits(player *Player) {
 	delete(e.players, player.name)
 	e.inform_room(player, player.room, "EVT ROOM PRESENCE LEAVE "+player.name)
 	e.inform_all(player, fmt.Sprintf("EVT STATS players=%d", len(e.players)))
+	e.leave_group(player)
 }
 
 func (e *Engine) handleCmdQuit(player *Player, req []string) (string, any, error) {
