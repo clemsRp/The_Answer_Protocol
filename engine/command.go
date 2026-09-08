@@ -40,6 +40,7 @@ func (e *Engine) playerQuits(player *Player) {
 	delete(e.players, player.name)
 	e.inform_room(player, player.room, "EVT ROOM PRESENCE LEAVE "+player.name)
 	e.inform_all(player, fmt.Sprintf("EVT STATS players=%d", len(e.players)))
+	e.leave_group(player)
 }
 
 func (e *Engine) handleCmdQuit(player *Player, req []string) (string, any, error) {
@@ -560,59 +561,6 @@ func (e *Engine) handleCmdAttack(player *Player, req []string) (string, any, err
 	var fullResponse *FullTurnResponse
 
 	if !exists {
-		for _, cs := range e.activeCombats {
-			if cs.RoomId == player.room.Id {
-				for _, n := range cs.Npcs {
-					if n.Id == targetName || n.Name == targetName {
-						combat_session = cs
-						break
-					}
-				}
-				if combat_session == nil {
-					for _, p := range cs.Players {
-						if p.name == targetName {
-							combat_session = cs
-							break
-						}
-					}
-				}
-			}
-			if combat_session != nil {
-				break
-			}
-		}
-
-		if combat_session != nil {
-			combat_session.addPlayerToCombat(player)
-
-			var activeFighter Fighter
-			if combat_session.CurrentTurn >= 0 && combat_session.CurrentTurn < len(combat_session.Fighters) {
-				activeFighter = combat_session.Fighters[combat_session.CurrentTurn]
-			}
-			combat_session.sortTurnsOrderByInitiative()
-			if activeFighter != nil {
-				for idx, f := range combat_session.Fighters {
-					if f.getName() == activeFighter.getName() {
-						combat_session.CurrentTurn = idx
-						break
-					}
-				}
-			} else if len(combat_session.Fighters) > 0 {
-				combat_session.CurrentTurn = 0
-			}
-
-			// Inform players about combat update
-			msg := fmt.Sprintf("EVT COMBAT UPDATE")
-			e.inform_combat_players(combat_session, nil, msg)
-
-			if combat_session.CurrentTurn >= 0 && combat_session.CurrentTurn < len(combat_session.Fighters) {
-				currentFighter := combat_session.Fighters[combat_session.CurrentTurn]
-				msgTurn := fmt.Sprintf("%s %s %s %s", pr.MsgEvt, pr.CategoryCombat, pr.TypeAllyTurn, currentFighter.getName())
-				e.inform_combat_players(combat_session, nil, msgTurn)
-			}
-
-			return "OK", nil, nil
-		}
 
 		// Not an existing combat, try to initiate a new combat with NPC
 		npc_copy, err := e.getValidTarget(player, targetName)
