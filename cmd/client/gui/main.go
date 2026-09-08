@@ -11,7 +11,7 @@ func main() {
 
 	// Connect to server
 
-	conn, err := net.Dial("tcp", "localhost:8070")
+	conn, err := net.Dial("tcp", "localhost:8080")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Connection error:", err)
 		os.Exit(1)

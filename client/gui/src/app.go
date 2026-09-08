@@ -41,7 +41,7 @@ func NewApp(actionsChan chan panel.Action) *App {
 	}
 
 	var err error
-	maps_folder_path := "./client/gui/tiled_maps/"
+	maps_folder_path := "./client/gui/maps/"
 	app.rooms, err = parser.ParseRooms([]string{maps_folder_path + engine.RoomEntrance})
 
 	if err != nil {
@@ -74,8 +74,7 @@ func (app *App) Update() {
 }
 
 func (app *App) Draw() {
-
-	app.DrawMap(engine.RoomEntrance)
+	app.DrawMap(app.variables.Current_room)
 }
 func (app *App) DrawMap(map_name string) {
 	cur_room := app.rooms[map_name]

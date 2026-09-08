@@ -2,6 +2,7 @@ package parser
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 )
 
@@ -46,6 +47,8 @@ func LoadMap(filePath string) (*Map, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println(fileData)
 
 	var gameMap Map
 	err = json.Unmarshal(fileData, &gameMap)
