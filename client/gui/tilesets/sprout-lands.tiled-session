@@ -188,6 +188,10 @@
                 "y": 159.52813067150635
             }
         },
+        "teemo 8 directions.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 5.5
+        },
         "test.tmx": {
             "scale": 2,
             "selectedLayer": 4,
@@ -204,7 +208,7 @@
     },
     "frame.defaultDuration": 200,
     "last.exportedFilePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps",
-    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Sorry pack/Tests",
+    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Lands - UI Pack - Basic pack/Sprite sheets",
     "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
@@ -246,10 +250,7 @@
     "project": "sprout-lands.tiled-project",
     "property.type": "bool",
     "recentFiles": [
-        "Free_Chicken_House.tsx",
-        "collisions.tsx",
         "Tools.tsx",
-        "Grass.tsx",
         "Basic Furniture.tsx",
         "Basic Grass Biom things 1.tsx",
         "Basic Plants.tsx",
@@ -257,7 +258,10 @@
         "Basic_Furniture.tsx",
         "Basic_Grass_Biom_things.tsx",
         "Basic_Plants.tsx",
-        "Basic_tools_and_meterials.tsx"
+        "Basic_tools_and_meterials.tsx",
+        "Chest.tsx",
+        "Egg item.tsx",
+        "Egg_item.tsx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

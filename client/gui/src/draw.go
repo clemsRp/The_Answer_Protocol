@@ -52,6 +52,8 @@ func (app *App) DrawMap() {
 		}
 		app.DrawLayer(layer, cur_room.Tilesets)
 	}
+
+	app.DrawWoodFrame()
 }
 
 func (app *App) DrawLayer(layer parser.Layer, tilesets []parser.Tileset) {
@@ -199,5 +201,58 @@ func (app *App) GetPlayerTexture() (rl.Texture2D, int, int) {
 
 	ind_y = (int(time.Since(app.variables.StartTime)) % (4 * vars.PLAYER_ANIM_DURATION)) / vars.PLAYER_ANIM_DURATION
 
+	if dir_x == 0 && dir_y == 0 {
+		texture_name = vars.PLAYER_REST_TEXTURE
+		ind_x = (int(time.Since(app.variables.StartTime)) % (2 * vars.PLAYER_ANIM_DURATION)) / vars.PLAYER_ANIM_DURATION
+		ind_x = 3*ind_x + 1
+		ind_y = 1
+	}
+
 	return (*app.textures)[texture_name], ind_x, ind_y
+}
+
+func (app *App) DrawWoodFrame() {
+	frame_start_x := 12
+	frame_start_y := 0
+
+	frame_width := 17
+	frame_height := 10
+
+	for x := range frame_width {
+		for y := range frame_height {
+			// Skip center
+			if x != 0 && y != 0 && x != frame_width-1 && y != frame_height-1 {
+				continue
+			}
+
+			// Get indexs
+			var ind_x int
+			var ind_y int
+			switch x {
+			case 0:
+				ind_x = 0
+			case frame_width - 1:
+				ind_x = 2
+			default:
+				ind_x = 1
+			}
+			switch y {
+			case 0:
+				ind_y = 0
+			case frame_height - 1:
+				ind_y = 2
+			default:
+				ind_y = 1
+			}
+
+			// Draw frame
+			parser.DrawImage(
+				(*app.textures)[vars.WOOD_FRAME_TEXTURE],
+				2*app.variables.Tileset_size*float32(x)-app.variables.Tileset_size,
+				2*app.variables.Tileset_size*float32(y)-app.variables.Tileset_size,
+				float32(frame_start_x+ind_x), float32(frame_start_y+ind_y),
+				1, 1, 2*app.variables.Zoom, 0,
+			)
+		}
+	}
 }

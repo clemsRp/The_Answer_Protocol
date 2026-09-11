@@ -610,6 +610,7 @@ const (
 	FRAME_HEIGHT = 16
 
 	PLAYER_TEXTURE       = "teemo 8 directions"
+	PLAYER_REST_TEXTURE  = "Basic Charakter Spritesheet"
 	PLAYER_ANIM_DURATION = 100000000
 )
 
@@ -854,19 +855,6 @@ func (app *App) UpdateConnectView() {
 
 func (app *App) UpdateGameView() {
 	app.UpdatePlayer()
-
-	if rl.IsKeyPressed(rl.KeySpace) {
-		if app.variables.MapSize.Width == 1 {
-			app.variables.Tileset_size *= 0.8
-			app.variables.Zoom *= 0.8
-			app.variables.MapSize.Width = 0.8
-
-		} else {
-			app.variables.Zoom *= 1.25
-			app.variables.Tileset_size *= 1.25
-			app.variables.MapSize.Width = 1
-		}
-	}
 }
 
 func (app *App) UpdatePlayer() {
@@ -875,7 +863,7 @@ func (app *App) UpdatePlayer() {
 		return
 	}
 
-	tile_size := app.variables.Tileset_size * app.variables.MapSize.Width * app.variables.Zoom
+	tile_size := app.variables.Tileset_size
 	if tile_size == 0 {
 		tile_size = 16
 	}
@@ -1006,8 +994,8 @@ func (app *App) DrawLayer(layer parser.Layer, tilesets []parser.Tileset) {
 		gridX := i % layer.Width
 		gridY := i / layer.Width
 
-		posX := float32(gridX) * app.variables.Tileset_size * app.variables.MapSize.Width
-		posY := float32(gridY) * app.variables.Tileset_size * app.variables.MapSize.Height
+		posX := float32(gridX * int(app.variables.Tileset_size))
+		posY := float32(gridY * int(app.variables.Tileset_size))
 
 		var activeTileset parser.Tileset
 		for j := len(tilesets) - 1; j >= 0; j-- {
@@ -1126,6 +1114,12 @@ func (app *App) GetPlayerTexture() (rl.Texture2D, int, int) {
 	}
 
 	ind_y = (int(time.Since(app.variables.StartTime)) % (4 * vars.PLAYER_ANIM_DURATION)) / vars.PLAYER_ANIM_DURATION
+
+	if dir_x == 0 && dir_y == 0 {
+		texture_name = vars.PLAYER_REST_TEXTURE
+		ind_x = (int(time.Since(app.variables.StartTime)) % (2 * vars.PLAYER_ANIM_DURATION)) / vars.PLAYER_ANIM_DURATION
+		ind_y = 0
+	}
 
 	return (*app.textures)[texture_name], ind_x, ind_y
 }
