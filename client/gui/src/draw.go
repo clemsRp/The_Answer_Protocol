@@ -36,6 +36,8 @@ func (app *App) DrawGameView() {
 			app.DrawLayer(layer, app.rooms[app.variables.Current_room].Tilesets)
 		}
 	}
+
+	app.DrawPseudo()
 }
 
 func (app *App) DrawMap() {
@@ -76,8 +78,8 @@ func (app *App) DrawLayer(layer parser.Layer, tilesets []parser.Tileset) {
 		gridX := i % layer.Width
 		gridY := i / layer.Width
 
-		posX := float32(gridX * app.variables.Tileset_size)
-		posY := float32(gridY * app.variables.Tileset_size)
+		posX := float32(gridX * int(app.variables.Tileset_size))
+		posY := float32(gridY * int(app.variables.Tileset_size))
 
 		var activeTileset parser.Tileset
 		for j := len(tilesets) - 1; j >= 0; j-- {
@@ -138,11 +140,27 @@ func (app *App) DrawLayer(layer parser.Layer, tilesets []parser.Tileset) {
 }
 
 func (app *App) DrawPlayer() {
+	// Draw player texture
 	texture, ind_x, ind_y := app.GetPlayerTexture()
 	parser.DrawImage(
 		texture,
 		app.variables.Player.Position.X, app.variables.Player.Position.Y,
 		float32(ind_x), float32(ind_y), 1, 1, app.variables.Zoom, 0,
+	)
+}
+
+func (app *App) DrawPseudo() {
+	pseudo := app.GetPseudo()
+	font_size := 20
+
+	text_size := rl.MeasureText(pseudo, int32(font_size))
+	center_text := (vars.FRAME_WIDTH*int32(app.variables.Zoom) - text_size) / 2
+
+	rl.DrawText(
+		pseudo,
+		int32(app.variables.Player.Position.X)+center_text,
+		int32(app.variables.Player.Position.Y)-int32(font_size),
+		int32(font_size), rl.White,
 	)
 }
 

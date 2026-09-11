@@ -11,7 +11,7 @@ import (
 
 func (app *App) UpdateConnectView() {
 	if rl.IsKeyPressed(rl.KeyEnter) {
-		app.actionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdConnect + " ali"}
+		app.actionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdConnect + " clement"}
 	}
 }
 
@@ -58,12 +58,12 @@ func (app *App) UpdatePlayer() {
 	}
 
 	newX := app.variables.Player.Position.X + dx
-	if app.canMove(current_room, newX, app.variables.Player.Position.Y, tile_size) {
+	if app.canMove(current_room, newX, app.variables.Player.Position.Y, int(tile_size)) {
 		app.variables.Player.Position.X = newX
 	}
 
 	newY := app.variables.Player.Position.Y + dy
-	if app.canMove(current_room, app.variables.Player.Position.X, newY, tile_size) {
+	if app.canMove(current_room, app.variables.Player.Position.X, newY, int(tile_size)) {
 		app.variables.Player.Position.Y = newY
 	}
 

@@ -54,7 +54,7 @@ func NewApp(actionsChan chan panel.Action) *App {
 		return nil
 	}
 
-	app.variables.Tileset_size = screenWidth / 32
+	app.variables.Tileset_size = float32(screenWidth / 32)
 	app.variables.Zoom = float32(app.variables.Tileset_size) / float32(vars.FRAME_WIDTH)
 	app.variables.StartTime = time.Now()
 
@@ -144,8 +144,13 @@ func (app *App) AppendCliMessage(text string)                     {}
 
 func (app *App) AppendCliResponse(res protocol.ServerResponse) {}
 
-func (app *App) GetPseudo() string       { return "" }
-func (app *App) SetPseudo(pseudo string) {}
+func (app *App) GetPseudo() string {
+	return app.variables.Player.Pseudo
+}
+
+func (app *App) SetPseudo(pseudo string) {
+	app.variables.Player.Pseudo = pseudo
+}
 
 func (app *App) Stop() {
 	app.closeOnce.Do(func() {

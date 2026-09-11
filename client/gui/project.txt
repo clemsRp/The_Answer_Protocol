@@ -310,6 +310,7 @@
     ├── Simple_Milk_and_grass_item.tsx
     ├── sprout-lands.tiled-project
     ├── sprout-lands.tiled-session
+    ├── teemo 8 directions.tsx
     ├── test.tmx
     ├── Tilled Dirt.tsx
     ├── Tilled_Dirt.tsx
@@ -324,7 +325,7 @@
     ├── Wooden House.tsx
     └── Wooden_House_Walls_Tilset.tsx
 
-45 directories, 279 files
+45 directories, 280 files
 -e 
 === CONTENU DES FICHIERS ===
 
@@ -522,6 +523,11 @@ import (
 	"time"
 )
 
+type Size struct {
+	Width  float32
+	Height float32
+}
+
 type Direction struct {
 	X float32
 	Y float32
@@ -535,6 +541,7 @@ type Position struct {
 type Player struct {
 	Direction *Direction
 	Position  *Position
+	Pseudo    string
 }
 
 type PanelVariables struct {
@@ -550,7 +557,7 @@ type PanelVariables struct {
 type Variables struct {
 	Player       *Player
 	Collisions   [][]bool
-	Tileset_size int
+	Tileset_size float32
 
 	Current_room    string
 	Current_view    string
@@ -558,6 +565,8 @@ type Variables struct {
 
 	Zoom      float32
 	StartTime time.Time
+	MapStart  *Position
+	MapSize   *Size
 }
 
 func GetVariables() *Variables {
@@ -568,8 +577,8 @@ func GetVariables() *Variables {
 				Y: 1,
 			},
 			Position: &Position{
-				X: float32(500),
-				Y: float32(400),
+				X: float32(700),
+				Y: float32(500),
 			},
 		},
 		Current_room: "entrance",
@@ -582,6 +591,14 @@ func GetVariables() *Variables {
 			GroupState:  &state.GroupState{},
 			CombatState: &state.CombatState{},
 		},
+		MapStart: &Position{
+			X: float32(0),
+			Y: float32(0),
+		},
+		MapSize: &Size{
+			Width:  float32(1),
+			Height: float32(1),
+		},
 	}
 }
 
@@ -592,8 +609,7 @@ const (
 	FRAME_WIDTH  = 16
 	FRAME_HEIGHT = 16
 
-	PLAYER_TEXTURE = "Basic Charakter Spritesheet"
-
+	PLAYER_TEXTURE       = "teemo 8 directions"
 	PLAYER_ANIM_DURATION = 100000000
 )
 
@@ -711,7 +727,7 @@ func NewApp(actionsChan chan panel.Action) *App {
 		return nil
 	}
 
-	app.variables.Tileset_size = screenWidth / 32
+	app.variables.Tileset_size = float32(screenWidth / 32)
 	app.variables.Zoom = float32(app.variables.Tileset_size) / float32(vars.FRAME_WIDTH)
 	app.variables.StartTime = time.Now()
 
@@ -801,8 +817,13 @@ func (app *App) AppendCliMessage(text string)                     {}
 
 func (app *App) AppendCliResponse(res protocol.ServerResponse) {}
 
-func (app *App) GetPseudo() string       { return "" }
-func (app *App) SetPseudo(pseudo string) {}
+func (app *App) GetPseudo() string {
+	return app.variables.Player.Pseudo
+}
+
+func (app *App) SetPseudo(pseudo string) {
+	app.variables.Player.Pseudo = pseudo
+}
 
 func (app *App) Stop() {
 	app.closeOnce.Do(func() {
@@ -827,12 +848,25 @@ import (
 
 func (app *App) UpdateConnectView() {
 	if rl.IsKeyPressed(rl.KeyEnter) {
-		app.actionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdConnect + " ali"}
+		app.actionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdConnect + " clement"}
 	}
 }
 
 func (app *App) UpdateGameView() {
 	app.UpdatePlayer()
+
+	if rl.IsKeyPressed(rl.KeySpace) {
+		if app.variables.MapSize.Width == 1 {
+			app.variables.Tileset_size *= 0.8
+			app.variables.Zoom *= 0.8
+			app.variables.MapSize.Width = 0.8
+
+		} else {
+			app.variables.Zoom *= 1.25
+			app.variables.Tileset_size *= 1.25
+			app.variables.MapSize.Width = 1
+		}
+	}
 }
 
 func (app *App) UpdatePlayer() {
@@ -841,7 +875,7 @@ func (app *App) UpdatePlayer() {
 		return
 	}
 
-	tile_size := app.variables.Tileset_size
+	tile_size := app.variables.Tileset_size * app.variables.MapSize.Width * app.variables.Zoom
 	if tile_size == 0 {
 		tile_size = 16
 	}
@@ -874,12 +908,12 @@ func (app *App) UpdatePlayer() {
 	}
 
 	newX := app.variables.Player.Position.X + dx
-	if app.canMove(current_room, newX, app.variables.Player.Position.Y, tile_size) {
+	if app.canMove(current_room, newX, app.variables.Player.Position.Y, int(tile_size)) {
 		app.variables.Player.Position.X = newX
 	}
 
 	newY := app.variables.Player.Position.Y + dy
-	if app.canMove(current_room, app.variables.Player.Position.X, newY, tile_size) {
+	if app.canMove(current_room, app.variables.Player.Position.X, newY, int(tile_size)) {
 		app.variables.Player.Position.Y = newY
 	}
 
@@ -910,6 +944,11 @@ var (
 	Up    = vars.Direction{X: 0, Y: -1}
 	Left  = vars.Direction{X: -1, Y: 0}
 	Right = vars.Direction{X: 1, Y: 0}
+
+	DownLeft  = vars.Direction{X: -1, Y: 1}
+	DownRight = vars.Direction{X: 1, Y: 1}
+	UpLeft    = vars.Direction{X: -1, Y: -1}
+	UpRight   = vars.Direction{X: 1, Y: -1}
 )
 
 func (app *App) DrawConnectView() {
@@ -925,6 +964,8 @@ func (app *App) DrawGameView() {
 			app.DrawLayer(layer, app.rooms[app.variables.Current_room].Tilesets)
 		}
 	}
+
+	app.DrawPseudo()
 }
 
 func (app *App) DrawMap() {
@@ -965,8 +1006,8 @@ func (app *App) DrawLayer(layer parser.Layer, tilesets []parser.Tileset) {
 		gridX := i % layer.Width
 		gridY := i / layer.Width
 
-		posX := float32(gridX * app.variables.Tileset_size)
-		posY := float32(gridY * app.variables.Tileset_size)
+		posX := float32(gridX) * app.variables.Tileset_size * app.variables.MapSize.Width
+		posY := float32(gridY) * app.variables.Tileset_size * app.variables.MapSize.Height
 
 		var activeTileset parser.Tileset
 		for j := len(tilesets) - 1; j >= 0; j-- {
@@ -1027,11 +1068,27 @@ func (app *App) DrawLayer(layer parser.Layer, tilesets []parser.Tileset) {
 }
 
 func (app *App) DrawPlayer() {
+	// Draw player texture
 	texture, ind_x, ind_y := app.GetPlayerTexture()
 	parser.DrawImage(
 		texture,
 		app.variables.Player.Position.X, app.variables.Player.Position.Y,
 		float32(ind_x), float32(ind_y), 1, 1, app.variables.Zoom, 0,
+	)
+}
+
+func (app *App) DrawPseudo() {
+	pseudo := app.GetPseudo()
+	font_size := 20
+
+	text_size := rl.MeasureText(pseudo, int32(font_size))
+	center_text := (vars.FRAME_WIDTH*int32(app.variables.Zoom) - text_size) / 2
+
+	rl.DrawText(
+		pseudo,
+		int32(app.variables.Player.Position.X)+center_text,
+		int32(app.variables.Player.Position.Y)-int32(font_size),
+		int32(font_size), rl.White,
 	)
 }
 
@@ -1047,31 +1104,30 @@ func (app *App) GetPlayerTexture() (rl.Texture2D, int, int) {
 	var ind_y int
 
 	switch (vars.Direction{X: dir_x, Y: dir_y}) {
-	case Down:
-		ind_y = 0
 	case Up:
-		ind_y = 1
+		ind_x = 0
+	case UpLeft:
+		ind_x = 1
 	case Left:
-		ind_y = 2
+		ind_x = 2
+	case DownLeft:
+		ind_x = 3
+	case Down:
+		ind_x = 4
+	case DownRight:
+		ind_x = 5
 	case Right:
-		ind_y = 3
+		ind_x = 6
+	case UpRight:
+		ind_x = 7
 
 	default:
-		if dir_y == -1 {
-			ind_y = 1
-
-		} else {
-			ind_y = 0
-		}
+		ind_x = 4
 	}
 
-	ind_x = (int(time.Since(app.variables.StartTime)) % (4 * vars.PLAYER_ANIM_DURATION)) / vars.PLAYER_ANIM_DURATION
+	ind_y = (int(time.Since(app.variables.StartTime)) % (4 * vars.PLAYER_ANIM_DURATION)) / vars.PLAYER_ANIM_DURATION
 
-	if dir_x == 0 && dir_y == 0 {
-		ind_x %= 2
-	}
-
-	return (*app.textures)[texture_name], 3*ind_x + 1, 3*ind_y + 1
+	return (*app.textures)[texture_name], ind_x, ind_y
 }
 
 --- FILE: ./src/animations.go ---
@@ -1195,6 +1251,7 @@ import (
 )
 
 type Pos vars.Position
+type Dir vars.Direction
 
 type Collision struct {
 	Start Pos
@@ -1252,6 +1309,47 @@ var (
 		14: {
 			{Start: Pos{X: 6, Y: 0}, End: Pos{X: 10, Y: 11}},
 		},
+		15: {
+			{Start: Pos{X: 0, Y: 3}, End: Pos{X: 16, Y: 10}},
+		},
+		16: {
+			{Start: Pos{X: 0, Y: 3}, End: Pos{X: 11, Y: 10}},
+		},
+		17: {
+			{Start: Pos{X: 5, Y: 3}, End: Pos{X: 16, Y: 10}},
+		},
+		20: {
+			{Start: Pos{X: 0, Y: 3}, End: Pos{X: 10, Y: 10}},
+			{Start: Pos{X: 6, Y: 10}, End: Pos{X: 10, Y: 16}},
+		},
+		21: {
+			{Start: Pos{X: 6, Y: 3}, End: Pos{X: 16, Y: 10}},
+			{Start: Pos{X: 6, Y: 10}, End: Pos{X: 10, Y: 16}},
+		},
+		22: {
+			{Start: Pos{X: 6, Y: 0}, End: Pos{X: 10, Y: 10}},
+			{Start: Pos{X: 0, Y: 3}, End: Pos{X: 6, Y: 10}},
+		},
+		23: {
+			{Start: Pos{X: 6, Y: 0}, End: Pos{X: 10, Y: 10}},
+			{Start: Pos{X: 10, Y: 3}, End: Pos{X: 16, Y: 10}},
+		},
+		24: {
+			{Start: Pos{X: 0, Y: 0}, End: Pos{X: 8, Y: 16}},
+			{Start: Pos{X: 8, Y: 8}, End: Pos{X: 16, Y: 16}},
+		},
+		25: {
+			{Start: Pos{X: 0, Y: 8}, End: Pos{X: 16, Y: 16}},
+			{Start: Pos{X: 8, Y: 0}, End: Pos{X: 16, Y: 8}},
+		},
+		26: {
+			{Start: Pos{X: 0, Y: 0}, End: Pos{X: 8, Y: 16}},
+			{Start: Pos{X: 8, Y: 0}, End: Pos{X: 16, Y: 8}},
+		},
+		27: {
+			{Start: Pos{X: 0, Y: 0}, End: Pos{X: 16, Y: 8}},
+			{Start: Pos{X: 8, Y: 8}, End: Pos{X: 16, Y: 16}},
+		},
 	}
 )
 
@@ -1259,16 +1357,42 @@ func (app *App) canMove(room *parser.Map, x, y float32, tile_size int) bool {
 	x_off := vars.FRAME_WIDTH * app.variables.Zoom
 	y_off := vars.FRAME_HEIGHT * app.variables.Zoom
 	marge := 2
+	bottom_part := vars.FRAME_HEIGHT * 2 / 3
 
-	corners := []Pos{
-		{X: x + float32(marge), Y: y + float32(marge)},
-		{X: x + x_off - float32(marge), Y: y + float32(marge)},
-		{X: x + float32(marge), Y: y + y_off - float32(marge)},
-		{X: x + x_off - float32(marge), Y: y + y_off - float32(marge)},
+	// Define hitbox corners
+	up_left := Pos{X: x + float32(marge), Y: y + float32(marge+bottom_part)}
+	up_right := Pos{X: x + x_off - float32(marge), Y: y + float32(marge+bottom_part)}
+	down_left := Pos{X: x + float32(marge), Y: y + y_off - float32(marge)}
+	down_right := Pos{X: x + x_off - float32(marge), Y: y + y_off - float32(marge)}
+
+	// Get all hitbox cells
+	cells := []Pos{up_left, up_right, down_right, down_left}
+	dirs := map[Pos]Dir{
+		up_left:    {X: 1, Y: 0},
+		up_right:   {X: 0, Y: 1},
+		down_right: {X: -1, Y: 0},
+		down_left:  {X: 0, Y: -1},
 	}
 
-	for _, corner := range corners {
-		if app.isColliding(room, corner.X, corner.Y, tile_size) {
+	for index := range 4 {
+		start := cells[index]
+		end := cells[(index+1)%4]
+
+		start_x := start.X
+		start_y := start.Y
+
+		dir := dirs[start]
+
+		for start_x != end.X || start_y != end.Y {
+			start_x += dir.X
+			start_y += dir.Y
+			cells = append(cells, Pos{X: start_x, Y: start_y})
+		}
+	}
+
+	// Check collisions
+	for _, cell := range cells {
+		if app.isColliding(room, cell.X, cell.Y, tile_size) {
 			return false
 		}
 	}
@@ -1284,10 +1408,10 @@ func (app *App) isColliding(room *parser.Map, x, y float32, tile_size int) bool 
 		return true
 	}
 
-	gid := room.Collisions[indY][indX] - room.CollisionFirstGID
-	if gid == 0 {
+	if room.Collisions[indY][indX] == 0 {
 		return false
 	}
+	gid := room.Collisions[indY][indX] - room.CollisionFirstGID
 
 	rects, ok := collisions_convertor[gid]
 	if !ok {
@@ -24983,9 +25107,9 @@ It really helps to support this project! :D
         {
          "data":[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 16, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 32, 6, 7, 0, 5, 6, 6, 6, 7, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 6, 6, 6, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 33, 17, 17, 17, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 16, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 32, 7, 0, 5, 6, 6, 6, 7, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 16, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 32, 6, 33, 17, 17, 17, 18, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 16, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 18, 0, 0, 0, 0,
             0, 0, 0, 5, 6, 33, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 18, 0, 0, 0, 0,
@@ -25014,10 +25138,10 @@ It really helps to support this project! :D
             0, 0, 0, 0, 99, 0, 0, 0, 0, 0, 126, 0, 0, 0, 98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 123, 0, 0, 125, 0, 0, 98, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 98, 0, 0, 0, 0, 0, 0, 106, 208, 209, 209, 209, 209, 209, 209, 209, 210, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 207, 0, 0, 0, 0, 0, 0, 199, 207, 0, 0, 92, 93, 0, 0, 107, 0, 0, 0, 125, 0, 0,
-            0, 0, 0, 126, 0, 0, 91, 0, 116, 0, 211, 200, 0, 161, 162, 163, 0, 0, 211, 106, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 216, 222, 107, 164, 165, 166, 200, 220, 218, 0, 0, 0, 0, 115, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 98, 0, 0, 0, 0, 0, 0, 106, 176, 177, 177, 177, 177, 177, 177, 177, 178, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 179, 0, 0, 0, 0, 0, 0, 167, 179, 0, 0, 0, 0, 0, 0, 107, 0, 0, 0, 125, 0, 0,
+            0, 0, 0, 126, 0, 0, 91, 0, 116, 0, 179, 168, 0, 161, 162, 163, 0, 0, 179, 106, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 184, 190, 107, 164, 165, 166, 168, 188, 186, 0, 0, 92, 93, 115, 0, 0, 0, 0, 0, 0, 0, 0,
             130, 130, 130, 131, 155, 156, 156, 156, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 147, 156, 156, 156, 156, 156, 156, 156, 157, 129, 130, 130, 130, 130,
             0, 0, 0, 0, 0, 0, 0, 0, 151, 156, 156, 156, 148, 0, 147, 156, 156, 156, 152, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 116, 0, 0, 116, 0, 0, 0, 0, 151, 156, 148, 0, 115, 0, 0, 0, 106, 0, 0, 0, 107, 115, 0, 0, 0, 0, 0, 0,
@@ -25043,9 +25167,9 @@ It really helps to support this project! :D
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 83, 84, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 82, 0, 0, 0, 0, 0, 0, 158, 159, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 82, 0, 0, 0, 0, 0, 0, 158, 159, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 83, 84, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -25068,24 +25192,24 @@ It really helps to support this project! :D
          "y":0
         }, 
         {
-         "data":[171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171,
-            171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171,
-            171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171,
-            171, 171, 171, 171, 171, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171,
-            171, 171, 171, 171, 171, 0, 0, 0, 0, 0, 173, 171, 171, 171, 171, 171, 171, 171, 172, 0, 0, 0, 171, 0, 0, 0, 0, 0, 171, 171, 171, 171,
-            171, 171, 171, 171, 171, 0, 0, 0, 0, 0, 177, 0, 0, 0, 0, 0, 0, 0, 177, 0, 0, 167, 168, 0, 0, 0, 0, 0, 171, 171, 171, 171,
-            171, 171, 171, 171, 171, 0, 181, 0, 0, 0, 177, 0, 0, 167, 171, 168, 0, 0, 177, 0, 0, 0, 0, 0, 0, 0, 0, 0, 171, 171, 171, 171,
-            171, 171, 171, 0, 0, 0, 0, 0, 0, 0, 175, 179, 0, 167, 171, 168, 0, 178, 174, 0, 0, 0, 0, 0, 0, 0, 0, 0, 171, 171, 171, 171,
+         "data":[195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195,
+            195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195,
+            195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 192, 0, 0, 0, 191, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195,
+            195, 195, 195, 195, 195, 192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 191, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195,
+            195, 195, 195, 195, 195, 192, 0, 0, 0, 0, 212, 206, 206, 206, 206, 206, 206, 206, 211, 0, 0, 191, 195, 192, 0, 0, 0, 191, 195, 195, 195, 195,
+            195, 195, 195, 195, 195, 192, 0, 0, 0, 0, 201, 0, 0, 0, 0, 0, 0, 0, 201, 0, 0, 0, 0, 0, 0, 0, 0, 191, 195, 195, 195, 195,
+            195, 195, 195, 195, 195, 192, 205, 0, 0, 0, 201, 0, 0, 191, 195, 192, 0, 0, 201, 0, 0, 0, 0, 0, 0, 0, 0, 191, 195, 195, 195, 195,
+            195, 195, 195, 217, 193, 0, 0, 0, 0, 0, 214, 207, 0, 191, 195, 192, 0, 208, 213, 0, 0, 191, 192, 0, 0, 0, 0, 191, 195, 195, 195, 195,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            171, 171, 171, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 171, 171, 171, 171,
-            171, 171, 171, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 171, 171, 171, 171,
-            171, 171, 171, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 181, 0, 0, 0, 0, 0, 171, 171, 171, 171,
-            171, 171, 171, 0, 0, 0, 171, 0, 0, 0, 0, 167, 168, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 171, 171, 171, 171, 171, 171,
-            171, 171, 171, 0, 0, 171, 171, 171, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 171, 171, 0, 0, 0, 171, 171, 171, 171, 171, 171,
-            171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171,
-            171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 0, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171,
-            171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 0, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171,
-            171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 0, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171],
+            195, 195, 195, 192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 191, 195, 195, 195, 195,
+            195, 195, 195, 192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 191, 195, 195, 195, 195,
+            195, 195, 195, 192, 0, 0, 194, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 205, 0, 0, 0, 194, 216, 195, 195, 195, 195,
+            195, 195, 195, 192, 0, 216, 195, 215, 0, 0, 0, 191, 192, 0, 0, 0, 0, 0, 0, 0, 0, 194, 194, 0, 0, 191, 195, 195, 195, 195, 195, 195,
+            195, 195, 195, 215, 216, 195, 195, 195, 215, 194, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 191, 195, 195, 215, 194, 216, 195, 195, 195, 195, 195, 195,
+            195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 215, 194, 194, 194, 0, 194, 194, 194, 194, 194, 216, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195,
+            195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 0, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195,
+            195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 0, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195,
+            195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 0, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195],
          "height":18,
          "id":4,
          "name":"Collisions",
@@ -25129,15 +25253,15 @@ It really helps to support this project! :D
         }, 
         {
          "firstgid":167,
-         "source":"..\/tilesets\/collisions.tsx"
-        }, 
-        {
-         "firstgid":199,
          "source":"..\/tilesets\/Free Chicken Sprites.tsx"
         }, 
         {
-         "firstgid":207,
+         "firstgid":175,
          "source":"..\/tilesets\/Fences.tsx"
+        }, 
+        {
+         "firstgid":191,
+         "source":"..\/tilesets\/collisions.tsx"
         }],
  "tilewidth":16,
  "type":"map",
@@ -25335,7 +25459,7 @@ It really helps to support this project! :D
         },
         "collisions.tsx": {
             "dynamicWrapping": false,
-            "scaleInDock": 8,
+            "scaleInDock": 4,
             "scaleInEditor": 5.5
         },
         "collisions2.tsx": {
@@ -25348,15 +25472,15 @@ It really helps to support this project! :D
             "selectedLayer": 1,
             "viewCenter": {
                 "x": 240.10889292196003,
-                "y": 159.80036297640652
+                "y": 159.52813067150635
             }
         },
         "test.tmx": {
             "scale": 2,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 330,
-                "y": 94
+                "x": 267.5,
+                "y": 157
             }
         },
         "test.tsx": {
@@ -25365,9 +25489,9 @@ It really helps to support this project! :D
             "scaleInEditor": 1
         }
     },
-    "frame.defaultDuration": 500,
+    "frame.defaultDuration": 200,
     "last.exportedFilePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps",
-    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets",
+    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Sorry pack/Tests",
     "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
@@ -25409,10 +25533,10 @@ It really helps to support this project! :D
     "project": "sprout-lands.tiled-project",
     "property.type": "bool",
     "recentFiles": [
-        "rules.tmx",
-        "Free Chicken Sprites.tsx",
-        "Basic Charakter Spritesheet.tsx",
+        "Free_Chicken_House.tsx",
+        "collisions.tsx",
         "Tools.tsx",
+        "Grass.tsx",
         "Basic Furniture.tsx",
         "Basic Grass Biom things 1.tsx",
         "Basic Plants.tsx",
@@ -25793,9 +25917,9 @@ It really helps to support this project! :D
  <tileset firstgid="127" source="Wood Bridge.tsx"/>
  <tileset firstgid="142" source="Paths.tsx"/>
  <tileset firstgid="158" source="Free_Chicken_House.tsx"/>
- <tileset firstgid="167" source="collisions.tsx"/>
- <tileset firstgid="199" source="Free Chicken Sprites.tsx"/>
- <tileset firstgid="207" source="Fences.tsx"/>
+ <tileset firstgid="167" source="Free Chicken Sprites.tsx"/>
+ <tileset firstgid="175" source="Fences.tsx"/>
+ <tileset firstgid="191" source="collisions.tsx"/>
  <layer id="1" name="Water" width="32" height="18">
   <data encoding="csv">
 1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,
@@ -25822,9 +25946,9 @@ It really helps to support this project! :D
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,5,6,6,6,6,6,6,6,6,6,6,6,6,6,7,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,16,17,17,17,17,17,17,17,17,17,17,17,17,17,32,6,7,0,5,6,6,6,7,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,6,6,6,7,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,5,6,6,6,6,6,6,6,6,6,6,33,17,17,17,18,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,16,17,17,17,17,17,17,17,17,17,17,17,17,17,17,32,7,0,5,6,6,6,7,0,0,0,0,
 0,0,0,0,0,16,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,32,6,33,17,17,17,18,0,0,0,0,
 0,0,0,0,0,16,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,18,0,0,0,0,
 0,0,0,5,6,33,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,18,0,0,0,0,
@@ -25846,10 +25970,10 @@ It really helps to support this project! :D
 0,0,0,0,99,0,0,0,0,0,126,0,0,0,98,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,98,0,0,0,0,0,0,0,0,0,0,0,0,123,0,0,125,0,0,98,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,98,0,0,0,0,0,0,106,208,209,209,209,209,209,209,209,210,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,207,0,0,0,0,0,0,199,207,0,0,92,93,0,0,107,0,0,0,125,0,0,
-0,0,0,126,0,0,91,0,116,0,211,200,0,161,162,163,0,0,211,106,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,216,222,107,164,165,166,200,220,218,0,0,0,0,115,0,0,0,0,0,0,0,0,
+0,0,98,0,0,0,0,0,0,106,176,177,177,177,177,177,177,177,178,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,179,0,0,0,0,0,0,167,179,0,0,0,0,0,0,107,0,0,0,125,0,0,
+0,0,0,126,0,0,91,0,116,0,179,168,0,161,162,163,0,0,179,106,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,184,190,107,164,165,166,168,188,186,0,0,92,93,115,0,0,0,0,0,0,0,0,
 130,130,130,131,155,156,156,156,148,0,0,0,0,0,0,0,0,0,147,156,156,156,156,156,156,156,157,129,130,130,130,130,
 0,0,0,0,0,0,0,0,151,156,156,156,148,0,147,156,156,156,152,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,116,0,0,116,0,0,0,0,151,156,148,0,115,0,0,0,106,0,0,0,107,115,0,0,0,0,0,0,
@@ -25868,9 +25992,9 @@ It really helps to support this project! :D
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,83,84,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,82,0,0,0,0,0,0,158,159,160,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,82,0,0,0,0,0,0,158,159,160,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,83,84,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -25886,24 +26010,24 @@ It really helps to support this project! :D
  </layer>
  <layer id="4" name="Collisions" width="32" height="18" visible="0">
   <data encoding="csv">
-171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,
-171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,
-171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,
-171,171,171,171,171,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,171,171,171,171,171,171,171,171,171,171,171,171,
-171,171,171,171,171,0,0,0,0,0,173,171,171,171,171,171,171,171,172,0,0,0,171,0,0,0,0,0,171,171,171,171,
-171,171,171,171,171,0,0,0,0,0,177,0,0,0,0,0,0,0,177,0,0,167,168,0,0,0,0,0,171,171,171,171,
-171,171,171,171,171,0,181,0,0,0,177,0,0,167,171,168,0,0,177,0,0,0,0,0,0,0,0,0,171,171,171,171,
-171,171,171,0,0,0,0,0,0,0,175,179,0,167,171,168,0,178,174,0,0,0,0,0,0,0,0,0,171,171,171,171,
+195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,
+195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,
+195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,192,0,0,0,191,195,195,195,195,195,195,195,195,195,195,195,
+195,195,195,195,195,192,0,0,0,0,0,0,0,0,0,0,0,0,0,0,191,195,195,195,195,195,195,195,195,195,195,195,
+195,195,195,195,195,192,0,0,0,0,212,206,206,206,206,206,206,206,211,0,0,191,195,192,0,0,0,191,195,195,195,195,
+195,195,195,195,195,192,0,0,0,0,201,0,0,0,0,0,0,0,201,0,0,0,0,0,0,0,0,191,195,195,195,195,
+195,195,195,195,195,192,205,0,0,0,201,0,0,191,195,192,0,0,201,0,0,0,0,0,0,0,0,191,195,195,195,195,
+195,195,195,217,193,0,0,0,0,0,214,207,0,191,195,192,0,208,213,0,0,191,192,0,0,0,0,191,195,195,195,195,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-171,171,171,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,171,171,171,171,
-171,171,171,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,171,171,171,171,
-171,171,171,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,181,0,0,0,0,0,171,171,171,171,
-171,171,171,0,0,0,171,0,0,0,0,167,168,0,0,0,0,0,0,0,0,0,0,0,0,0,171,171,171,171,171,171,
-171,171,171,0,0,171,171,171,0,0,0,0,0,0,0,0,0,0,0,0,0,171,171,0,0,0,171,171,171,171,171,171,
-171,171,171,171,171,171,171,171,171,171,0,0,0,0,0,0,0,0,0,0,0,171,171,171,171,171,171,171,171,171,171,171,
-171,171,171,171,171,171,171,171,171,171,171,171,171,171,0,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,
-171,171,171,171,171,171,171,171,171,171,171,171,171,171,0,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,
-171,171,171,171,171,171,171,171,171,171,171,171,171,171,0,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171,171
+195,195,195,192,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,191,195,195,195,195,
+195,195,195,192,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,191,195,195,195,195,
+195,195,195,192,0,0,194,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,205,0,0,0,194,216,195,195,195,195,
+195,195,195,192,0,216,195,215,0,0,0,191,192,0,0,0,0,0,0,0,0,194,194,0,0,191,195,195,195,195,195,195,
+195,195,195,215,216,195,195,195,215,194,0,0,0,0,0,0,0,0,0,0,191,195,195,215,194,216,195,195,195,195,195,195,
+195,195,195,195,195,195,195,195,195,195,215,194,194,194,0,194,194,194,194,194,216,195,195,195,195,195,195,195,195,195,195,195,
+195,195,195,195,195,195,195,195,195,195,195,195,195,195,0,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,
+195,195,195,195,195,195,195,195,195,195,195,195,195,195,0,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,
+195,195,195,195,195,195,195,195,195,195,195,195,195,195,0,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195
 </data>
  </layer>
 </map>
@@ -25968,6 +26092,12 @@ rules.tmx
 <?xml version="1.0" encoding="UTF-8"?>
 <tileset version="1.10" tiledversion="1.12.2" name="collisions" tilewidth="16" tileheight="16" tilecount="32" columns="4">
  <image source="../assets/collisions.png" width="64" height="128"/>
+</tileset>
+
+--- FILE: ./tilesets/teemo 8 directions.tsx ---
+<?xml version="1.0" encoding="UTF-8"?>
+<tileset version="1.10" tiledversion="1.12.2" name="teemo 8 directions" tilewidth="16" tileheight="16" tilecount="24" columns="8">
+ <image source="../assets/Sprout Sorry pack/Tests/teemo 8 directions.png" width="128" height="48"/>
 </tileset>
 
 --- FILE: ./project.txt ---
