@@ -2,26 +2,29 @@ package parser
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
+	"strings"
 )
 
 type Map struct {
-	CompressionLevel int       `json:"compressionlevel"`
-	Height           int       `json:"height"`
-	Width            int       `json:"width"`
-	Infinite         bool      `json:"infinite"`
-	TileWidth        int       `json:"tilewidth"`
-	TileHeight       int       `json:"tileheight"`
-	Orientation      string    `json:"orientation"`
-	RenderOrder      string    `json:"renderorder"`
-	TiledVersion     string    `json:"tiledversion"`
-	Version          string    `json:"version"`
-	Type             string    `json:"type"`
-	NextLayerID      int       `json:"nextlayerid"`
-	NextObjectID     int       `json:"nextobjectid"`
-	Layers           []Layer   `json:"layers"`
-	Tilesets         []Tileset `json:"tilesets"`
+	Collisions        [][]int   `json:"collisions,omitempty"`
+	CollisionLayer    Layer     `json:"collision_layer,omitempty"`
+	CollisionFirstGID int       `json:"collision_firstgid,omitempty"`
+	CompressionLevel  int       `json:"compressionlevel"`
+	Height            int       `json:"height"`
+	Width             int       `json:"width"`
+	Infinite          bool      `json:"infinite"`
+	TileWidth         int       `json:"tilewidth"`
+	TileHeight        int       `json:"tileheight"`
+	Orientation       string    `json:"orientation"`
+	RenderOrder       string    `json:"renderorder"`
+	TiledVersion      string    `json:"tiledversion"`
+	Version           string    `json:"version"`
+	Type              string    `json:"type"`
+	NextLayerID       int       `json:"nextlayerid"`
+	NextObjectID      int       `json:"nextobjectid"`
+	Layers            []Layer   `json:"layers"`
+	Tilesets          []Tileset `json:"tilesets"`
 }
 
 type Layer struct {
@@ -48,13 +51,37 @@ func LoadMap(filePath string) (*Map, error) {
 		return nil, err
 	}
 
-	fmt.Println(fileData)
-
 	var gameMap Map
 	err = json.Unmarshal(fileData, &gameMap)
 	if err != nil {
 		return nil, err
 	}
+
+	// Get Collisions
+	var collisions [][]int
+	for _, layer := range gameMap.Layers {
+		if layer.Name == "Collisions" {
+			gameMap.CollisionLayer = layer
+			for y := range layer.Height {
+				var line []int
+				for x := range layer.Width {
+					index := layer.Width*y + x
+					line = append(line, layer.Data[index])
+				}
+				collisions = append(collisions, line)
+			}
+		}
+	}
+
+	// Get collision firstGID
+	for _, tileset := range gameMap.Tilesets {
+		if strings.Contains(tileset.Source, "collisions.tsx") {
+			gameMap.CollisionFirstGID = tileset.FirstGID
+			break
+		}
+	}
+
+	gameMap.Collisions = collisions
 
 	return &gameMap, nil
 }

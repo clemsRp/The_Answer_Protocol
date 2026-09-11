@@ -26,9 +26,9 @@ func LoadTextures() *Textures {
 
 			if ext == ".png" || ext == ".jpg" || ext == ".jpeg" {
 				baseName := filepath.Base(path)
-				nameWithoutExt := strings.TrimSuffix(baseName, filepath.Ext(baseName))
+				textureName := strings.TrimSuffix(baseName, filepath.Ext(baseName))
 
-				textures[nameWithoutExt] = rl.LoadTexture(path)
+				textures[textureName] = rl.LoadTexture(path)
 			}
 		}
 		return nil
@@ -62,5 +62,5 @@ func DrawImage(texture rl.Texture2D, posX, posY, indX, indY, ratioX, ratioY, zoo
 
 	origin := rl.NewVector2(destW/2, destH/2)
 
-	rl.DrawTexturePro(texture, sourceRec, destRec, origin, rotation, rl.White) 
+	rl.DrawTexturePro(texture, sourceRec, destRec, origin, rotation, rl.White)
 }

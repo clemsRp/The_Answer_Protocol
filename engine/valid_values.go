@@ -8,14 +8,10 @@ import (
 )
 
 const (
-	RoomEntrance         = "entrance"
-	RoomProduceSection   = "produce_section"
-	RoomMeatCounter      = "meat_counter"
-	RoomFishCounter      = "fish_counter"
-	RoomCleaningProducts = "cleaning_products"
-	RoomPastries         = "pastries"
-	RoomClothingAisle    = "clothing_aisle"
-	RoomCheckoutLanes    = "checkout_lanes"
+	RoomEntrance      = "entrance"
+	RoomVillageSquare = "village_square"
+	RoomAbandonedFarm = "abandoned_farm"
+	RoomMerchantTent  = "merchant_tent"
 )
 const (
 	South = "south"
@@ -27,13 +23,9 @@ const (
 var (
 	valid_maps = []string{
 		RoomEntrance,
-		RoomProduceSection,
-		RoomMeatCounter,
-		RoomFishCounter,
-		RoomCleaningProducts,
-		RoomPastries,
-		RoomClothingAisle,
-		RoomCheckoutLanes,
+		RoomVillageSquare,
+		RoomAbandonedFarm,
+		RoomMerchantTent,
 	}
 
 	exits = []string{

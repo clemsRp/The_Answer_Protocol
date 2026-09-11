@@ -1,5 +1,5 @@
 {
-    "activeFile": "Basic Grass Biom things 1.tsx",
+    "activeFile": "test.tmx",
     "expandedProjectPaths": [
         "."
     ],
@@ -11,7 +11,7 @@
         },
         "Basic Charakter Spritesheet.tsx": {
             "scaleInDock": 1,
-            "scaleInEditor": 11
+            "scaleInEditor": 4
         },
         "Basic Furniture.tsx": {
             "scaleInDock": 1,
@@ -58,6 +58,7 @@
             "scaleInEditor": 1
         },
         "Doors.tsx": {
+            "dynamicWrapping": false,
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
@@ -92,6 +93,10 @@
         "Gemini_Generated_Image_9wzjo39wzjo39wzj.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
+        },
+        "Gemini_Generated_Image_s8tu38s8tu38s8tu.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 4
         },
         "Grass.tsx": {
             "scaleInDock": 1,
@@ -139,7 +144,7 @@
         },
         "Tools.tsx": {
             "scaleInDock": 1,
-            "scaleInEditor": 1
+            "scaleInEditor": 5.5
         },
         "Water.tsx": {
             "scaleInDock": 8,
@@ -165,6 +170,16 @@
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
+        "collisions.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 4,
+            "scaleInEditor": 5.5
+        },
+        "collisions2.tsx": {
+            "dynamicWrapping": true,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
         "rules.tmx": {
             "scale": 1.8366666666666667,
             "selectedLayer": 1,
@@ -174,11 +189,11 @@
             }
         },
         "test.tmx": {
-            "scale": 1.5,
-            "selectedLayer": 2,
+            "scale": 2,
+            "selectedLayer": 4,
             "viewCenter": {
-                "x": 239.99999999999997,
-                "y": 160
+                "x": 267.5,
+                "y": 157
             }
         },
         "test.tsx": {
@@ -187,13 +202,15 @@
             "scaleInEditor": 1
         }
     },
-    "frame.defaultDuration": 500,
+    "frame.defaultDuration": 200,
     "last.exportedFilePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps",
-    "last.imagePath": "/home/crappo/Downloads",
+    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Sorry pack/Tests",
+    "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
     "map.tileHeight": 16,
     "map.tileWidth": 16,
+    "map.width": 32,
     "openFiles": [
         "Water.tsx",
         "test.tmx",
@@ -229,18 +246,18 @@
     "project": "sprout-lands.tiled-project",
     "property.type": "bool",
     "recentFiles": [
-        "Fences.tsx",
-        "Doors.tsx",
-        "Bitmask references 1.tsx",
-        "Wood_Bridge.tsx",
-        "Simple_Milk_and_grass_item.tsx",
-        "Simple Milk and grass item.tsx",
-        "Paths.tsx",
-        "Egg_item.tsx",
-        "Egg item.tsx",
-        "Chest.tsx",
-        "Basic_tools_and_meterials.tsx",
-        "Basic_Plants.tsx"
+        "Free_Chicken_House.tsx",
+        "collisions.tsx",
+        "Tools.tsx",
+        "Grass.tsx",
+        "Basic Furniture.tsx",
+        "Basic Grass Biom things 1.tsx",
+        "Basic Plants.tsx",
+        "Basic tools and meterials.tsx",
+        "Basic_Furniture.tsx",
+        "Basic_Grass_Biom_things.tsx",
+        "Basic_Plants.tsx",
+        "Basic_tools_and_meterials.tsx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {
