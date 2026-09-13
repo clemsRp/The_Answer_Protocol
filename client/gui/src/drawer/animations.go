@@ -1,4 +1,4 @@
-package gui
+package drawer
 
 import (
 	"time"
@@ -78,25 +78,21 @@ var (
 	}
 )
 
-func (app *App) GetLocalID(localID int, textureName string) int {
-	// Get localIDS
+func (dr *Drawer) GetLocalID(localID int, textureName string) int {
 	animKey := AnimKey{localID: localID, textureName: textureName}
 	local_IDS, ok := animation_convertor[animKey]
 	if !ok {
 		return localID
 	}
 
-	// Get animation duration
 	animDuration := 0
 	for _, new_local_id := range local_IDS {
 		animDuration += new_local_id.Step
 	}
 
-	// Get cur_time
-	elapsedMillis := time.Since(app.variables.StartTime).Milliseconds()
+	elapsedMillis := time.Since(dr.app.Variables.StartTime).Milliseconds()
 	cur_time := elapsedMillis % int64(animDuration)
 
-	// Return new localID
 	total_anim_time := 0
 	for _, new_local_id := range local_IDS {
 		total_anim_time += int(new_local_id.Step)

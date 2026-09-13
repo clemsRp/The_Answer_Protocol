@@ -265,10 +265,17 @@
 ├── project.txt
 ├── src
 │   ├── app.go
+│   ├── core
+│   │   └── app.go
 │   ├── drawer
 │   │   ├── animations.go
 │   │   ├── blur.fs
-│   │   └── draw.go
+│   │   ├── connect.go
+│   │   ├── draw.go
+│   │   ├── game.go
+│   │   ├── map.go
+│   │   ├── player.go
+│   │   └── utils.go
 │   ├── gui_client.go
 │   ├── parser
 │   │   ├── load_map.go
@@ -276,6 +283,9 @@
 │   │   └── textures.go
 │   ├── updater
 │   │   ├── collisions.go
+│   │   ├── connect.go
+│   │   ├── game.go
+│   │   ├── player.go
 │   │   └── update.go
 │   └── variables
 │       ├── constants.go
@@ -328,7 +338,7 @@
     ├── Wooden House.tsx
     └── Wooden_House_Walls_Tilset.tsx
 
-46 directories, 283 files
+47 directories, 292 files
 -e 
 === CONTENU DES FICHIERS ===
 
@@ -1379,7 +1389,7 @@ package gui
 import (
 	"fmt"
 	"strings"
-	"sync"
+	"tap/client/gui/src/core"
 	"tap/client/gui/src/parser"
 	vars "tap/client/gui/src/variables"
 	"tap/client/state"
@@ -1391,20 +1401,7 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-type App struct {
-	textures     *parser.Textures
-	variables    *vars.Variables
-	rooms        map[string]*parser.Map
-	screenWidth  int
-	screenHeight int
-	actionsChan  chan panel.Action
-	closeOnce    sync.Once
-
-	gameTexture rl.RenderTexture2D
-	blurShader  rl.Shader
-}
-
-func NewApp(actionsChan chan panel.Action) *App {
+func NewApp(actionsChan chan panel.Action) *core.App {
 	rl.SetTraceLogLevel(rl.LogNone)
 	rl.SetTargetFPS(60)
 
@@ -1415,15 +1412,12 @@ func NewApp(actionsChan chan panel.Action) *App {
 	screenHeight := rl.GetMonitorHeight(monitor)
 	rl.SetWindowSize(screenWidth, screenHeight)
 
-	app := &App{
+	app := &core.App{
 		textures:     parser.LoadTextures(),
 		variables:    vars.GetVariables(),
 		screenWidth:  screenWidth,
 		screenHeight: screenHeight,
 		actionsChan:  actionsChan,
-
-		gameTexture: rl.LoadRenderTexture(int32(screenWidth), int32(screenHeight)),
-		blurShader:  rl.LoadShader("", "./client/gui/src/blur.fs"),
 	}
 
 	rl.SetShaderValue(
@@ -1462,7 +1456,7 @@ func NewApp(actionsChan chan panel.Action) *App {
 	return app
 }
 
-func (app *App) Update() {
+func (app *core.App) Update() {
 	if app.variables.Current_view == "Connect" {
 		app.UpdateConnectView()
 
@@ -1471,7 +1465,7 @@ func (app *App) Update() {
 	}
 }
 
-func (app *App) Draw() {
+func (app *core.App) Draw() {
 	if app.variables.Current_view == "Connect" {
 		app.DrawConnectView()
 
@@ -1480,7 +1474,7 @@ func (app *App) Draw() {
 	}
 }
 
-func (app *App) Start() {
+func (app *core.App) Start() {
 	for !rl.WindowShouldClose() {
 		app.Update()
 
@@ -1491,69 +1485,69 @@ func (app *App) Start() {
 	}
 }
 
-func (app *App) QueueUpdate(f func()) {
+func (app *core.App) QueueUpdate(f func()) {
 	if f != nil {
 		f()
 	}
 }
 
-func (app *App) ShowConnectPage() {
+func (app *core.App) ShowConnectPage() {
 	app.variables.Current_view = "Connect"
 }
 
-func (app *App) ShowGamePage() {
+func (app *core.App) ShowGamePage() {
 	app.variables.Current_view = "Game"
 }
 
-func (app *App) ShowCombatPage()                                       {}
-func (app *App) ShowPopupPage()                                        {}
-func (app *App) ClosePopup()                                           {}
-func (app *App) ShowCombatResultPopup(result string, rewards []string) {}
-func (app *App) ShowQuestCompletedPopup(questID, reward string)        {}
+func (app *core.App) ShowCombatPage()                                       {}
+func (app *core.App) ShowPopupPage()                                        {}
+func (app *core.App) ClosePopup()                                           {}
+func (app *core.App) ShowCombatResultPopup(result string, rewards []string) {}
+func (app *core.App) ShowQuestCompletedPopup(questID, reward string)        {}
 
-func (app *App) UpdateNavigation(room *protocol.LookCommandData) {
+func (app *core.App) UpdateNavigation(room *protocol.LookCommandData) {
 	app.variables.PanelsVariables.Room = room
 	app.variables.Current_room = strings.SplitN(room.Id, "room.", 2)[1]
 }
 
-func (app *App) UpdateItems(roomItems, inventory []string) {
+func (app *core.App) UpdateItems(roomItems, inventory []string) {
 	app.variables.PanelsVariables.RoomItems = &roomItems
 	app.variables.PanelsVariables.Inventory = &inventory
 }
 
-func (app *App) UpdateDatas(text string) {}
-func (app *App) UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string, quests []protocol.TrackedQuestData, completed_quests []string) {
+func (app *core.App) UpdateDatas(text string) {}
+func (app *core.App) UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string, quests []protocol.TrackedQuestData, completed_quests []string) {
 }
 
-func (app *App) UpdateGroup(groupState state.GroupState) {
+func (app *core.App) UpdateGroup(groupState state.GroupState) {
 	app.variables.PanelsVariables.GroupState = &groupState
 }
 
-func (app *App) UpdateCombat(combatState state.CombatState) {
+func (app *core.App) UpdateCombat(combatState state.CombatState) {
 	app.variables.PanelsVariables.CombatState = &combatState
 }
 
-func (app *App) UpdateQuests(quests []protocol.TrackedQuestData) {
+func (app *core.App) UpdateQuests(quests []protocol.TrackedQuestData) {
 	app.variables.PanelsVariables.Quests = &quests
 }
 
-func (app *App) UpdateInspector(text string)                      {}
-func (app *App) AppendChat(scope, user, msg string)               {}
-func (app *App) AppendCombatChat(user, msg string)                {}
-func (app *App) AppendServerResponse(res protocol.ServerResponse) {}
-func (app *App) AppendCliMessage(text string)                     {}
+func (app *core.App) UpdateInspector(text string)                      {}
+func (app *core.App) AppendChat(scope, user, msg string)               {}
+func (app *core.App) AppendCombatChat(user, msg string)                {}
+func (app *core.App) AppendServerResponse(res protocol.ServerResponse) {}
+func (app *core.App) AppendCliMessage(text string)                     {}
 
-func (app *App) AppendCliResponse(res protocol.ServerResponse) {}
+func (app *core.App) AppendCliResponse(res protocol.ServerResponse) {}
 
-func (app *App) GetPseudo() string {
+func (app *core.App) GetPseudo() string {
 	return app.variables.Player.Pseudo
 }
 
-func (app *App) SetPseudo(pseudo string) {
+func (app *core.App) SetPseudo(pseudo string) {
 	app.variables.Player.Pseudo = pseudo
 }
 
-func (app *App) Stop() {
+func (app *core.App) Stop() {
 	app.closeOnce.Do(func() {
 		if app.textures != nil {
 			app.textures.UnloadTextures()
@@ -1562,10 +1556,22 @@ func (app *App) Stop() {
 	})
 }
 
+--- FILE: ./src/updater/connect.go ---
+package updater
+
+func (up *Updater) UpdateConnectView() {
+	if rl.IsKeyPressed(rl.KeyEnter) {
+		up.actionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdConnect + " clement"}
+	}
+
+	up.app.UpdateGameView()
+}
+
 --- FILE: ./src/updater/update.go ---
-package drawer
+package updater
 
 import (
+	"tap/client/gui/src/core"
 	vars "tap/client/gui/src/variables"
 	panel "tap/client/tui/panels"
 
@@ -1574,75 +1580,27 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func (app *App) UpdateConnectView() {
-	if rl.IsKeyPressed(rl.KeyEnter) {
-		app.actionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdConnect + " clement"}
-	}
-
-	app.UpdateGameView()
+type Updater struct {
+	app         *core.App
+	actionsChan chan panel.Action
 }
 
-func (app *App) UpdateGameView() {
-	app.UpdatePlayer()
+func NewUpdater(app *core.App) *Updater {
+	return &Updater{
+		app:         app,
+		actionsChan: app.actionsChan,
+	}
 }
 
-func (app *App) UpdatePlayer() {
-	current_room := app.rooms[app.variables.Current_room]
-	if current_room == nil || len(current_room.Collisions) == 0 || len(current_room.Collisions[0]) == 0 {
-		return
-	}
+--- FILE: ./src/updater/game.go ---
+package updater
 
-	tile_size := app.variables.Tileset_size
-	if tile_size == 0 {
-		tile_size = 16
-	}
-
-	dir_x := 0
-	dir_y := 0
-
-	var dx, dy float32
-	if rl.IsKeyDown(rl.KeyDown) {
-		dir_y = 1
-		dy += 4
-	} else if rl.IsKeyDown(rl.KeyUp) {
-		dir_y = -1
-		dy -= 4
-	}
-
-	if rl.IsKeyDown(rl.KeyRight) {
-		dir_x = 1
-		dx += 4
-	} else if rl.IsKeyDown(rl.KeyLeft) {
-		dir_x = -1
-		dx -= 4
-	}
-
-	app.variables.Player.Direction = &vars.Direction{X: float32(dir_x), Y: float32(dir_y)}
-
-	if dx == 0 && dy == 0 {
-		return
-	}
-
-	newX := app.variables.Player.Position.X + dx
-	if app.canMove(current_room, newX, app.variables.Player.Position.Y, int(tile_size)) {
-		app.variables.Player.Position.X = newX
-	}
-
-	newY := app.variables.Player.Position.Y + dy
-	if app.canMove(current_room, app.variables.Player.Position.X, newY, int(tile_size)) {
-		app.variables.Player.Position.Y = newY
-	}
-
-	if app.variables.Player.Position.X < 0 {
-		app.variables.Player.Position.X = 0
-	}
-	if app.variables.Player.Position.Y < 0 {
-		app.variables.Player.Position.Y = 0
-	}
+func (up *Updater) UpdateGameView() {
+	up.UpdatePlayer()
 }
 
 --- FILE: ./src/updater/collisions.go ---
-package drawer
+package updater
 
 import (
 	"tap/client/gui/src/parser"
@@ -1753,9 +1711,9 @@ var (
 	}
 )
 
-func (app *App) canMove(room *parser.Map, x, y float32, tile_size int) bool {
-	x_off := vars.FRAME_WIDTH * app.variables.Zoom
-	y_off := vars.FRAME_HEIGHT * app.variables.Zoom
+func (up *Updater) canMove(room *parser.Map, x, y float32, tile_size int) bool {
+	x_off := vars.FRAME_WIDTH * up.app.variables.Zoom
+	y_off := vars.FRAME_HEIGHT * up.app.variables.Zoom
 	marge := 2
 	bottom_part := vars.FRAME_HEIGHT * 2 / 3
 
@@ -1792,7 +1750,7 @@ func (app *App) canMove(room *parser.Map, x, y float32, tile_size int) bool {
 
 	// Check collisions
 	for _, cell := range cells {
-		if app.isColliding(room, cell.X, cell.Y, tile_size) {
+		if up.isColliding(room, cell.X, cell.Y, tile_size) {
 			return false
 		}
 	}
@@ -1800,7 +1758,7 @@ func (app *App) canMove(room *parser.Map, x, y float32, tile_size int) bool {
 	return true
 }
 
-func (app *App) isColliding(room *parser.Map, x, y float32, tile_size int) bool {
+func (up *Updater) isColliding(room *parser.Map, x, y float32, tile_size int) bool {
 	indX := int(x) / tile_size
 	indY := int(y) / tile_size
 
@@ -1820,8 +1778,8 @@ func (app *App) isColliding(room *parser.Map, x, y float32, tile_size int) bool 
 		}
 	}
 
-	localX := float32(int(x)%tile_size) / app.variables.Zoom
-	localY := float32(int(y)%tile_size) / app.variables.Zoom
+	localX := float32(int(x)%tile_size) / up.app.variables.Zoom
+	localY := float32(int(y)%tile_size) / up.app.variables.Zoom
 
 	for _, r := range rects {
 		if localX >= r.Start.X && localX < r.End.X && localY >= r.Start.Y && localY < r.End.Y {
@@ -1830,6 +1788,64 @@ func (app *App) isColliding(room *parser.Map, x, y float32, tile_size int) bool 
 	}
 
 	return false
+}
+
+--- FILE: ./src/updater/player.go ---
+package updater
+
+func (up *Updater) UpdatePlayer() {
+	current_room := up.app.rooms[up.app.variables.Current_room]
+	if current_room == nil || len(current_room.Collisions) == 0 || len(current_room.Collisions[0]) == 0 {
+		return
+	}
+
+	tile_size := up.app.variables.Tileset_size
+	if tile_size == 0 {
+		tile_size = 16
+	}
+
+	dir_x := 0
+	dir_y := 0
+
+	var dx, dy float32
+	if rl.IsKeyDown(rl.KeyDown) {
+		dir_y = 1
+		dy += 4
+	} else if rl.IsKeyDown(rl.KeyUp) {
+		dir_y = -1
+		dy -= 4
+	}
+
+	if rl.IsKeyDown(rl.KeyRight) {
+		dir_x = 1
+		dx += 4
+	} else if rl.IsKeyDown(rl.KeyLeft) {
+		dir_x = -1
+		dx -= 4
+	}
+
+	up.app.variables.Player.Direction = &vars.Direction{X: float32(dir_x), Y: float32(dir_y)}
+
+	if dx == 0 && dy == 0 {
+		return
+	}
+
+	newX := up.app.variables.Player.Position.X + dx
+	if up.canMove(current_room, newX, up.app.variables.Player.Position.Y, int(tile_size)) {
+		up.app.variables.Player.Position.X = newX
+	}
+
+	newY := up.app.variables.Player.Position.Y + dy
+	if up.canMove(current_room, up.app.variables.Player.Position.X, newY, int(tile_size)) {
+		up.app.variables.Player.Position.Y = newY
+	}
+
+	if up.app.variables.Player.Position.X < 0 {
+		up.app.variables.Player.Position.X = 0
+	}
+	if up.app.variables.Player.Position.Y < 0 {
+		up.app.variables.Player.Position.Y = 0
+	}
 }
 
 --- FILE: ./src/variables/constants.go ---
@@ -1846,7 +1862,7 @@ const (
 	PLAYER_ANIM_DURATION = 100000000
 
 	WOOD_FRAME_TEXTURE = "Sprite sheet for Basic Pack"
-	PLAY_TEXTURE = "UI Big Play Button"
+	PLAY_TEXTURE       = "UI Big Play Button"
 )
 
 --- FILE: ./src/variables/variables.go ---
@@ -1947,11 +1963,12 @@ import (
 	"tap/client/controller"
 	"tap/client/network"
 	"tap/client/state"
+	"tap/client/gui/src/core"
 	panel "tap/client/tui/panels"
 )
 
 type GuiClient struct {
-	app         *App
+	app         *core.App
 	netCli      *network.Client
 	controller  *controller.Controller
 	gameState   *state.GameState
@@ -2119,8 +2136,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	vars "tap/client/gui/src/variables"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -2159,23 +2174,76 @@ func (t *Textures) UnloadTextures() {
 		rl.UnloadTexture(texture)
 	}
 }
-func DrawImage(texture rl.Texture2D, posX, posY, indX, indY, ratioX, ratioY, zoom, rotation float32) { //[cite: 18]
-	sourceW := ratioX * float32(vars.FRAME_WIDTH)
-	sourceH := ratioY * float32(vars.FRAME_HEIGHT)
 
-	sourceRec := rl.NewRectangle(
-		indX*float32(vars.FRAME_WIDTH), indY*float32(vars.FRAME_HEIGHT),
-		sourceW, sourceH,
+--- FILE: ./src/drawer/connect.go ---
+package drawer
+
+func (dr *Drawer) DrawConnectView() {
+	// Draw game view
+	rl.BeginTextureMode(dr.gameTexture)
+	dr.DrawGameView()
+	rl.EndTextureMode()
+
+	// Add blur
+	rl.BeginShaderMode(dr.blurShader)
+	rl.DrawTextureRec(
+		dr.gameTexture.Texture,
+		rl.NewRectangle(
+			0, 0,
+			float32(dr.gameTexture.Texture.Width),
+			-float32(dr.gameTexture.Texture.Height),
+		),
+		rl.NewVector2(0, 0),
+		rl.White,
+	)
+	rl.EndShaderMode()
+
+	connect_start_x := 8.0
+	connect_start_y := 4.5
+	connect_width := 16.0
+	connect_height := 9.0
+
+	// Draw connect view
+	// Logo
+	logo_fraction := 50
+
+	available_height := float32(connect_start_y) * dr.app.variables.Tileset_size
+	target_logo_height := available_height * float32(logo_fraction-2) / float32(logo_fraction)
+
+	logo_zoom := target_logo_height / float32(logo.Height)
+	logo_width_px := float32(logo.Width) * logo_zoom
+
+	posX := (float32(dr.app.screenWidth) - logo_width_px) / 2
+	posY := available_height * 1 / float32(logo_fraction)
+
+	dr.DrawImage(
+		vars.LOGO_TEXTURE,
+		posX, posY,
+		0, 0,
+		float32(logo.Width)/float32(vars.FRAME_WIDTH),
+		float32(logo.Height)/float32(vars.FRAME_HEIGHT),
+		logo_zoom, 0,
 	)
 
-	destW := float32(vars.FRAME_WIDTH) * zoom * ratioX
-	destH := float32(vars.FRAME_HEIGHT) * zoom * ratioY
+	// Connect panel
+	rl.DrawRectangle(
+		int32(float32(connect_start_x+1)*dr.app.variables.Tileset_size),
+		int32(float32(connect_start_y+1)*dr.app.variables.Tileset_size),
+		int32(float32(connect_width-2)*dr.app.variables.Tileset_size),
+		int32(float32(connect_height-1)*dr.app.variables.Tileset_size),
+		rl.NewColor(220, 185, 138, 255),
+	)
 
-	destRec := rl.NewRectangle(posX+(destW/2), posY+(destH/2), destW, destH)
+	dr.DrawWoodFrameAt(
+		vars.Position{X: 8, Y: 4.5},
+		vars.Position{X: 24, Y: 13.5},
+	)
 
-	origin := rl.NewVector2(destW/2, destH/2)
-
-	rl.DrawTexturePro(texture, sourceRec, destRec, origin, rotation, rl.White)
+	// Play button
+	dr.DrawImage(
+		vars.PLAY_TEXTURE,
+		0, 0, 0, 2, 6, 2, dr.app.variables.Zoom, 0,
+	)
 }
 
 --- FILE: ./src/drawer/blur.fs ---
@@ -2217,6 +2285,95 @@ void main()
 
     finalColor = sum * fragColor * colDiffuse;
 }
+--- FILE: ./src/drawer/game.go ---
+package drawer
+
+func (dr *Drawer) DrawGameView() {
+	dr.DrawMap()
+	dr.DrawPlayer()
+
+	for _, layer := range dr.app.rooms[dr.variables.Current_room].Layers {
+		if layer.Name == "InFrontOfPlayer" {
+			dr.DrawLayer(layer, dr.app.rooms[dr.app.variables.Current_room].Tilesets)
+		}
+	}
+
+	dr.DrawPseudo()
+}
+
+--- FILE: ./src/drawer/player.go ---
+package drawer
+
+func (dr *Drawer) DrawPlayer() {
+	// Draw player texture
+	texture_name, ind_x, ind_y := dr.GetPlayerTexture()
+	dr.DrawImage(
+		texture_name,
+		dr.app.variables.Player.Position.X, dr.app.variables.Player.Position.Y,
+		float32(ind_x), float32(ind_y), 1, 1, dr.app.variables.Zoom, 0,
+	)
+}
+
+func (dr *Drawer) DrawPseudo() {
+	pseudo := dr.GetPseudo()
+	font_size := 20
+
+	text_size := rl.MeasureText(pseudo, int32(font_size))
+	center_text := (vars.FRAME_WIDTH*int32(dr.app.variables.Zoom) - text_size) / 2
+
+	rl.DrawText(
+		pseudo,
+		int32(dr.app.variables.Player.Position.X)+center_text,
+		int32(dr.app.variables.Player.Position.Y)-int32(font_size),
+		int32(font_size), rl.White,
+	)
+}
+
+func (dr *Drawer) GetPlayerTexture() (string, int, int) {
+	// Get directions
+	dir_x := dr.app.variables.Player.Direction.X
+	dir_y := dr.app.variables.Player.Direction.Y
+
+	// Get texture_name
+	texture_name := vars.PLAYER_TEXTURE
+
+	var ind_x int
+	var ind_y int
+
+	switch (vars.Direction{X: dir_x, Y: dir_y}) {
+	case Up:
+		ind_x = 0
+	case UpLeft:
+		ind_x = 1
+	case Left:
+		ind_x = 2
+	case DownLeft:
+		ind_x = 3
+	case Down:
+		ind_x = 4
+	case DownRight:
+		ind_x = 5
+	case Right:
+		ind_x = 6
+	case UpRight:
+		ind_x = 7
+
+	default:
+		ind_x = 4
+	}
+
+	ind_y = (int(time.Since(dr.app.variables.StartTime)) % (4 * vars.PLAYER_ANIM_DURATION)) / vars.PLAYER_ANIM_DURATION
+
+	if dir_x == 0 && dir_y == 0 {
+		texture_name = vars.PLAYER_REST_TEXTURE
+		ind_x = (int(time.Since(dr.app.variables.StartTime)) % (2 * vars.PLAYER_ANIM_DURATION * 3)) / (vars.PLAYER_ANIM_DURATION * 3)
+		ind_x = 3*ind_x + 1
+		ind_y = 1
+	}
+
+	return texture_name, ind_x, ind_y
+}
+
 --- FILE: ./src/drawer/animations.go ---
 package drawer
 
@@ -2298,7 +2455,7 @@ var (
 	}
 )
 
-func (app *App) GetLocalID(localID int, textureName string) int {
+func (dr *Drawer) GetLocalID(localID int, textureName string) int {
 	// Get localIDS
 	animKey := AnimKey{localID: localID, textureName: textureName}
 	local_IDS, ok := animation_convertor[animKey]
@@ -2313,7 +2470,7 @@ func (app *App) GetLocalID(localID int, textureName string) int {
 	}
 
 	// Get cur_time
-	elapsedMillis := time.Since(app.variables.StartTime).Milliseconds()
+	elapsedMillis := time.Since(dr.app.variables.StartTime).Milliseconds()
 	cur_time := elapsedMillis % int64(animDuration)
 
 	// Return new localID
@@ -2335,6 +2492,7 @@ import (
 	"path/filepath"
 	"strings"
 	"tap/client/gui/src/parser"
+	"tap/client/gui/src/core"
 	"time"
 
 	vars "tap/client/gui/src/variables"
@@ -2342,7 +2500,12 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+type Drawer struct {
+	app *core.App
 
+	gameTexture: rl.Texture2D,
+	blurShader:  rl.Shader,
+}
 
 var (
 	Down  = vars.Direction{X: 0, Y: 1}
@@ -2356,90 +2519,20 @@ var (
 	UpRight   = vars.Direction{X: 1, Y: -1}
 )
 
-func (app *App) DrawConnectView() {
-	// Draw game view
-	rl.BeginTextureMode(app.gameTexture)
-	app.DrawGameView()
-	rl.EndTextureMode()
-
-	// Add blur
-	rl.BeginShaderMode(app.blurShader)
-	rl.DrawTextureRec(
-		app.gameTexture.Texture,
-		rl.NewRectangle(
-			0, 0,
-			float32(app.gameTexture.Texture.Width),
-			-float32(app.gameTexture.Texture.Height),
-		),
-		rl.NewVector2(0, 0),
-		rl.White,
-	)
-	rl.EndShaderMode()
-
-	connect_start_x := 8.0
-	connect_start_y := 4.5
-	connect_width := 16.0
-	connect_height := 9.0
-
-	// Draw connect view
-	// Logo
-	logo := (*app.textures)[vars.LOGO_TEXTURE]
-	logo_fraction := 50
-
-	available_height := float32(connect_start_y) * app.variables.Tileset_size
-	target_logo_height := available_height * float32(logo_fraction-2) / float32(logo_fraction)
-
-	logo_zoom := target_logo_height / float32(logo.Height)
-	logo_width_px := float32(logo.Width) * logo_zoom
-
-	posX := (float32(app.screenWidth) - logo_width_px) / 2
-	posY := available_height * 1 / float32(logo_fraction)
-
-	parser.DrawImage(
-		logo,
-		posX, posY,
-		0, 0,
-		float32(logo.Width)/float32(vars.FRAME_WIDTH),
-		float32(logo.Height)/float32(vars.FRAME_HEIGHT),
-		logo_zoom, 0,
-	)
-
-	// Connect panel
-	rl.DrawRectangle(
-		int32(float32(connect_start_x+1)*app.variables.Tileset_size),
-		int32(float32(connect_start_y+1)*app.variables.Tileset_size),
-		int32(float32(connect_width-2)*app.variables.Tileset_size),
-		int32(float32(connect_height-1)*app.variables.Tileset_size),
-		rl.NewColor(220, 185, 138, 255),
-	)
-
-	app.DrawWoodFrameAt(
-		vars.Position{X: 8, Y: 4.5},
-		vars.Position{X: 24, Y: 13.5},
-	)
-
-	// Play button
-	parser.DrawImage(
-		(*app.textures)[vars.PLAY_TEXTURE],
-		0, 0, 0, 2, 6, 2, app.variables.Zoom, 0,
-	)
-}
-
-func (app *App) DrawGameView() {
-	app.DrawMap()
-	app.DrawPlayer()
-
-	for _, layer := range app.rooms[app.variables.Current_room].Layers {
-		if layer.Name == "InFrontOfPlayer" {
-			app.DrawLayer(layer, app.rooms[app.variables.Current_room].Tilesets)
-		}
+func NewDrawer(app *core.App) *Drawer {
+	return &Drawer{
+		app: app,
+		textures: app.textures,
+		gameTexture: rl.LoadRenderTexture(int32(screenWidth), int32(screenHeight)),
+		blurShader:  rl.LoadShader("", "./client/gui/src/drawer/blur.fs"),
 	}
-
-	app.DrawPseudo()
 }
 
-func (app *App) DrawMap() {
-	cur_room := app.rooms[app.variables.Current_room]
+--- FILE: ./src/drawer/map.go ---
+package drawer
+
+func (dr *Drawer) DrawMap() {
+	cur_room := dr.app.rooms[dr.app.variables.Current_room]
 	if cur_room == nil {
 		return
 	}
@@ -2448,16 +2541,16 @@ func (app *App) DrawMap() {
 		if !layer.Visible || layer.Name == "InFrontOfPlayer" {
 			continue
 		}
-		app.DrawLayer(layer, cur_room.Tilesets)
+		dr.DrawLayer(layer, cur_room.Tilesets)
 	}
 
-	app.DrawWoodFrameAt(
+	dr.DrawWoodFrameAt(
 		vars.Position{X: 0, Y: 0},
 		vars.Position{X: 32, Y: 18},
 	)
 }
 
-func (app *App) DrawLayer(layer parser.Layer, tilesets []parser.Tileset) {
+func (dr *Drawer) DrawLayer(layer parser.Layer, tilesets []parser.Tileset) {
 	const (
 		FLIPPED_HORIZONTALLY_FLAG = 0x80000000
 		FLIPPED_VERTICALLY_FLAG   = 0x40000000
@@ -2481,8 +2574,8 @@ func (app *App) DrawLayer(layer parser.Layer, tilesets []parser.Tileset) {
 		gridX := i % layer.Width
 		gridY := i / layer.Width
 
-		posX := float32(gridX * int(app.variables.Tileset_size))
-		posY := float32(gridY * int(app.variables.Tileset_size))
+		posX := float32(gridX * int(dr.app.variables.Tileset_size))
+		posY := float32(gridY * int(dr.app.variables.Tileset_size))
 
 		var activeTileset parser.Tileset
 		for j := len(tilesets) - 1; j >= 0; j-- {
@@ -2500,13 +2593,8 @@ func (app *App) DrawLayer(layer parser.Layer, tilesets []parser.Tileset) {
 		baseName := filepath.Base(sourcePath)
 		textureName := strings.TrimSuffix(baseName, filepath.Ext(baseName))
 
-		texture, ok := (*app.textures)[textureName]
-		if !ok {
-			continue
-		}
-
 		localID := tile - activeTileset.FirstGID
-		localID = app.GetLocalID(localID, textureName)
+		localID = dr.GetLocalID(localID, textureName)
 
 		cols := int(texture.Width) / vars.FRAME_WIDTH
 		if cols == 0 {
@@ -2538,81 +2626,34 @@ func (app *App) DrawLayer(layer parser.Layer, tilesets []parser.Tileset) {
 			}
 		}
 
-		parser.DrawImage(texture, posX, posY, indX, indY, rX, rY, app.variables.Zoom, rotation)
+		dr.DrawImage(texture_name, posX, posY, indX, indY, rX, rY, dr.app.variables.Zoom, rotation)
 	}
 }
 
-func (app *App) DrawPlayer() {
-	// Draw player texture
-	texture, ind_x, ind_y := app.GetPlayerTexture()
-	parser.DrawImage(
-		texture,
-		app.variables.Player.Position.X, app.variables.Player.Position.Y,
-		float32(ind_x), float32(ind_y), 1, 1, app.variables.Zoom, 0,
+--- FILE: ./src/drawer/utils.go ---
+package drawer
+
+func (dr *Drawer) DrawImage(texture_name string, posX, posY, indX, indY, ratioX, ratioY, zoom, rotation float32) {
+	texture := (*dr.textures)[texture_name]
+	sourceW := ratioX * float32(vars.FRAME_WIDTH)
+	sourceH := ratioY * float32(vars.FRAME_HEIGHT)
+
+	sourceRec := rl.NewRectangle(
+		indX*float32(vars.FRAME_WIDTH), indY*float32(vars.FRAME_HEIGHT),
+		sourceW, sourceH,
 	)
+
+	destW := float32(vars.FRAME_WIDTH) * zoom * ratioX
+	destH := float32(vars.FRAME_HEIGHT) * zoom * ratioY
+
+	destRec := rl.NewRectangle(posX+(destW/2), posY+(destH/2), destW, destH)
+
+	origin := rl.NewVector2(destW/2, destH/2)
+
+	rl.DrawTexturePro(texture, sourceRec, destRec, origin, rotation, rl.White)
 }
 
-func (app *App) DrawPseudo() {
-	pseudo := app.GetPseudo()
-	font_size := 20
-
-	text_size := rl.MeasureText(pseudo, int32(font_size))
-	center_text := (vars.FRAME_WIDTH*int32(app.variables.Zoom) - text_size) / 2
-
-	rl.DrawText(
-		pseudo,
-		int32(app.variables.Player.Position.X)+center_text,
-		int32(app.variables.Player.Position.Y)-int32(font_size),
-		int32(font_size), rl.White,
-	)
-}
-
-func (app *App) GetPlayerTexture() (rl.Texture2D, int, int) {
-	// Get directions
-	dir_x := app.variables.Player.Direction.X
-	dir_y := app.variables.Player.Direction.Y
-
-	// Get texture_name
-	texture_name := vars.PLAYER_TEXTURE
-
-	var ind_x int
-	var ind_y int
-
-	switch (vars.Direction{X: dir_x, Y: dir_y}) {
-	case Up:
-		ind_x = 0
-	case UpLeft:
-		ind_x = 1
-	case Left:
-		ind_x = 2
-	case DownLeft:
-		ind_x = 3
-	case Down:
-		ind_x = 4
-	case DownRight:
-		ind_x = 5
-	case Right:
-		ind_x = 6
-	case UpRight:
-		ind_x = 7
-
-	default:
-		ind_x = 4
-	}
-
-	ind_y = (int(time.Since(app.variables.StartTime)) % (4 * vars.PLAYER_ANIM_DURATION)) / vars.PLAYER_ANIM_DURATION
-
-	if dir_x == 0 && dir_y == 0 {
-		texture_name = vars.PLAYER_REST_TEXTURE
-		ind_x = (int(time.Since(app.variables.StartTime)) % (2 * vars.PLAYER_ANIM_DURATION * 3)) / (vars.PLAYER_ANIM_DURATION * 3)
-		ind_x = 3*ind_x + 1
-		ind_y = 1
-	}
-
-	return (*app.textures)[texture_name], ind_x, ind_y
-}
-
-func (app *App) DrawWoodFrameAt(visualStart vars.Position, visualEnd vars.Position) {
+func (dr *Drawer) DrawWoodFrameAt(visualStart vars.Position, visualEnd vars.Position) {
 	start := vars.Position{
 		X: visualStart.X / 2,
 		Y: visualStart.Y / 2,
@@ -2621,10 +2662,10 @@ func (app *App) DrawWoodFrameAt(visualStart vars.Position, visualEnd vars.Positi
 		X: visualEnd.X - start.X + 1,
 		Y: visualEnd.Y - start.Y + 1,
 	}
-	app.DrawWoodFrame(start, end)
+	dr.DrawWoodFrame(start, end)
 }
 
-func (app *App) DrawWoodFrame(start vars.Position, end vars.Position) {
+func (dr *Drawer) DrawWoodFrame(start vars.Position, end vars.Position) {
 	frame_start_x := 12
 	frame_start_y := 0
 
@@ -2659,15 +2700,40 @@ func (app *App) DrawWoodFrame(start vars.Position, end vars.Position) {
 			}
 
 			// Draw frame
-			parser.DrawImage(
-				(*app.textures)[vars.WOOD_FRAME_TEXTURE],
-				2*app.variables.Tileset_size*(float32(x)+start.X)-app.variables.Tileset_size,
-				2*app.variables.Tileset_size*(float32(y)+start.Y)-app.variables.Tileset_size,
+			dr.DrawImage(
+				vars.WOOD_FRAME_TEXTURE,
+				2*dr.app.variables.Tileset_size*(float32(x)+start.X)-dr.app.variables.Tileset_size,
+				2*dr.app.variables.Tileset_size*(float32(y)+start.Y)-dr.app.variables.Tileset_size,
 				float32(frame_start_x+ind_x), float32(frame_start_y+ind_y),
-				1, 1, 2*app.variables.Zoom, 0,
+				1, 1, 2*dr.app.variables.Zoom, 0,
 			)
 		}
 	}
+}
+
+--- FILE: ./src/core/app.go ---
+package core
+
+import (
+	rl "github.com/gen2brain/raylib-go/raylib"
+
+	"sync"
+	"tap/client/gui/src/parser"
+	vars "tap/client/gui/src/variables"
+	panel "tap/client/tui/panels"
+)
+
+type App struct {
+	textures     *parser.Textures
+	variables    *vars.Variables
+	rooms        map[string]*parser.Map
+	screenWidth  int
+	screenHeight int
+	actionsChan  chan panel.Action
+	closeOnce    sync.Once
+
+	gameTexture rl.RenderTexture2D
+	blurShader  rl.Shader
 }
 
 --- FILE: ./assets/Sprout Lands - UI Pack - Basic pack/fonts/pixelFont-7-8x14-sproutLands.ttf ---

@@ -1,4 +1,4 @@
-package gui
+package updater
 
 import (
 	"tap/client/gui/src/parser"
@@ -109,9 +109,9 @@ var (
 	}
 )
 
-func (app *App) canMove(room *parser.Map, x, y float32, tile_size int) bool {
-	x_off := vars.FRAME_WIDTH * app.variables.Zoom
-	y_off := vars.FRAME_HEIGHT * app.variables.Zoom
+func (up *Updater) canMove(room *parser.Map, x, y float32, tile_size int) bool {
+	x_off := vars.FRAME_WIDTH * up.app.Variables.Zoom
+	y_off := vars.FRAME_HEIGHT * up.app.Variables.Zoom
 	marge := 2
 	bottom_part := vars.FRAME_HEIGHT * 2 / 3
 
@@ -148,7 +148,7 @@ func (app *App) canMove(room *parser.Map, x, y float32, tile_size int) bool {
 
 	// Check collisions
 	for _, cell := range cells {
-		if app.isColliding(room, cell.X, cell.Y, tile_size) {
+		if up.isColliding(room, cell.X, cell.Y, tile_size) {
 			return false
 		}
 	}
@@ -156,7 +156,7 @@ func (app *App) canMove(room *parser.Map, x, y float32, tile_size int) bool {
 	return true
 }
 
-func (app *App) isColliding(room *parser.Map, x, y float32, tile_size int) bool {
+func (up *Updater) isColliding(room *parser.Map, x, y float32, tile_size int) bool {
 	indX := int(x) / tile_size
 	indY := int(y) / tile_size
 
@@ -176,8 +176,8 @@ func (app *App) isColliding(room *parser.Map, x, y float32, tile_size int) bool 
 		}
 	}
 
-	localX := float32(int(x)%tile_size) / app.variables.Zoom
-	localY := float32(int(y)%tile_size) / app.variables.Zoom
+	localX := float32(int(x)%tile_size) / up.app.Variables.Zoom
+	localY := float32(int(y)%tile_size) / up.app.Variables.Zoom
 
 	for _, r := range rects {
 		if localX >= r.Start.X && localX < r.End.X && localY >= r.Start.Y && localY < r.End.Y {

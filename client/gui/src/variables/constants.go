@@ -11,5 +11,5 @@ const (
 	PLAYER_ANIM_DURATION = 100000000
 
 	WOOD_FRAME_TEXTURE = "Sprite sheet for Basic Pack"
-	PLAY_TEXTURE = "UI Big Play Button"
+	PLAY_TEXTURE       = "UI Big Play Button"
 )
