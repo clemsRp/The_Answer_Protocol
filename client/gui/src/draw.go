@@ -11,6 +11,8 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+
+
 var (
 	Down  = vars.Direction{X: 0, Y: 1}
 	Up    = vars.Direction{X: 0, Y: -1}
@@ -24,7 +26,72 @@ var (
 )
 
 func (app *App) DrawConnectView() {
-	rl.DrawRectangle(0, 0, 750, 250, rl.Red)
+	// Draw game view
+	rl.BeginTextureMode(app.gameTexture)
+	app.DrawGameView()
+	rl.EndTextureMode()
+
+	// Add blur
+	rl.BeginShaderMode(app.blurShader)
+	rl.DrawTextureRec(
+		app.gameTexture.Texture,
+		rl.NewRectangle(
+			0, 0,
+			float32(app.gameTexture.Texture.Width),
+			-float32(app.gameTexture.Texture.Height),
+		),
+		rl.NewVector2(0, 0),
+		rl.White,
+	)
+	rl.EndShaderMode()
+
+	connect_start_x := 8.0
+	connect_start_y := 4.5
+	connect_width := 16.0
+	connect_height := 9.0
+
+	// Draw connect view
+	// Logo
+	logo := (*app.textures)[vars.LOGO_TEXTURE]
+	logo_fraction := 50
+
+	available_height := float32(connect_start_y) * app.variables.Tileset_size
+	target_logo_height := available_height * float32(logo_fraction-2) / float32(logo_fraction)
+
+	logo_zoom := target_logo_height / float32(logo.Height)
+	logo_width_px := float32(logo.Width) * logo_zoom
+
+	posX := (float32(app.screenWidth) - logo_width_px) / 2
+	posY := available_height * 1 / float32(logo_fraction)
+
+	parser.DrawImage(
+		logo,
+		posX, posY,
+		0, 0,
+		float32(logo.Width)/float32(vars.FRAME_WIDTH),
+		float32(logo.Height)/float32(vars.FRAME_HEIGHT),
+		logo_zoom, 0,
+	)
+
+	// Connect panel
+	rl.DrawRectangle(
+		int32(float32(connect_start_x+1)*app.variables.Tileset_size),
+		int32(float32(connect_start_y+1)*app.variables.Tileset_size),
+		int32(float32(connect_width-2)*app.variables.Tileset_size),
+		int32(float32(connect_height-1)*app.variables.Tileset_size),
+		rl.NewColor(220, 185, 138, 255),
+	)
+
+	app.DrawWoodFrameAt(
+		vars.Position{X: 8, Y: 4.5},
+		vars.Position{X: 24, Y: 13.5},
+	)
+
+	// Play button
+	parser.DrawImage(
+		(*app.textures)[vars.PLAY_TEXTURE],
+		0, 0, 0, 2, 6, 2, app.variables.Zoom, 0,
+	)
 }
 
 func (app *App) DrawGameView() {
@@ -53,7 +120,10 @@ func (app *App) DrawMap() {
 		app.DrawLayer(layer, cur_room.Tilesets)
 	}
 
-	app.DrawWoodFrame()
+	app.DrawWoodFrameAt(
+		vars.Position{X: 0, Y: 0},
+		vars.Position{X: 32, Y: 18},
+	)
 }
 
 func (app *App) DrawLayer(layer parser.Layer, tilesets []parser.Tileset) {
@@ -203,7 +273,7 @@ func (app *App) GetPlayerTexture() (rl.Texture2D, int, int) {
 
 	if dir_x == 0 && dir_y == 0 {
 		texture_name = vars.PLAYER_REST_TEXTURE
-		ind_x = (int(time.Since(app.variables.StartTime)) % (2 * vars.PLAYER_ANIM_DURATION)) / vars.PLAYER_ANIM_DURATION
+		ind_x = (int(time.Since(app.variables.StartTime)) % (2 * vars.PLAYER_ANIM_DURATION * 3)) / (vars.PLAYER_ANIM_DURATION * 3)
 		ind_x = 3*ind_x + 1
 		ind_y = 1
 	}
@@ -211,12 +281,24 @@ func (app *App) GetPlayerTexture() (rl.Texture2D, int, int) {
 	return (*app.textures)[texture_name], ind_x, ind_y
 }
 
-func (app *App) DrawWoodFrame() {
+func (app *App) DrawWoodFrameAt(visualStart vars.Position, visualEnd vars.Position) {
+	start := vars.Position{
+		X: visualStart.X / 2,
+		Y: visualStart.Y / 2,
+	}
+	end := vars.Position{
+		X: visualEnd.X - start.X + 1,
+		Y: visualEnd.Y - start.Y + 1,
+	}
+	app.DrawWoodFrame(start, end)
+}
+
+func (app *App) DrawWoodFrame(start vars.Position, end vars.Position) {
 	frame_start_x := 12
 	frame_start_y := 0
 
-	frame_width := 17
-	frame_height := 10
+	frame_width := int((end.X-start.X)/2 + 1)
+	frame_height := int((end.Y-start.Y)/2 + 1)
 
 	for x := range frame_width {
 		for y := range frame_height {
@@ -248,8 +330,8 @@ func (app *App) DrawWoodFrame() {
 			// Draw frame
 			parser.DrawImage(
 				(*app.textures)[vars.WOOD_FRAME_TEXTURE],
-				2*app.variables.Tileset_size*float32(x)-app.variables.Tileset_size,
-				2*app.variables.Tileset_size*float32(y)-app.variables.Tileset_size,
+				2*app.variables.Tileset_size*(float32(x)+start.X)-app.variables.Tileset_size,
+				2*app.variables.Tileset_size*(float32(y)+start.Y)-app.variables.Tileset_size,
 				float32(frame_start_x+ind_x), float32(frame_start_y+ind_y),
 				1, 1, 2*app.variables.Zoom, 0,
 			)

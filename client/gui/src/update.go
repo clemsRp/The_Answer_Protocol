@@ -13,6 +13,8 @@ func (app *App) UpdateConnectView() {
 	if rl.IsKeyPressed(rl.KeyEnter) {
 		app.actionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdConnect + " clement"}
 	}
+
+	app.UpdateGameView()
 }
 
 func (app *App) UpdateGameView() {
@@ -37,16 +39,15 @@ func (app *App) UpdatePlayer() {
 	if rl.IsKeyDown(rl.KeyDown) {
 		dir_y = 1
 		dy += 4
-	}
-	if rl.IsKeyDown(rl.KeyUp) {
+	} else if rl.IsKeyDown(rl.KeyUp) {
 		dir_y = -1
 		dy -= 4
 	}
+
 	if rl.IsKeyDown(rl.KeyRight) {
 		dir_x = 1
 		dx += 4
-	}
-	if rl.IsKeyDown(rl.KeyLeft) {
+	} else if rl.IsKeyDown(rl.KeyLeft) {
 		dir_x = -1
 		dx -= 4
 	}

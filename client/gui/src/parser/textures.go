@@ -55,8 +55,8 @@ func DrawImage(texture rl.Texture2D, posX, posY, indX, indY, ratioX, ratioY, zoo
 		sourceW, sourceH,
 	)
 
-	destW := float32(vars.FRAME_WIDTH) * zoom
-	destH := float32(vars.FRAME_HEIGHT) * zoom
+	destW := float32(vars.FRAME_WIDTH) * zoom * ratioX
+	destH := float32(vars.FRAME_HEIGHT) * zoom * ratioY
 
 	destRec := rl.NewRectangle(posX+(destW/2), posY+(destH/2), destW, destH)
 

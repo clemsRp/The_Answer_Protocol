@@ -23,6 +23,9 @@ type App struct {
 	screenHeight int
 	actionsChan  chan panel.Action
 	closeOnce    sync.Once
+
+	gameTexture rl.RenderTexture2D
+	blurShader  rl.Shader
 }
 
 func NewApp(actionsChan chan panel.Action) *App {
@@ -42,7 +45,29 @@ func NewApp(actionsChan chan panel.Action) *App {
 		screenWidth:  screenWidth,
 		screenHeight: screenHeight,
 		actionsChan:  actionsChan,
+
+		gameTexture: rl.LoadRenderTexture(int32(screenWidth), int32(screenHeight)),
+		blurShader:  rl.LoadShader("", "./client/gui/src/blur.fs"),
 	}
+
+	rl.SetShaderValue(
+		app.blurShader,
+		rl.GetShaderLocation(app.blurShader, "renderWidth"),
+		[]float32{float32(screenWidth)},
+		rl.ShaderUniformFloat,
+	)
+	rl.SetShaderValue(
+		app.blurShader,
+		rl.GetShaderLocation(app.blurShader, "renderHeight"),
+		[]float32{float32(screenHeight)},
+		rl.ShaderUniformFloat,
+	)
+	rl.SetShaderValue(
+		app.blurShader,
+		rl.GetShaderLocation(app.blurShader, "blurStrength"),
+		[]float32{3.0},
+		rl.ShaderUniformFloat,
+	)
 
 	var err error
 	maps_folder_path := "./client/gui/maps/"
@@ -84,7 +109,7 @@ func (app *App) Start() {
 		app.Update()
 
 		rl.BeginDrawing()
-		rl.ClearBackground(rl.LightGray)
+		rl.ClearBackground(rl.Black)
 		app.Draw()
 		rl.EndDrawing()
 	}
