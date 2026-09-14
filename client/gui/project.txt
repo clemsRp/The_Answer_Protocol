@@ -271,8 +271,10 @@
 │   ├── drawer
 │   │   ├── animations.go
 │   │   ├── blur.fs
+│   │   ├── buttons.go
 │   │   ├── connect.go
 │   │   ├── draw.go
+│   │   ├── emotes.go
 │   │   ├── game.go
 │   │   ├── map.go
 │   │   ├── player.go
@@ -282,6 +284,10 @@
 │   │   ├── load_map.go
 │   │   ├── parser.go
 │   │   └── textures.go
+│   ├── ui
+│   │   ├── button.go
+│   │   ├── emote.go
+│   │   └── manager.go
 │   ├── updater
 │   │   ├── collisions.go
 │   │   ├── connect.go
@@ -325,6 +331,7 @@
     ├── sprout-lands.tiled-project
     ├── sprout-lands.tiled-session
     ├── teemo 8 directions.tsx
+    ├── Teemo Basic emote animations sprite sheet.tsx
     ├── test.tmx
     ├── Tilled Dirt.tsx
     ├── Tilled_Dirt.tsx
@@ -339,7 +346,7 @@
     ├── Wooden House.tsx
     └── Wooden_House_Walls_Tilset.tsx
 
-47 directories, 292 files
+48 directories, 298 files
 -e 
 === CONTENU DES FICHIERS ===
 
@@ -738,6 +745,7 @@ import (
 	"strings"
 	"sync"
 	"tap/client/gui/src/parser"
+	"tap/client/gui/src/ui"
 	vars "tap/client/gui/src/variables"
 	"tap/client/state"
 	panel "tap/client/tui/panels"
@@ -751,6 +759,7 @@ import (
 type App struct {
 	Textures     *parser.Textures
 	Variables    *vars.Variables
+	Manager      *ui.Manager
 	Rooms        map[string]*parser.Map
 	ScreenWidth  int
 	ScreenHeight int
@@ -772,6 +781,7 @@ func NewApp(actionsChan chan panel.Action) *App {
 	app := &App{
 		Textures:     parser.LoadTextures(),
 		Variables:    vars.GetVariables(),
+		Manager:      ui.NewManager(),
 		ScreenWidth:  screenWidth,
 		ScreenHeight: screenHeight,
 		ActionsChan:  actionsChan,
@@ -1020,6 +1030,14 @@ import (
 )
 
 func (dr *Drawer) DrawConnectView() {
+	// Init Buttons/Emotes
+	if len(dr.app.Manager.Buttons("Connect")) == 0 {
+		dr.buildConnectButtons()
+	}
+	if len(dr.app.Manager.Emotes("Connect")) == 0 {
+		dr.buildConnectEmotes()
+	}
+
 	// Draw game view
 	rl.BeginTextureMode(dr.gameTexture)
 	dr.DrawGameView()
@@ -1083,19 +1101,9 @@ func (dr *Drawer) DrawConnectView() {
 	// Perso frame
 	// TODO
 
-	// Play button
-	play_x := float32(connect_start_x+connect_width/2) * dr.app.Variables.Tileset_size
-	play_y := float32(connect_start_y+connect_height) * dr.app.Variables.Tileset_size
-
-	center_x := 3 * dr.app.Variables.Tileset_size
-	center_y := 2.5 * dr.app.Variables.Tileset_size
-
-	dr.DrawImage(
-		vars.PLAY_TEXTURE,
-		float32(play_x)-float32(center_x),
-		float32(play_y)-float32(center_y),
-		0, 2, 6, 2, dr.app.Variables.Zoom, 0,
-	)
+	// Draw buttons
+	dr.DrawButtons("Connect")
+	dr.DrawEmotes("Connect")
 }
 
 --- FILE: ./src/drawer/draw.go ---
@@ -1448,6 +1456,137 @@ func (dr *Drawer) DrawWoodFrame(start vars.Position, end vars.Position) {
 	}
 }
 
+--- FILE: ./src/drawer/buttons.go ---
+package drawer
+
+import (
+	"tap/client/gui/src/ui"
+	vars "tap/client/gui/src/variables"
+	panel "tap/client/tui/panels"
+	pr "tap/protocol"
+)
+
+var nb_click = 0
+
+func (dr *Drawer) buildConnectButtons() {
+	connect_start_x := 8.0
+	connect_start_y := 4.5
+	connect_width := 16.0
+	connect_height := 9.0
+
+	play_x := float32(connect_start_x+connect_width/2) * dr.app.Variables.Tileset_size
+	play_y := float32(connect_start_y+connect_height) * dr.app.Variables.Tileset_size
+
+	center_x := 3 * dr.app.Variables.Tileset_size
+	center_y := 2.5 * dr.app.Variables.Tileset_size
+
+	playBtn := &ui.Button{
+		ID:      "play",
+		Texture: vars.PLAY_TEXTURE,
+		X:       play_x - center_x,
+		Y:       play_y - center_y,
+		Zoom:    dr.app.Variables.Zoom,
+		Normal:  ui.Frame{IndX: 0, IndY: 2, RatioX: 6, RatioY: 2},
+		Pressed: ui.Frame{IndX: 6, IndY: 2, RatioX: 6, RatioY: 2},
+		OnClick: func() {
+			nb_click++
+			if nb_click < 5 {
+				return
+			}
+			dr.app.ActionsChan <- panel.Action{
+				Type:    panel.ActionSendServer,
+				Payload: pr.CmdConnect + " clement",
+			}
+		},
+	}
+
+	dr.app.Manager.SetViewButtons("Connect", []*ui.Button{playBtn})
+}
+
+func (dr *Drawer) DrawButtons(view string) {
+	for _, b := range dr.app.Manager.Buttons(view) {
+		frame := b.CurrentFrame()
+		dr.DrawImage(
+			b.Texture,
+			b.X, b.Y,
+			frame.IndX, frame.IndY,
+			frame.RatioX, frame.RatioY,
+			b.Zoom,
+			b.Rotation,
+		)
+	}
+}
+
+--- FILE: ./src/drawer/emotes.go ---
+package drawer
+
+import (
+	"strconv"
+	"tap/client/gui/src/ui"
+	vars "tap/client/gui/src/variables"
+)
+
+func (dr *Drawer) buildConnectEmotes() {
+	connect_start_x := 8.0
+	connect_start_y := 4.5
+	connect_width := 16.0
+	connect_height := 9.0
+
+	emote_x := float32(connect_start_x+connect_width/2) * dr.app.Variables.Tileset_size
+	emote_y := float32(connect_start_y+connect_height) * dr.app.Variables.Tileset_size
+
+	lengths := []int{1, 2, 5, 4, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 1}
+	emotes := make([]*ui.Emote, 0)
+
+	for ind_y, ind_x_max := range lengths {
+		emote_frames := make([]*ui.EmoteFrame, 0)
+
+		anim_duration := 0
+		for ind_x := range ind_x_max + 1 {
+			frame := ui.Frame{IndX: float32(2 * ind_x), IndY: float32(2 * ind_y), RatioX: 2, RatioY: 2}
+			emote_frame := ui.EmoteFrame{
+				Frame:    &frame,
+				Duration: 200,
+			}
+			anim_duration += 200
+
+			emote_frames = append(emote_frames, &emote_frame)
+		}
+
+		emote := ui.Emote{
+			ID:           "emote" + strconv.Itoa(ind_y),
+			Texture:      vars.EMOTES_TEXTURE,
+			X:            emote_x,
+			Y:            emote_y,
+			Zoom:         dr.app.Variables.Zoom,
+			Rotation:     0,
+			AnimDuration: anim_duration,
+			Frames:       emote_frames,
+		}
+
+		emotes = append(emotes, &emote)
+	}
+
+	dr.app.Manager.SetViewEmotes("Connect", emotes)
+}
+
+func (dr *Drawer) DrawEmotes(view string) {
+	for ind, e := range dr.app.Manager.Emotes(view) {
+		if ind != 1 {
+			continue
+		}
+		frame := e.CurrentFrame(dr.app.Variables.StartTime)
+		dr.DrawImage(
+			e.Texture,
+			e.X, e.Y,
+			frame.IndX, frame.IndY,
+			frame.RatioX, frame.RatioY,
+			e.Zoom,
+			e.Rotation,
+		)
+	}
+}
+
 --- FILE: ./src/updater/collisions.go ---
 package updater
 
@@ -1650,6 +1789,8 @@ import (
 )
 
 func (up *Updater) UpdateConnectView() {
+	up.app.Manager.Update("Connect")
+
 	if rl.IsKeyPressed(rl.KeyEnter) {
 		up.actionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdConnect + " clement"}
 	}
@@ -1746,6 +1887,150 @@ func NewUpdater(app *core.App) *Updater {
 		app:         app,
 		actionsChan: app.ActionsChan,
 	}
+}
+
+--- FILE: ./src/ui/button.go ---
+package ui
+
+import (
+	vars "tap/client/gui/src/variables"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+type Button struct {
+	ID      string
+	Texture string
+
+	X, Y     float32
+	Zoom     float32
+	Rotation float32
+
+	Normal  Frame
+	Hover   Frame
+	Pressed Frame
+
+	OnClick func()
+
+	hovered bool
+	pressed bool
+}
+
+func (b *Button) Rect() rl.Rectangle {
+	w := float32(vars.FRAME_WIDTH) * b.Zoom * b.Normal.RatioX
+	h := float32(vars.FRAME_HEIGHT) * b.Zoom * b.Normal.RatioY
+	return rl.NewRectangle(b.X, b.Y, w, h)
+}
+
+func (b *Button) CurrentFrame() Frame {
+	if b.pressed && b.Pressed.RatioX != 0 {
+		return b.Pressed
+	}
+
+	return b.Normal
+}
+
+func (m *Manager) Buttons(view string) []*Button {
+	return m.views_buttons[view]
+}
+
+func (m *Manager) UpdateButtons(view string) {
+	buttons := m.views_buttons[view]
+	if len(buttons) == 0 {
+		return
+	}
+
+	mouse := rl.GetMousePosition()
+	clicked := rl.IsMouseButtonPressed(rl.MouseButtonLeft)
+	down := rl.IsMouseButtonDown(rl.MouseButtonLeft)
+
+	for _, b := range buttons {
+		b.hovered = rl.CheckCollisionPointRec(mouse, b.Rect())
+		b.pressed = b.hovered && down
+
+		if b.hovered && clicked && b.OnClick != nil {
+			b.OnClick()
+		}
+	}
+}
+
+--- FILE: ./src/ui/manager.go ---
+package ui
+
+type Frame struct {
+	IndX, IndY     float32
+	RatioX, RatioY float32
+}
+
+type Manager struct {
+	views_buttons map[string][]*Button
+	views_emotes  map[string][]*Emote
+}
+
+func NewManager() *Manager {
+	return &Manager{
+		views_buttons: map[string][]*Button{},
+		views_emotes:  map[string][]*Emote{},
+	}
+}
+
+func (m *Manager) SetViewButtons(view string, buttons []*Button) {
+	m.views_buttons[view] = buttons
+}
+
+func (m *Manager) SetViewEmotes(view string, emotes []*Emote) {
+	m.views_emotes[view] = emotes
+}
+
+func (m *Manager) Update(view string) {
+	m.UpdateButtons(view)
+	m.UpdateEmotes(view)
+}
+
+--- FILE: ./src/ui/emote.go ---
+package ui
+
+import "time"
+
+type EmoteFrame struct {
+	Frame    *Frame
+	Duration int
+}
+
+type Emote struct {
+	ID      string
+	Texture string
+
+	X, Y     float32
+	Zoom     float32
+	Rotation float32
+
+	AnimDuration int
+	Frames       []*EmoteFrame
+}
+
+func (e *Emote) CurrentFrame(start_time time.Time) Frame {
+	elapsedMillis := time.Since(start_time).Milliseconds()
+	cur_time := elapsedMillis % int64(e.AnimDuration)
+
+	total_anim_time := 0
+	var error_frame *EmoteFrame
+	for _, emote_frame := range e.Frames {
+		error_frame = emote_frame
+		total_anim_time += int(emote_frame.Duration)
+		if int64(total_anim_time) >= cur_time {
+			return *emote_frame.Frame
+		}
+	}
+
+	return *error_frame.Frame
+}
+
+func (m *Manager) Emotes(view string) []*Emote {
+	return m.views_emotes[view]
+}
+
+func (m *Manager) UpdateEmotes(view string) {
 }
 
 --- FILE: ./assets/Sprout Sorry pack/Audio/bing_1.wav ---
@@ -25803,8 +26088,8 @@ It really helps to support this project! :D
             "scale": 3,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 273.83333333333326,
-                "y": 162
+                "x": 256,
+                "y": 143.83333333333331
             }
         },
         "test.tsx": {
@@ -25815,7 +26100,7 @@ It really helps to support this project! :D
     },
     "frame.defaultDuration": 200,
     "last.exportedFilePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps",
-    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Lands - UI Pack - Basic pack/Sprite sheets",
+    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Dialouge UI/Emotes",
     "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
@@ -26408,6 +26693,12 @@ rules.tmx
 <?xml version="1.0" encoding="UTF-8"?>
 <tileset version="1.10" tiledversion="1.12.2" name="Sprite sheet for Basic Pack" tilewidth="16" tileheight="16" tilecount="840" columns="56">
  <image source="../assets/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Sprite sheet for Basic Pack.png" width="896" height="240"/>
+</tileset>
+
+--- FILE: ./tilesets/Teemo Basic emote animations sprite sheet.tsx ---
+<?xml version="1.0" encoding="UTF-8"?>
+<tileset version="1.10" tiledversion="1.12.2" name="Teemo Basic emote animations sprite sheet" tilewidth="16" tileheight="16" tilecount="300" columns="10">
+ <image source="../assets/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Dialouge UI/Emotes/Teemo Basic emote animations sprite sheet.png" width="160" height="480"/>
 </tileset>
 
 --- FILE: ./project.txt ---

@@ -24,6 +24,7 @@ func (dr *Drawer) DrawMap() {
 	dr.DrawWoodFrameAt(
 		vars.Position{X: 0, Y: 0},
 		vars.Position{X: 32, Y: 18},
+		2, 0, true,
 	)
 }
 

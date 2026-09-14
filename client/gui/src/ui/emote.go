@@ -1,26 +1,44 @@
 package ui
 
-// type EmoteFrame struct {
-// 	Frame    *Frame
-// 	Duration int
-// }
+import "time"
 
-// type Emote struct {
-// 	ID      string
-// 	Texture string
+type EmoteFrame struct {
+	Frame    *Frame
+	Duration int
+}
 
-// 	X, Y     float32
-// 	Zoom     float32
-// 	Rotation float32
+type Emote struct {
+	ID      string
+	Texture string
 
-// 	Frames []*EmoteFrame
-// }
+	X, Y     float32
+	Zoom     float32
+	Rotation float32
 
-// func (m *Manager) CurrentFrame()
+	AnimDuration int
+	Frames       []*EmoteFrame
+}
 
-// func (m *Manager) Emotes(view string) []*Emote {
-// 	return m.views_emotes[view]
-// }
+func (e *Emote) CurrentFrame(start_time time.Time) Frame {
+	elapsedMillis := time.Since(start_time).Milliseconds()
+	cur_time := elapsedMillis % int64(e.AnimDuration)
 
-// func (m *Manager) UpdateEmotes(view string) {
-// }
+	total_anim_time := 0
+	var error_frame *EmoteFrame
+	for _, emote_frame := range e.Frames {
+		error_frame = emote_frame
+		total_anim_time += int(emote_frame.Duration)
+		if int64(total_anim_time) >= cur_time {
+			return *emote_frame.Frame
+		}
+	}
+
+	return *error_frame.Frame
+}
+
+func (m *Manager) Emotes(view string) []*Emote {
+	return m.views_emotes[view]
+}
+
+func (m *Manager) UpdateEmotes(view string) {
+}

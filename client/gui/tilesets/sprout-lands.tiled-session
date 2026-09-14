@@ -200,8 +200,8 @@
             "scale": 3,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 273.83333333333326,
-                "y": 162
+                "x": 256,
+                "y": 143.83333333333331
             }
         },
         "test.tsx": {
@@ -212,7 +212,7 @@
     },
     "frame.defaultDuration": 200,
     "last.exportedFilePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps",
-    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Lands - UI Pack - Basic pack/Sprite sheets",
+    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Dialouge UI/Emotes",
     "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",

@@ -60,6 +60,7 @@ func NewApp(actionsChan chan panel.Action) *App {
 	app.Variables.Tileset_size = float32(screenWidth / 32)
 	app.Variables.Zoom = float32(app.Variables.Tileset_size) / float32(vars.FRAME_WIDTH)
 	app.Variables.StartTime = time.Now()
+	app.Variables.Player.LastTimeTyped = time.Now()
 
 	return app
 }

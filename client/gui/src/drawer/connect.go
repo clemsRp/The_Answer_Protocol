@@ -2,13 +2,18 @@ package drawer
 
 import (
 	vars "tap/client/gui/src/variables"
+	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 func (dr *Drawer) DrawConnectView() {
+	// Init Buttons/Emotes
 	if len(dr.app.Manager.Buttons("Connect")) == 0 {
 		dr.buildConnectButtons()
+	}
+	if len(dr.app.Manager.Emotes("Connect")) == 0 {
+		dr.buildConnectEmotes()
 	}
 
 	// Draw game view
@@ -69,11 +74,84 @@ func (dr *Drawer) DrawConnectView() {
 	dr.DrawWoodFrameAt(
 		vars.Position{X: 8, Y: 4.5},
 		vars.Position{X: 24, Y: 13.5},
+		2, 0, true,
 	)
 
-	// Perso frame
-	// TODO
-
-	// Draw buttons
+	// Draw emotes
+	dr.DrawWoodFrameAt(
+		vars.Position{X: 10, Y: 6},
+		vars.Position{X: 13, Y: 9},
+		1, 2, false,
+	)
+	dr.DrawEmotes("Connect")
 	dr.DrawButtons("Connect")
+
+	// Draw input
+	posX = 13.5 * dr.app.Variables.Tileset_size
+	posY = 6 * dr.app.Variables.Tileset_size
+	dialogue := (*dr.app.Textures)[vars.DIALOGUE_TEXTURE]
+	dr.DrawImage(
+		vars.DIALOGUE_TEXTURE,
+		posX, posY,
+		0, 0,
+		float32(dialogue.Width)/float32(vars.FRAME_WIDTH),
+		float32(dialogue.Height)/float32(vars.FRAME_HEIGHT),
+		logo_zoom*1.5, 0,
+	)
+	rl.DrawText(
+		"ENTER PSEUDO",
+		int32(posX+dr.app.Variables.Tileset_size*0.5),
+		int32(posY+dr.app.Variables.Tileset_size*0.3),
+		45, rl.Black,
+	)
+
+	border := 5
+	input_start := int32(posX + dr.app.Variables.Tileset_size)
+	input_width := 22.5*dr.app.Variables.Tileset_size - float32(input_start)
+
+	// Border
+	rl.DrawRectangle(
+		int32(posX+dr.app.Variables.Tileset_size)-int32(border),
+		int32(posY+1.5*dr.app.Variables.Tileset_size),
+		int32(input_width)+2*int32(border), 100, rl.Black,
+	)
+	rl.DrawRectangle(
+		int32(posX+dr.app.Variables.Tileset_size),
+		int32(posY+1.5*dr.app.Variables.Tileset_size)-int32(border),
+		int32(input_width), 100+2*int32(border), rl.Black,
+	)
+
+	// Input
+	rl.DrawRectangle(
+		int32(posX+dr.app.Variables.Tileset_size),
+		int32(posY+1.5*dr.app.Variables.Tileset_size)+int32(border),
+		int32(input_width), 100-2*int32(border), rl.White,
+	)
+	rl.DrawRectangle(
+		int32(posX+dr.app.Variables.Tileset_size)+int32(border),
+		int32(posY+1.5*dr.app.Variables.Tileset_size),
+		int32(input_width)-2*int32(border), 100, rl.White,
+	)
+
+	// Display pseudo
+	rl.DrawText(
+		dr.app.Variables.Player.Pseudo,
+		int32(posX+1.25*dr.app.Variables.Tileset_size),
+		int32(posY+1.75*dr.app.Variables.Tileset_size),
+		45, rl.Black,
+	)
+
+	// Draw cursor
+	cursor_duration := 750
+	elapsed := int(time.Since(dr.app.Variables.StartTime).Milliseconds())
+	too_late := time.Since(dr.app.Variables.Player.LastTimeTyped).Milliseconds() > 300
+	text_size := rl.MeasureText(dr.app.Variables.Player.Pseudo+"  ", int32(45))
+
+	if (elapsed/cursor_duration)%2 == 0 && too_late {
+		rl.DrawRectangle(
+			int32(posX+dr.app.Variables.Tileset_size)+int32(border)+text_size,
+			int32(posY+1.75*dr.app.Variables.Tileset_size),
+			5, 45, rl.Black,
+		)
+	}
 }

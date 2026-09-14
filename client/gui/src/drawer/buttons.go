@@ -7,8 +7,6 @@ import (
 	pr "tap/protocol"
 )
 
-var nb_click = 0
-
 func (dr *Drawer) buildConnectButtons() {
 	connect_start_x := 8.0
 	connect_start_y := 4.5
@@ -19,8 +17,9 @@ func (dr *Drawer) buildConnectButtons() {
 	play_y := float32(connect_start_y+connect_height) * dr.app.Variables.Tileset_size
 
 	center_x := 3 * dr.app.Variables.Tileset_size
-	center_y := 2.5 * dr.app.Variables.Tileset_size
+	center_y := 3 * dr.app.Variables.Tileset_size
 
+	// Play buttons
 	playBtn := &ui.Button{
 		ID:      "play",
 		Texture: vars.PLAY_TEXTURE,
@@ -30,10 +29,6 @@ func (dr *Drawer) buildConnectButtons() {
 		Normal:  ui.Frame{IndX: 0, IndY: 2, RatioX: 6, RatioY: 2},
 		Pressed: ui.Frame{IndX: 6, IndY: 2, RatioX: 6, RatioY: 2},
 		OnClick: func() {
-			nb_click++
-			if nb_click < 5 {
-				return
-			}
 			dr.app.ActionsChan <- panel.Action{
 				Type:    panel.ActionSendServer,
 				Payload: pr.CmdConnect + " clement",
@@ -41,7 +36,40 @@ func (dr *Drawer) buildConnectButtons() {
 		},
 	}
 
-	dr.app.Manager.SetViewButtons("Connect", []*ui.Button{playBtn})
+	// Emote buttons
+	emote_x := (float32(connect_start_x) + 0.5) * dr.app.Variables.Tileset_size
+	emote_y := (float32(connect_start_y) + 0.5) * dr.app.Variables.Tileset_size
+
+	prevBtn := &ui.Button{
+		ID:      "previous_emote",
+		Texture: vars.WOOD_FRAME_TEXTURE,
+		X:       emote_x + 0.5*dr.app.Variables.Tileset_size,
+		Y:       emote_y + 2*dr.app.Variables.Tileset_size,
+		Zoom:    dr.app.Variables.Zoom,
+		Normal:  ui.Frame{IndX: 17, IndY: 1, RatioX: 1, RatioY: 1},
+		Pressed: ui.Frame{IndX: 18, IndY: 1, RatioX: 1, RatioY: 1},
+		OnClick: func() {
+			dr.app.Variables.Player.EmoteIndex--
+			if dr.app.Variables.Player.EmoteIndex < 0 {
+				dr.app.Variables.Player.EmoteIndex = len(dr.app.Manager.Emotes("Connect")) - 1
+			}
+		},
+	}
+	nextBtn := &ui.Button{
+		ID:      "next_emote",
+		Texture: vars.WOOD_FRAME_TEXTURE,
+		X:       emote_x + 4.5*dr.app.Variables.Tileset_size,
+		Y:       emote_y + 2*dr.app.Variables.Tileset_size,
+		Zoom:    dr.app.Variables.Zoom,
+		Normal:  ui.Frame{IndX: 17, IndY: 0, RatioX: 1, RatioY: 1},
+		Pressed: ui.Frame{IndX: 18, IndY: 0, RatioX: 1, RatioY: 1},
+		OnClick: func() {
+			dr.app.Variables.Player.EmoteIndex++
+			dr.app.Variables.Player.EmoteIndex %= len(dr.app.Manager.Emotes("Connect"))
+		},
+	}
+
+	dr.app.Manager.SetViewButtons("Connect", []*ui.Button{playBtn, prevBtn, nextBtn})
 }
 
 func (dr *Drawer) DrawButtons(view string) {

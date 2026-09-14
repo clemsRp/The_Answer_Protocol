@@ -22,9 +22,11 @@ type Position struct {
 }
 
 type Player struct {
-	Direction *Direction
-	Position  *Position
-	Pseudo    string
+	Direction     *Direction
+	Position      *Position
+	Pseudo        string
+	EmoteIndex    int
+	LastTimeTyped time.Time
 }
 
 type PanelVariables struct {
@@ -63,6 +65,7 @@ func GetVariables() *Variables {
 				X: float32(700),
 				Y: float32(500),
 			},
+			EmoteIndex: 2,
 		},
 		Current_room: "entrance",
 		Current_view: "Connect",

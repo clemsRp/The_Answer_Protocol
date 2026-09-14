@@ -1,6 +1,8 @@
 package drawer
 
 import (
+	"math"
+
 	vars "tap/client/gui/src/variables"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -26,33 +28,34 @@ func (dr *Drawer) DrawImage(texture_name string, posX, posY, indX, indY, ratioX,
 	rl.DrawTexturePro(texture, sourceRec, destRec, origin, rotation, rl.White)
 }
 
-func (dr *Drawer) DrawWoodFrameAt(visualStart vars.Position, visualEnd vars.Position) {
+func (dr *Drawer) DrawWoodFrameAt(visualStart vars.Position, visualEnd vars.Position, zoom int, darkness int, empty bool) {
+	e := float32(zoom)
+
 	start := vars.Position{
-		X: visualStart.X / 2,
-		Y: visualStart.Y / 2,
+		X: visualStart.X / e,
+		Y: visualStart.Y / e,
 	}
-	end := vars.Position{
-		X: visualEnd.X - start.X + 1,
-		Y: visualEnd.Y - start.Y + 1,
-	}
-	dr.DrawWoodFrame(start, end)
+
+	frame_width := int(math.Round(float64(visualEnd.X-visualStart.X)/float64(e))) + 1
+	frame_height := int(math.Round(float64(visualEnd.Y-visualStart.Y)/float64(e))) + 1
+
+	dr.DrawWoodFrame(start, frame_width, frame_height, zoom, darkness, empty)
 }
 
-func (dr *Drawer) DrawWoodFrame(start vars.Position, end vars.Position) {
+func (dr *Drawer) DrawWoodFrame(start vars.Position, frame_width, frame_height int, zoom int, darkness int, empty bool) {
 	frame_start_x := 12
 	frame_start_y := 0
 
-	frame_width := int((end.X-start.X)/2 + 1)
-	frame_height := int((end.Y-start.Y)/2 + 1)
+	e := float32(zoom)
+	cell := e * dr.app.Variables.Tileset_size
 
 	for x := range frame_width {
 		for y := range frame_height {
-			if x != 0 && y != 0 && x != frame_width-1 && y != frame_height-1 {
+			if x != 0 && y != 0 && x != frame_width-1 && y != frame_height-1 && empty {
 				continue
 			}
 
-			var ind_x int
-			var ind_y int
+			var ind_x, ind_y int
 			switch x {
 			case 0:
 				ind_x = 0
@@ -72,10 +75,10 @@ func (dr *Drawer) DrawWoodFrame(start vars.Position, end vars.Position) {
 
 			dr.DrawImage(
 				vars.WOOD_FRAME_TEXTURE,
-				2*dr.app.Variables.Tileset_size*(float32(x)+start.X)-dr.app.Variables.Tileset_size,
-				2*dr.app.Variables.Tileset_size*(float32(y)+start.Y)-dr.app.Variables.Tileset_size,
-				float32(frame_start_x+ind_x), float32(frame_start_y+ind_y),
-				1, 1, 2*dr.app.Variables.Zoom, 0,
+				cell*(float32(x)+start.X)-cell/2,
+				cell*(float32(y)+start.Y)-cell/2,
+				float32(frame_start_x+ind_x), float32(frame_start_y+ind_y+darkness*3),
+				1, 1, e*dr.app.Variables.Zoom, 0,
 			)
 		}
 	}
