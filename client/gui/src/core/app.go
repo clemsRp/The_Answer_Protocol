@@ -5,6 +5,7 @@ import (
 	"strings"
 	"sync"
 	"tap/client/gui/src/parser"
+	"tap/client/gui/src/ui"
 	vars "tap/client/gui/src/variables"
 	"tap/client/state"
 	panel "tap/client/tui/panels"
@@ -18,6 +19,7 @@ import (
 type App struct {
 	Textures     *parser.Textures
 	Variables    *vars.Variables
+	Manager      *ui.Manager
 	Rooms        map[string]*parser.Map
 	ScreenWidth  int
 	ScreenHeight int
@@ -39,6 +41,7 @@ func NewApp(actionsChan chan panel.Action) *App {
 	app := &App{
 		Textures:     parser.LoadTextures(),
 		Variables:    vars.GetVariables(),
+		Manager:      ui.NewManager(),
 		ScreenWidth:  screenWidth,
 		ScreenHeight: screenHeight,
 		ActionsChan:  actionsChan,

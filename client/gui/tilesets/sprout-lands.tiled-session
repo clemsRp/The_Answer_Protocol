@@ -118,6 +118,10 @@
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
+        "Sprite sheet for Basic Pack.tsx": {
+            "scaleInDock": 3,
+            "scaleInEditor": 1
+        },
         "Sprout Lands defautlt palette snip.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
@@ -185,7 +189,7 @@
             "selectedLayer": 1,
             "viewCenter": {
                 "x": 240.10889292196003,
-                "y": 159.52813067150635
+                "y": 159.80036297640652
             }
         },
         "teemo 8 directions.tsx": {
@@ -193,11 +197,11 @@
             "scaleInEditor": 5.5
         },
         "test.tmx": {
-            "scale": 2,
+            "scale": 3,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 267.5,
-                "y": 157
+                "x": 273.83333333333326,
+                "y": 162
             }
         },
         "test.tsx": {
@@ -225,43 +229,23 @@
         "rules.tmx",
         "Free Cow Sprites.tsx",
         "Free_Chicken_House.tsx",
-        "Tools.tsx",
-        "Basic Furniture.tsx",
-        "Basic Grass Biom things 1.tsx",
-        "Basic Plants.tsx",
-        "Basic tools and meterials.tsx",
-        "Basic_Furniture.tsx",
-        "Basic_Grass_Biom_things.tsx",
-        "Basic_Plants.tsx",
-        "Basic_tools_and_meterials.tsx",
-        "Chest.tsx",
-        "Egg item.tsx",
-        "Egg_item.tsx",
-        "Paths.tsx",
-        "Simple Milk and grass item.tsx",
-        "Simple_Milk_and_grass_item.tsx",
-        "Wood Bridge.tsx",
-        "Wood_Bridge.tsx",
-        "Grass.tsx",
-        "Bitmask references 1.tsx",
-        "Doors.tsx",
-        "Fences.tsx"
+        "Sprite sheet for Basic Pack.tsx"
     ],
     "project": "sprout-lands.tiled-project",
     "property.type": "bool",
     "recentFiles": [
+        "Water.tsx",
+        "Sprite sheet for Basic Pack.tsx",
+        "Free_Chicken_House.tsx",
+        "Free Cow Sprites.tsx",
+        "rules.tmx",
+        "Free Chicken Sprites.tsx",
+        "Egg_And_Nest.tsx",
+        "Basic Charakter Spritesheet.tsx",
+        "Basic Charakter Actions.tsx",
+        "test.tmx",
         "Tools.tsx",
-        "Basic Furniture.tsx",
-        "Basic Grass Biom things 1.tsx",
-        "Basic Plants.tsx",
-        "Basic tools and meterials.tsx",
-        "Basic_Furniture.tsx",
-        "Basic_Grass_Biom_things.tsx",
-        "Basic_Plants.tsx",
-        "Basic_tools_and_meterials.tsx",
-        "Chest.tsx",
-        "Egg item.tsx",
-        "Egg_item.tsx"
+        "Basic Furniture.tsx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

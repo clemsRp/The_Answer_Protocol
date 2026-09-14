@@ -7,6 +7,10 @@ import (
 )
 
 func (dr *Drawer) DrawConnectView() {
+	if len(dr.app.Manager.Buttons("Connect")) == 0 {
+		dr.buildConnectButtons()
+	}
+
 	// Draw game view
 	rl.BeginTextureMode(dr.gameTexture)
 	dr.DrawGameView()
@@ -67,9 +71,9 @@ func (dr *Drawer) DrawConnectView() {
 		vars.Position{X: 24, Y: 13.5},
 	)
 
-	// Play button
-	dr.DrawImage(
-		vars.PLAY_TEXTURE,
-		0, 0, 0, 2, 6, 2, dr.app.Variables.Zoom, 0,
-	)
+	// Perso frame
+	// TODO
+
+	// Draw buttons
+	dr.DrawButtons("Connect")
 }

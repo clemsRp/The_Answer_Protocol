@@ -8,6 +8,8 @@ import (
 )
 
 func (up *Updater) UpdateConnectView() {
+	up.app.Manager.Update("Connect")
+
 	if rl.IsKeyPressed(rl.KeyEnter) {
 		up.actionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdConnect + " clement"}
 	}
