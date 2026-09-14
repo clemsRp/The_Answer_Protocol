@@ -6,8 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	vars "tap/client/gui/src/variables"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -26,9 +24,9 @@ func LoadTextures() *Textures {
 
 			if ext == ".png" || ext == ".jpg" || ext == ".jpeg" {
 				baseName := filepath.Base(path)
-				nameWithoutExt := strings.TrimSuffix(baseName, filepath.Ext(baseName))
+				textureName := strings.TrimSuffix(baseName, filepath.Ext(baseName))
 
-				textures[nameWithoutExt] = rl.LoadTexture(path)
+				textures[textureName] = rl.LoadTexture(path)
 			}
 		}
 		return nil
@@ -45,22 +43,4 @@ func (t *Textures) UnloadTextures() {
 	for _, texture := range *t {
 		rl.UnloadTexture(texture)
 	}
-}
-func DrawImage(texture rl.Texture2D, posX, posY, indX, indY, ratioX, ratioY, zoom, rotation float32) { //[cite: 18]
-	sourceW := ratioX * float32(vars.FRAME_WIDTH)
-	sourceH := ratioY * float32(vars.FRAME_HEIGHT)
-
-	sourceRec := rl.NewRectangle(
-		indX*float32(vars.FRAME_WIDTH), indY*float32(vars.FRAME_HEIGHT),
-		sourceW, sourceH,
-	)
-
-	destW := float32(vars.FRAME_WIDTH) * zoom
-	destH := float32(vars.FRAME_HEIGHT) * zoom
-
-	destRec := rl.NewRectangle(posX+(destW/2), posY+(destH/2), destW, destH)
-
-	origin := rl.NewVector2(destW/2, destH/2)
-
-	rl.DrawTexturePro(texture, sourceRec, destRec, origin, rotation, rl.White) 
 }

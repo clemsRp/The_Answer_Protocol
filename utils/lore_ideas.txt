@@ -6,3 +6,7 @@ CHOOSEN ONE:
 		- npcs = old people
 		- quest = Buy dentier using thousands of coins / Run to be the first to buy suppo/couches
 		- items = IN PROGRESS
+
+- ASSETS:
+
+	- https://cupnooble.itch.io/sprout-lands-asset-pack

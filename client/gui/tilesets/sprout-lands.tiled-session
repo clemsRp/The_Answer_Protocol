@@ -1,0 +1,256 @@
+{
+    "activeFile": "test.tmx",
+    "expandedProjectPaths": [
+        "."
+    ],
+    "file.lastUsedOpenFilter": "All Files (*)",
+    "fileStates": {
+        "Basic Charakter Actions.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 3
+        },
+        "Basic Charakter Spritesheet.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 4
+        },
+        "Basic Furniture.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Basic Grass Biom things 1.tsx": {
+            "scaleInDock": 3,
+            "scaleInEditor": 4
+        },
+        "Basic Plants.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 5.5
+        },
+        "Basic tools and meterials.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 8
+        },
+        "Basic_Furniture.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 4
+        },
+        "Basic_Grass_Biom_things.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 4
+        },
+        "Basic_Plants.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 5.5
+        },
+        "Basic_tools_and_meterials.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 4
+        },
+        "Bitmask references 1.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Bitmask references 2.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Chest.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Doors.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Egg item.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Egg_And_Nest.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Egg_item.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Fences.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Free Chicken Sprites.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Free Cow Sprites.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 3
+        },
+        "Free_Chicken_House.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 4
+        },
+        "Gemini_Generated_Image_9wzjo39wzjo39wzj.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Gemini_Generated_Image_s8tu38s8tu38s8tu.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 4
+        },
+        "Grass.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Hills.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Paths.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Simple Milk and grass item.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Simple_Milk_and_grass_item.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Sprite sheet for Basic Pack.tsx": {
+            "scaleInDock": 3,
+            "scaleInEditor": 1
+        },
+        "Sprout Lands defautlt palette snip.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Tilled Dirt.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Tilled_Dirt.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Tilled_Dirt_Wide.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Tilled_Dirt_Wide_v2.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Tilled_Dirt_v2.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Tools.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 5.5
+        },
+        "Water.tsx": {
+            "scaleInDock": 8,
+            "scaleInEditor": 8
+        },
+        "Wood Bridge.tsx": {
+            "scaleInDock": 4,
+            "scaleInEditor": 1
+        },
+        "Wood_Bridge.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Wooden House.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Wooden_House_Roof_Tilset.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Wooden_House_Walls_Tilset.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "collisions.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 4,
+            "scaleInEditor": 5.5
+        },
+        "collisions2.tsx": {
+            "dynamicWrapping": true,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "rules.tmx": {
+            "scale": 1.8366666666666667,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 240.10889292196003,
+                "y": 159.80036297640652
+            }
+        },
+        "teemo 8 directions.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 5.5
+        },
+        "test.tmx": {
+            "scale": 3,
+            "selectedLayer": 4,
+            "viewCenter": {
+                "x": 256,
+                "y": 143.83333333333331
+            }
+        },
+        "test.tsx": {
+            "dynamicWrapping": true,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        }
+    },
+    "frame.defaultDuration": 200,
+    "last.exportedFilePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps",
+    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Dialouge UI/Emotes",
+    "map.height": 18,
+    "map.lastUsedExportFilter": "All Files (*)",
+    "map.lastUsedFormat": "tmx",
+    "map.tileHeight": 16,
+    "map.tileWidth": 16,
+    "map.width": 32,
+    "openFiles": [
+        "Water.tsx",
+        "test.tmx",
+        "Basic Charakter Actions.tsx",
+        "Basic Charakter Spritesheet.tsx",
+        "Egg_And_Nest.tsx",
+        "Free Chicken Sprites.tsx",
+        "rules.tmx",
+        "Free Cow Sprites.tsx",
+        "Free_Chicken_House.tsx",
+        "Sprite sheet for Basic Pack.tsx"
+    ],
+    "project": "sprout-lands.tiled-project",
+    "property.type": "bool",
+    "recentFiles": [
+        "Water.tsx",
+        "Sprite sheet for Basic Pack.tsx",
+        "Free_Chicken_House.tsx",
+        "Free Cow Sprites.tsx",
+        "rules.tmx",
+        "Free Chicken Sprites.tsx",
+        "Egg_And_Nest.tsx",
+        "Basic Charakter Spritesheet.tsx",
+        "Basic Charakter Actions.tsx",
+        "test.tmx",
+        "Tools.tsx",
+        "Basic Furniture.tsx"
+    ],
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.tileSize": {
+        "height": 16,
+        "width": 16
+    },
+    "tileset.type": 0
+}

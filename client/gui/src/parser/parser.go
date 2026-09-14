@@ -1,6 +1,8 @@
 package parser
 
-import "path/filepath"
+import (
+	"path/filepath"
+)
 
 type Room struct {
 	Tilesets [][]int
