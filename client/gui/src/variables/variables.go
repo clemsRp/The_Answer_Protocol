@@ -40,9 +40,10 @@ type PanelVariables struct {
 }
 
 type Variables struct {
-	Player       *Player
-	Collisions   [][]bool
-	Tileset_size float32
+	Player        *Player
+	RemotePlayers map[string]*Player
+	Collisions    [][]bool
+	Tileset_size  float32
 
 	Current_room    string
 	Current_view    string
@@ -67,8 +68,9 @@ func GetVariables() *Variables {
 			},
 			EmoteIndex: 2,
 		},
-		Current_room: "entrance",
-		Current_view: "Connect",
+		RemotePlayers: make(map[string]*Player),
+		Current_room:  "entrance",
+		Current_view:  "Connect",
 		PanelsVariables: &PanelVariables{
 			Room:        &protocol.LookCommandData{},
 			RoomItems:   &[]string{},

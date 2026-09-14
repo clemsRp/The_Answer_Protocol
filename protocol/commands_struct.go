@@ -107,3 +107,11 @@ type InspectRoomData struct {
 	Npcs    []InspectNPCData    `json:"npcs"`
 	Items   []InspectItemData   `json:"items"`
 }
+
+type NotifyPositionData struct {
+	Name string  `json:"pseudo"`
+	X    float32 `json:"x"`
+	Y    float32 `json:"y"`
+	DirX float32 `json:"dir_x"`
+	DirY float32 `json:"dir_y"`
+}

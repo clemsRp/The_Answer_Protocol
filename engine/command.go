@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 	pr "tap/protocol"
 )
@@ -715,5 +716,43 @@ func (e *Engine) handleCmdUse(player *Player, req []string) (string, any, error)
 
 		return "OK", resResponse, nil
 	}
+	return "OK", nil, nil
+}
+
+func (e *Engine) handleCmdNotifyPosition(player *Player, req []string) (string, any, error) {
+	if len(req) < 5 {
+		return "", nil, errors.New(pr.ErrInvalidCommand)
+	}
+	x, errX := strconv.ParseFloat(req[1], 32)
+	y, errY := strconv.ParseFloat(req[2], 32)
+	dirX, errDirX := strconv.ParseFloat(req[3], 32)
+	dirY, errDirY := strconv.ParseFloat(req[4], 32)
+
+	if errX != nil || errY != nil || errDirX != nil || errDirY != nil {
+		return "", nil, errors.New("invalid coordinate format")
+	}
+
+	player.Position.X = float32(x)
+	player.Position.Y = float32(y)
+	player.Direction.X = float32(dirX)
+	player.Direction.Y = float32(dirY)
+
+	broadcastData := pr.NotifyPositionData{
+		Name: player.name,
+		X:    player.Position.X,
+		Y:    player.Position.Y,
+		DirX: player.Direction.X,
+		DirY: player.Direction.Y,
+	}
+	room, exists := e.world.Rooms[player.room.Id]
+	if !exists {
+		return "", nil, errors.New(pr.ErrInternalServer)
+	}
+	eventMsg, err := convertObjectToJson("EVT PLAYER_POSITION", broadcastData)
+	if err != nil {
+		return "", nil, errors.New(pr.ErrInternalServer)
+	}
+	e.inform_room(player, room, eventMsg)
+
 	return "OK", nil, nil
 }

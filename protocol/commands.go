@@ -27,6 +27,7 @@ const (
 	CmdInspectNpc           = "INSPECT NPC"
 	CmdInspectItem          = "INSPECT ITEM"
 	CmdInspectInventoryItem = "INSPECT INVENTORY_ITEM"
+	CmdNotifyPosition       = "NOTIFY_POSITION"
 
 	GlobalChat = "GLOBAL"
 	RoomChat   = "ROOM"

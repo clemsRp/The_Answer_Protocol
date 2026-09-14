@@ -73,7 +73,7 @@ func (s *Server) readClientInput(cli *Client) {
 		if !input.Scan() {
 			break
 		}
-		if limiter.Allow() {
+		if limiter.Allow(input.Text()) {
 			cli.spamWarning = 0
 			s.requests <- ClientRequest{id: cli.id, msg: input.Text()}
 		} else {
