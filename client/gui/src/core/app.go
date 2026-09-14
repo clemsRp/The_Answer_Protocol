@@ -118,6 +118,44 @@ func (app *App) AppendServerResponse(res protocol.ServerResponse) {}
 func (app *App) AppendCliMessage(text string)                     {}
 func (app *App) AppendCliResponse(res protocol.ServerResponse)    {}
 
+func (a *App) UpdateRemotePlayerPosition(pseudo string, x, y, dirX, dirY float32) {
+	if pseudo == a.Variables.Player.Pseudo {
+		return
+	}
+
+	if remotePlayer, exists := a.Variables.RemotePlayers[pseudo]; exists {
+		remotePlayer.Position.X = x
+		remotePlayer.Position.Y = y
+		remotePlayer.Direction.X = dirX
+		remotePlayer.Direction.Y = dirY
+	} else {
+		a.Variables.RemotePlayers[pseudo] = &vars.Player{
+			Pseudo:    pseudo,
+			Position:  &vars.Position{X: x, Y: y},
+			Direction: &vars.Direction{X: dirX, Y: dirY},
+		}
+	}
+}
+
+func (a *App) AddRemotePlayer(pseudo string) {
+	if a.Variables.RemotePlayers == nil {
+		a.Variables.RemotePlayers = make(map[string]*vars.Player)
+	}
+
+	if _, exists := a.Variables.RemotePlayers[pseudo]; !exists {
+		a.Variables.RemotePlayers[pseudo] = &vars.Player{
+			Pseudo:    pseudo,
+			Position:  &vars.Position{X: 10, Y: 10},
+			Direction: &vars.Direction{X: 0, Y: 1},
+		}
+	}
+}
+
+func (a *App) RemoveRemotePlayer(pseudo string) {
+	if a.Variables.RemotePlayers != nil {
+		delete(a.Variables.RemotePlayers, pseudo)
+	}
+}
 func (app *App) GetPseudo() string {
 	return app.Variables.Player.Pseudo
 }

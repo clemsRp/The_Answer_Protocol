@@ -2,7 +2,7 @@ package drawer
 
 func (dr *Drawer) DrawGameView() {
 	dr.DrawMap()
-	dr.DrawPlayer()
+	dr.DrawPlayers()
 
 	for _, layer := range dr.app.Rooms[dr.app.Variables.Current_room].Layers {
 		if layer.Name == "InFrontOfPlayer" {
@@ -10,5 +10,5 @@ func (dr *Drawer) DrawGameView() {
 		}
 	}
 
-	dr.DrawPseudo()
+	dr.DrawPseudos()
 }

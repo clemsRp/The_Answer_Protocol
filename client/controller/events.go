@@ -36,6 +36,7 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 				}
 				r.Players = append(r.Players, target)
 			})
+			c.ui.AddRemotePlayer(target)
 			c.refreshUI()
 		}
 
@@ -50,6 +51,7 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 					}
 				}
 			})
+			c.ui.RemoveRemotePlayer(target)
 			c.refreshUI()
 		}
 
@@ -292,5 +294,22 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 				c.ui.UpdateDatas(parts[1])
 			})
 		}
+	case strings.HasPrefix(trimmed, pr.TypePlayerPosition):
+		jsonPayload := strings.TrimSpace(strings.TrimPrefix(trimmed, pr.TypePlayerPosition))
+		if jsonPayload == "" {
+			return
+		}
+		var posData pr.NotifyPositionData
+
+		err := json.Unmarshal([]byte(jsonPayload), &posData)
+		if err != nil {
+			return
+		}
+
+		c.ui.QueueUpdate(func() {
+			c.ui.UpdateRemotePlayerPosition(posData.Name, posData.X, posData.Y, posData.DirX, posData.DirY)
+		})
+
 	}
+
 }

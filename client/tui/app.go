@@ -531,6 +531,11 @@ func (m *MyApp) AppendCliResponse(res pr.ServerResponse) {
 		m.CommandLine.AppendResponse(res)
 	}
 }
+func (m *MyApp) UpdateRemotePlayerPosition(pseudo string, X float32, Y float32, DirX float32, DirY float32) {
+}
+
+func (m *MyApp) AddRemotePlayer(pseudo string)    {}
+func (m *MyApp) RemoveRemotePlayer(pseudo string) {}
 
 func (m *MyApp) GetPseudo() string {
 	return m.pseudo

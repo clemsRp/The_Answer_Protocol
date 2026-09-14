@@ -8,26 +8,56 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func (dr *Drawer) DrawPlayer() {
+func (dr *Drawer) DrawPlayers() {
+	// Dessin du joueur local
+	if dr.app.Variables.Player != nil && dr.app.Variables.Player.Position != nil {
+		dr.DrawPlayer(dr.app.Variables.Player)
+	}
+
+	if dr.app.Variables.RemotePlayers != nil {
+		for _, p := range dr.app.Variables.RemotePlayers {
+			if p.Position != nil && p.Position.X >= 0 {
+				dr.DrawPlayer(p)
+			}
+		}
+	}
+}
+
+func (dr *Drawer) DrawPlayer(p *vars.Player) {
 	texture_name, ind_x, ind_y := dr.GetPlayerTexture()
 	dr.DrawImage(
 		texture_name,
-		dr.app.Variables.Player.Position.X, dr.app.Variables.Player.Position.Y,
+		p.Position.X, p.Position.Y,
 		float32(ind_x), float32(ind_y), 1, 1, dr.app.Variables.Zoom, 0,
 	)
 }
 
-func (dr *Drawer) DrawPseudo() {
-	pseudo := dr.app.GetPseudo()
-	font_size := 20
+func (dr *Drawer) DrawPseudos() {
+	if dr.app.Variables.Player != nil && dr.app.Variables.Player.Position != nil {
+		dr.drawSinglePseudo(dr.app.Variables.Player)
+	}
 
-	text_size := rl.MeasureText(pseudo, int32(font_size))
+	if dr.app.Variables.RemotePlayers != nil {
+		for _, p := range dr.app.Variables.RemotePlayers {
+			if p.Position != nil && p.Position.X >= 0 {
+				dr.drawSinglePseudo(p)
+			}
+		}
+	}
+}
+
+func (dr *Drawer) drawSinglePseudo(p *vars.Player) {
+	if p.Pseudo == "" {
+		return
+	}
+	font_size := 20
+	text_size := rl.MeasureText(p.Pseudo, int32(font_size))
 	center_text := (vars.FRAME_WIDTH*int32(dr.app.Variables.Zoom) - text_size) / 2
 
 	rl.DrawText(
-		pseudo,
-		int32(dr.app.Variables.Player.Position.X)+center_text,
-		int32(dr.app.Variables.Player.Position.Y)-int32(font_size),
+		p.Pseudo,
+		int32(p.Position.X)+center_text,
+		int32(p.Position.Y)-int32(font_size),
 		int32(font_size), rl.White,
 	)
 }
