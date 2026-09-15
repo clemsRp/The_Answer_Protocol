@@ -31,7 +31,7 @@ func (dr *Drawer) buildConnectButtons() {
 		OnClick: func() {
 			dr.app.ActionsChan <- panel.Action{
 				Type:    panel.ActionSendServer,
-				Payload: pr.CmdConnect + " clement",
+				Payload: pr.CmdConnect + " " + dr.app.Variables.Player.Pseudo,
 			}
 		},
 	}

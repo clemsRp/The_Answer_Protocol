@@ -19,15 +19,15 @@ func (dr *Drawer) DrawPlayer() {
 
 func (dr *Drawer) DrawPseudo() {
 	pseudo := dr.app.GetPseudo()
-	font_size := 20
+	font_size := dr.app.Variables.FontSize
 
 	text_size := rl.MeasureText(pseudo, int32(font_size))
-	center_text := (vars.FRAME_WIDTH*int32(dr.app.Variables.Zoom) - text_size) / 2
+	center_text := (int32(dr.app.Variables.Tileset_size) - text_size) / 2
 
 	rl.DrawText(
 		pseudo,
 		int32(dr.app.Variables.Player.Position.X)+center_text,
-		int32(dr.app.Variables.Player.Position.Y)-int32(font_size),
+		int32(dr.app.Variables.Player.Position.Y)-int32(1.2*font_size),
 		int32(font_size), rl.White,
 	)
 }

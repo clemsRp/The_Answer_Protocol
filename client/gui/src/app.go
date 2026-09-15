@@ -46,6 +46,8 @@ func (app *App) Draw() {
 
 func (app *App) Start() {
 	for !rl.WindowShouldClose() {
+		app.DrainQueue()
+
 		app.Update()
 
 		rl.BeginDrawing()

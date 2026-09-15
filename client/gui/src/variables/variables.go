@@ -24,6 +24,7 @@ type Position struct {
 type Player struct {
 	Direction     *Direction
 	Position      *Position
+	Speed         int
 	Pseudo        string
 	EmoteIndex    int
 	LastTimeTyped time.Time
@@ -49,6 +50,7 @@ type Variables struct {
 	PanelsVariables *PanelVariables
 
 	Zoom      float32
+	FontSize  float32
 	StartTime time.Time
 	MapStart  *Position
 	MapSize   *Size
@@ -60,10 +62,6 @@ func GetVariables() *Variables {
 			Direction: &Direction{
 				X: 0,
 				Y: 1,
-			},
-			Position: &Position{
-				X: float32(700),
-				Y: float32(500),
 			},
 			EmoteIndex: 2,
 		},

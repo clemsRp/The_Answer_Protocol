@@ -25,6 +25,8 @@ type App struct {
 	ScreenHeight int
 	ActionsChan  chan panel.Action
 	closeOnce    sync.Once
+
+	updateQueue chan func()
 }
 
 func NewApp(actionsChan chan panel.Action) *App {
@@ -36,6 +38,9 @@ func NewApp(actionsChan chan panel.Action) *App {
 	monitor := rl.GetCurrentMonitor()
 	screenWidth := rl.GetMonitorWidth(monitor)
 	screenHeight := rl.GetMonitorHeight(monitor)
+	// screenWidth := 900
+	// screenHeight := 400
+
 	rl.SetWindowSize(screenWidth, screenHeight)
 
 	app := &App{
@@ -45,6 +50,7 @@ func NewApp(actionsChan chan panel.Action) *App {
 		ScreenWidth:  screenWidth,
 		ScreenHeight: screenHeight,
 		ActionsChan:  actionsChan,
+		updateQueue:  make(chan func(), 256),
 	}
 
 	var err error
@@ -58,16 +64,39 @@ func NewApp(actionsChan chan panel.Action) *App {
 	}
 
 	app.Variables.Tileset_size = float32(screenWidth / 32)
+	app.Variables.FontSize = 0.4 * app.Variables.Tileset_size
+	app.Variables.Player.Speed = int(0.12 * app.Variables.Tileset_size)
 	app.Variables.Zoom = float32(app.Variables.Tileset_size) / float32(vars.FRAME_WIDTH)
 	app.Variables.StartTime = time.Now()
 	app.Variables.Player.LastTimeTyped = time.Now()
+
+	app.Variables.Player.Position = &vars.Position{
+		X: float32(15.5 * app.Variables.Tileset_size),
+		Y: float32(8.5 * app.Variables.Tileset_size),
+	}
 
 	return app
 }
 
 func (app *App) QueueUpdate(f func()) {
-	if f != nil {
-		f()
+	if f == nil {
+		return
+	}
+	select {
+	case app.updateQueue <- f:
+	default:
+		fmt.Println("gui: update queue full, dropping a UI update")
+	}
+}
+
+func (app *App) DrainQueue() {
+	for {
+		select {
+		case f := <-app.updateQueue:
+			f()
+		default:
+			return
+		}
 	}
 }
 
@@ -117,6 +146,45 @@ func (app *App) AppendCombatChat(user, msg string)                {}
 func (app *App) AppendServerResponse(res protocol.ServerResponse) {}
 func (app *App) AppendCliMessage(text string)                     {}
 func (app *App) AppendCliResponse(res protocol.ServerResponse)    {}
+
+func (a *App) UpdateRemotePlayerPosition(pseudo string, x, y, dirX, dirY float32) {
+	// if pseudo == a.Variables.Player.Pseudo {
+	// 	return
+	// }
+
+	// if remotePlayer, exists := a.Variables.RemotePlayers[pseudo]; exists {
+	// 	remotePlayer.Position.X = x
+	// 	remotePlayer.Position.Y = y
+	// 	remotePlayer.Direction.X = dirX
+	// 	remotePlayer.Direction.Y = dirY
+	// } else {
+	// 	a.Variables.RemotePlayers[pseudo] = &vars.Player{
+	// 		Pseudo:    pseudo,
+	// 		Position:  &vars.Position{X: x, Y: y},
+	// 		Direction: &vars.Direction{X: dirX, Y: dirY},
+	// 	}
+	// }
+}
+
+func (a *App) AddRemotePlayer(pseudo string) {
+	// if a.Variables.RemotePlayers == nil {
+	// 	a.Variables.RemotePlayers = make(map[string]*vars.Player)
+	// }
+
+	// if _, exists := a.Variables.RemotePlayers[pseudo]; !exists {
+	// 	a.Variables.RemotePlayers[pseudo] = &vars.Player{
+	// 		Pseudo:    pseudo,
+	// 		Position:  &vars.Position{X: 10, Y: 10},
+	// 		Direction: &vars.Direction{X: 0, Y: 1},
+	// 	}
+	// }
+}
+
+func (a *App) RemoveRemotePlayer(pseudo string) {
+	// if a.Variables.RemotePlayers != nil {
+	// 	delete(a.Variables.RemotePlayers, pseudo)
+	// }
+}
 
 func (app *App) GetPseudo() string {
 	return app.Variables.Player.Pseudo

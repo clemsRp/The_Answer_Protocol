@@ -98,39 +98,43 @@ func (dr *Drawer) DrawConnectView() {
 		float32(dialogue.Height)/float32(vars.FRAME_HEIGHT),
 		logo_zoom*1.5, 0,
 	)
+
+	font_size := 0.4 * dr.app.Variables.Tileset_size
+
 	rl.DrawText(
 		"ENTER PSEUDO",
 		int32(posX+dr.app.Variables.Tileset_size*0.5),
 		int32(posY+dr.app.Variables.Tileset_size*0.3),
-		45, rl.Black,
+		int32(font_size), rl.NewColor(182, 137, 98, 255),
 	)
 
-	border := 5
 	input_start := int32(posX + dr.app.Variables.Tileset_size)
 	input_width := 22.5*dr.app.Variables.Tileset_size - float32(input_start)
+	input_height := 2 * font_size
+	border := input_height * 0.1
 
 	// Border
 	rl.DrawRectangle(
 		int32(posX+dr.app.Variables.Tileset_size)-int32(border),
 		int32(posY+1.5*dr.app.Variables.Tileset_size),
-		int32(input_width)+2*int32(border), 100, rl.Black,
+		int32(input_width)+2*int32(border), int32(input_height), rl.Black,
 	)
 	rl.DrawRectangle(
 		int32(posX+dr.app.Variables.Tileset_size),
 		int32(posY+1.5*dr.app.Variables.Tileset_size)-int32(border),
-		int32(input_width), 100+2*int32(border), rl.Black,
+		int32(input_width), int32(input_height)+2*int32(border), rl.Black,
 	)
 
 	// Input
 	rl.DrawRectangle(
 		int32(posX+dr.app.Variables.Tileset_size),
 		int32(posY+1.5*dr.app.Variables.Tileset_size)+int32(border),
-		int32(input_width), 100-2*int32(border), rl.White,
+		int32(input_width), int32(input_height)-2*int32(border), rl.White,
 	)
 	rl.DrawRectangle(
 		int32(posX+dr.app.Variables.Tileset_size)+int32(border),
 		int32(posY+1.5*dr.app.Variables.Tileset_size),
-		int32(input_width)-2*int32(border), 100, rl.White,
+		int32(input_width)-2*int32(border), int32(input_height), rl.White,
 	)
 
 	// Display pseudo
@@ -138,20 +142,20 @@ func (dr *Drawer) DrawConnectView() {
 		dr.app.Variables.Player.Pseudo,
 		int32(posX+1.25*dr.app.Variables.Tileset_size),
 		int32(posY+1.75*dr.app.Variables.Tileset_size),
-		45, rl.Black,
+		int32(font_size), rl.Black,
 	)
 
 	// Draw cursor
 	cursor_duration := 750
 	elapsed := int(time.Since(dr.app.Variables.StartTime).Milliseconds())
 	too_late := time.Since(dr.app.Variables.Player.LastTimeTyped).Milliseconds() > 300
-	text_size := rl.MeasureText(dr.app.Variables.Player.Pseudo+"  ", int32(45))
+	text_size := rl.MeasureText(dr.app.Variables.Player.Pseudo+"  ", int32(font_size))
 
 	if (elapsed/cursor_duration)%2 == 0 && too_late {
 		rl.DrawRectangle(
 			int32(posX+dr.app.Variables.Tileset_size)+int32(border)+text_size,
 			int32(posY+1.75*dr.app.Variables.Tileset_size),
-			5, 45, rl.Black,
+			int32(border), int32(font_size), rl.Black,
 		)
 	}
 }
