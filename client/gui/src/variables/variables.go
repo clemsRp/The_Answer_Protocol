@@ -85,5 +85,6 @@ func GetVariables() *Variables {
 			Width:  float32(1),
 			Height: float32(1),
 		},
+		FontSize: 40,
 	}
 }

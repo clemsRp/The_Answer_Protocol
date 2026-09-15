@@ -51,6 +51,7 @@ func (up *Updater) UpdatePlayer() {
 
 	if dx == 0 && dy == 0 {
 		return
+
 	} else if dir_x != 0 && dir_y != 0 {
 		dx *= float32(math.Sqrt(0.5))
 		dy *= float32(math.Sqrt(0.5))

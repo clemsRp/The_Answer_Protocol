@@ -19,6 +19,7 @@ import (
 type App struct {
 	Textures     *parser.Textures
 	Variables    *vars.Variables
+	Colors       map[string]rl.Color
 	Manager      *ui.Manager
 	Rooms        map[string]*parser.Map
 	ScreenWidth  int
@@ -46,6 +47,7 @@ func NewApp(actionsChan chan panel.Action) *App {
 	app := &App{
 		Textures:     parser.LoadTextures(),
 		Variables:    vars.GetVariables(),
+		Colors:       vars.GetColors(),
 		Manager:      ui.NewManager(),
 		ScreenWidth:  screenWidth,
 		ScreenHeight: screenHeight,

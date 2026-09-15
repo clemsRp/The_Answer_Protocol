@@ -141,7 +141,7 @@ func (up *Updater) canMove(room *parser.Map, x, y float32, tile_size int) bool {
 		}
 		stepX := (end.X - start.X) / float32(steps)
 		stepY := (end.Y - start.Y) / float32(steps)
-		for i := 1; i < steps; i++ { // < steps, pas <= : end est déjà dans cells
+		for i := 1; i < steps; i++ {
 			cells = append(cells, Pos{
 				X: start.X + stepX*float32(i),
 				Y: start.Y + stepY*float32(i),

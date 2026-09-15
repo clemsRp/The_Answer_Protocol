@@ -42,7 +42,7 @@ func (dr *Drawer) buildConnectButtons() {
 
 	prevBtn := &ui.Button{
 		ID:      "previous_emote",
-		Texture: vars.WOOD_FRAME_TEXTURE,
+		Texture: vars.UI_SPRITE_TEXTURE,
 		X:       emote_x + 0.5*dr.app.Variables.Tileset_size,
 		Y:       emote_y + 2*dr.app.Variables.Tileset_size,
 		Zoom:    dr.app.Variables.Zoom,
@@ -57,7 +57,7 @@ func (dr *Drawer) buildConnectButtons() {
 	}
 	nextBtn := &ui.Button{
 		ID:      "next_emote",
-		Texture: vars.WOOD_FRAME_TEXTURE,
+		Texture: vars.UI_SPRITE_TEXTURE,
 		X:       emote_x + 4.5*dr.app.Variables.Tileset_size,
 		Y:       emote_y + 2*dr.app.Variables.Tileset_size,
 		Zoom:    dr.app.Variables.Zoom,
@@ -70,6 +70,10 @@ func (dr *Drawer) buildConnectButtons() {
 	}
 
 	dr.app.Manager.SetViewButtons("Connect", []*ui.Button{playBtn, prevBtn, nextBtn})
+}
+
+func (dr *Drawer) buildGameButtons() {
+	dr.app.Manager.SetViewButtons("Game", []*ui.Button{})
 }
 
 func (dr *Drawer) DrawButtons(view string) {

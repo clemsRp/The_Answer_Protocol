@@ -119,7 +119,7 @@
             "scaleInEditor": 1
         },
         "Sprite sheet for Basic Pack.tsx": {
-            "scaleInDock": 3,
+            "scaleInDock": 1.5,
             "scaleInEditor": 1
         },
         "Sprout Lands defautlt palette snip.tsx": {
@@ -197,11 +197,11 @@
             "scaleInEditor": 5.5
         },
         "test.tmx": {
-            "scale": 3,
-            "selectedLayer": 4,
+            "scale": 2,
+            "selectedLayer": 0,
             "viewCenter": {
-                "x": 263.66666666666663,
-                "y": 140.16666666666669
+                "x": 267.5,
+                "y": 138.25
             }
         },
         "test.tsx": {
@@ -212,7 +212,7 @@
     },
     "frame.defaultDuration": 200,
     "last.exportedFilePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps",
-    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Dialouge UI/Emotes",
+    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Dialouge UI",
     "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
