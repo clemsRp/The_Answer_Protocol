@@ -102,7 +102,7 @@ func (dr *Drawer) DrawConnectView() {
 		"ENTER PSEUDO",
 		int32(posX+dr.app.Variables.Tileset_size*0.5),
 		int32(posY+dr.app.Variables.Tileset_size*0.3),
-		45, rl.Black,
+		45, rl.NewColor(196, 154, 108, 255),
 	)
 
 	border := 5

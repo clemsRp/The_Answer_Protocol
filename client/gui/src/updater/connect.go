@@ -19,6 +19,7 @@ func (up *Updater) UpdateConnectView() {
 			Type:    panel.ActionSendServer,
 			Payload: pr.CmdConnect + " " + up.app.Variables.Player.Pseudo,
 		}
+		up.app.Variables.Player.Pseudo = ""
 	}
 
 	up.UpdateGameView()
