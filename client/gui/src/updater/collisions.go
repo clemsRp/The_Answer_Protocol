@@ -1,6 +1,7 @@
 package updater
 
 import (
+	"math"
 	"tap/client/gui/src/parser"
 
 	vars "tap/client/gui/src/variables"
@@ -115,44 +116,44 @@ func (up *Updater) canMove(room *parser.Map, x, y float32, tile_size int) bool {
 	marge := 2
 	bottom_part := vars.FRAME_HEIGHT * 2 / 3
 
-	// Define hitbox corners
 	up_left := Pos{X: x + float32(marge), Y: y + float32(marge+bottom_part)}
 	up_right := Pos{X: x + x_off - float32(marge), Y: y + float32(marge+bottom_part)}
 	down_left := Pos{X: x + float32(marge), Y: y + y_off - float32(marge)}
 	down_right := Pos{X: x + x_off - float32(marge), Y: y + y_off - float32(marge)}
 
-	// Get all hitbox cells
-	cells := []Pos{up_left, up_right, down_right, down_left}
-	dirs := map[Pos]Dir{
-		up_left:    {X: 1, Y: 0},
-		up_right:   {X: 0, Y: 1},
-		down_right: {X: -1, Y: 0},
-		down_left:  {X: 0, Y: -1},
+	edges := [][2]Pos{
+		{up_left, up_right},
+		{up_right, down_right},
+		{down_right, down_left},
+		{down_left, up_left},
 	}
 
-	for index := range 4 {
-		start := cells[index]
-		end := cells[(index+1)%4]
+	cells := []Pos{up_left, up_right, down_right, down_left}
 
-		start_x := start.X
-		start_y := start.Y
-
-		dir := dirs[start]
-
-		for start_x != end.X || start_y != end.Y {
-			start_x += dir.X
-			start_y += dir.Y
-			cells = append(cells, Pos{X: start_x, Y: start_y})
+	for _, edge := range edges {
+		start, end := edge[0], edge[1]
+		steps := int(math.Round(math.Max(
+			math.Abs(float64(end.X-start.X)),
+			math.Abs(float64(end.Y-start.Y)),
+		)))
+		if steps == 0 {
+			continue
+		}
+		stepX := (end.X - start.X) / float32(steps)
+		stepY := (end.Y - start.Y) / float32(steps)
+		for i := 1; i < steps; i++ { // < steps, pas <= : end est déjà dans cells
+			cells = append(cells, Pos{
+				X: start.X + stepX*float32(i),
+				Y: start.Y + stepY*float32(i),
+			})
 		}
 	}
 
-	// Check collisions
 	for _, cell := range cells {
 		if up.isColliding(room, cell.X, cell.Y, tile_size) {
 			return false
 		}
 	}
-
 	return true
 }
 

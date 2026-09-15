@@ -297,15 +297,14 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 	case strings.HasPrefix(trimmed, pr.TypePlayerPosition):
 		donneesJSON, err := json.Marshal(res.Datas)
 		if err != nil {
-			fmt.Println("Erreur Marshal:", err)
+			fmt.Println("Marshal Error:", err)
 			return
 		}
 
-		// 3. On décode le JSON dans la structure
 		var posData pr.NotifyPositionData
 		err = json.Unmarshal(donneesJSON, &posData)
 		if err != nil {
-			fmt.Println("Erreur Unmarshal:", err)
+			fmt.Println("Unmarshal Error:", err)
 			return
 		}
 
