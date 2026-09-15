@@ -753,6 +753,21 @@ func (e *Engine) handleCmdNotifyPosition(player *Player, req []string) (string, 
 		return "", nil, errors.New(pr.ErrInternalServer)
 	}
 	e.inform_room(player, room, eventMsg)
+	e.posNotifs[player] = broadcastData
 
 	return "OK", nil, nil
+}
+
+func (e *Engine) handleCmdGetPositions(player *Player, req []string) (string, any, error) {
+	// sennd all players position of a room
+	if len(req) > 1 {
+		return "", nil, errors.New(pr.ErrInvalidCommand)
+	}
+	res := make([]pr.NotifyPositionData, 0)
+	for p, notif := range e.posNotifs {
+		if p.room.Id == player.room.Id {
+			res = append(res, notif)
+		}
+	}
+	return "OK", res, nil
 }

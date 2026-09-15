@@ -69,11 +69,11 @@ func NewApp(actionsChan chan panel.Action) *App {
 	app.Variables.Zoom = float32(app.Variables.Tileset_size) / float32(vars.FRAME_WIDTH)
 	app.Variables.StartTime = time.Now()
 	app.Variables.Player.LastTimeTyped = time.Now()
-
+	app.Variables.StartingPosX = float32(15.5 * app.Variables.Tileset_size)
+	app.Variables.StartingPosY = float32(8.5 * app.Variables.Tileset_size)
 	app.Variables.Player.Position = &vars.Position{
-		X: float32(15.5 * app.Variables.Tileset_size),
-		Y: float32(8.5 * app.Variables.Tileset_size),
-	}
+		X: app.Variables.StartingPosX,
+		Y: app.Variables.StartingPosY}
 
 	return app
 }
@@ -102,10 +102,23 @@ func (app *App) DrainQueue() {
 
 func (app *App) ShowConnectPage() {
 	app.Variables.Current_view = "Connect"
+
 }
 
 func (app *App) ShowGamePage() {
 	app.Variables.Current_view = "Game"
+	newPosX := app.Variables.Player.Position.X
+	newPosY := app.Variables.Player.Position.Y
+	newDirX := app.Variables.Player.Direction.X
+	newDirY := app.Variables.Player.Direction.Y
+	payload := fmt.Sprintf("%s %f %f %f %f", protocol.CmdNotifyPosition, newPosX, newPosY, newDirX, newDirY)
+
+	app.ActionsChan <- panel.Action{
+		Type:    panel.ActionSendServer,
+		Payload: payload,
+	}
+	app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdGetPositions}
+
 }
 
 func (app *App) ShowCombatPage()                                       {}
@@ -174,10 +187,11 @@ func (a *App) AddRemotePlayer(pseudo string) {
 	if _, exists := a.Variables.RemotePlayers[pseudo]; !exists {
 		a.Variables.RemotePlayers[pseudo] = &vars.Player{
 			Pseudo:    pseudo,
-			Position:  &vars.Position{X: 700, Y: 500},
+			Position:  &vars.Position{X: a.Variables.StartingPosX, Y: a.Variables.StartingPosY},
 			Direction: &vars.Direction{X: 0, Y: 1},
 		}
 	}
+	a.UpdateRemotePlayerPosition(pseudo, a.Variables.StartingPosX, a.Variables.StartingPosY, 0, 1)
 }
 
 func (a *App) RemoveRemotePlayer(pseudo string) {

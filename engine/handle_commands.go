@@ -86,6 +86,8 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
 		res, datas, err = e.handleCmdInspect(player, req)
 	case pr.CmdNotifyPosition:
 		res, datas, err = e.handleCmdNotifyPosition(player, req)
+	case pr.CmdGetPositions:
+		res, datas, err = e.handleCmdGetPositions(player, req)
 
 	default:
 		res, datas, err = "", nil, errors.New(pr.ErrInvalidCommand)
