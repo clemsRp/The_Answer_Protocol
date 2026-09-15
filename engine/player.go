@@ -5,6 +5,16 @@ import (
 	pr "tap/protocol"
 )
 
+type Direction struct {
+	X float32
+	Y float32
+}
+
+type Position struct {
+	X float32
+	Y float32
+}
+
 type Player struct {
 	id             string
 	name           string
@@ -19,6 +29,9 @@ type Player struct {
 	inCombat       bool
 	equippedWeapon *Weapon
 	stats          *CombatStats
+	Direction      *Direction
+	Position       *Position
+
 	Fighter
 }
 
@@ -86,6 +99,8 @@ func (e *Engine) createNewPlayerInstance(pseudo string, id string) (*Player, err
 			Status:     StatusNormal,
 			Damage:     2,
 		},
-		id: id,
+		id:        id,
+		Position:  &Position{},
+		Direction: &Direction{},
 	}, nil
 }

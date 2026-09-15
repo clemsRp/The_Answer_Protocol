@@ -1,6 +1,10 @@
 package server
 
-import "time"
+import (
+	"strings"
+	pr "tap/protocol"
+	"time"
+)
 
 type RateLimiter struct {
 	tokens     int
@@ -18,11 +22,13 @@ func NewRateLimiter(max int, rate time.Duration) *RateLimiter {
 	}
 }
 
-func (rl *RateLimiter) Allow() bool {
+func (rl *RateLimiter) Allow(cmd string) bool {
 	now := time.Now()
 	elapsed := now.Sub(rl.lastRefill)
 	tokensToAdd := int(elapsed / rl.refillRate)
-
+	if strings.HasPrefix(cmd, pr.CmdNotifyPosition) {
+		return true
+	}
 	if tokensToAdd > 0 {
 		rl.tokens += tokensToAdd
 		if rl.tokens > rl.maxTokens {

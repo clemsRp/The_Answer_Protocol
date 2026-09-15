@@ -1,7 +1,10 @@
 package updater
 
 import (
+	"fmt"
 	vars "tap/client/gui/src/variables"
+	panel "tap/client/tui/panels"
+	pr "tap/protocol"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -16,6 +19,11 @@ func (up *Updater) UpdatePlayer() {
 	if tile_size == 0 {
 		tile_size = 16
 	}
+
+	oldX := up.app.Variables.Player.Position.X
+	oldY := up.app.Variables.Player.Position.Y
+	oldDirX := up.app.Variables.Player.Direction.X
+	oldDirY := up.app.Variables.Player.Direction.Y
 
 	dir_x := 0
 	dir_y := 0
@@ -58,5 +66,19 @@ func (up *Updater) UpdatePlayer() {
 	}
 	if up.app.Variables.Player.Position.Y < 0 {
 		up.app.Variables.Player.Position.Y = 0
+	}
+
+	newPosX := up.app.Variables.Player.Position.X
+	newPosY := up.app.Variables.Player.Position.Y
+	newDirX := up.app.Variables.Player.Direction.X
+	newDirY := up.app.Variables.Player.Direction.Y
+
+	if oldX != newPosX || oldY != newPosY || oldDirX != newDirX || oldDirY != newDirY {
+		payload := fmt.Sprintf("%s %f %f %f %f", pr.CmdNotifyPosition, newPosX, newPosY, newDirX, newDirY)
+
+		up.actionsChan <- panel.Action{
+			Type:    panel.ActionSendServer,
+			Payload: payload,
+		}
 	}
 }

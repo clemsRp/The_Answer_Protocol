@@ -35,6 +35,9 @@ type UIApp interface {
 	AppendCliResponse(res protocol.ServerResponse)
 	GetPseudo() string
 	SetPseudo(pseudo string)
+	UpdateRemotePlayerPosition(pseudo string, X float32, Y float32, DirX float32, DirY float32)
+	AddRemotePlayer(pseudo string)
+	RemoveRemotePlayer(pseudo string)
 	Stop()
 }
 
