@@ -123,6 +123,7 @@ func (a *App) UpdateRemotePlayerPosition(pseudo string, x, y, dirX, dirY float32
 		return
 	}
 
+	
 	if remotePlayer, exists := a.Variables.RemotePlayers[pseudo]; exists {
 		remotePlayer.Position.X = x
 		remotePlayer.Position.Y = y
@@ -145,7 +146,7 @@ func (a *App) AddRemotePlayer(pseudo string) {
 	if _, exists := a.Variables.RemotePlayers[pseudo]; !exists {
 		a.Variables.RemotePlayers[pseudo] = &vars.Player{
 			Pseudo:    pseudo,
-			Position:  &vars.Position{X: 10, Y: 10},
+			Position:  &vars.Position{X: 700, Y: 500},
 			Direction: &vars.Direction{X: 0, Y: 1},
 		}
 	}

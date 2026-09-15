@@ -10,6 +10,7 @@ import (
 
 func (dr *Drawer) DrawImage(texture_name string, posX, posY, indX, indY, ratioX, ratioY, zoom, rotation float32) {
 	texture := (*dr.app.Textures)[texture_name]
+
 	sourceW := ratioX * float32(vars.FRAME_WIDTH)
 	sourceH := ratioY * float32(vars.FRAME_HEIGHT)
 

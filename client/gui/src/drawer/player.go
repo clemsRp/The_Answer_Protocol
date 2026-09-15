@@ -9,7 +9,6 @@ import (
 )
 
 func (dr *Drawer) DrawPlayers() {
-	// Dessin du joueur local
 	if dr.app.Variables.Player != nil && dr.app.Variables.Player.Position != nil {
 		dr.DrawPlayer(dr.app.Variables.Player)
 	}
@@ -24,7 +23,7 @@ func (dr *Drawer) DrawPlayers() {
 }
 
 func (dr *Drawer) DrawPlayer(p *vars.Player) {
-	texture_name, ind_x, ind_y := dr.GetPlayerTexture()
+	texture_name, ind_x, ind_y := dr.GetPlayerTexture(p)
 	dr.DrawImage(
 		texture_name,
 		p.Position.X, p.Position.Y,
@@ -62,9 +61,9 @@ func (dr *Drawer) drawSinglePseudo(p *vars.Player) {
 	)
 }
 
-func (dr *Drawer) GetPlayerTexture() (string, int, int) {
-	dir_x := dr.app.Variables.Player.Direction.X
-	dir_y := dr.app.Variables.Player.Direction.Y
+func (dr *Drawer) GetPlayerTexture(p *vars.Player) (string, int, int) {
+	dir_x := p.Direction.X
+	dir_y := p.Direction.Y
 
 	texture_name := vars.PLAYER_TEXTURE
 
