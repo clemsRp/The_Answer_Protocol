@@ -174,7 +174,7 @@ func (a *App) AddRemotePlayer(pseudo string) {
 	if _, exists := a.Variables.RemotePlayers[pseudo]; !exists {
 		a.Variables.RemotePlayers[pseudo] = &vars.Player{
 			Pseudo:    pseudo,
-			Position:  &vars.Position{X: a.Variables.StartingPosX, Y: -a.Variables.StartingPosY},
+			Position:  &vars.Position{X: a.Variables.StartingPosX, Y: a.Variables.StartingPosY},
 			Direction: &vars.Direction{X: 0, Y: 1},
 		}
 	}
