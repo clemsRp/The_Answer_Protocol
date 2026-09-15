@@ -29,6 +29,9 @@ func (rl *RateLimiter) Allow(cmd string) bool {
 	if strings.HasPrefix(cmd, pr.CmdNotifyPosition) {
 		return true
 	}
+	if strings.HasPrefix(cmd, pr.CmdGetPositions) {
+		return true
+	}
 	if tokensToAdd > 0 {
 		rl.tokens += tokensToAdd
 		if rl.tokens > rl.maxTokens {

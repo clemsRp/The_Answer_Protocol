@@ -13,6 +13,7 @@ type Engine struct {
 	players       map[string]*Player
 	groups        map[string]*Group
 	dialogues     map[string]map[string]int
+	posNotifs     map[*Player]pr.NotifyPositionData
 	activeCombats map[string]*CombatSession
 	exchanger     pr.Exchanger
 	quit          chan struct{}
@@ -26,6 +27,7 @@ func NewEngine(world *Map, exchanger pr.Exchanger) *Engine {
 		groups:        make(map[string]*Group),
 		dialogues:     make(map[string]map[string]int),
 		activeCombats: make(map[string]*CombatSession),
+		posNotifs:     make(map[*Player]pr.NotifyPositionData),
 		quit:          make(chan struct{}),
 		exchanger:     exchanger,
 	}

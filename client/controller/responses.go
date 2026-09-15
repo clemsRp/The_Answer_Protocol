@@ -314,6 +314,15 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 			}
 
 			c.refreshUI()
+		case lastCmdBase == pr.CmdGetPositions && res.Msg == "OK":
+
+			var data []protocol.NotifyPositionData
+			raw, err := json.Marshal(res.Datas)
+			if err == nil && json.Unmarshal(raw, &data) == nil {
+				for _, notif := range data {
+					c.ui.UpdateRemotePlayerPosition(notif.Name, notif.X, notif.Y, notif.DirX, notif.DirY)
+				}
+			}
 		}
 	}
 }

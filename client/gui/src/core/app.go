@@ -102,10 +102,23 @@ func (app *App) DrainQueue() {
 
 func (app *App) ShowConnectPage() {
 	app.Variables.Current_view = "Connect"
+
 }
 
 func (app *App) ShowGamePage() {
 	app.Variables.Current_view = "Game"
+	newPosX := app.Variables.Player.Position.X
+	newPosY := app.Variables.Player.Position.Y
+	newDirX := app.Variables.Player.Direction.X
+	newDirY := app.Variables.Player.Direction.Y
+	payload := fmt.Sprintf("%s %f %f %f %f", protocol.CmdNotifyPosition, newPosX, newPosY, newDirX, newDirY)
+
+	app.ActionsChan <- panel.Action{
+		Type:    panel.ActionSendServer,
+		Payload: payload,
+	}
+	app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdGetPositions}
+
 }
 
 func (app *App) ShowCombatPage()                                       {}
