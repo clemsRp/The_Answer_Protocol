@@ -49,7 +49,7 @@ func (dr *Drawer) drawSinglePseudo(p *vars.Player) {
 	if p.Pseudo == "" {
 		return
 	}
-	font_size := 20
+	font_size := dr.app.Variables.FontSize
 	text_size := rl.MeasureText(p.Pseudo, int32(font_size))
 	center_text := (vars.FRAME_WIDTH*int32(dr.app.Variables.Zoom) - text_size) / 2
 

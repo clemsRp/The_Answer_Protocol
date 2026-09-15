@@ -75,7 +75,7 @@ func (dr *Drawer) DrawWoodFrame(start vars.Position, frame_width, frame_height i
 			}
 
 			dr.DrawImage(
-				vars.WOOD_FRAME_TEXTURE,
+				vars.UI_SPRITE_TEXTURE,
 				cell*(float32(x)+start.X)-cell/2,
 				cell*(float32(y)+start.Y)-cell/2,
 				float32(frame_start_x+ind_x), float32(frame_start_y+ind_y+darkness*3),

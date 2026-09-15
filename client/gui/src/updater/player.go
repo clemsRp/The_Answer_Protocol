@@ -63,6 +63,7 @@ func (up *Updater) UpdatePlayer() {
 				Payload: payload,
 			}
 		}
+
 	} else if dir_x != 0 && dir_y != 0 {
 		dx *= float32(math.Sqrt(0.5))
 		dy *= float32(math.Sqrt(0.5))

@@ -8,14 +8,6 @@ import (
 )
 
 func (dr *Drawer) DrawConnectView() {
-	// Init Buttons/Emotes
-	if len(dr.app.Manager.Buttons("Connect")) == 0 {
-		dr.buildConnectButtons()
-	}
-	if len(dr.app.Manager.Emotes("Connect")) == 0 {
-		dr.buildConnectEmotes()
-	}
-
 	// Draw game view
 	rl.BeginTextureMode(dr.gameTexture)
 	dr.DrawGameView()
@@ -83,8 +75,8 @@ func (dr *Drawer) DrawConnectView() {
 		vars.Position{X: 13, Y: 9},
 		1, 2, false,
 	)
-	dr.DrawEmotes("Connect")
-	dr.DrawButtons("Connect")
+	dr.DrawConnectEmotes()
+	dr.DrawConnectButtons()
 
 	// Draw input
 	posX = 13.5 * dr.app.Variables.Tileset_size
@@ -99,18 +91,16 @@ func (dr *Drawer) DrawConnectView() {
 		logo_zoom*1.5, 0,
 	)
 
-	font_size := 0.4 * dr.app.Variables.Tileset_size
-
 	rl.DrawText(
 		"ENTER PSEUDO",
 		int32(posX+dr.app.Variables.Tileset_size*0.5),
 		int32(posY+dr.app.Variables.Tileset_size*0.3),
-		int32(font_size), rl.NewColor(182, 137, 98, 255),
+		int32(dr.app.Variables.FontSize), dr.app.Colors["panel_text"],
 	)
 
 	input_start := int32(posX + dr.app.Variables.Tileset_size)
 	input_width := 22.5*dr.app.Variables.Tileset_size - float32(input_start)
-	input_height := 2 * font_size
+	input_height := 2 * dr.app.Variables.FontSize
 	border := input_height * 0.1
 
 	// Border
@@ -142,20 +132,20 @@ func (dr *Drawer) DrawConnectView() {
 		dr.app.Variables.Player.Pseudo,
 		int32(posX+1.25*dr.app.Variables.Tileset_size),
 		int32(posY+1.75*dr.app.Variables.Tileset_size),
-		int32(font_size), rl.Black,
+		int32(dr.app.Variables.FontSize), rl.Black,
 	)
 
 	// Draw cursor
 	cursor_duration := 750
 	elapsed := int(time.Since(dr.app.Variables.StartTime).Milliseconds())
 	too_late := time.Since(dr.app.Variables.Player.LastTimeTyped).Milliseconds() > 300
-	text_size := rl.MeasureText(dr.app.Variables.Player.Pseudo+"  ", int32(font_size))
+	text_size := rl.MeasureText(dr.app.Variables.Player.Pseudo+"  ", int32(dr.app.Variables.FontSize))
 
 	if (elapsed/cursor_duration)%2 == 0 && too_late {
 		rl.DrawRectangle(
 			int32(posX+dr.app.Variables.Tileset_size)+int32(border)+text_size,
 			int32(posY+1.75*dr.app.Variables.Tileset_size),
-			int32(border), int32(font_size), rl.Black,
+			int32(border), int32(dr.app.Variables.FontSize), rl.Black,
 		)
 	}
 }
