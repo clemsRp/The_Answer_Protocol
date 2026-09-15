@@ -10,8 +10,15 @@ import (
 )
 
 func (up *Updater) UpdateConnectView() {
-	up.app.Manager.Update("Connect")
+	// Init Buttons/Emotes
+	if len(up.app.Manager.Buttons("Connect")) == 0 {
+		up.buildConnectButtons()
+	}
+	if len(up.app.Manager.Emotes("Connect")) == 0 {
+		up.buildConnectEmotes()
+	}
 
+	up.app.Manager.Update("Connect")
 	up.UpdatePseudo()
 
 	if rl.IsKeyPressed(rl.KeyEnter) {

@@ -8,14 +8,6 @@ import (
 )
 
 func (dr *Drawer) DrawConnectView() {
-	// Init Buttons/Emotes
-	if len(dr.app.Manager.Buttons("Connect")) == 0 {
-		dr.buildConnectButtons()
-	}
-	if len(dr.app.Manager.Emotes("Connect")) == 0 {
-		dr.buildConnectEmotes()
-	}
-
 	// Draw game view
 	rl.BeginTextureMode(dr.gameTexture)
 	dr.DrawGameView()
@@ -83,8 +75,8 @@ func (dr *Drawer) DrawConnectView() {
 		vars.Position{X: 13, Y: 9},
 		1, 2, false,
 	)
-	dr.DrawEmotes("Connect")
-	dr.DrawButtons("Connect")
+	dr.DrawConnectEmotes()
+	dr.DrawConnectButtons()
 
 	// Draw input
 	posX = 13.5 * dr.app.Variables.Tileset_size
