@@ -50,11 +50,13 @@ type Variables struct {
 	Current_view    string
 	PanelsVariables *PanelVariables
 
-	Zoom      float32
-	FontSize  float32
-	StartTime time.Time
-	MapStart  *Position
-	MapSize   *Size
+	Zoom         float32
+	FontSize     float32
+	StartTime    time.Time
+	MapStart     *Position
+	MapSize      *Size
+	StartingPosX float32
+	StartingPosY float32
 }
 
 func GetVariables() *Variables {
