@@ -24,4 +24,23 @@ func (dr *Drawer) DrawGameEmotes() {
 		e.Zoom,
 		e.Rotation,
 	)
+
+	start_ind := 15
+	for start_ind < len(dr.app.Manager.Emotes("Game")) {
+		e = dr.app.Manager.Emotes("Game")[start_ind]
+		frame = e.CurrentFrame(dr.app.Variables.StartTime)
+		dr.DrawImage(
+			e.Texture,
+			e.X, e.Y,
+			frame.IndX, frame.IndY,
+			frame.RatioX, frame.RatioY,
+			e.Zoom,
+			e.Rotation,
+		)
+		start_ind++
+	}
+}
+
+func (dr *Drawer) DrawChatEmotes() {
+
 }

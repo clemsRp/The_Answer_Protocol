@@ -42,6 +42,7 @@ func (e *Engine) playerQuits(player *Player) {
 	e.inform_room(player, player.room, "EVT ROOM PRESENCE LEAVE "+player.name)
 	e.inform_all(player, fmt.Sprintf("EVT STATS players=%d", len(e.players)))
 	e.leave_group(player)
+	delete(e.posNotifs, player)
 }
 
 func (e *Engine) handleCmdQuit(player *Player, req []string) (string, any, error) {
@@ -720,15 +721,16 @@ func (e *Engine) handleCmdUse(player *Player, req []string) (string, any, error)
 }
 
 func (e *Engine) handleCmdNotifyPosition(player *Player, req []string) (string, any, error) {
-	if len(req) < 5 {
+	if len(req) < 6 {
 		return "", nil, errors.New(pr.ErrInvalidCommand)
 	}
 	x, errX := strconv.ParseFloat(req[1], 32)
 	y, errY := strconv.ParseFloat(req[2], 32)
 	dirX, errDirX := strconv.ParseFloat(req[3], 32)
 	dirY, errDirY := strconv.ParseFloat(req[4], 32)
+	emoteIndex, errEmoteIndex := strconv.ParseInt(req[5], 10, 32)
 
-	if errX != nil || errY != nil || errDirX != nil || errDirY != nil {
+	if errX != nil || errY != nil || errDirX != nil || errDirY != nil || errEmoteIndex != nil {
 		return "", nil, errors.New("invalid coordinate format")
 	}
 
@@ -738,11 +740,12 @@ func (e *Engine) handleCmdNotifyPosition(player *Player, req []string) (string, 
 	player.Direction.Y = float32(dirY)
 
 	broadcastData := pr.NotifyPositionData{
-		Name: player.name,
-		X:    player.Position.X,
-		Y:    player.Position.Y,
-		DirX: player.Direction.X,
-		DirY: player.Direction.Y,
+		Name:       player.name,
+		X:          player.Position.X,
+		Y:          player.Position.Y,
+		DirX:       player.Direction.X,
+		DirY:       player.Direction.Y,
+		EmoteIndex: float32(emoteIndex),
 	}
 	room, exists := e.world.Rooms[player.room.Id]
 	if !exists {
@@ -759,15 +762,13 @@ func (e *Engine) handleCmdNotifyPosition(player *Player, req []string) (string, 
 }
 
 func (e *Engine) handleCmdGetPositions(player *Player, req []string) (string, any, error) {
-	// sennd all players position of a room
+	// Send all players position
 	if len(req) > 1 {
 		return "", nil, errors.New(pr.ErrInvalidCommand)
 	}
 	res := make([]pr.NotifyPositionData, 0)
-	for p, notif := range e.posNotifs {
-		if p.room.Id == player.room.Id {
-			res = append(res, notif)
-		}
+	for _, notif := range e.posNotifs {
+		res = append(res, notif)
 	}
 	return "OK", res, nil
 }

@@ -73,5 +73,33 @@ func (up *Updater) buildConnectButtons() {
 }
 
 func (up *Updater) buildGameButtons() {
-	up.app.Manager.SetViewButtons("Game", []*ui.Button{})
+	chatBtn := &ui.Button{
+		ID:      "open_chat",
+		Texture: vars.UI_SPRITE_TEXTURE,
+		X:       up.app.Variables.Tileset_size,
+		Y:       3 * up.app.Variables.Tileset_size,
+		Zoom:    up.app.Variables.Zoom * 0.5,
+		Normal:  ui.Frame{IndX: 40, IndY: 8, RatioX: 2, RatioY: 2},
+		Pressed: ui.Frame{IndX: 42, IndY: 8, RatioX: 2, RatioY: 2},
+		OnClick: func() {
+			up.app.Variables.PanelsVariables.Chat.PanelOpen = !up.app.Variables.PanelsVariables.Chat.PanelOpen
+		},
+	}
+
+	up.app.Manager.SetViewButtons("Game", []*ui.Button{chatBtn})
+}
+
+func (up *Updater) buildChatButtons() {
+	sendchatBtn := &ui.Button{
+		ID:      "send_chat",
+		Texture: vars.UI_SPRITE_TEXTURE,
+		X:       29.6 * up.app.Variables.Tileset_size,
+		Y:       15.5 * up.app.Variables.Tileset_size,
+		Zoom:    up.app.Variables.Zoom * 0.5,
+		Normal:  ui.Frame{IndX: 48, IndY: 0, RatioX: 2, RatioY: 2},
+		Pressed: ui.Frame{IndX: 50, IndY: 0, RatioX: 2, RatioY: 2},
+		OnClick: up.SendChat,
+	}
+
+	up.app.Manager.SetViewButtons("Chat", []*ui.Button{sendchatBtn})
 }

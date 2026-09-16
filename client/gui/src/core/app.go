@@ -87,7 +87,7 @@ func (app *App) QueueUpdate(f func()) {
 	select {
 	case app.updateQueue <- f:
 	default:
-		fmt.Println("gui: update queue full, dropping a UI update")
+		fmt.Println("gui: update queue full, dropping app UI update")
 	}
 }
 
@@ -113,7 +113,8 @@ func (app *App) ShowGamePage() {
 	newPosY := app.Variables.Player.Position.Y
 	newDirX := app.Variables.Player.Direction.X
 	newDirY := app.Variables.Player.Direction.Y
-	payload := fmt.Sprintf("%s %f %f %f %f", protocol.CmdNotifyPosition, newPosX, newPosY, newDirX, newDirY)
+	emoteIndex := app.Variables.Player.EmoteIndex
+	payload := fmt.Sprintf("%s %f %f %f %f %d", protocol.CmdNotifyPosition, newPosX, newPosY, newDirX, newDirY, emoteIndex)
 
 	app.ActionsChan <- panel.Action{
 		Type:    panel.ActionSendServer,
@@ -155,50 +156,73 @@ func (app *App) UpdateQuests(quests []protocol.TrackedQuestData) {
 	app.Variables.PanelsVariables.Quests = &quests
 }
 
+func (app *App) AppendChat(scope, user, msg string) {
+	scope_up := strings.ToUpper(scope)
+	chats := app.Variables.PanelsVariables.Chat.ScopeChats
+
+	emote_index := app.Variables.Player.EmoteIndex
+	if user != app.Variables.Player.Pseudo {
+		emote_index = 0
+		if remotePlayer, exists := app.Variables.RemotePlayers[user]; exists {
+			emote_index = remotePlayer.EmoteIndex
+		}
+	}
+
+	new_chat := vars.Chat{
+		Msg:        msg,
+		Pseudo:     user,
+		Time:       time.Now(),
+		EmoteIndex: emote_index,
+	}
+
+	chats[scope_up] = append(chats[scope_up], new_chat)
+}
+
 func (app *App) UpdateInspector(text string)                      {}
-func (app *App) AppendChat(scope, user, msg string)               {}
 func (app *App) AppendCombatChat(user, msg string)                {}
 func (app *App) AppendServerResponse(res protocol.ServerResponse) {}
 func (app *App) AppendCliMessage(text string)                     {}
 func (app *App) AppendCliResponse(res protocol.ServerResponse)    {}
 
-func (a *App) UpdateRemotePlayerPosition(pseudo string, x, y, dirX, dirY float32) {
-	if pseudo == a.Variables.Player.Pseudo {
+func (app *App) UpdateRemotePlayerPosition(pseudo string, x, y, dirX, dirY float32, emoteIndex int) {
+	if pseudo == app.Variables.Player.Pseudo {
 		return
 	}
 
-	if remotePlayer, exists := a.Variables.RemotePlayers[pseudo]; exists {
+	if remotePlayer, exists := app.Variables.RemotePlayers[pseudo]; exists {
 		remotePlayer.Position.X = x
 		remotePlayer.Position.Y = y
 		remotePlayer.Direction.X = dirX
 		remotePlayer.Direction.Y = dirY
+		remotePlayer.EmoteIndex = emoteIndex
 	} else {
-		a.Variables.RemotePlayers[pseudo] = &vars.Player{
-			Pseudo:    pseudo,
-			Position:  &vars.Position{X: x, Y: y},
-			Direction: &vars.Direction{X: dirX, Y: dirY},
+		app.Variables.RemotePlayers[pseudo] = &vars.Player{
+			Pseudo:     pseudo,
+			Position:   &vars.Position{X: x, Y: y},
+			Direction:  &vars.Direction{X: dirX, Y: dirY},
+			EmoteIndex: emoteIndex,
 		}
 	}
 }
 
-func (a *App) AddRemotePlayer(pseudo string) {
-	if a.Variables.RemotePlayers == nil {
-		a.Variables.RemotePlayers = make(map[string]*vars.Player)
+func (app *App) AddRemotePlayer(pseudo string) {
+	if app.Variables.RemotePlayers == nil {
+		app.Variables.RemotePlayers = make(map[string]*vars.Player)
 	}
 
-	if _, exists := a.Variables.RemotePlayers[pseudo]; !exists {
-		a.Variables.RemotePlayers[pseudo] = &vars.Player{
+	if _, exists := app.Variables.RemotePlayers[pseudo]; !exists {
+		app.Variables.RemotePlayers[pseudo] = &vars.Player{
 			Pseudo:    pseudo,
-			Position:  &vars.Position{X: a.Variables.StartingPosX, Y: a.Variables.StartingPosY},
+			Position:  &vars.Position{X: app.Variables.StartingPosX, Y: app.Variables.StartingPosY},
 			Direction: &vars.Direction{X: 0, Y: 1},
 		}
 	}
-	a.UpdateRemotePlayerPosition(pseudo, a.Variables.StartingPosX, a.Variables.StartingPosY, 0, 1)
+	app.UpdateRemotePlayerPosition(pseudo, app.Variables.StartingPosX, app.Variables.StartingPosY, 0, 1, 0)
 }
 
-func (a *App) RemoveRemotePlayer(pseudo string) {
-	if a.Variables.RemotePlayers != nil {
-		delete(a.Variables.RemotePlayers, pseudo)
+func (app *App) RemoveRemotePlayer(pseudo string) {
+	if app.Variables.RemotePlayers != nil {
+		delete(app.Variables.RemotePlayers, pseudo)
 	}
 }
 func (app *App) GetPseudo() string {

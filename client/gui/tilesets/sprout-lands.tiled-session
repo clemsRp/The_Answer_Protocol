@@ -1,5 +1,5 @@
 {
-    "activeFile": "test.tmx",
+    "activeFile": "dialog box medium.tsx",
     "expandedProjectPaths": [
         "."
     ],
@@ -184,6 +184,18 @@
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
+        "dialog box big.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "dialog box medium.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "dialog box small.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
         "rules.tmx": {
             "scale": 1.8366666666666667,
             "selectedLayer": 1,
@@ -198,10 +210,10 @@
         },
         "test.tmx": {
             "scale": 2,
-            "selectedLayer": 0,
+            "selectedLayer": 4,
             "viewCenter": {
-                "x": 267.5,
-                "y": 138.25
+                "x": 267.25,
+                "y": 138
             }
         },
         "test.tsx": {
@@ -210,7 +222,7 @@
             "scaleInEditor": 1
         }
     },
-    "frame.defaultDuration": 200,
+    "frame.defaultDuration": 750,
     "last.exportedFilePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps",
     "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Dialouge UI",
     "map.height": 18,
@@ -229,23 +241,26 @@
         "rules.tmx",
         "Free Cow Sprites.tsx",
         "Free_Chicken_House.tsx",
-        "Sprite sheet for Basic Pack.tsx"
+        "Sprite sheet for Basic Pack.tsx",
+        "dialog box medium.tsx",
+        "dialog box big.tsx",
+        "dialog box small.tsx"
     ],
     "project": "sprout-lands.tiled-project",
     "property.type": "bool",
     "recentFiles": [
         "Water.tsx",
-        "Sprite sheet for Basic Pack.tsx",
-        "Free_Chicken_House.tsx",
-        "Free Cow Sprites.tsx",
-        "rules.tmx",
-        "Free Chicken Sprites.tsx",
-        "Egg_And_Nest.tsx",
-        "Basic Charakter Spritesheet.tsx",
-        "Basic Charakter Actions.tsx",
         "test.tmx",
-        "Tools.tsx",
-        "Basic Furniture.tsx"
+        "Basic Charakter Actions.tsx",
+        "Basic Charakter Spritesheet.tsx",
+        "Egg_And_Nest.tsx",
+        "Free Chicken Sprites.tsx",
+        "rules.tmx",
+        "Free Cow Sprites.tsx",
+        "Free_Chicken_House.tsx",
+        "Sprite sheet for Basic Pack.tsx",
+        "dialog box small.tsx",
+        "dialog box big.tsx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

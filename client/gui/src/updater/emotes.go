@@ -86,5 +86,44 @@ func (up *Updater) buildGameEmotes() {
 		emotes = append(emotes, &emote)
 	}
 
+	for heart := range 5 {
+		emote_frames := make([]*ui.EmoteFrame, 0)
+		frame_duration := 750
+
+		start_x := 36
+		start_y := 4
+
+		anim_duration := 0
+		for ind_y := range 2 {
+			frame := ui.Frame{IndX: float32(start_x), IndY: float32(start_y + ind_y), RatioX: 1, RatioY: 1}
+			emote_frame := ui.EmoteFrame{
+				Frame:    &frame,
+				Duration: frame_duration,
+			}
+			anim_duration += frame_duration
+
+			emote_frames = append(emote_frames, &emote_frame)
+		}
+
+		emote := ui.Emote{
+			ID:           "heart" + strconv.Itoa(heart),
+			Texture:      vars.UI_SPRITE_TEXTURE,
+			X:            (float32(heart)*0.5 + 2.7) * up.app.Variables.Tileset_size,
+			Y:            up.app.Variables.Tileset_size * 0.98,
+			Zoom:         up.app.Variables.Zoom * 0.8,
+			Rotation:     0,
+			AnimDuration: anim_duration,
+			Frames:       emote_frames,
+		}
+
+		emotes = append(emotes, &emote)
+	}
+
 	up.app.Manager.SetViewEmotes("Game", emotes)
+}
+
+func (up *Updater) buildChatEmotes() {
+	emotes := make([]*ui.Emote, 0)
+
+	up.app.Manager.SetViewEmotes("Chat", emotes)
 }

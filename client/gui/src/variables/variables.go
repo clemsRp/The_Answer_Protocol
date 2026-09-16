@@ -11,35 +11,6 @@ type Size struct {
 	Height float32
 }
 
-type Direction struct {
-	X float32
-	Y float32
-}
-
-type Position struct {
-	X float32
-	Y float32
-}
-
-type Player struct {
-	Direction     *Direction
-	Position      *Position
-	Speed         int
-	Pseudo        string
-	EmoteIndex    int
-	LastTimeTyped time.Time
-}
-
-type PanelVariables struct {
-	Room      *protocol.LookCommandData
-	RoomItems *[]string
-	Inventory *[]string
-	Quests    *[]protocol.TrackedQuestData
-
-	GroupState  *state.GroupState
-	CombatState *state.CombatState
-}
-
 type Variables struct {
 	Player        *Player
 	RemotePlayers map[string]*Player
@@ -78,6 +49,12 @@ func GetVariables() *Variables {
 			Quests:      &[]protocol.TrackedQuestData{},
 			GroupState:  &state.GroupState{},
 			CombatState: &state.CombatState{},
+
+			Chat: &ChatPanel{
+				PanelOpen:    false,
+				CurrentScope: "GLOBAL",
+				ScopeChats:   make(map[string][]Chat),
+			},
 		},
 		MapStart: &Position{
 			X: float32(0),

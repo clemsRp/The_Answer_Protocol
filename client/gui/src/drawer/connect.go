@@ -2,7 +2,6 @@ package drawer
 
 import (
 	vars "tap/client/gui/src/variables"
-	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -81,9 +80,9 @@ func (dr *Drawer) DrawConnectView() {
 	// Draw input
 	posX = 13.5 * dr.app.Variables.Tileset_size
 	posY = 6 * dr.app.Variables.Tileset_size
-	dialogue := (*dr.app.Textures)[vars.DIALOGUE_TEXTURE]
+	dialogue := (*dr.app.Textures)[vars.MSG_BUBBLE_TEXTURE]
 	dr.DrawImage(
-		vars.DIALOGUE_TEXTURE,
+		vars.MSG_BUBBLE_TEXTURE,
 		posX, posY,
 		0, 0,
 		float32(dialogue.Width)/float32(vars.FRAME_WIDTH),
@@ -103,28 +102,17 @@ func (dr *Drawer) DrawConnectView() {
 	input_height := 2 * dr.app.Variables.FontSize
 	border := input_height * 0.1
 
-	// Border
-	rl.DrawRectangle(
-		int32(posX+dr.app.Variables.Tileset_size)-int32(border),
-		int32(posY+1.5*dr.app.Variables.Tileset_size),
-		int32(input_width)+2*int32(border), int32(input_height), rl.Black,
-	)
-	rl.DrawRectangle(
-		int32(posX+dr.app.Variables.Tileset_size),
-		int32(posY+1.5*dr.app.Variables.Tileset_size)-int32(border),
-		int32(input_width), int32(input_height)+2*int32(border), rl.Black,
-	)
+	// Bordered input
+	baseX := int32(posX + dr.app.Variables.Tileset_size)
+	baseY := int32(posY + 1.5*dr.app.Variables.Tileset_size)
 
-	// Input
-	rl.DrawRectangle(
-		int32(posX+dr.app.Variables.Tileset_size),
-		int32(posY+1.5*dr.app.Variables.Tileset_size)+int32(border),
-		int32(input_width), int32(input_height)-2*int32(border), rl.White,
-	)
-	rl.DrawRectangle(
-		int32(posX+dr.app.Variables.Tileset_size)+int32(border),
-		int32(posY+1.5*dr.app.Variables.Tileset_size),
-		int32(input_width)-2*int32(border), int32(input_height), rl.White,
+	dr.DrawBorderedInput(
+		baseX,
+		baseY,
+		int32(input_width),
+		int32(input_height),
+		int32(border),
+		rl.Black, rl.White,
 	)
 
 	// Display pseudo
@@ -136,16 +124,10 @@ func (dr *Drawer) DrawConnectView() {
 	)
 
 	// Draw cursor
-	cursor_duration := 750
-	elapsed := int(time.Since(dr.app.Variables.StartTime).Milliseconds())
-	too_late := time.Since(dr.app.Variables.Player.LastTimeTyped).Milliseconds() > 300
-	text_size := rl.MeasureText(dr.app.Variables.Player.Pseudo+"  ", int32(dr.app.Variables.FontSize))
-
-	if (elapsed/cursor_duration)%2 == 0 && too_late {
-		rl.DrawRectangle(
-			int32(posX+dr.app.Variables.Tileset_size)+int32(border)+text_size,
-			int32(posY+1.75*dr.app.Variables.Tileset_size),
-			int32(border), int32(dr.app.Variables.FontSize), rl.Black,
-		)
-	}
+	dr.DrawCursor(
+		int32(posX+dr.app.Variables.Tileset_size)+int32(border),
+		int32(posY+1.75*dr.app.Variables.Tileset_size),
+		int32(border), int32(dr.app.Variables.FontSize),
+		dr.app.Variables.Player.Pseudo+"  ", rl.Black,
+	)
 }

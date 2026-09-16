@@ -36,6 +36,9 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 				}
 				r.Players = append(r.Players, target)
 			})
+
+			c.sendToNetwork(pr.CmdNotifyPosition)
+			c.sendToNetwork(pr.CmdGetPositions)
 			c.ui.AddRemotePlayer(target)
 			c.refreshUI()
 		}
@@ -51,6 +54,8 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 					}
 				}
 			})
+			c.sendToNetwork(pr.CmdNotifyPosition)
+			c.sendToNetwork(pr.CmdGetPositions)
 			c.ui.RemoveRemotePlayer(target)
 			c.refreshUI()
 		}
@@ -309,7 +314,7 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 		}
 
 		c.ui.QueueUpdate(func() {
-			c.ui.UpdateRemotePlayerPosition(posData.Name, posData.X, posData.Y, posData.DirX, posData.DirY)
+			c.ui.UpdateRemotePlayerPosition(posData.Name, posData.X, posData.Y, posData.DirX, posData.DirY, int(posData.EmoteIndex))
 		})
 
 	}

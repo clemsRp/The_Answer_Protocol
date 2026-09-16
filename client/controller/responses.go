@@ -35,6 +35,8 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 		})
 		c.sendToNetwork(pr.CmdLook)
 		c.sendToNetwork(pr.CmdQuests)
+		c.sendToNetwork(pr.CmdNotifyPosition)
+		c.sendToNetwork(pr.CmdGetPositions)
 
 	case (lastCmdBase == pr.CmdLook || lastCmdBase == pr.CmdMove) && res.Datas != nil:
 		var lookData protocol.LookCommandData
@@ -320,7 +322,7 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 			raw, err := json.Marshal(res.Datas)
 			if err == nil && json.Unmarshal(raw, &data) == nil {
 				for _, notif := range data {
-					c.ui.UpdateRemotePlayerPosition(notif.Name, notif.X, notif.Y, notif.DirX, notif.DirY)
+					c.ui.UpdateRemotePlayerPosition(notif.Name, notif.X, notif.Y, notif.DirX, notif.DirY, int(notif.EmoteIndex))
 				}
 			}
 		}

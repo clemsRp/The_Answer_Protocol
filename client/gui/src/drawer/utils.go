@@ -2,6 +2,7 @@ package drawer
 
 import (
 	"math"
+	"time"
 
 	vars "tap/client/gui/src/variables"
 
@@ -82,5 +83,28 @@ func (dr *Drawer) DrawWoodFrame(start vars.Position, frame_width, frame_height i
 				1, 1, e*dr.app.Variables.Zoom, 0,
 			)
 		}
+	}
+}
+
+func (dr *Drawer) DrawBorderedInput(x, y, width, height, border int32, border_color, input_color rl.Color) {
+	// Border
+	rl.DrawRectangle(x-border, y, width+(2*border), height, border_color)
+	rl.DrawRectangle(x, y-border, width, height+(2*border), border_color)
+
+	// Input
+	rl.DrawRectangle(x, y+border, width, height-(2*border), input_color)
+	rl.DrawRectangle(x+border, y, width-(2*border), height, input_color)
+}
+
+func (dr *Drawer) DrawCursor(x, y, width, height int32, text string, color rl.Color) {
+	cursor_duration := 750
+	elapsed := int(time.Since(dr.app.Variables.StartTime).Milliseconds())
+	too_late := time.Since(dr.app.Variables.Player.LastTimeTyped).Milliseconds() > 300
+	text_size := rl.MeasureText(text, int32(dr.app.Variables.FontSize))
+
+	if (elapsed/cursor_duration)%2 == 0 && too_late {
+		rl.DrawRectangle(
+			x+text_size, y, width, height, color,
+		)
 	}
 }

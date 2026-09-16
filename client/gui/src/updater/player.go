@@ -50,19 +50,7 @@ func (up *Updater) UpdatePlayer() {
 	up.app.Variables.Player.Direction = &vars.Direction{X: float32(dir_x), Y: float32(dir_y)}
 
 	if dx == 0 && dy == 0 {
-		newPosX := up.app.Variables.Player.Position.X
-		newPosY := up.app.Variables.Player.Position.Y
-		newDirX := up.app.Variables.Player.Direction.X
-		newDirY := up.app.Variables.Player.Direction.Y
-
-		if oldX != newPosX || oldY != newPosY || oldDirX != newDirX || oldDirY != newDirY {
-			payload := fmt.Sprintf("%s %f %f %f %f", pr.CmdNotifyPosition, newPosX, newPosY, newDirX, newDirY)
-
-			up.actionsChan <- panel.Action{
-				Type:    panel.ActionSendServer,
-				Payload: payload,
-			}
-		}
+		up.SendNotif(oldX, oldY, oldDirX, oldDirY, false)
 
 	} else if dir_x != 0 && dir_y != 0 {
 		dx *= float32(math.Sqrt(0.5))
@@ -86,13 +74,18 @@ func (up *Updater) UpdatePlayer() {
 		up.app.Variables.Player.Position.Y = 0
 	}
 
+	up.SendNotif(oldX, oldY, oldDirX, oldDirY, false)
+}
+
+func (up *Updater) SendNotif(oldX, oldY, oldDirX, oldDirY float32, first_notif bool) {
 	newPosX := up.app.Variables.Player.Position.X
 	newPosY := up.app.Variables.Player.Position.Y
 	newDirX := up.app.Variables.Player.Direction.X
 	newDirY := up.app.Variables.Player.Direction.Y
+	emoteIndex := up.app.Variables.Player.EmoteIndex
 
-	if oldX != newPosX || oldY != newPosY || oldDirX != newDirX || oldDirY != newDirY {
-		payload := fmt.Sprintf("%s %f %f %f %f", pr.CmdNotifyPosition, newPosX, newPosY, newDirX, newDirY)
+	if oldX != newPosX || oldY != newPosY || oldDirX != newDirX || oldDirY != newDirY || first_notif {
+		payload := fmt.Sprintf("%s %f %f %f %f %d", pr.CmdNotifyPosition, newPosX, newPosY, newDirX, newDirY, emoteIndex)
 
 		up.actionsChan <- panel.Action{
 			Type:    panel.ActionSendServer,

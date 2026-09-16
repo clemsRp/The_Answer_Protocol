@@ -1,8 +1,9 @@
 package drawer
 
 import (
-	rl "github.com/gen2brain/raylib-go/raylib"
 	vars "tap/client/gui/src/variables"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 func (dr *Drawer) DrawGameView() {
@@ -56,4 +57,9 @@ func (dr *Drawer) DrawPlayerPanel() {
 		int32(dr.app.Variables.FontSize),
 		dr.app.Colors["panel_text"],
 	)
+
+	// Draw chat
+	if dr.app.Variables.PanelsVariables.Chat.PanelOpen {
+		dr.DrawChat()
+	}
 }
