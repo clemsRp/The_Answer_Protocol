@@ -59,7 +59,12 @@ func (dr *Drawer) DrawPlayerPanel() {
 	)
 
 	// Draw chat
-	if dr.app.Variables.PanelsVariables.Chat.PanelOpen {
+	if dr.app.Variables.PanelsVariables.Chat.Open {
 		dr.DrawChat()
+	}
+
+	// Draw left panel
+	if dr.app.Variables.PanelsVariables.LeftPanel.Open {
+		dr.DrawLeftPanel()
 	}
 }

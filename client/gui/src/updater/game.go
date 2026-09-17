@@ -12,7 +12,7 @@ func (up *Updater) UpdateGameView() {
 	up.UpdatePlayer()
 
 	up.app.Manager.Update("Game")
-	if up.app.Variables.PanelsVariables.Chat.PanelOpen {
+	if up.app.Variables.PanelsVariables.Chat.Open {
 		up.UpdateChat()
 	}
 }

@@ -212,8 +212,8 @@
             "scale": 2,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 267.25,
-                "y": 138
+                "x": 267.5,
+                "y": 138.25
             }
         },
         "test.tsx": {
@@ -222,7 +222,7 @@
             "scaleInEditor": 1
         }
     },
-    "frame.defaultDuration": 750,
+    "frame.defaultDuration": 200,
     "last.exportedFilePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps",
     "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Dialouge UI",
     "map.height": 18,

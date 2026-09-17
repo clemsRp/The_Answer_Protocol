@@ -14,5 +14,6 @@ type PanelVariables struct {
 	GroupState  *state.GroupState
 	CombatState *state.CombatState
 
-	Chat *ChatPanel
+	Chat      *ChatPanel
+	LeftPanel *LeftPanel
 }

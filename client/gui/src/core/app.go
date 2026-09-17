@@ -35,6 +35,7 @@ func NewApp(actionsChan chan panel.Action) *App {
 	rl.SetTargetFPS(60)
 
 	rl.InitWindow(0, 0, "TAP")
+	rl.HideCursor()
 
 	monitor := rl.GetCurrentMonitor()
 	screenWidth := rl.GetMonitorWidth(monitor)
@@ -75,7 +76,20 @@ func NewApp(actionsChan chan panel.Action) *App {
 	app.Variables.StartingPosY = float32(8.5 * app.Variables.Tileset_size)
 	app.Variables.Player.Position = &vars.Position{
 		X: app.Variables.StartingPosX,
-		Y: app.Variables.StartingPosY}
+		Y: app.Variables.StartingPosY,
+	}
+	app.Variables.PanelsVariables.Chat.Rect = rl.NewRectangle(
+		vars.CHAT_START_X*app.Variables.Tileset_size,
+		vars.CHAT_START_Y*app.Variables.Tileset_size,
+		vars.CHAT_WIDTH*app.Variables.Tileset_size,
+		vars.CHAT_HEIGHT*app.Variables.Tileset_size,
+	)
+	app.Variables.PanelsVariables.Chat.ScrollRect = rl.NewRectangle(
+		(vars.CHAT_START_X+vars.CHAT_WIDTH-0.6)*app.Variables.Tileset_size,
+		(vars.CHAT_START_Y+0.25)*app.Variables.Tileset_size,
+		0.25*app.Variables.Tileset_size,
+		(vars.CHAT_HEIGHT-0.5)*app.Variables.Tileset_size,
+	)
 
 	return app
 }

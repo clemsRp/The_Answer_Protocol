@@ -30,7 +30,7 @@ func (dr *Drawer) DrawImage(texture_name string, posX, posY, indX, indY, ratioX,
 	rl.DrawTexturePro(texture, sourceRec, destRec, origin, rotation, rl.White)
 }
 
-func (dr *Drawer) DrawWoodFrameAt(visualStart vars.Position, visualEnd vars.Position, zoom int, darkness int, empty bool) {
+func (dr *Drawer) DrawWoodFrameAt(visualStart vars.Position, visualEnd vars.Position, zoom float32, darkness int, empty bool) {
 	e := float32(zoom)
 
 	start := vars.Position{
@@ -44,7 +44,7 @@ func (dr *Drawer) DrawWoodFrameAt(visualStart vars.Position, visualEnd vars.Posi
 	dr.DrawWoodFrame(start, frame_width, frame_height, zoom, darkness, empty)
 }
 
-func (dr *Drawer) DrawWoodFrame(start vars.Position, frame_width, frame_height int, zoom int, darkness int, empty bool) {
+func (dr *Drawer) DrawWoodFrame(start vars.Position, frame_width, frame_height int, zoom float32, darkness int, empty bool) {
 	frame_start_x := 12
 	frame_start_y := 0
 

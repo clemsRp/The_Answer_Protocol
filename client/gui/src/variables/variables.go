@@ -28,6 +28,7 @@ type Variables struct {
 	MapSize      *Size
 	StartingPosX float32
 	StartingPosY float32
+	Mouse        *Mouse
 }
 
 func GetVariables() *Variables {
@@ -51,9 +52,15 @@ func GetVariables() *Variables {
 			CombatState: &state.CombatState{},
 
 			Chat: &ChatPanel{
-				PanelOpen:    false,
-				CurrentScope: "GLOBAL",
-				ScopeChats:   make(map[string][]Chat),
+				Open:            false,
+				CurrentScope:    "GLOBAL",
+				ScopeChats:      make(map[string][]Chat),
+				LastNbChats:     0,
+				ScrollActive:    false,
+				LastFrameScroll: false,
+			},
+			LeftPanel: &LeftPanel{
+				Open: false,
 			},
 		},
 		MapStart: &Position{
@@ -65,5 +72,9 @@ func GetVariables() *Variables {
 			Height: float32(1),
 		},
 		FontSize: 40,
+		Mouse: &Mouse{
+			Clicked: false,
+			Down:    false,
+		},
 	}
 }

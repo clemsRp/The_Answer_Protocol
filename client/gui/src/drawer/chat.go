@@ -7,18 +7,51 @@ import (
 )
 
 func (dr *Drawer) DrawChat() {
-	// Draw panel
-	chat_width := float32(10)
-	chat_height := float32(14)
-	chat_start_x := float32(32 - chat_width - 1)
-	chat_start_y := float32(1)
+	chat_width := float32(vars.CHAT_WIDTH)
+	chat_height := float32(vars.CHAT_HEIGHT)
+	chat_start_x := float32(vars.CHAT_START_X)
+	chat_start_y := float32(vars.CHAT_START_Y)
 
+	dr.initChatTexture(chat_width)
+	dr.drawChatPanel(chat_start_x, chat_start_y, chat_width, chat_height)
+	dr.drawChatInput(chat_start_x, chat_start_y, chat_width, chat_height)
+
+	// Draw chats
+	dr.DrawChats(chat_start_x, chat_start_y, chat_height)
+
+	dr.DrawChatEmotes()
+	dr.DrawChatButtons()
+
+	dr.DrawScope()
+}
+
+func (dr *Drawer) initChatTexture(chat_width float32) {
+	// Init chatTexture
+	scope := dr.app.Variables.PanelsVariables.Chat.CurrentScope
+	chats := dr.app.Variables.PanelsVariables.Chat.ScopeChats[scope]
+
+	if dr.app.Variables.PanelsVariables.Chat.LastNbChats != len(chats) || dr.chatTexture.ID == 0 {
+		if dr.chatTexture.ID != 0 {
+			rl.UnloadRenderTexture(dr.chatTexture)
+		}
+
+		dr.chatTexture = rl.LoadRenderTexture(
+			int32(chat_width*dr.app.Variables.Tileset_size),
+			int32((2*float32(len(chats))+4.5)*dr.app.Variables.Tileset_size),
+		)
+	}
+}
+
+func (dr *Drawer) drawChatPanel(chat_start_x, chat_start_y, chat_width, chat_height float32) {
+	// Draw panel
 	dr.DrawWoodFrameAt(
 		vars.Position{X: chat_start_x, Y: chat_start_y},
 		vars.Position{X: chat_start_x + chat_width, Y: chat_start_y + chat_height},
 		1, 0, false,
 	)
+}
 
+func (dr *Drawer) drawChatInput(chat_start_x, chat_start_y, chat_width, chat_height float32) {
 	// Draw input
 	dr.DrawWoodFrameAt(
 		vars.Position{X: chat_start_x, Y: chat_start_y + chat_height},
@@ -58,25 +91,66 @@ func (dr *Drawer) DrawChat() {
 		int32(border), int32(dr.app.Variables.FontSize),
 		dr.app.Variables.PanelsVariables.Chat.Msg, dr.app.Colors["panel_text"],
 	)
+}
 
-	// Draw chats
+func (dr *Drawer) DrawChats(chat_start_x, chat_start_y, chat_height float32) {
 	scope := dr.app.Variables.PanelsVariables.Chat.CurrentScope
 	chats := dr.app.Variables.PanelsVariables.Chat.ScopeChats[scope]
 
+	// Draw chats on chatTexture
+	rl.BeginTextureMode(dr.chatTexture)
+	rl.ClearBackground(rl.Blank)
 	for ind, chat := range chats {
 		dr.DrawChatMsg(
-			chat, chat_start_x, chat_start_y,
+			chat, 0, 0,
 			float32(ind), false,
 		)
 	}
+	rl.EndTextureMode()
 
-	dr.DrawChatEmotes()
-	dr.DrawChatButtons()
+	// Display needed part of the chat texture for scroll system
+	tex := dr.chatTexture.Texture
+	viewHeight := (chat_height - 1) * dr.app.Variables.Tileset_size
+
+	displayHeight := viewHeight
+	maxY := float32(tex.Height) - displayHeight
+	minY := float32(0)
+
+	if float32(tex.Height) < viewHeight {
+		displayHeight = float32(tex.Height)
+		maxY = 0
+		dr.app.Variables.PanelsVariables.Chat.ScrollActive = false
+	} else {
+		dr.DrawScrollBar(maxY)
+		dr.app.Variables.PanelsVariables.Chat.ScrollActive = true
+	}
+
+	sourceY := maxY
+	scroll := dr.app.Variables.PanelsVariables.Chat.Scroll
+	finalY := sourceY + scroll
+
+	if finalY > maxY {
+		finalY = maxY
+		dr.app.Variables.PanelsVariables.Chat.Scroll = finalY - sourceY
+
+	} else if finalY < minY {
+		finalY = minY
+		dr.app.Variables.PanelsVariables.Chat.Scroll = finalY - sourceY
+	}
+
+	sourceRec := rl.NewRectangle(0, finalY, float32(tex.Width), -displayHeight)
+	position := rl.NewVector2(
+		chat_start_x*dr.app.Variables.Tileset_size,
+		(chat_start_y+0.5)*dr.app.Variables.Tileset_size,
+	)
+
+	rl.DrawTextureRec(tex, sourceRec, position, rl.White)
 }
 
 func (dr *Drawer) DrawChatMsg(chat vars.Chat, start_x, start_y, index float32, border_bottom bool) {
 	posX := float32(start_x * dr.app.Variables.Tileset_size)
 	posY := float32((start_y + 2*index) * dr.app.Variables.Tileset_size)
+
 	// Draw Woodframe
 	dr.DrawImage(
 		vars.UI_SPRITE_TEXTURE,
@@ -102,7 +176,7 @@ func (dr *Drawer) DrawChatMsg(chat vars.Chat, start_x, start_y, index float32, b
 
 	dr.DrawImage(
 		"dialog box "+box_type,
-		posX+2.5*dr.app.Variables.Tileset_size,
+		posX+2.4*dr.app.Variables.Tileset_size,
 		posY+dr.app.Variables.Tileset_size,
 		0, 0, box_width, 3,
 		dr.app.Variables.Zoom/2, 0,
@@ -139,13 +213,99 @@ func (dr *Drawer) DrawChatMsg(chat vars.Chat, start_x, start_y, index float32, b
 		dr.app.Colors["panel_text"],
 	)
 
-	// Draw border top
+	// Draw border bottom
 	if border_bottom {
 		rl.DrawRectangle(
 			int32(posX+dr.app.Variables.Tileset_size),
-			int32(posY+2.5*dr.app.Variables.Tileset_size),
+			int32(posY+2*dr.app.Variables.Tileset_size),
 			int32(8*dr.app.Variables.Tileset_size), 3,
 			rl.Black,
 		)
 	}
+}
+
+func (dr *Drawer) DrawScrollBar(maxY float32) {
+	// Draw Top part
+	dr.DrawImage(
+		vars.UI_SPRITE_TEXTURE,
+		float32((vars.CHAT_START_X+vars.CHAT_WIDTH-1)*dr.app.Variables.Tileset_size),
+		float32((vars.CHAT_START_Y)*dr.app.Variables.Tileset_size),
+		20, 8, 1, 1, dr.app.Variables.Zoom, 0,
+	)
+
+	// Draw Middle part
+	limit := int(vars.CHAT_HEIGHT - 2)
+	for mid := 0; mid < limit; mid++ {
+		dr.DrawImage(
+			vars.UI_SPRITE_TEXTURE,
+			float32((vars.CHAT_START_X+vars.CHAT_WIDTH-1)*dr.app.Variables.Tileset_size),
+			float32((vars.CHAT_START_Y+float32(mid)+1)*dr.app.Variables.Tileset_size),
+			20, 9, 1, 1, dr.app.Variables.Zoom, 0,
+		)
+	}
+
+	// Draw Bottom part
+	dr.DrawImage(
+		vars.UI_SPRITE_TEXTURE,
+		float32((vars.CHAT_START_X+vars.CHAT_WIDTH-1)*dr.app.Variables.Tileset_size),
+		float32((vars.CHAT_START_Y+vars.CHAT_HEIGHT-1)*dr.app.Variables.Tileset_size),
+		20, 10, 1, 1, dr.app.Variables.Zoom, 0,
+	)
+
+	scroll_bar_start_y := float32(1.5) * dr.app.Variables.Tileset_size
+	scroll_bar_end_y := dr.app.Variables.Tileset_size * (float32(vars.CHAT_START_Y) + float32(vars.CHAT_HEIGHT) - 0.25)
+
+	cursor_y := dr.app.Variables.PanelsVariables.Chat.ScrollBarY
+	current_scroll := dr.app.Variables.PanelsVariables.Chat.Scroll
+
+	if rl.IsMouseButtonDown(rl.MouseLeftButton) {
+		cursor_y = max(scroll_bar_start_y, cursor_y)
+		cursor_y = min(cursor_y, scroll_bar_end_y)
+		dr.app.Variables.PanelsVariables.Chat.ScrollBarY = cursor_y
+
+		if scroll_bar_end_y > scroll_bar_start_y {
+			percent := (cursor_y - scroll_bar_start_y) / (scroll_bar_end_y - scroll_bar_start_y)
+			dr.app.Variables.PanelsVariables.Chat.Scroll = -maxY * percent
+		}
+
+	} else {
+		if maxY > 0 {
+			percent := current_scroll / -maxY
+			cursor_y = scroll_bar_start_y + percent*(scroll_bar_end_y-scroll_bar_start_y)
+
+			cursor_y = max(scroll_bar_start_y, cursor_y)
+			cursor_y = min(cursor_y, scroll_bar_end_y)
+
+			dr.app.Variables.PanelsVariables.Chat.ScrollBarY = cursor_y
+		}
+	}
+
+	// Draw cursor
+	dr.DrawImage(
+		vars.UI_SPRITE_TEXTURE,
+		float32((vars.CHAT_START_X+vars.CHAT_WIDTH-1)*dr.app.Variables.Tileset_size),
+		cursor_y-dr.app.Variables.Tileset_size,
+		19, 8, 1, 2, dr.app.Variables.Zoom, 0,
+	)
+}
+
+func (dr *Drawer) DrawScope() {
+	// Draw Frame
+	dr.DrawWoodFrameAt(
+		vars.Position{X: vars.CHAT_START_X + 2, Y: 0.5},
+		vars.Position{X: vars.CHAT_START_X + vars.CHAT_WIDTH - 2, Y: 2},
+		0.5, 2, false,
+	)
+
+	// Draw scope
+	scope := dr.app.Variables.PanelsVariables.Chat.CurrentScope
+	font_size := 3 * int32(dr.app.Variables.FontSize)
+	center_text := float32(rl.MeasureText(scope, font_size) / 2)
+
+	rl.DrawText(
+		scope,
+		int32((vars.CHAT_START_X+vars.CHAT_WIDTH/2)*dr.app.Variables.Tileset_size-center_text),
+		int32(vars.CHAT_START_Y+font_size*13/22),
+		font_size, rl.NewColor(232, 207, 166, 255),
+	)
 }

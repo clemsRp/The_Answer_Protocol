@@ -1,6 +1,7 @@
 package updater
 
 import (
+	"slices"
 	"tap/client/gui/src/ui"
 	vars "tap/client/gui/src/variables"
 	panel "tap/client/tui/panels"
@@ -73,20 +74,50 @@ func (up *Updater) buildConnectButtons() {
 }
 
 func (up *Updater) buildGameButtons() {
+	leftPanelBtn := &ui.Button{
+		ID:      "open_left_panel",
+		Texture: vars.UI_SPRITE_TEXTURE,
+		X:       up.app.Variables.Tileset_size,
+		Y:       3 * up.app.Variables.Tileset_size,
+		Zoom:    up.app.Variables.Zoom * 0.5,
+		Normal:  ui.Frame{IndX: 40, IndY: 6, RatioX: 2, RatioY: 2},
+		Pressed: ui.Frame{IndX: 42, IndY: 6, RatioX: 2, RatioY: 2},
+		OnClick: func() {
+			up.app.Variables.PanelsVariables.LeftPanel.Open = !up.app.Variables.PanelsVariables.LeftPanel.Open
+		},
+	}
+
 	chatBtn := &ui.Button{
 		ID:      "open_chat",
 		Texture: vars.UI_SPRITE_TEXTURE,
-		X:       up.app.Variables.Tileset_size,
+		X:       2 * up.app.Variables.Tileset_size,
 		Y:       3 * up.app.Variables.Tileset_size,
 		Zoom:    up.app.Variables.Zoom * 0.5,
 		Normal:  ui.Frame{IndX: 40, IndY: 8, RatioX: 2, RatioY: 2},
 		Pressed: ui.Frame{IndX: 42, IndY: 8, RatioX: 2, RatioY: 2},
 		OnClick: func() {
-			up.app.Variables.PanelsVariables.Chat.PanelOpen = !up.app.Variables.PanelsVariables.Chat.PanelOpen
+			up.app.Variables.PanelsVariables.Chat.Open = !up.app.Variables.PanelsVariables.Chat.Open
 		},
 	}
 
-	up.app.Manager.SetViewButtons("Game", []*ui.Button{chatBtn})
+	quitBtn := &ui.Button{
+		ID:      "quit",
+		Texture: vars.UI_SPRITE_TEXTURE,
+		X:       3 * up.app.Variables.Tileset_size,
+		Y:       3 * up.app.Variables.Tileset_size,
+		Zoom:    up.app.Variables.Zoom * 0.5,
+		Normal:  ui.Frame{IndX: 48, IndY: 10, RatioX: 2, RatioY: 2},
+		Pressed: ui.Frame{IndX: 50, IndY: 10, RatioX: 2, RatioY: 2},
+		OnClick: func() {
+			up.app.ActionsChan <- panel.Action{
+				Type:    panel.ActionSendServer,
+				Payload: pr.CmdQuit,
+			}
+			up.app.Stop()
+		},
+	}
+
+	up.app.Manager.SetViewButtons("Game", []*ui.Button{chatBtn, leftPanelBtn, quitBtn})
 }
 
 func (up *Updater) buildChatButtons() {
@@ -101,5 +132,44 @@ func (up *Updater) buildChatButtons() {
 		OnClick: up.SendChat,
 	}
 
-	up.app.Manager.SetViewButtons("Chat", []*ui.Button{sendchatBtn})
+	scopes := []string{"GLOBAL", "ROOM", "GROUP"}
+
+	scopeBtnPrevX := (vars.CHAT_START_X - 0.67) * up.app.Variables.Tileset_size
+	scopeBtnNextX := (vars.CHAT_START_X + vars.CHAT_WIDTH - 0.37) * up.app.Variables.Tileset_size
+	scopeBtnY := (vars.CHAT_START_Y + vars.CHAT_HEIGHT/2) * up.app.Variables.Tileset_size
+
+	previousScopeBtn := &ui.Button{
+		ID:      "previous_scope",
+		Texture: vars.UI_SPRITE_TEXTURE,
+		X:       scopeBtnPrevX,
+		Y:       scopeBtnY,
+		Zoom:    up.app.Variables.Zoom,
+		Normal:  ui.Frame{IndX: 17, IndY: 1, RatioX: 1, RatioY: 1},
+		Pressed: ui.Frame{IndX: 18, IndY: 1, RatioX: 1, RatioY: 1},
+		OnClick: func() {
+			cur_scope := up.app.Variables.PanelsVariables.Chat.CurrentScope
+			index := slices.Index(scopes, cur_scope)
+			up.app.Variables.PanelsVariables.Chat.CurrentScope = scopes[(index+1)%len(scopes)]
+		},
+	}
+
+	nextScopeBtn := &ui.Button{
+		ID:      "next_scope",
+		Texture: vars.UI_SPRITE_TEXTURE,
+		X:       scopeBtnNextX,
+		Y:       scopeBtnY,
+		Zoom:    up.app.Variables.Zoom,
+		Normal:  ui.Frame{IndX: 17, IndY: 0, RatioX: 1, RatioY: 1},
+		Pressed: ui.Frame{IndX: 18, IndY: 0, RatioX: 1, RatioY: 1},
+		OnClick: func() {
+			cur_scope := up.app.Variables.PanelsVariables.Chat.CurrentScope
+			index := slices.Index(scopes, cur_scope) - 1
+			if index < 0 {
+				index = len(scopes) - 1
+			}
+			up.app.Variables.PanelsVariables.Chat.CurrentScope = scopes[index]
+		},
+	}
+
+	up.app.Manager.SetViewButtons("Chat", []*ui.Button{sendchatBtn, previousScopeBtn, nextScopeBtn})
 }

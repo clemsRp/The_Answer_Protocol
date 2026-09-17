@@ -29,8 +29,10 @@ func NewApp(actionsChan chan panel.Action) *App {
 }
 
 func (app *App) Update() {
+	app.Updater.UpdateMouse()
 	if app.Variables.Current_view == "Connect" {
 		app.Updater.UpdateConnectView()
+
 	} else if app.Variables.Current_view == "Game" {
 		app.Updater.UpdateGameView()
 	}
@@ -39,9 +41,11 @@ func (app *App) Update() {
 func (app *App) Draw() {
 	if app.Variables.Current_view == "Connect" {
 		app.Drawer.DrawConnectView()
+
 	} else if app.Variables.Current_view == "Game" {
 		app.Drawer.DrawGameView()
 	}
+	app.Drawer.DrawMouse()
 }
 
 func (app *App) Start() {

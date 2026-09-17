@@ -26,6 +26,8 @@ func (up *Updater) UpdateChat() {
 	up.app.Manager.Update("Chat")
 
 	up.UpdateChatMsg()
+	up.UpdateScroll()
+	up.UpdateScope()
 }
 
 func (up *Updater) UpdateChatMsg() {
@@ -64,4 +66,34 @@ func (up *Updater) SendChat() {
 		Type:    panel.ActionSendServer,
 		Payload: fmt.Sprintf("%s %s %s", pr.CmdChat, scope, msg),
 	}
+}
+
+func (up *Updater) UpdateScroll() {
+	mouse := rl.GetMousePosition()
+	hover := rl.CheckCollisionPointRec(mouse, up.app.Variables.PanelsVariables.Chat.Rect)
+
+	scroll := rl.GetMouseWheelMove()
+	scroll_speed := 35
+
+	if hover {
+		up.app.Variables.PanelsVariables.Chat.Scroll += scroll * float32(scroll_speed)
+	}
+
+	if up.app.Variables.PanelsVariables.Chat.ScrollActive {
+		clicked := rl.IsMouseButtonPressed(rl.MouseButtonLeft)
+		down := rl.IsMouseButtonDown(rl.MouseButtonLeft)
+		scroll_hover := rl.CheckCollisionPointRec(mouse, up.app.Variables.PanelsVariables.Chat.ScrollRect)
+		last_frame_scroll := up.app.Variables.PanelsVariables.Chat.LastFrameScroll
+
+		up.app.Variables.PanelsVariables.Chat.LastFrameScroll = false
+
+		if (scroll_hover && (clicked || down)) || (last_frame_scroll && down) {
+			up.app.Variables.PanelsVariables.Chat.LastFrameScroll = true
+			up.app.Variables.PanelsVariables.Chat.ScrollBarY = mouse.Y
+		}
+	}
+}
+
+func (up *Updater) UpdateScope() {
+
 }
