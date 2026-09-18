@@ -39,17 +39,19 @@ func GetVariables() *Variables {
 				Y: 1,
 			},
 			EmoteIndex: 2,
+			MaxHp:      100,
+			Hp:         56,
 		},
 		RemotePlayers: make(map[string]*Player),
 		Current_room:  "entrance",
 		Current_view:  "Connect",
 		PanelsVariables: &PanelVariables{
-			Room:        &protocol.LookCommandData{},
-			RoomItems:   &[]string{},
-			Inventory:   &[]string{},
-			Quests:      &[]protocol.TrackedQuestData{},
-			GroupState:  &state.GroupState{},
-			CombatState: &state.CombatState{},
+			Room:           &protocol.LookCommandData{},
+			RoomItems:      &[]string{},
+			InventoryItems: &[]string{"f", "g", "t"},
+			Quests:         &[]protocol.TrackedQuestData{},
+			GroupState:     &state.GroupState{},
+			CombatState:    &state.CombatState{},
 
 			Chat: &ChatPanel{
 				Open:            false,
@@ -61,6 +63,10 @@ func GetVariables() *Variables {
 			},
 			LeftPanel: &LeftPanel{
 				Open: false,
+			},
+			Inventory: &InventoryPanel{
+				Open:    true,
+				NbItems: 0,
 			},
 		},
 		MapStart: &Position{

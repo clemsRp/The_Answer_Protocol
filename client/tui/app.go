@@ -148,10 +148,10 @@ func (m *MyApp) setupGrid() {
 func (m *MyApp) InitConnect() {
 	input := panel.NewConnectComponent(&m.pseudo, m.actionsChan)
 	logoView := panel.NewImageComponent("client/tui/assets/logo.ans")
-	shopView := panel.NewImageComponent("client/tui/assets/shopfront.ans")
+	homeView := panel.NewImageComponent("client/tui/assets/home.ans")
 
 	m.connect.AddItem(logoView, 0, 0, 1, 5, 0, 0, false)
-	m.connect.AddItem(shopView, 2, 0, 2, 5, 0, 0, false)
+	m.connect.AddItem(homeView, 2, 0, 2, 5, 0, 0, false)
 	m.connect.AddItem(input, 1, 2, 1, 1, 0, 0, true)
 }
 

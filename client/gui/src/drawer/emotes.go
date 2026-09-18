@@ -44,3 +44,17 @@ func (dr *Drawer) DrawGameEmotes() {
 func (dr *Drawer) DrawChatEmotes() {
 
 }
+
+func (dr *Drawer) DrawInventoryEmotes() {
+	for _, e := range dr.app.Manager.Emotes("Inventory") {
+		frame := e.CurrentFrame(dr.app.Variables.StartTime)
+		dr.DrawImage(
+			e.Texture,
+			e.X, e.Y,
+			frame.IndX, frame.IndY,
+			frame.RatioX, frame.RatioY,
+			e.Zoom,
+			e.Rotation,
+		)
+	}
+}

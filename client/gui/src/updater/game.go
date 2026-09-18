@@ -8,6 +8,9 @@ func (up *Updater) UpdateGameView() {
 	if len(up.app.Manager.Emotes("Game")) == 0 {
 		up.buildGameEmotes()
 	}
+	if len(up.app.Manager.Interactions("Game")) == 0 {
+		up.buildGameInteractions()
+	}
 
 	up.UpdatePlayer()
 
@@ -15,4 +18,7 @@ func (up *Updater) UpdateGameView() {
 	if up.app.Variables.PanelsVariables.Chat.Open {
 		up.UpdateChat()
 	}
+	// up.app.Manager.Update("Game")
+	up.app.Manager.Update("Inventory")
+	// up.app.Manager.Update("Chat")
 }

@@ -2,21 +2,23 @@
     {
         "rooms": {
             "entrance": {
-                "name": "entrance",
+                "name": "Overgrown Path",
                 "description": "An old trail choked with weeds. The air smells of fresh earth and cut grass.",
                 "exits": {
-                    "north": "village_square",
-                    "east": "abandoned_farm"
+                    "north": "north_bridge",
+                    "east": "village_square",
+                    "west": "abandoned_farm"
                 },
                 "items": ["rusty_hoe", "turnip_seed"],
                 "npcs": []
             },
             "village_square": {
                 "name": "Village Square",
-                "description": "A peaceful square paved with moss-covered stones. An old fountain trickles softly at its center.",
+                "description": "A peaceful square paved with moss-covered stones. An old fountain trickles softly at its center, and hens peck lazily between the cobbles.",
                 "exits": {
-                    "south": "entrance",
-                    "east": "merchant_tent"
+                    "west": "entrance",
+                    "north": "windmill",
+                    "south": "merchant_tent"
                 },
                 "items": ["crisp_apple"],
                 "npcs": ["farmer_fiona"]
@@ -25,7 +27,8 @@
                 "name": "Abandoned Farm",
                 "description": "A barren patch of land surrounded by broken fences. A menacing crow watches you from a fence post.",
                 "exits": {
-                    "west": "entrance"
+                    "north": "old_barn",
+                    "east": "entrance"
                 },
                 "items": ["leather_boots"],
                 "npcs": ["angry_crow"]
@@ -34,10 +37,95 @@
                 "name": "Merchant's Tent",
                 "description": "A colorful canvas sheltering all sorts of tools and seeds. It smells of incense and old parchment.",
                 "exits": {
-                    "west": "village_square"
+                    "north": "village_square"
                 },
                 "items": ["gold_acorn"],
                 "npcs": ["merchant_milo"]
+            },
+            "old_barn": {
+                "name": "Old Barn",
+                "description": "A weathered wooden barn with hay spilling from its loft. Chickens cluck softly somewhere inside.",
+                "exits": {
+                    "south": "abandoned_farm",
+                    "north": "forest_edge",
+                    "east": "north_bridge",
+                    "west": "chicken_coop"
+                },
+                "items": ["watering_can"],
+                "npcs": []
+            },
+            "chicken_coop": {
+                "name": "Chicken Coop",
+                "description": "A cozy fenced coop with a little thatched roof. Fluffy hens waddle about, and one nest gleams faintly.",
+                "exits": {
+                    "east": "old_barn"
+                },
+                "items": ["golden_egg"],
+                "npcs": ["shepherd_hana"]
+            },
+            "north_bridge": {
+                "name": "Wooden Bridge",
+                "description": "A sturdy plank bridge creaks gently over a clear stream. Dragonflies dart between the railings.",
+                "exits": {
+                    "west": "old_barn",
+                    "south": "entrance",
+                    "north": "riverside",
+                    "east": "windmill"
+                },
+                "items": [],
+                "npcs": []
+            },
+            "windmill": {
+                "name": "Windmill Yard",
+                "description": "A tall windmill turns lazily against the sky, its wooden gears groaning with every rotation.",
+                "exits": {
+                    "west": "north_bridge",
+                    "south": "village_square",
+                    "north": "fishing_dock"
+                },
+                "items": ["windmill_gear"],
+                "npcs": ["miller_greta"]
+            },
+            "forest_edge": {
+                "name": "Forest Edge",
+                "description": "Tall pines mark the border of the wild woods. Something large rustles in the undergrowth ahead.",
+                "exits": {
+                    "south": "old_barn",
+                    "east": "riverside"
+                },
+                "items": ["wool_scarf"],
+                "npcs": ["feral_boar"]
+            },
+            "riverside": {
+                "name": "Riverside Path",
+                "description": "A gentle path hugging the riverbank, dotted with pink wildflowers and half-submerged stepping stones.",
+                "exits": {
+                    "west": "forest_edge",
+                    "south": "north_bridge",
+                    "east": "fishing_dock"
+                },
+                "items": ["wheat_bundle"],
+                "npcs": []
+            },
+            "fishing_dock": {
+                "name": "Fishing Dock",
+                "description": "A small wooden dock stretches over calm turquoise water, lined with crates and coiled rope.",
+                "exits": {
+                    "west": "riverside",
+                    "south": "windmill",
+                    "north": "orchard"
+                },
+                "items": ["old_fishing_rod"],
+                "npcs": ["fisherman_jed"]
+            },
+            "orchard": {
+                "name": "Blossom Orchard",
+                "description": "Rows of blossoming trees sway overhead, petals drifting down onto soft grass like pink snow.",
+                "exits": {
+                    "south": "fishing_dock"
+                },
+                "items": ["blueberry_basket"],
+                "npcs": []
             }
         },
         "items": {
@@ -92,6 +180,70 @@
                 "type": "weapon",
                 "worth": 12,
                 "damage": 8
+            },
+            "watering_can": {
+                "name": "Watering Can",
+                "description": "A dented tin watering can. Swung hard enough, it makes a decent improvised weapon.",
+                "obtainable": true,
+                "type": "weapon",
+                "worth": 5,
+                "damage": 3
+            },
+            "golden_egg": {
+                "name": "Golden Egg",
+                "description": "A suspiciously shiny egg laid by one of the coop's hens. Shepherd Hana would love to see this.",
+                "obtainable": true,
+                "type": "ressource"
+            },
+            "wheat_bundle": {
+                "name": "Wheat Bundle",
+                "description": "A neatly tied bundle of golden wheat stalks, ready for the mill.",
+                "obtainable": true,
+                "type": "ressource"
+            },
+            "blueberry_basket": {
+                "name": "Blueberry Basket",
+                "description": "A small woven basket filled with plump, freshly picked blueberries. Restores health.",
+                "obtainable": true,
+                "type": "consumable",
+                "target_stat": "hp",
+                "amount": 15,
+                "effect_type": "heal",
+                "charges": 1,
+                "duration": 1
+            },
+            "old_fishing_rod": {
+                "name": "Old Fishing Rod",
+                "description": "A worn bamboo fishing rod. The hook end is surprisingly sharp when swung.",
+                "obtainable": true,
+                "type": "weapon",
+                "worth": 6,
+                "damage": 5
+            },
+            "wool_scarf": {
+                "name": "Wool Scarf",
+                "description": "A thick, hand-knit scarf. Wrapping it around you offers a bit of protection from the cold and from claws.",
+                "obtainable": true,
+                "type": "consumable",
+                "target_stat": "shield",
+                "amount": 8,
+                "effect_type": "buff",
+                "charges": 1,
+                "duration": 2
+            },
+            "windmill_gear": {
+                "name": "Windmill Gear",
+                "description": "A heavy wooden cog fallen from the windmill's mechanism. Miller Greta might want it back.",
+                "obtainable": true,
+                "type": "ressource"
+            },
+            "golden_shears": {
+                "name": "Golden Shears",
+                "description": "Ornate shears with a gilded edge, awarded to those brave enough to drive off the forest boar.",
+                "obtainable": true,
+                "type": "weapon",
+                "worth": 10,
+                "damage": 6
             }
         },
         "npcs": {
@@ -132,6 +284,56 @@
                 "role": "dialogue",
                 "quest_id": "",
                 "hostile": false
+            },
+            "miller_greta": {
+                "name": "Miller Greta",
+                "description": "A stout, flour-dusted woman tending the creaking windmill.",
+                "dialogue": [
+                    "This old mill hasn't turned right since a gear went missing...",
+                    "Bring me spare parts and I'll keep the flour coming!"
+                ],
+                "role": "dialogue",
+                "quest_id": "",
+                "hostile": false
+            },
+            "shepherd_hana": {
+                "name": "Shepherd Hana",
+                "description": "A gentle coop-keeper who dotes on every hen by name.",
+                "dialogue": [
+                    "One of my hens laid the strangest golden egg this morning!",
+                    "Could you fetch it for me? I'm too short to reach the top nest."
+                ],
+                "role": "quest",
+                "quest_id": "golden_egg_hunt",
+                "hostile": false
+            },
+            "feral_boar": {
+                "name": "Feral Boar",
+                "description": "A hulking, tusked boar that has been trampling crops near the forest edge.",
+                "dialogue": [
+                    "*Snort!* (It stomps the ground and lowers its tusks!)"
+                ],
+                "role": "enemy",
+                "quest_id": "cull_the_boar",
+                "stats": {
+                    "hp": 25,
+                    "max_hp": 25,
+                    "status": "healthy",
+                    "initiative": 90,
+                    "damage": 18
+                },
+                "hostile": true
+            },
+            "fisherman_jed": {
+                "name": "Fisherman Jed",
+                "description": "A weathered old fisherman who hasn't left the dock in years, or so the rumor goes.",
+                "dialogue": [
+                    "Quiet waters today. Good for thinking, bad for fishing.",
+                    "Mind the crates, some of them bite back."
+                ],
+                "role": "dialogue",
+                "quest_id": "",
+                "hostile": false
             }
         },
         "quests": {
@@ -146,6 +348,18 @@
                 "reward": "gold_acorn",
                 "status": "available",
                 "target_npc": "angry_crow"
+            },
+            "golden_egg_hunt": {
+                "description": "Find the Golden Egg in the Chicken Coop and bring it back to Shepherd Hana.",
+                "reward": "watering_can",
+                "status": "available",
+                "target_item": "golden_egg"
+            },
+            "cull_the_boar": {
+                "description": "Defeat the Feral Boar terrorizing the Forest Edge to protect the nearby crops.",
+                "reward": "golden_shears",
+                "status": "available",
+                "target_npc": "feral_boar"
             }
         }
     }

@@ -118,7 +118,6 @@ func (app *App) DrainQueue() {
 
 func (app *App) ShowConnectPage() {
 	app.Variables.Current_view = "Connect"
-
 }
 
 func (app *App) ShowGamePage() {
@@ -135,7 +134,6 @@ func (app *App) ShowGamePage() {
 		Payload: payload,
 	}
 	app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdGetPositions}
-
 }
 
 func (app *App) ShowCombatPage()                                       {}
@@ -151,7 +149,14 @@ func (app *App) UpdateNavigation(room *protocol.LookCommandData) {
 
 func (app *App) UpdateItems(roomItems, inventory []string) {
 	app.Variables.PanelsVariables.RoomItems = &roomItems
-	app.Variables.PanelsVariables.Inventory = &inventory
+	app.Variables.PanelsVariables.InventoryItems = &inventory
+
+	items := app.GetNewRoomItems(roomItems)
+	app.Manager.SetViewInteractions("Game", items)
+
+	invent_buttons, invent_emotes := app.GetNewInventory(inventory)
+	app.Manager.SetViewEmotes("Inventory", invent_emotes)
+	app.Manager.SetViewButtons("Inventory", invent_buttons)
 }
 
 func (app *App) UpdateDatas(text string) {}

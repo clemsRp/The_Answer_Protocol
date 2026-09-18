@@ -2,3 +2,10 @@
 - world.json
 - timer during combat
 - delete combat after quit
+
+- GUI:
+	- Group
+	- Quests
+	- Combat
+	- Npc
+	- Inspector

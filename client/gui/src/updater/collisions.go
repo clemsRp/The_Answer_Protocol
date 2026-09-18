@@ -5,6 +5,8 @@ import (
 	"tap/client/gui/src/parser"
 
 	vars "tap/client/gui/src/variables"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 type Pos vars.Position
@@ -154,6 +156,25 @@ func (up *Updater) canMove(room *parser.Map, x, y float32, tile_size int) bool {
 			return false
 		}
 	}
+
+	for _, i := range up.app.Manager.Interactions(up.app.Variables.Current_view) {
+		inter := i.Rect()
+		inter.X += 0.2 * up.app.Variables.Tileset_size
+		inter.Y += 0.2 * up.app.Variables.Tileset_size
+		inter.Width -= 0.4 * up.app.Variables.Tileset_size
+		inter.Height -= 0.4 * up.app.Variables.Tileset_size
+
+		player_rect := rl.NewRectangle(
+			up_left.X, up_left.Y,
+			down_right.X-up_left.X,
+			down_right.Y-up_left.Y,
+		)
+
+		if rl.CheckCollisionRecs(inter, player_rect) {
+			return false
+		}
+	}
+
 	return true
 }
 

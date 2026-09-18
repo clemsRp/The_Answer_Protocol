@@ -19,4 +19,6 @@ type Player struct {
 	Pseudo        string
 	EmoteIndex    int
 	LastTimeTyped time.Time
+	MaxHp         int
+	Hp            int
 }

@@ -6,14 +6,16 @@ type Frame struct {
 }
 
 type Manager struct {
-	views_buttons map[string][]*Button
-	views_emotes  map[string][]*Emote
+	views_buttons      map[string][]*Button
+	views_emotes       map[string][]*Emote
+	views_interactions map[string][]*Interaction
 }
 
 func NewManager() *Manager {
 	return &Manager{
-		views_buttons: map[string][]*Button{},
-		views_emotes:  map[string][]*Emote{},
+		views_buttons:      map[string][]*Button{},
+		views_emotes:       map[string][]*Emote{},
+		views_interactions: map[string][]*Interaction{},
 	}
 }
 
@@ -25,7 +27,12 @@ func (m *Manager) SetViewEmotes(view string, emotes []*Emote) {
 	m.views_emotes[view] = emotes
 }
 
+func (m *Manager) SetViewInteractions(view string, items []*Interaction) {
+	m.views_interactions[view] = items
+}
+
 func (m *Manager) Update(view string) {
 	m.UpdateButtons(view)
 	m.UpdateEmotes(view)
+	m.UpdateInteractions(view)
 }

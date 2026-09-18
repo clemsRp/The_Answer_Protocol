@@ -6,14 +6,15 @@ import (
 )
 
 type PanelVariables struct {
-	Room      *protocol.LookCommandData
-	RoomItems *[]string
-	Inventory *[]string
-	Quests    *[]protocol.TrackedQuestData
+	Room           *protocol.LookCommandData
+	RoomItems      *[]string
+	InventoryItems *[]string
+	Quests         *[]protocol.TrackedQuestData
 
 	GroupState  *state.GroupState
 	CombatState *state.CombatState
 
 	Chat      *ChatPanel
 	LeftPanel *LeftPanel
+	Inventory *InventoryPanel
 }

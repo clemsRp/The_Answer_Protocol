@@ -14,6 +14,9 @@ const (
 	EMOTES_TEXTURE     = "Teemo Basic emote animations sprite sheet"
 	MSG_BUBBLE_TEXTURE = "dialog box big"
 	DIALOGUE_TEXTURE   = "dialog box medium"
+	CHEST_TEXTURE      = "Chest"
+	HEART_TEXTURE      = "Inventory_Light_Herat_Spritesheet"
+	INVENTORY_TEXTURE  = "inventory_example_with_slots_2"
 
 	CHAT_WIDTH   = 10
 	CHAT_HEIGHT  = 14

@@ -36,6 +36,10 @@ func LoadTextures() *Textures {
 		fmt.Println("Error charging the textures :", err)
 	}
 
+	if _, ok := textures["Chest"]; !ok {
+		fmt.Println("Chest texture introuvable dans client/gui/assets")
+	}
+
 	return &textures
 }
 

@@ -1,6 +1,7 @@
 package drawer
 
 import (
+	"sort"
 	"time"
 
 	vars "tap/client/gui/src/variables"
@@ -9,16 +10,21 @@ import (
 )
 
 func (dr *Drawer) DrawPlayers() {
-	if dr.app.Variables.Player != nil && dr.app.Variables.Player.Position != nil {
-		dr.DrawPlayer(dr.app.Variables.Player)
+	// Get all players
+	all_players := make([]*vars.Player, 0)
+	all_players = append(all_players, dr.app.Variables.Player)
+	for _, remote_player := range dr.app.Variables.RemotePlayers {
+		all_players = append(all_players, remote_player)
 	}
 
-	if dr.app.Variables.RemotePlayers != nil {
-		for _, p := range dr.app.Variables.RemotePlayers {
-			if p.Position != nil && p.Position.X >= 0 {
-				dr.DrawPlayer(p)
-			}
-		}
+	// Sort players by Y position
+	sort.Slice(all_players, func(i, j int) bool {
+		return all_players[i].Position.Y < all_players[j].Position.Y
+	})
+
+	// Draw players
+	for _, player := range all_players {
+		dr.DrawPlayer(player)
 	}
 }
 
@@ -33,19 +39,19 @@ func (dr *Drawer) DrawPlayer(p *vars.Player) {
 
 func (dr *Drawer) DrawPseudos() {
 	if dr.app.Variables.Player != nil && dr.app.Variables.Player.Position != nil {
-		dr.drawSinglePseudo(dr.app.Variables.Player)
+		dr.drawSinglePseudo(dr.app.Variables.Player, rl.Black)
 	}
 
 	if dr.app.Variables.RemotePlayers != nil {
 		for _, p := range dr.app.Variables.RemotePlayers {
 			if p.Position != nil && p.Position.X >= 0 {
-				dr.drawSinglePseudo(p)
+				dr.drawSinglePseudo(p, rl.White)
 			}
 		}
 	}
 }
 
-func (dr *Drawer) drawSinglePseudo(p *vars.Player) {
+func (dr *Drawer) drawSinglePseudo(p *vars.Player, color rl.Color) {
 	if p.Pseudo == "" {
 		return
 	}
@@ -57,7 +63,7 @@ func (dr *Drawer) drawSinglePseudo(p *vars.Player) {
 		p.Pseudo,
 		int32(p.Position.X)+center_text,
 		int32(p.Position.Y)-int32(font_size),
-		int32(font_size), rl.White,
+		int32(font_size), color,
 	)
 }
 

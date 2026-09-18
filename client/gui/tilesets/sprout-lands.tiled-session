@@ -1,5 +1,5 @@
 {
-    "activeFile": "dialog box medium.tsx",
+    "activeFile": "Sprite sheet for Basic Pack.tsx",
     "expandedProjectPaths": [
         "."
     ],
@@ -55,7 +55,7 @@
         },
         "Chest.tsx": {
             "scaleInDock": 1,
-            "scaleInEditor": 1
+            "scaleInEditor": 5.5
         },
         "Doors.tsx": {
             "dynamicWrapping": false,
@@ -106,6 +106,10 @@
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
+        "Inventory_Light_Herat_Spritesheet.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 4
+        },
         "Paths.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
@@ -120,7 +124,7 @@
         },
         "Sprite sheet for Basic Pack.tsx": {
             "scaleInDock": 1.5,
-            "scaleInEditor": 1
+            "scaleInEditor": 2
         },
         "Sprout Lands defautlt palette snip.tsx": {
             "scaleInDock": 1,
@@ -196,6 +200,10 @@
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
+        "inventory_example_with_slots_2.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 3
+        },
         "rules.tmx": {
             "scale": 1.8366666666666667,
             "selectedLayer": 1,
@@ -224,7 +232,7 @@
     },
     "frame.defaultDuration": 200,
     "last.exportedFilePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps",
-    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Dialouge UI",
+    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Lands - UI Pack - Basic pack/emojis-free/emoji style ui",
     "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
@@ -244,7 +252,10 @@
         "Sprite sheet for Basic Pack.tsx",
         "dialog box medium.tsx",
         "dialog box big.tsx",
-        "dialog box small.tsx"
+        "dialog box small.tsx",
+        "Chest.tsx",
+        "Inventory_Light_Herat_Spritesheet.tsx",
+        "inventory_example_with_slots_2.tsx"
     ],
     "project": "sprout-lands.tiled-project",
     "property.type": "bool",
@@ -258,9 +269,9 @@
         "rules.tmx",
         "Free Cow Sprites.tsx",
         "Free_Chicken_House.tsx",
-        "Sprite sheet for Basic Pack.tsx",
-        "dialog box small.tsx",
-        "dialog box big.tsx"
+        "inventory_example_with_slots_2.tsx",
+        "Inventory_Light_Herat_Spritesheet.tsx",
+        "Chest.tsx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {
