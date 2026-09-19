@@ -13,7 +13,7 @@ func (dr *Drawer) DrawPlayers() {
 	// Get all players
 	all_players := make([]*vars.Player, 0)
 	all_players = append(all_players, dr.app.Variables.Player)
-	for _, remote_player := range dr.app.Variables.RemotePlayers {
+	for _, remote_player := range *dr.app.Variables.RemotePlayers {
 		all_players = append(all_players, remote_player)
 	}
 
@@ -42,8 +42,8 @@ func (dr *Drawer) DrawPseudos() {
 		dr.drawSinglePseudo(dr.app.Variables.Player, rl.Black)
 	}
 
-	if dr.app.Variables.RemotePlayers != nil {
-		for _, p := range dr.app.Variables.RemotePlayers {
+	if (*dr.app.Variables.RemotePlayers) != nil {
+		for _, p := range *dr.app.Variables.RemotePlayers {
 			if p.Position != nil && p.Position.X >= 0 {
 				dr.drawSinglePseudo(p, rl.White)
 			}

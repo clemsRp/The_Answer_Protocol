@@ -27,8 +27,10 @@ const (
 	CmdInspectNpc           = "INSPECT NPC"
 	CmdInspectItem          = "INSPECT ITEM"
 	CmdInspectInventoryItem = "INSPECT INVENTORY_ITEM"
-	CmdNotifyPosition       = "NOTIFY_POSITION"
-	CmdGetPositions         = "GET_POSITIONS"
+	CmdNotifyPlayerPosition = "NOTIFY_PLAYER_POSITION"
+	CmdNotifyItemPosition   = "NOTIFY_ITEM_POSITION"
+	CmdGetPlayerPositions   = "GET_PLAYER_POSITIONS"
+	CmdGetItemPositions     = "GET_ITEM_POSITIONS"
 
 	GlobalChat = "GLOBAL"
 	RoomChat   = "ROOM"

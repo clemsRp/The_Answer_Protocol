@@ -67,14 +67,61 @@ func (up *Updater) UpdatePlayer() {
 		up.app.Variables.Player.Position.Y = newY
 	}
 
-	if up.app.Variables.Player.Position.X < 0 {
-		up.app.Variables.Player.Position.X = 0
-	}
-	if up.app.Variables.Player.Position.Y < 0 {
-		up.app.Variables.Player.Position.Y = 0
+	up.UpdateMove()
+	up.SendNotif(oldX, oldY, oldDirX, oldDirY, false)
+}
+
+func (up *Updater) UpdateMove() {
+	const marge float32 = 1
+	tileSize := up.app.Variables.Tileset_size
+	pos := up.app.Variables.Player.Position
+	dir := up.app.Variables.Player.Direction
+
+	// Define room limits
+	transitions := []struct {
+		direction  string
+		atBoundary bool
+		isMoving   bool
+		updatePos  func()
+	}{
+		{
+			direction:  "east",
+			atBoundary: pos.X >= (31-marge)*tileSize,
+			isMoving:   dir.X == 1,
+			updatePos:  func() { pos.X = marge * tileSize },
+		},
+		{
+			direction:  "west",
+			atBoundary: pos.X <= marge*tileSize,
+			isMoving:   dir.X == -1,
+			updatePos:  func() { pos.X = (31 - marge) * tileSize },
+		},
+		{
+			direction:  "south",
+			atBoundary: pos.Y >= (17-marge)*tileSize,
+			isMoving:   dir.Y == 1,
+			updatePos:  func() { pos.Y = marge * tileSize },
+		},
+		{
+			direction:  "north",
+			atBoundary: pos.Y <= marge*tileSize,
+			isMoving:   dir.Y == -1,
+			updatePos:  func() { pos.Y = (17 - marge) * tileSize },
+		},
 	}
 
-	up.SendNotif(oldX, oldY, oldDirX, oldDirY, false)
+	// Check player position to move
+	for _, t := range transitions {
+		if t.atBoundary && t.isMoving {
+			up.actionsChan <- panel.Action{
+				Type:    panel.ActionSendServer,
+				Payload: pr.CmdMove + " " + t.direction,
+			}
+			t.updatePos()
+			up.app.ResetRemotePlayers()
+			break
+		}
+	}
 }
 
 func (up *Updater) SendNotif(oldX, oldY, oldDirX, oldDirY float32, first_notif bool) {
@@ -85,7 +132,7 @@ func (up *Updater) SendNotif(oldX, oldY, oldDirX, oldDirY float32, first_notif b
 	emoteIndex := up.app.Variables.Player.EmoteIndex
 
 	if oldX != newPosX || oldY != newPosY || oldDirX != newDirX || oldDirY != newDirY || first_notif {
-		payload := fmt.Sprintf("%s %f %f %f %f %d", pr.CmdNotifyPosition, newPosX, newPosY, newDirX, newDirY, emoteIndex)
+		payload := fmt.Sprintf("%s %f %f %f %f %d", pr.CmdNotifyPlayerPosition, newPosX, newPosY, newDirX, newDirY, emoteIndex)
 
 		up.actionsChan <- panel.Action{
 			Type:    panel.ActionSendServer,

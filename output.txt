@@ -84,10 +84,10 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
 		res, datas, err = e.handleCmdFlee(player, req)
 	case pr.CmdInspect:
 		res, datas, err = e.handleCmdInspect(player, req)
-	case pr.CmdNotifyPosition:
-		res, datas, err = e.handleCmdNotifyPosition(player, req)
-	case pr.CmdGetPositions:
-		res, datas, err = e.handleCmdGetPositions(player, req)
+	case pr.CmdNotifyPlayerPosition:
+		res, datas, err = e.handleCmdNotifyPlayerPosition(player, req)
+	case pr.CmdGetPlayerPositions:
+		res, datas, err = e.handleCmdGetPlayerPositions(player, req)
 
 	default:
 		res, datas, err = "", nil, errors.New(pr.ErrInvalidCommand)
@@ -186,7 +186,7 @@ func (e *Engine) playerQuits(player *Player) {
 	e.inform_room(player, player.room, "EVT ROOM PRESENCE LEAVE "+player.name)
 	e.inform_all(player, fmt.Sprintf("EVT STATS players=%d", len(e.players)))
 	e.leave_group(player)
-	delete(e.posNotifs, player)
+	delete(e.posPlayerNotifs, player)
 }
 
 func (e *Engine) handleCmdQuit(player *Player, req []string) (string, any, error) {
@@ -864,7 +864,7 @@ func (e *Engine) handleCmdUse(player *Player, req []string) (string, any, error)
 	return "OK", nil, nil
 }
 
-func (e *Engine) handleCmdNotifyPosition(player *Player, req []string) (string, any, error) {
+func (e *Engine) handleCmdNotifyPlayerPosition(player *Player, req []string) (string, any, error) {
 	fmt.Println(fmt.Sprintf("\n\n\n\n\nlen = %+v\n\n\n\n\n\n\n", req))
 	if len(req) < 6 {
 		return "", nil, errors.New(pr.ErrInvalidCommand)
@@ -884,7 +884,7 @@ func (e *Engine) handleCmdNotifyPosition(player *Player, req []string) (string, 
 	player.Direction.X = float32(dirX)
 	player.Direction.Y = float32(dirY)
 
-	broadcastData := pr.NotifyPositionData{
+	broadcastData := pr.NotifyPlayerPositionData{
 		Name:       player.name,
 		X:          player.Position.X,
 		Y:          player.Position.Y,
@@ -901,18 +901,18 @@ func (e *Engine) handleCmdNotifyPosition(player *Player, req []string) (string, 
 		return "", nil, errors.New(pr.ErrInternalServer)
 	}
 	e.inform_room(player, room, eventMsg)
-	e.posNotifs[player] = broadcastData
+	e.posPlayerNotifs[player] = broadcastData
 
 	return "OK", nil, nil
 }
 
-func (e *Engine) handleCmdGetPositions(player *Player, req []string) (string, any, error) {
+func (e *Engine) handleCmdGetPlayerPositions(player *Player, req []string) (string, any, error) {
 	// sennd all players position of a room
 	if len(req) > 1 {
 		return "", nil, errors.New(pr.ErrInvalidCommand)
 	}
-	res := make([]pr.NotifyPositionData, 0)
-	for p, notif := range e.posNotifs {
+	res := make([]pr.NotifyPlayerPositionData, 0)
+	for p, notif := range e.posPlayerNotifs {
 		if p.room.Id == player.room.Id {
 			res = append(res, notif)
 		}
@@ -1029,7 +1029,7 @@ type InspectRoomData struct {
 	Items   []InspectItemData   `json:"items"`
 }
 
-type NotifyPositionData struct {
+type NotifyPlayerPositionData struct {
 	Name       string  `json:"pseudo"`
 	X          float32 `json:"x"`
 	Y          float32 `json:"y"`
@@ -1153,13 +1153,13 @@ func (app *App) ShowGamePage() {
 	newDirX := app.Variables.Player.Direction.X
 	newDirY := app.Variables.Player.Direction.Y
 	emoteIndex := app.Variables.Player.EmoteIndex
-	payload := fmt.Sprintf("%s %f %f %f %f %d", protocol.CmdNotifyPosition, newPosX, newPosY, newDirX, newDirY, emoteIndex)
+	payload := fmt.Sprintf("%s %f %f %f %f %d", protocol.CmdNotifyPlayerPosition, newPosX, newPosY, newDirX, newDirY, emoteIndex)
 
 	app.ActionsChan <- panel.Action{
 		Type:    panel.ActionSendServer,
 		Payload: payload,
 	}
-	app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdGetPositions}
+	app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdGetPlayerPositions}
 
 }
 
@@ -1344,7 +1344,7 @@ func (up *Updater) SendNotif(oldX, oldY, oldDirX, oldDirY float32, first_notif b
 	emoteIndex := up.app.Variables.Player.EmoteIndex
 
 	if oldX != newPosX || oldY != newPosY || oldDirX != newDirX || oldDirY != newDirY || first_notif {
-		payload := fmt.Sprintf("%s %f %f %f %f %d", pr.CmdNotifyPosition, newPosX, newPosY, newDirX, newDirY, emoteIndex)
+		payload := fmt.Sprintf("%s %f %f %f %f %d", pr.CmdNotifyPlayerPosition, newPosX, newPosY, newDirX, newDirY, emoteIndex)
 
 		up.actionsChan <- panel.Action{
 			Type:    panel.ActionSendServer,

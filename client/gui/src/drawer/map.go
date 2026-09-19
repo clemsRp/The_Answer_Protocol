@@ -20,12 +20,6 @@ func (dr *Drawer) DrawMap() {
 		}
 		dr.DrawLayer(layer, cur_room.Tilesets)
 	}
-
-	dr.DrawWoodFrameAt(
-		vars.Position{X: 0, Y: 0},
-		vars.Position{X: 32, Y: 18},
-		2, 0, true,
-	)
 }
 
 func (dr *Drawer) DrawLayer(layer parser.Layer, tilesets []parser.Tileset) {

@@ -10,26 +10,28 @@ type Engine struct {
 	//sessions store id to pseudos
 	sessions map[string]string
 	//players store pseudos to Player
-	players       map[string]*Player
-	groups        map[string]*Group
-	dialogues     map[string]map[string]int
-	posNotifs     map[*Player]pr.NotifyPositionData
-	activeCombats map[string]*CombatSession
-	exchanger     pr.Exchanger
-	quit          chan struct{}
+	players         map[string]*Player
+	groups          map[string]*Group
+	dialogues       map[string]map[string]int
+	posPlayerNotifs map[*Player]pr.NotifyPlayerPositionData
+	posItemNotifs   map[string]pr.NotifyItemPositionData
+	activeCombats   map[string]*CombatSession
+	exchanger       pr.Exchanger
+	quit            chan struct{}
 }
 
 func NewEngine(world *Map, exchanger pr.Exchanger) *Engine {
 	return &Engine{
-		world:         world,
-		sessions:      make(map[string]string),
-		players:       make(map[string]*Player),
-		groups:        make(map[string]*Group),
-		dialogues:     make(map[string]map[string]int),
-		activeCombats: make(map[string]*CombatSession),
-		posNotifs:     make(map[*Player]pr.NotifyPositionData),
-		quit:          make(chan struct{}),
-		exchanger:     exchanger,
+		world:           world,
+		sessions:        make(map[string]string),
+		players:         make(map[string]*Player),
+		groups:          make(map[string]*Group),
+		dialogues:       make(map[string]map[string]int),
+		activeCombats:   make(map[string]*CombatSession),
+		posPlayerNotifs: make(map[*Player]pr.NotifyPlayerPositionData),
+		posItemNotifs:   make(map[string]pr.NotifyItemPositionData),
+		quit:            make(chan struct{}),
+		exchanger:       exchanger,
 	}
 }
 

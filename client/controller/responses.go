@@ -35,10 +35,10 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 		})
 		c.sendToNetwork(pr.CmdLook)
 		c.sendToNetwork(pr.CmdQuests)
-		c.sendToNetwork(pr.CmdNotifyPosition)
-		c.sendToNetwork(pr.CmdGetPositions)
+		c.sendToNetwork(pr.CmdNotifyPlayerPosition)
+		c.sendToNetwork(pr.CmdGetPlayerPositions)
 
-	case (lastCmdBase == pr.CmdLook || lastCmdBase == pr.CmdMove) && res.Datas != nil:
+	case lastCmdBase == pr.CmdLook && res.Datas != nil:
 		var lookData protocol.LookCommandData
 		raw, err := json.Marshal(res.Datas)
 		if err == nil && json.Unmarshal(raw, &lookData) == nil {
@@ -47,6 +47,14 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 			c.sendToNetwork(pr.CmdInspect)
 			c.sendToNetwork(pr.CmdInventory)
 		}
+
+	case lastCmdBase == pr.CmdMove:
+		c.ui.QueueUpdate(func() {
+			c.sendToNetwork(pr.CmdLook)
+			c.sendToNetwork(pr.CmdNotifyPlayerPosition)
+			c.sendToNetwork(pr.CmdGetPlayerPositions)
+			c.sendToNetwork(pr.CmdGetItemPositions)
+		})
 
 	case lastCmdBase == pr.CmdInventory && res.Datas != nil:
 		var inventoryData []string
@@ -316,13 +324,27 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 			}
 
 			c.refreshUI()
-		case lastCmdBase == pr.CmdGetPositions && res.Msg == "OK":
+		case lastCmdBase == pr.CmdGetPlayerPositions && res.Msg == "OK":
 
-			var data []protocol.NotifyPositionData
+			var data []protocol.NotifyPlayerPositionData
 			raw, err := json.Marshal(res.Datas)
 			if err == nil && json.Unmarshal(raw, &data) == nil {
 				for _, notif := range data {
-					c.ui.UpdateRemotePlayerPosition(notif.Name, notif.X, notif.Y, notif.DirX, notif.DirY, int(notif.EmoteIndex))
+					c.ui.QueueUpdate(func() {
+						c.ui.UpdateRemotePlayerPosition(notif.Name, notif.X, notif.Y, notif.DirX, notif.DirY, int(notif.EmoteIndex))
+					})
+				}
+			}
+
+		case lastCmdBase == pr.CmdGetItemPositions && res.Msg == "OK":
+
+			var data []protocol.NotifyItemPositionData
+			raw, err := json.Marshal(res.Datas)
+			if err == nil && json.Unmarshal(raw, &data) == nil {
+				for _, notif := range data {
+					c.ui.QueueUpdate(func() {
+						c.ui.UpdateItemPosition(notif.Name, notif.X, notif.Y)
+					})
 				}
 			}
 		}

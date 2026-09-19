@@ -18,7 +18,5 @@ func (up *Updater) UpdateGameView() {
 	if up.app.Variables.PanelsVariables.Chat.Open {
 		up.UpdateChat()
 	}
-	// up.app.Manager.Update("Game")
 	up.app.Manager.Update("Inventory")
-	// up.app.Manager.Update("Chat")
 }

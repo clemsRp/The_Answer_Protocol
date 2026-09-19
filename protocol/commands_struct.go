@@ -108,11 +108,17 @@ type InspectRoomData struct {
 	Items   []InspectItemData   `json:"items"`
 }
 
-type NotifyPositionData struct {
+type NotifyPlayerPositionData struct {
 	Name       string  `json:"pseudo"`
 	X          float32 `json:"x"`
 	Y          float32 `json:"y"`
 	DirX       float32 `json:"dir_x"`
 	DirY       float32 `json:"dir_y"`
 	EmoteIndex float32 `json:"emote_index"`
+}
+
+type NotifyItemPositionData struct {
+	Name string  `json:"name"`
+	X    float32 `json:"x"`
+	Y    float32 `json:"y"`
 }

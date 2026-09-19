@@ -13,6 +13,12 @@ func (dr *Drawer) DrawGameView() {
 	dr.DrawPlayers()
 	dr.DrawPseudos()
 
+	dr.DrawWoodFrameAt(
+		vars.Position{X: 0, Y: 0},
+		vars.Position{X: 32, Y: 18},
+		2, 0, true,
+	)
+
 	for _, layer := range dr.app.Rooms[dr.app.Variables.Current_room].Layers {
 		if layer.Name == "InFrontOfPlayer" {
 			dr.DrawLayer(layer, dr.app.Rooms[dr.app.Variables.Current_room].Tilesets)

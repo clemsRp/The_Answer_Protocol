@@ -42,7 +42,7 @@ func (e *Engine) playerQuits(player *Player) {
 	e.inform_room(player, player.room, "EVT ROOM PRESENCE LEAVE "+player.name)
 	e.inform_all(player, fmt.Sprintf("EVT STATS players=%d", len(e.players)))
 	e.leave_group(player)
-	delete(e.posNotifs, player)
+	delete(e.posPlayerNotifs, player)
 }
 
 func (e *Engine) handleCmdQuit(player *Player, req []string) (string, any, error) {
@@ -720,7 +720,7 @@ func (e *Engine) handleCmdUse(player *Player, req []string) (string, any, error)
 	return "OK", nil, nil
 }
 
-func (e *Engine) handleCmdNotifyPosition(player *Player, req []string) (string, any, error) {
+func (e *Engine) handleCmdNotifyPlayerPosition(player *Player, req []string) (string, any, error) {
 	if len(req) < 6 {
 		return "", nil, errors.New(pr.ErrInvalidCommand)
 	}
@@ -739,7 +739,7 @@ func (e *Engine) handleCmdNotifyPosition(player *Player, req []string) (string, 
 	player.Direction.X = float32(dirX)
 	player.Direction.Y = float32(dirY)
 
-	broadcastData := pr.NotifyPositionData{
+	broadcastData := pr.NotifyPlayerPositionData{
 		Name:       player.name,
 		X:          player.Position.X,
 		Y:          player.Position.Y,
@@ -756,18 +756,64 @@ func (e *Engine) handleCmdNotifyPosition(player *Player, req []string) (string, 
 		return "", nil, errors.New(pr.ErrInternalServer)
 	}
 	e.inform_room(player, room, eventMsg)
-	e.posNotifs[player] = broadcastData
+	e.posPlayerNotifs[player] = broadcastData
 
 	return "OK", nil, nil
 }
 
-func (e *Engine) handleCmdGetPositions(player *Player, req []string) (string, any, error) {
+func (e *Engine) handleCmdNotifyItemPosition(player *Player, req []string) (string, any, error) {
+	if len(req) < 4 {
+		return "", nil, errors.New(pr.ErrInvalidCommand)
+	}
+	x, errX := strconv.ParseFloat(req[1], 32)
+	y, errY := strconv.ParseFloat(req[2], 32)
+
+	if errX != nil || errY != nil {
+		return "", nil, errors.New("invalid coordinate format")
+	}
+
+	fmt.Printf("\n\n\n\n\n%s\n\n\n\n\n", req[3])
+
+	broadcastData := pr.NotifyItemPositionData{
+		Name: req[3],
+		X:    float32(x),
+		Y:    float32(y),
+	}
+	room, exists := e.world.Rooms[player.room.Id]
+	if !exists {
+		return "", nil, errors.New(pr.ErrInternalServer)
+	}
+	eventMsg, err := convertObjectToJson("EVT ITEM_POSITION", broadcastData)
+	if err != nil {
+		return "", nil, errors.New(pr.ErrInternalServer)
+	}
+	e.inform_room(player, room, eventMsg)
+	e.posItemNotifs[req[3]] = broadcastData
+
+	return "OK", nil, nil
+}
+
+func (e *Engine) handleCmdGetPlayerPositions(player *Player, req []string) (string, any, error) {
 	// Send all players position
 	if len(req) > 1 {
 		return "", nil, errors.New(pr.ErrInvalidCommand)
 	}
-	res := make([]pr.NotifyPositionData, 0)
-	for _, notif := range e.posNotifs {
+	res := make([]pr.NotifyPlayerPositionData, 0)
+	for p, notif := range e.posPlayerNotifs {
+		if p.room.Id == player.room.Id {
+			res = append(res, notif)
+		}
+	}
+	return "OK", res, nil
+}
+
+func (e *Engine) handleCmdGetItemPositions(player *Player, req []string) (string, any, error) {
+	// Send all players position
+	if len(req) > 1 {
+		return "", nil, errors.New(pr.ErrInvalidCommand)
+	}
+	res := make([]pr.NotifyItemPositionData, 0)
+	for _, notif := range e.posItemNotifs {
 		res = append(res, notif)
 	}
 	return "OK", res, nil

@@ -59,4 +59,7 @@ func (app *App) Start() {
 		app.Draw()
 		rl.EndDrawing()
 	}
+
+	app.Textures.UnloadTextures()
+	rl.CloseWindow()
 }

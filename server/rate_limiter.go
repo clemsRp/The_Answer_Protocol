@@ -26,12 +26,16 @@ func (rl *RateLimiter) Allow(cmd string) bool {
 	now := time.Now()
 	elapsed := now.Sub(rl.lastRefill)
 	tokensToAdd := int(elapsed / rl.refillRate)
-	if strings.HasPrefix(cmd, pr.CmdNotifyPosition) {
+
+	player_notif := strings.HasPrefix(cmd, pr.CmdNotifyPlayerPosition)
+	player_position := strings.HasPrefix(cmd, pr.CmdGetPlayerPositions)
+	item_notif := strings.HasPrefix(cmd, pr.CmdNotifyItemPosition)
+	item_position := strings.HasPrefix(cmd, pr.CmdGetItemPositions)
+
+	if player_notif || player_position || item_notif || item_position {
 		return true
 	}
-	if strings.HasPrefix(cmd, pr.CmdGetPositions) {
-		return true
-	}
+
 	if tokensToAdd > 0 {
 		rl.tokens += tokensToAdd
 		if rl.tokens > rl.maxTokens {

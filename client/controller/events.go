@@ -37,9 +37,11 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 				r.Players = append(r.Players, target)
 			})
 
-			c.sendToNetwork(pr.CmdNotifyPosition)
-			c.sendToNetwork(pr.CmdGetPositions)
-			c.ui.AddRemotePlayer(target)
+			c.ui.QueueUpdate(func() {
+				c.ui.AddRemotePlayer(target)
+				c.sendToNetwork(pr.CmdNotifyPlayerPosition)
+				c.sendToNetwork(pr.CmdGetPlayerPositions)
+			})
 			c.refreshUI()
 		}
 
@@ -54,9 +56,11 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 					}
 				}
 			})
-			c.sendToNetwork(pr.CmdNotifyPosition)
-			c.sendToNetwork(pr.CmdGetPositions)
-			c.ui.RemoveRemotePlayer(target)
+			c.ui.QueueUpdate(func() {
+				c.ui.RemoveRemotePlayer(target)
+				c.sendToNetwork(pr.CmdNotifyPlayerPosition)
+				c.sendToNetwork(pr.CmdGetPlayerPositions)
+			})
 			c.refreshUI()
 		}
 
@@ -306,7 +310,7 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 			return
 		}
 
-		var posData pr.NotifyPositionData
+		var posData pr.NotifyPlayerPositionData
 		err = json.Unmarshal(donneesJSON, &posData)
 		if err != nil {
 			fmt.Println("Unmarshal Error:", err)
@@ -315,6 +319,24 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 
 		c.ui.QueueUpdate(func() {
 			c.ui.UpdateRemotePlayerPosition(posData.Name, posData.X, posData.Y, posData.DirX, posData.DirY, int(posData.EmoteIndex))
+		})
+
+	case strings.HasPrefix(trimmed, pr.TypeItemPosition):
+		donneesJSON, err := json.Marshal(res.Datas)
+		if err != nil {
+			fmt.Println("Marshal Error:", err)
+			return
+		}
+
+		var posData pr.NotifyItemPositionData
+		err = json.Unmarshal(donneesJSON, &posData)
+		if err != nil {
+			fmt.Println("Unmarshal Error:", err)
+			return
+		}
+
+		c.ui.QueueUpdate(func() {
+			c.ui.UpdateItemPosition(posData.Name, posData.X, posData.Y)
 		})
 
 	}
