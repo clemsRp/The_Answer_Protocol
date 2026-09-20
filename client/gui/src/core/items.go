@@ -44,7 +44,7 @@ func (app *App) GetNewRoomItems(roomItems []string) []*ui.Interaction {
 		frame_duration := 500
 
 		// Retrieve texture and frames for the current item
-		text, frames := get_item_datas(it)
+		text, frames := get_item_datas(it, frame_duration)
 
 		var pos *vars.Position
 		var ok bool
@@ -60,7 +60,7 @@ func (app *App) GetNewRoomItems(roomItems []string) []*ui.Interaction {
 			Y:            pos.Y,
 			Zoom:         app.Variables.Zoom,
 			Rotation:     0,
-			AnimDuration: 2 * frame_duration,
+			AnimDuration: len(frames) * frame_duration,
 			Frames:       frames,
 		}
 
@@ -133,7 +133,7 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 		frame_duration := 500
 
 		// Retrieve texture and frames for the current inventory item
-		text, frames := get_item_datas(it)
+		text, frames := get_item_datas(it, frame_duration)
 
 		// Create the visual representation of the inventory item
 		item_emote := &ui.Emote{
@@ -168,9 +168,15 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 
 				tileset_size := app.Variables.Tileset_size
 
-				// Calculate new position + offset
-				newPosX := app.Variables.Player.Position.X + dirX*tileset_size
-				newPosY := app.Variables.Player.Position.Y + dirY*tileset_size
+				// Find closest free tile around the player
+				newPosX, newPosY, found := app.FindNearestFreeTile(
+					app.Variables.Player.Position.X+dirX*tileset_size,
+					app.Variables.Player.Position.Y+dirY*tileset_size,
+				)
+				if !found {
+					// No free spot found, abort drop
+					return
+				}
 
 				// Update position
 				(*app.Variables.ItemPositions)[it].X = newPosX
@@ -190,14 +196,84 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 	return invent_buttons, invent_emotes
 }
 
-func get_item_datas(item string) (string, []*ui.EmoteFrame) {
+func (app *App) FindNearestFreeTile(startX, startY float32) (float32, float32, bool) {
+	tileSize := int(app.Variables.Tileset_size)
+	if tileSize <= 0 {
+		return startX, startY, false
+	}
+
+	room := app.Rooms[app.Variables.Current_room]
+	if room == nil || len(room.Collisions) == 0 || len(room.Collisions[0]) == 0 {
+		return startX, startY, false
+	}
+
+	// Get starting tile datas
+	startTileX := int(startX) / tileSize
+	startTileY := int(startY) / tileSize
+	maxRadius := len(room.Collisions) + len(room.Collisions[0])
+
+	// Expand ring by ring around the starting tile
+	for radius := 0; radius <= maxRadius; radius++ {
+		for dx := -radius; dx <= radius; dx++ {
+			for dy := -radius; dy <= radius; dy++ {
+				// Only check the ring border, skip cells already checked at smaller radius
+				if radius > 0 && absInt(dx) != radius && absInt(dy) != radius {
+					continue
+				}
+
+				tileX := startTileX + dx
+				tileY := startTileY + dy
+
+				// Skip tiles outside the map
+				if tileY < 0 || tileY >= len(room.Collisions) || tileX < 0 || tileX >= len(room.Collisions[0]) {
+					continue
+				}
+
+				// Skip tiles with a collision
+				if room.Collisions[tileY][tileX] != 0 {
+					continue
+				}
+
+				worldX := float32(tileX * tileSize)
+				worldY := float32(tileY * tileSize)
+
+				// Skip tiles already holding an item
+				if app.isTileOccupiedByItem(worldX, worldY) {
+					continue
+				}
+
+				return worldX, worldY, true
+			}
+		}
+	}
+
+	return startX, startY, false
+}
+
+// Check if an item is already placed on the given tile
+func (app *App) isTileOccupiedByItem(x, y float32) bool {
+	for _, pos := range *app.Variables.ItemPositions {
+		if pos.X == x && pos.Y == y {
+			return true
+		}
+	}
+	return false
+}
+
+func absInt(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
+}
+
+func get_item_datas(item string, frame_duration int) (string, []*ui.EmoteFrame) {
 	frames := make([]*ui.EmoteFrame, 0)
 
 	// Define needed datas
 	var texture string
 	var ratioX, ratioY float32
 	var indXs, indYs []float32
-	frame_duration := 500
 
 	// Get datas depending on item
 	if d, ok := item_convertor[item]; ok {

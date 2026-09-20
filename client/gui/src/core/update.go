@@ -50,7 +50,7 @@ func (app *App) UpdateItems(roomItems, inventory []string) {
 	app.Variables.PanelsVariables.InventoryItems = &inventory
 
 	items := app.GetNewRoomItems(roomItems)
-	app.Manager.SetViewInteractions("Game", items)
+	app.Manager.SetViewInteractions("Items", items)
 
 	invent_buttons, invent_emotes := app.GetNewInventory(inventory)
 	app.Manager.SetViewEmotes("Inventory", invent_emotes)
@@ -58,7 +58,14 @@ func (app *App) UpdateItems(roomItems, inventory []string) {
 }
 
 func (app *App) UpdateDatas(text string) {}
-func (app *App) UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string, quests []protocol.TrackedQuestData, completed_quests []string) {
+func (app *App) UpdateInteraction(roomNpcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string, quests []protocol.TrackedQuestData, completed_quests []string) {
+	npcs := app.GetNewRoomNpcs(roomNpcs)
+	app.Manager.SetViewInteractions("Npcs", npcs)
+
+	npc := app.Variables.PanelsVariables.Talk.LastTalk
+	if talk_res, ok := npcDialogues[npc]; ok {
+		app.SetTalkResult(npc, talk_res)
+	}
 }
 
 func (app *App) UpdateGroup(groupState state.GroupState) {
@@ -167,10 +174,10 @@ func (app *App) UpdateItemPosition(name string, x, y float32) {
 			item.Emote.Y = y
 
 			// Update buttons positions
-			for _, button := range item.Buttons {
-				button.X = x
-				button.Y = y
-			}
+			item.Buttons[0].X = x - 0.2*app.Variables.Tileset_size
+			item.Buttons[0].Y = y - 1.2*app.Variables.Tileset_size
+			item.Buttons[1].X = x + 0.15*app.Variables.Tileset_size
+			item.Buttons[1].Y = y - 0.85*app.Variables.Tileset_size
 			break
 		}
 	}

@@ -10,8 +10,9 @@ import (
 type Drawer struct {
 	app *core.App
 
-	gameTexture rl.RenderTexture2D
-	blurShader  rl.Shader
+	gameTexture  rl.RenderTexture2D
+	blurShader   rl.Shader
+	darkenShader rl.Shader
 
 	chatTexture rl.RenderTexture2D
 }
@@ -30,9 +31,10 @@ var (
 
 func NewDrawer(app *core.App) *Drawer {
 	dr := &Drawer{
-		app:         app,
-		gameTexture: rl.LoadRenderTexture(int32(app.ScreenWidth), int32(app.ScreenHeight)),
-		blurShader:  rl.LoadShader("", "./client/gui/src/drawer/blur.fs"),
+		app:          app,
+		gameTexture:  rl.LoadRenderTexture(int32(app.ScreenWidth), int32(app.ScreenHeight)),
+		blurShader:   rl.LoadShader("", "./client/gui/src/drawer/shader/blur.fs"),
+		darkenShader: rl.LoadShader("", "./client/gui/src/drawer/shader/darken.fs"),
 	}
 
 	rl.SetShaderValue(

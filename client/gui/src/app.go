@@ -39,6 +39,7 @@ func (app *App) Update() {
 }
 
 func (app *App) Draw() {
+	app.Drawer.RenderChatTexture()
 	if app.Variables.Current_view == "Connect" {
 		app.Drawer.DrawConnectView()
 

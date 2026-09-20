@@ -269,10 +269,11 @@
 │   ├── core
 │   │   ├── app.go
 │   │   ├── items.go
+│   │   ├── npcs.go
+│   │   ├── talk.go
 │   │   └── update.go
 │   ├── drawer
 │   │   ├── animations.go
-│   │   ├── blur.fs
 │   │   ├── buttons.go
 │   │   ├── chat.go
 │   │   ├── connect.go
@@ -284,6 +285,10 @@
 │   │   ├── map.go
 │   │   ├── mouse.go
 │   │   ├── player.go
+│   │   ├── shader
+│   │   │   ├── blur.fs
+│   │   │   └── darken.fs
+│   │   ├── talk.go
 │   │   └── utils.go
 │   ├── gui_client.go
 │   ├── parser
@@ -306,6 +311,7 @@
 │   │   ├── interactions.go
 │   │   ├── mouse.go
 │   │   ├── player.go
+│   │   ├── talk.go
 │   │   └── update.go
 │   └── variables
 │       ├── chat.go
@@ -316,6 +322,7 @@
 │       ├── mouse.go
 │       ├── panels.go
 │       ├── player.go
+│       ├── talk.go
 │       └── variables.go
 └── tilesets
     ├── Basic Charakter Actions.tsx
@@ -340,6 +347,7 @@
     ├── Egg item.tsx
     ├── Egg_item.tsx
     ├── Fences.tsx
+    ├── free_character_spritesheet_by-cupnooble.tsx
     ├── Free_Chicken_House.tsx
     ├── Free Chicken Sprites.tsx
     ├── Free Cow Sprites.tsx
@@ -374,7 +382,7 @@
     ├── Wooden House.tsx
     └── Wooden_House_Walls_Tilset.tsx
 
-47 directories, 327 files
+48 directories, 334 files
 -e 
 === CONTENU DES FICHIERS ===
 
@@ -24253,18 +24261,18 @@ f@ �ty���?�/�. ;����W��1z؃��<��U?H���(�,�~\��ԃ̆���b�Y 3N�:t� � 
          "data":[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 5, 6, 6, 6, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 16, 21, 28, 22, 18, 0, 0, 0, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 16, 18, 0, 16, 18, 0, 0, 0, 16, 17, 17, 17, 17, 17, 17, 17, 17, 17, 32, 6, 6, 6, 6, 7, 0, 0, 0, 0,
-            0, 0, 0, 0, 16, 18, 0, 16, 18, 0, 0, 0, 16, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 21, 28, 28, 22, 18, 0, 0, 0, 0,
-            0, 0, 0, 0, 16, 18, 0, 16, 32, 7, 0, 5, 33, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 18, 0, 0, 16, 32, 7, 0, 0, 0,
-            0, 0, 0, 0, 16, 18, 0, 27, 22, 32, 6, 33, 21, 28, 28, 28, 22, 17, 17, 17, 17, 17, 17, 32, 7, 0, 27, 22, 18, 0, 0, 0,
-            0, 0, 0, 0, 16, 18, 0, 0, 27, 28, 28, 28, 29, 0, 0, 0, 27, 22, 17, 17, 17, 17, 17, 17, 18, 0, 0, 16, 18, 0, 0, 0,
-            0, 0, 0, 0, 16, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 27, 28, 22, 17, 17, 17, 17, 18, 0, 0, 16, 18, 0, 0, 0,
-            0, 0, 0, 0, 16, 18, 0, 0, 0, 0, 0, 0, 0, 5, 6, 6, 6, 7, 0, 27, 22, 17, 17, 21, 29, 0, 0, 16, 18, 0, 0, 0,
-            0, 0, 0, 0, 16, 18, 0, 0, 0, 0, 0, 0, 5, 33, 21, 28, 22, 18, 0, 0, 27, 28, 28, 29, 0, 0, 5, 33, 18, 0, 0, 0,
-            0, 0, 0, 0, 16, 32, 7, 0, 0, 0, 0, 0, 16, 21, 29, 0, 16, 32, 7, 0, 0, 0, 0, 0, 0, 0, 16, 21, 29, 0, 0, 0,
-            0, 0, 0, 0, 27, 22, 32, 6, 7, 0, 0, 5, 33, 18, 0, 0, 27, 22, 32, 7, 0, 0, 0, 0, 5, 6, 33, 18, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 27, 28, 22, 32, 6, 6, 33, 21, 29, 0, 0, 0, 27, 22, 32, 6, 6, 6, 6, 33, 21, 28, 29, 0, 0, 0, 0,
+            0, 0, 0, 0, 16, 17, 17, 17, 18, 0, 0, 0, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 16, 17, 17, 17, 18, 0, 0, 0, 16, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 32, 6, 7, 0, 0, 0, 0,
+            0, 0, 0, 0, 16, 17, 17, 17, 32, 7, 0, 5, 33, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 21, 28, 22, 17, 32, 7, 0, 0, 0,
+            0, 0, 0, 0, 16, 17, 17, 17, 17, 32, 6, 33, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 18, 0, 27, 22, 17, 32, 7, 0, 0,
+            0, 0, 0, 0, 16, 17, 17, 17, 17, 17, 17, 17, 21, 28, 28, 28, 22, 17, 17, 17, 17, 17, 17, 32, 7, 0, 27, 22, 17, 18, 0, 0,
+            0, 0, 0, 0, 16, 17, 21, 28, 28, 28, 28, 28, 29, 0, 0, 0, 27, 22, 17, 17, 17, 17, 17, 17, 18, 0, 0, 16, 17, 18, 0, 0,
+            0, 0, 0, 0, 16, 17, 18, 0, 0, 0, 0, 0, 0, 5, 6, 7, 0, 27, 28, 22, 17, 17, 17, 17, 18, 0, 0, 16, 17, 18, 0, 0,
+            0, 0, 0, 0, 16, 17, 18, 0, 0, 0, 0, 0, 5, 33, 17, 32, 6, 7, 0, 27, 22, 17, 17, 21, 29, 0, 0, 16, 17, 18, 0, 0,
+            0, 0, 0, 0, 16, 17, 32, 7, 0, 0, 0, 5, 33, 17, 17, 17, 17, 32, 7, 0, 27, 28, 28, 29, 0, 0, 5, 33, 17, 18, 0, 0,
+            0, 0, 0, 0, 16, 17, 17, 32, 6, 6, 6, 33, 17, 21, 28, 28, 22, 17, 32, 7, 0, 0, 0, 0, 0, 5, 33, 21, 28, 29, 0, 0,
+            0, 0, 0, 0, 27, 22, 17, 17, 17, 17, 17, 17, 17, 18, 0, 0, 27, 22, 17, 32, 6, 6, 6, 6, 6, 33, 17, 18, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 27, 28, 22, 17, 17, 17, 17, 21, 29, 0, 0, 0, 27, 22, 17, 17, 17, 17, 17, 17, 21, 28, 29, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 27, 28, 28, 28, 28, 29, 0, 0, 0, 0, 0, 27, 28, 28, 28, 28, 28, 28, 29, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -24340,17 +24348,17 @@ f@ �ty���?�/�. ;����W��1z؃��<��U?H���(�,�~\��ԃ̆���b�Y 3N�:t� � 
          "data":[195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195,
             195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195,
             195, 195, 195, 195, 192, 0, 0, 0, 191, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195,
-            195, 195, 195, 195, 192, 0, 194, 0, 191, 195, 195, 195, 192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 191, 195, 195, 195, 195, 195, 195, 195, 195, 195,
-            195, 195, 195, 195, 192, 191, 195, 192, 191, 195, 195, 195, 192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 191, 195, 195, 195, 195,
-            195, 195, 195, 195, 192, 191, 195, 192, 191, 195, 195, 195, 192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 194, 194, 0, 191, 195, 195, 195, 195,
-            195, 195, 195, 195, 192, 191, 195, 192, 0, 191, 195, 192, 0, 0, 0, 0, 0, 191, 192, 0, 0, 0, 0, 191, 195, 195, 192, 0, 191, 195, 195, 195,
-            195, 195, 195, 195, 192, 191, 195, 215, 0, 0, 0, 0, 0, 194, 194, 194, 0, 0, 0, 0, 0, 0, 0, 0, 191, 195, 215, 0, 191, 195, 195, 195,
-            0, 0, 0, 0, 0, 191, 195, 195, 215, 194, 194, 194, 216, 195, 195, 195, 215, 0, 0, 0, 0, 0, 0, 0, 191, 195, 195, 192, 191, 195, 195, 195,
-            195, 195, 195, 195, 192, 191, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 215, 194, 0, 0, 0, 0, 0, 191, 195, 195, 192, 191, 195, 195, 195,
-            195, 195, 195, 195, 192, 191, 195, 195, 195, 195, 195, 195, 195, 192, 0, 0, 0, 191, 195, 215, 0, 0, 0, 0, 216, 195, 195, 192, 191, 195, 195, 195,
-            195, 195, 195, 195, 192, 191, 195, 195, 195, 195, 195, 195, 192, 0, 0, 194, 0, 191, 195, 195, 215, 194, 194, 216, 195, 195, 192, 0, 191, 195, 195, 195,
-            195, 195, 195, 195, 192, 0, 191, 195, 195, 195, 195, 195, 192, 0, 216, 195, 192, 0, 191, 195, 195, 195, 195, 195, 195, 195, 192, 0, 216, 195, 195, 195,
-            195, 195, 195, 195, 215, 0, 0, 0, 191, 195, 195, 192, 0, 191, 195, 195, 215, 0, 0, 191, 195, 195, 195, 195, 192, 0, 0, 191, 195, 195, 195, 195,
+            195, 195, 195, 195, 192, 0, 0, 0, 191, 195, 195, 195, 192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 191, 195, 195, 195, 195, 195, 195,
+            195, 195, 195, 195, 192, 0, 0, 0, 191, 195, 195, 195, 192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 191, 195, 195, 195, 195,
+            195, 195, 195, 195, 192, 0, 0, 0, 0, 191, 195, 192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 194, 0, 0, 0, 191, 195, 195, 195,
+            195, 195, 195, 195, 192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 191, 192, 0, 0, 0, 0, 191, 195, 215, 0, 0, 0, 191, 195, 195,
+            195, 195, 195, 195, 192, 0, 0, 0, 0, 0, 0, 0, 0, 194, 194, 194, 0, 0, 0, 0, 0, 0, 0, 0, 191, 195, 215, 0, 0, 191, 195, 195,
+            0, 0, 0, 0, 0, 0, 0, 194, 194, 194, 194, 194, 216, 195, 195, 195, 215, 0, 0, 0, 0, 0, 0, 0, 191, 195, 195, 192, 0, 191, 195, 195,
+            195, 195, 195, 195, 192, 0, 191, 195, 195, 195, 195, 195, 195, 192, 0, 191, 195, 215, 194, 0, 0, 0, 0, 0, 191, 195, 195, 192, 0, 191, 195, 195,
+            195, 195, 195, 195, 192, 0, 191, 195, 195, 195, 195, 195, 192, 0, 0, 0, 0, 191, 195, 215, 0, 0, 0, 0, 216, 195, 195, 192, 0, 191, 195, 195,
+            195, 195, 195, 195, 192, 0, 0, 191, 195, 195, 195, 192, 0, 0, 0, 0, 0, 0, 191, 195, 215, 194, 194, 216, 195, 195, 192, 0, 0, 191, 195, 195,
+            195, 195, 195, 195, 192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 194, 194, 0, 0, 0, 191, 195, 195, 195, 195, 195, 192, 0, 0, 194, 216, 195, 195,
+            195, 195, 195, 195, 215, 0, 0, 0, 0, 0, 0, 0, 0, 191, 195, 195, 215, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 191, 195, 195, 195, 195,
             195, 195, 195, 195, 195, 215, 194, 0, 0, 0, 0, 0, 0, 216, 195, 195, 195, 215, 0, 0, 0, 0, 0, 0, 0, 0, 194, 216, 195, 195, 195, 195,
             195, 195, 195, 195, 195, 195, 195, 215, 194, 194, 194, 194, 216, 195, 195, 195, 195, 195, 215, 194, 194, 194, 194, 194, 194, 216, 195, 195, 195, 195, 195, 195,
             195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195, 195,
@@ -24522,16 +24530,17 @@ func (app *App) AddMissingVariables(screenWidth int) {
 }
 
 func (app *App) AddItemPositions() {
-	positions := make(map[string]vars.Position)
+	positions := make(map[string]*vars.Position)
 
 	// Set positions
-	positions["turnip_seed"] = vars.Position{X: 4, Y: 11}
-	positions["rusty_hoe"] = vars.Position{X: 4, Y: 9}
+	// TODO Define all items
+	positions["turnip_seed"] = &vars.Position{X: 4, Y: 11}
+	positions["rusty_hoe"] = &vars.Position{X: 4, Y: 9}
 
 	// Scale positions to map size
 	for _, pos := range positions {
-		pos.X *= app.Variables.Tileset_size
-		pos.Y *= app.Variables.Tileset_size
+		(*pos).X *= app.Variables.Tileset_size
+		(*pos).Y *= app.Variables.Tileset_size
 	}
 
 	app.Variables.ItemPositions = &positions
@@ -24578,8 +24587,16 @@ type ItemDatas struct {
 }
 
 var (
+	// TODO Define all items
 	item_convertor = map[string]ItemDatas{
 		"turnip_seed": ItemDatas{
+			texture: vars.CHEST_TEXTURE,
+			indXs:   []float32{0.9, 3.9},
+			indYs:   []float32{1, 1},
+			ratioX:  1.2,
+			ratioY:  1,
+		},
+		"rusty_hoe": ItemDatas{
 			texture: vars.CHEST_TEXTURE,
 			indXs:   []float32{0.9, 3.9},
 			indYs:   []float32{1, 1},
@@ -24598,9 +24615,9 @@ func (app *App) GetNewRoomItems(roomItems []string) []*ui.Interaction {
 		frame_duration := 500
 
 		// Retrieve texture and frames for the current item
-		text, frames := get_item_datas(it)
+		text, frames := get_item_datas(it, frame_duration)
 
-		var pos vars.Position
+		var pos *vars.Position
 		var ok bool
 		if pos, ok = (*app.Variables.ItemPositions)[it]; !ok {
 			continue
@@ -24614,7 +24631,7 @@ func (app *App) GetNewRoomItems(roomItems []string) []*ui.Interaction {
 			Y:            pos.Y,
 			Zoom:         app.Variables.Zoom,
 			Rotation:     0,
-			AnimDuration: 2 * frame_duration,
+			AnimDuration: len(frames) * frame_duration,
 			Frames:       frames,
 		}
 
@@ -24687,7 +24704,7 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 		frame_duration := 500
 
 		// Retrieve texture and frames for the current inventory item
-		text, frames := get_item_datas(it)
+		text, frames := get_item_datas(it, frame_duration)
 
 		// Create the visual representation of the inventory item
 		item_emote := &ui.Emote{
@@ -24713,10 +24730,31 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 			Hover:    ui.Frame{IndX: 52, IndY: 10, RatioX: 2, RatioY: 2},
 			Pressed:  ui.Frame{IndX: 54, IndY: 10, RatioX: 2, RatioY: 2},
 			OnClick: func() {
-				newPosX := app.Variables.Player.Position.X
-				newPosY := app.Variables.Player.Position.Y
+				// Get offset datas
+				dirX := app.Variables.Player.Direction.X
+				dirY := app.Variables.Player.Direction.Y
+				if dirX == 0 && dirY == 0 {
+					dirY = 1
+				}
+
+				tileset_size := app.Variables.Tileset_size
+
+				// Find closest free tile around the player
+				newPosX, newPosY, found := app.FindNearestFreeTile(
+					app.Variables.Player.Position.X+dirX*tileset_size,
+					app.Variables.Player.Position.Y+dirY*tileset_size,
+				)
+				if !found {
+					// No free spot found, abort drop
+					return
+				}
+
+				// Update position
+				(*app.Variables.ItemPositions)[it].X = newPosX
+				(*app.Variables.ItemPositions)[it].Y = newPosY
 				payload := fmt.Sprintf("%s %f %f %s", protocol.CmdNotifyItemPosition, newPosX, newPosY, it)
 
+				// Send notifs
 				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdDrop + " " + it}
 				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: payload}
 			},
@@ -24729,14 +24767,84 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 	return invent_buttons, invent_emotes
 }
 
-func get_item_datas(item string) (string, []*ui.EmoteFrame) {
+func (app *App) FindNearestFreeTile(startX, startY float32) (float32, float32, bool) {
+	tileSize := int(app.Variables.Tileset_size)
+	if tileSize <= 0 {
+		return startX, startY, false
+	}
+
+	room := app.Rooms[app.Variables.Current_room]
+	if room == nil || len(room.Collisions) == 0 || len(room.Collisions[0]) == 0 {
+		return startX, startY, false
+	}
+
+	// Get starting tile datas
+	startTileX := int(startX) / tileSize
+	startTileY := int(startY) / tileSize
+	maxRadius := len(room.Collisions) + len(room.Collisions[0])
+
+	// Expand ring by ring around the starting tile
+	for radius := 0; radius <= maxRadius; radius++ {
+		for dx := -radius; dx <= radius; dx++ {
+			for dy := -radius; dy <= radius; dy++ {
+				// Only check the ring border, skip cells already checked at smaller radius
+				if radius > 0 && absInt(dx) != radius && absInt(dy) != radius {
+					continue
+				}
+
+				tileX := startTileX + dx
+				tileY := startTileY + dy
+
+				// Skip tiles outside the map
+				if tileY < 0 || tileY >= len(room.Collisions) || tileX < 0 || tileX >= len(room.Collisions[0]) {
+					continue
+				}
+
+				// Skip tiles with a collision
+				if room.Collisions[tileY][tileX] != 0 {
+					continue
+				}
+
+				worldX := float32(tileX * tileSize)
+				worldY := float32(tileY * tileSize)
+
+				// Skip tiles already holding an item
+				if app.isTileOccupiedByItem(worldX, worldY) {
+					continue
+				}
+
+				return worldX, worldY, true
+			}
+		}
+	}
+
+	return startX, startY, false
+}
+
+// Check if an item is already placed on the given tile
+func (app *App) isTileOccupiedByItem(x, y float32) bool {
+	for _, pos := range *app.Variables.ItemPositions {
+		if pos.X == x && pos.Y == y {
+			return true
+		}
+	}
+	return false
+}
+
+func absInt(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
+}
+
+func get_item_datas(item string, frame_duration int) (string, []*ui.EmoteFrame) {
 	frames := make([]*ui.EmoteFrame, 0)
 
 	// Define needed datas
 	var texture string
 	var ratioX, ratioY float32
 	var indXs, indYs []float32
-	frame_duration := 500
 
 	// Get datas depending on item
 	if d, ok := item_convertor[item]; ok {
@@ -24820,7 +24928,7 @@ func (app *App) UpdateItems(roomItems, inventory []string) {
 	app.Variables.PanelsVariables.InventoryItems = &inventory
 
 	items := app.GetNewRoomItems(roomItems)
-	app.Manager.SetViewInteractions("Game", items)
+	app.Manager.SetViewInteractions("Items", items)
 
 	invent_buttons, invent_emotes := app.GetNewInventory(inventory)
 	app.Manager.SetViewEmotes("Inventory", invent_emotes)
@@ -24828,7 +24936,14 @@ func (app *App) UpdateItems(roomItems, inventory []string) {
 }
 
 func (app *App) UpdateDatas(text string) {}
-func (app *App) UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string, quests []protocol.TrackedQuestData, completed_quests []string) {
+func (app *App) UpdateInteraction(roomNpcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string, quests []protocol.TrackedQuestData, completed_quests []string) {
+	npcs := app.GetNewRoomNpcs(roomNpcs)
+	app.Manager.SetViewInteractions("Npcs", npcs)
+
+	npc := app.Variables.PanelsVariables.Talk.LastTalk
+	if talk_res, ok := npcDialogues[npc]; ok {
+		app.SetTalkResult(npc, talk_res)
+	}
 }
 
 func (app *App) UpdateGroup(groupState state.GroupState) {
@@ -24922,6 +25037,30 @@ func (app *App) ResetRemotePlayers() {
 	app.Variables.RemotePlayers = &remote_players
 }
 
+func (app *App) UpdateItemPosition(name string, x, y float32) {
+	if item, exists := (*app.Variables.ItemPositions)[name]; exists {
+		(*item).X = x
+		(*item).Y = y
+	} else {
+		(*app.Variables.ItemPositions)[name] = &vars.Position{X: x, Y: y}
+	}
+
+	for _, item := range app.Manager.Interactions("Game") {
+		if item.Emote.ID == "item_"+name {
+			// Update emote position
+			item.Emote.X = x
+			item.Emote.Y = y
+
+			// Update buttons positions
+			item.Buttons[0].X = x - 0.2*app.Variables.Tileset_size
+			item.Buttons[0].Y = y - 1.2*app.Variables.Tileset_size
+			item.Buttons[1].X = x + 0.15*app.Variables.Tileset_size
+			item.Buttons[1].Y = y - 0.85*app.Variables.Tileset_size
+			break
+		}
+	}
+}
+
 func (app *App) GetPseudo() string {
 	return app.Variables.Player.Pseudo
 }
@@ -24937,6 +25076,163 @@ func (app *App) Stop() {
 		}
 		rl.CloseWindow()
 	})
+}
+
+--- FILE: ./src/core/npcs.go ---
+package core
+
+import (
+	"tap/client/gui/src/ui"
+	vars "tap/client/gui/src/variables"
+	panel "tap/client/tui/panels"
+	pr "tap/protocol"
+)
+
+type NpcDatas struct {
+	texture        string
+	ratioX, ratioY float32
+	indXs, indYs   []float32
+	pos            vars.Position
+}
+
+var (
+	// TODO Define all npcs
+	npc_convertor = map[string]NpcDatas{}
+)
+
+func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
+	// Initialize the interactions array
+	npcs := make([]*ui.Interaction, 0)
+
+	for _, np := range roomNpcs {
+		// Set default placement and animation constants
+		frame_duration := 100
+
+		// Retrieve texture and frames for the current npc
+		text, pos, frames := get_npc_datas(np, frame_duration)
+
+		pos_x := pos.X * app.Variables.Tileset_size
+		pos_y := pos.Y * app.Variables.Tileset_size
+
+		// Create the visual emote (sprite) for the npc
+		npc_emote := &ui.Emote{
+			ID:           "npc_" + np,
+			Texture:      text,
+			X:            pos_x,
+			Y:            pos_y,
+			Zoom:         app.Variables.Zoom,
+			Rotation:     0,
+			AnimDuration: len(frames) * frame_duration,
+			Frames:       frames,
+		}
+
+		// Create the background bubble for the interaction
+		npc_bubble := &ui.Button{
+			ID:       "npc_bubble",
+			Texture:  vars.UI_SPRITE_TEXTURE,
+			X:        pos_x + 0.8*app.Variables.Tileset_size,
+			Y:        pos_y + 0.2*app.Variables.Tileset_size,
+			Rotation: 0,
+			Zoom:     app.Variables.Zoom / 2,
+			Normal:   ui.Frame{IndX: 28, IndY: 8, RatioX: 3, RatioY: 3},
+			Pressed:  ui.Frame{IndX: 28, IndY: 8, RatioX: 3, RatioY: 3},
+			Hover:    ui.Frame{IndX: 28, IndY: 8, RatioX: 3, RatioY: 3},
+			OnClick:  func() {},
+		}
+
+		// Create the interactive button to pick up the npc
+		npc_btn := &ui.Button{
+			ID:       "npc_btn",
+			Texture:  vars.UI_SPRITE_TEXTURE,
+			X:        pos_x + 1.15*app.Variables.Tileset_size,
+			Y:        pos_y + 0.55*app.Variables.Tileset_size,
+			Rotation: 0,
+			Zoom:     app.Variables.Zoom * 2 / 5,
+			Normal:   ui.Frame{IndX: 40, IndY: 8, RatioX: 2, RatioY: 2},
+			Hover:    ui.Frame{IndX: 40, IndY: 8, RatioX: 2, RatioY: 2},
+			Pressed:  ui.Frame{IndX: 42, IndY: 8, RatioX: 2, RatioY: 2},
+			OnClick: func() {
+				app.Variables.PanelsVariables.Talk.LastTalk = np
+				app.StartTalk(np)
+				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdTalk + " " + np}
+			},
+		}
+
+		// Group the emote and buttons into a single interaction entity
+		npc := &ui.Interaction{
+			ID:      "npc",
+			Emote:   npc_emote,
+			Buttons: []*ui.Button{npc_bubble, npc_btn},
+		}
+
+		npcs = append(npcs, npc)
+	}
+
+	return npcs
+}
+
+func get_npc_datas(npc string, frame_duration int) (string, vars.Position, []*ui.EmoteFrame) {
+	frames := make([]*ui.EmoteFrame, 0)
+
+	// Define needed datas
+	var texture string
+	var ratioX, ratioY float32
+	var indXs, indYs []float32
+	var pos vars.Position
+
+	// Get datas depending on npc
+	if d, ok := npc_convertor[npc]; ok {
+		texture = d.texture
+		indXs = d.indXs
+		indYs = d.indYs
+		ratioX = d.ratioX
+		ratioY = d.ratioY
+		pos = d.pos
+
+	} else {
+		texture = vars.NPC_TEXTURE
+		indXs = []float32{0, 1, 2, 3, 4, 5, 6, 7}
+		indYs = []float32{0, 0, 0, 0, 0, 0, 0, 0}
+		ratioX = 1
+		ratioY = 2
+		pos = vars.Position{X: 6, Y: 8}
+	}
+
+	// Create emote frames
+	for index := range indXs {
+		frame := &ui.EmoteFrame{
+			Frame:    &ui.Frame{IndX: indXs[index], IndY: indYs[index], RatioX: ratioX, RatioY: ratioY},
+			Duration: frame_duration,
+		}
+
+		frames = append(frames, frame)
+	}
+
+	return texture, pos, frames
+}
+
+--- FILE: ./src/core/talk.go ---
+package core
+
+import (
+	vars "tap/client/gui/src/variables"
+	"time"
+)
+
+func (app *App) StartTalk(npcID string) {
+	app.Variables.PanelsVariables.Talk.Talking = &vars.Talk{NpcID: npcID, Start: time.Now()}
+}
+
+func (app *App) SetTalkResult(npcID, result string) {
+	if app.Variables.PanelsVariables.Talk.Talking == nil || app.Variables.PanelsVariables.Talk.Talking.NpcID != npcID {
+		return
+	}
+	app.Variables.PanelsVariables.Talk.Talking.Result = result
+	app.Variables.PanelsVariables.Talk.Talking.ResultStart = time.Now()
+}
+
+func (app *App) EndTalk() {
+	app.Variables.PanelsVariables.Talk.Talking = nil
 }
 
 --- FILE: ./src/drawer/animations.go ---
@@ -25046,45 +25342,6 @@ func (dr *Drawer) GetLocalID(localID int, textureName string) int {
 	return localID
 }
 
---- FILE: ./src/drawer/blur.fs ---
-#version 330
-
-// Attributs d'entrée passés par raylib
-in vec2 fragTexCoord;
-in vec4 fragColor;
-
-// Uniforms obligatoires de raylib
-uniform sampler2D texture0;
-uniform vec4 colDiffuse;
-
-// Propriétés du flou (taille de l'écran ou de la texture)
-uniform float renderWidth = 800.0;
-uniform float renderHeight = 450.0;
-
-out vec4 finalColor;
-
-uniform float blurStrength = 3.0;
-
-void main()
-{
-    vec2 texelSize = (1.0 / vec2(renderWidth, renderHeight)) * blurStrength;
-    vec4 sum = vec4(0.0);
-
-    // Noyau de flou simple (Box blur / Flou Gaussien simplifié 3x3)
-    sum += texture(texture0, fragTexCoord + vec2(-1.0, -1.0) * texelSize) * 0.0625;
-    sum += texture(texture0, fragTexCoord + vec2( 0.0, -1.0) * texelSize) * 0.125;
-    sum += texture(texture0, fragTexCoord + vec2( 1.0, -1.0) * texelSize) * 0.0625;
-    
-    sum += texture(texture0, fragTexCoord + vec2(-1.0,  0.0) * texelSize) * 0.125;
-    sum += texture(texture0, fragTexCoord + vec2( 0.0,  0.0) * texelSize) * 0.25;
-    sum += texture(texture0, fragTexCoord + vec2( 1.0,  0.0) * texelSize) * 0.125;
-    
-    sum += texture(texture0, fragTexCoord + vec2(-1.0,  1.0) * texelSize) * 0.0625;
-    sum += texture(texture0, fragTexCoord + vec2( 0.0,  1.0) * texelSize) * 0.125;
-    sum += texture(texture0, fragTexCoord + vec2( 1.0,  1.0) * texelSize) * 0.0625;
-
-    finalColor = sum * fragColor * colDiffuse;
-}
 --- FILE: ./src/drawer/connect.go ---
 package drawer
 
@@ -25220,116 +25477,6 @@ func (dr *Drawer) DrawConnectView() {
 	)
 }
 
---- FILE: ./src/drawer/map.go ---
-package drawer
-
-import (
-	"path/filepath"
-	"strings"
-	"tap/client/gui/src/parser"
-
-	vars "tap/client/gui/src/variables"
-)
-
-func (dr *Drawer) DrawMap() {
-	cur_room := dr.app.Rooms[dr.app.Variables.Current_room]
-	if cur_room == nil {
-		return
-	}
-
-	for _, layer := range cur_room.Layers {
-		if !layer.Visible || layer.Name == "InFrontOfPlayer" {
-			continue
-		}
-		dr.DrawLayer(layer, cur_room.Tilesets)
-	}
-}
-
-func (dr *Drawer) DrawLayer(layer parser.Layer, tilesets []parser.Tileset) {
-	const (
-		FLIPPED_HORIZONTALLY_FLAG = 0x80000000
-		FLIPPED_VERTICALLY_FLAG   = 0x40000000
-		FLIPPED_DIAGONALLY_FLAG   = 0x20000000
-	)
-
-	for i, rawTile := range layer.Data {
-		if rawTile == 0 {
-			continue
-		}
-
-		flipH := (rawTile & FLIPPED_HORIZONTALLY_FLAG) != 0
-		flipV := (rawTile & FLIPPED_VERTICALLY_FLAG) != 0
-		flipD := (rawTile & FLIPPED_DIAGONALLY_FLAG) != 0
-
-		tile := rawTile & 0x0FFFFFFF
-		if tile == 0 {
-			continue
-		}
-
-		gridX := i % layer.Width
-		gridY := i / layer.Width
-
-		posX := float32(gridX * int(dr.app.Variables.Tileset_size))
-		posY := float32(gridY * int(dr.app.Variables.Tileset_size))
-
-		var activeTileset parser.Tileset
-		for j := len(tilesets) - 1; j >= 0; j-- {
-			if tile >= tilesets[j].FirstGID {
-				activeTileset = tilesets[j]
-				break
-			}
-		}
-
-		if activeTileset.FirstGID == 0 {
-			continue
-		}
-
-		sourcePath := activeTileset.Source
-		baseName := filepath.Base(sourcePath)
-		textureName := strings.TrimSuffix(baseName, filepath.Ext(baseName))
-
-		texture, ok := (*dr.app.Textures)[textureName]
-		if !ok {
-			continue
-		}
-
-		localID := tile - activeTileset.FirstGID
-		localID = dr.GetLocalID(localID, textureName)
-
-		cols := int(texture.Width) / vars.FRAME_WIDTH
-		if cols == 0 {
-			cols = 1
-		}
-
-		indX := float32(localID % cols)
-		indY := float32(localID / cols)
-
-		var rotation float32 = 0
-		var rX, rY float32 = 1, 1
-
-		if flipD {
-			rotation = 90
-			rX = 1
-			rY = -1
-			if flipH {
-				rX = -rX
-			}
-			if flipV {
-				rY = -rY
-			}
-		} else {
-			if flipH {
-				rX = -1
-			}
-			if flipV {
-				rY = -1
-			}
-		}
-
-		dr.DrawImage(textureName, posX, posY, indX, indY, rX, rY, dr.app.Variables.Zoom, rotation)
-	}
-}
-
 --- FILE: ./src/drawer/buttons.go ---
 package drawer
 
@@ -25418,19 +25565,19 @@ func (dr *Drawer) DrawChat() {
 }
 
 func (dr *Drawer) initChatTexture(chat_width float32) {
-	// Init chatTexture
-	scope := dr.app.Variables.PanelsVariables.Chat.CurrentScope
-	chats := dr.app.Variables.PanelsVariables.Chat.ScopeChats[scope]
+	chat := dr.app.Variables.PanelsVariables.Chat
+	chats := chat.ScopeChats[chat.CurrentScope]
 
-	if dr.app.Variables.PanelsVariables.Chat.LastNbChats != len(chats) || dr.chatTexture.ID == 0 {
+	if chat.LastNbChats != len(chats) || chat.LastMsgScope != chat.CurrentScope || dr.chatTexture.ID == 0 {
 		if dr.chatTexture.ID != 0 {
 			rl.UnloadRenderTexture(dr.chatTexture)
 		}
-
 		dr.chatTexture = rl.LoadRenderTexture(
 			int32(chat_width*dr.app.Variables.Tileset_size),
 			int32((2*float32(len(chats))+4.5)*dr.app.Variables.Tileset_size),
 		)
+		chat.LastNbChats = len(chats)
+		chat.LastMsgScope = chat.CurrentScope
 	}
 }
 
@@ -25715,8 +25862,9 @@ import (
 type Drawer struct {
 	app *core.App
 
-	gameTexture rl.RenderTexture2D
-	blurShader  rl.Shader
+	gameTexture  rl.RenderTexture2D
+	blurShader   rl.Shader
+	darkenShader rl.Shader
 
 	chatTexture rl.RenderTexture2D
 }
@@ -25735,9 +25883,10 @@ var (
 
 func NewDrawer(app *core.App) *Drawer {
 	dr := &Drawer{
-		app:         app,
-		gameTexture: rl.LoadRenderTexture(int32(app.ScreenWidth), int32(app.ScreenHeight)),
-		blurShader:  rl.LoadShader("", "./client/gui/src/drawer/blur.fs"),
+		app:          app,
+		gameTexture:  rl.LoadRenderTexture(int32(app.ScreenWidth), int32(app.ScreenHeight)),
+		blurShader:   rl.LoadShader("", "./client/gui/src/drawer/shader/blur.fs"),
+		darkenShader: rl.LoadShader("", "./client/gui/src/drawer/shader/darken.fs"),
 	}
 
 	rl.SetShaderValue(
@@ -25824,6 +25973,218 @@ func (dr *Drawer) DrawInventoryEmotes() {
 	}
 }
 
+--- FILE: ./src/drawer/interactions.go ---
+package drawer
+
+func (dr *Drawer) DrawGameInteractions() {
+	// Draw items
+	for _, item := range dr.app.Manager.Interactions("Items") {
+
+		// Draw main item
+		if item.Emote != nil {
+			frame := item.Emote.CurrentFrame(dr.app.Variables.StartTime)
+			dr.DrawImage(
+				item.Emote.Texture,
+				item.Emote.X, item.Emote.Y,
+				frame.IndX, frame.IndY,
+				frame.RatioX, frame.RatioY,
+				item.Emote.Zoom,
+				item.Emote.Rotation,
+			)
+		}
+
+		// Draw buttons only if hovered
+		if item.IsHovered() {
+			for _, btn := range item.Buttons {
+				btn_frame := btn.CurrentFrame()
+				dr.DrawImage(
+					btn.Texture,
+					btn.X, btn.Y,
+					btn_frame.IndX, btn_frame.IndY,
+					btn_frame.RatioX, btn_frame.RatioY,
+					btn.Zoom,
+					btn.Rotation,
+				)
+			}
+		}
+	}
+
+	// Draw npcs
+	for _, npc := range dr.app.Manager.Interactions("Npcs") {
+
+		// Draw main npc
+		if npc.Emote != nil {
+			frame := npc.Emote.CurrentFrame(dr.app.Variables.StartTime)
+			dr.DrawImage(
+				npc.Emote.Texture,
+				npc.Emote.X, npc.Emote.Y,
+				frame.IndX, frame.IndY,
+				frame.RatioX, frame.RatioY,
+				npc.Emote.Zoom,
+				npc.Emote.Rotation,
+			)
+		}
+
+		// Draw buttons only if hovered
+		if npc.IsHovered() {
+			for _, btn := range npc.Buttons {
+				btn_frame := btn.CurrentFrame()
+				dr.DrawImage(
+					btn.Texture,
+					btn.X, btn.Y,
+					btn_frame.IndX, btn_frame.IndY,
+					btn_frame.RatioX, btn_frame.RatioY,
+					btn.Zoom,
+					btn.Rotation,
+				)
+			}
+		}
+	}
+}
+
+--- FILE: ./src/drawer/left_panel.go ---
+package drawer
+
+import vars "tap/client/gui/src/variables"
+
+func (dr *Drawer) DrawLeftPanel() {
+	dr.DrawWoodFrameAt(
+		vars.Position{X: 1, Y: 4},
+		vars.Position{X: 7, Y: 17},
+		1, 0, false,
+	)
+}
+
+--- FILE: ./src/drawer/mouse.go ---
+package drawer
+
+import vars "tap/client/gui/src/variables"
+
+func (dr *Drawer) DrawMouse() {
+	indX := 21
+	indY := 8
+
+	dr.DrawImage(
+		vars.UI_SPRITE_TEXTURE,
+		dr.app.Variables.Mouse.X,
+		dr.app.Variables.Mouse.Y,
+		float32(indX), float32(indY), 1, 1,
+		dr.app.Variables.Zoom/2, 0,
+	)
+}
+
+--- FILE: ./src/drawer/utils.go ---
+package drawer
+
+import (
+	"math"
+	"time"
+
+	vars "tap/client/gui/src/variables"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+func (dr *Drawer) DrawImage(texture_name string, posX, posY, indX, indY, ratioX, ratioY, zoom, rotation float32) {
+	texture := (*dr.app.Textures)[texture_name]
+
+	sourceW := ratioX * float32(vars.FRAME_WIDTH)
+	sourceH := ratioY * float32(vars.FRAME_HEIGHT)
+
+	sourceRec := rl.NewRectangle(
+		indX*float32(vars.FRAME_WIDTH), indY*float32(vars.FRAME_HEIGHT),
+		sourceW, sourceH,
+	)
+
+	destW := float32(vars.FRAME_WIDTH) * zoom * ratioX
+	destH := float32(vars.FRAME_HEIGHT) * zoom * ratioY
+
+	destRec := rl.NewRectangle(posX+(destW/2), posY+(destH/2), destW, destH)
+
+	origin := rl.NewVector2(destW/2, destH/2)
+
+	rl.DrawTexturePro(texture, sourceRec, destRec, origin, rotation, rl.White)
+}
+
+func (dr *Drawer) DrawWoodFrameAt(visualStart vars.Position, visualEnd vars.Position, zoom float32, darkness int, empty bool) {
+	e := float32(zoom)
+
+	start := vars.Position{
+		X: visualStart.X / e,
+		Y: visualStart.Y / e,
+	}
+
+	frame_width := int(math.Round(float64(visualEnd.X-visualStart.X)/float64(e))) + 1
+	frame_height := int(math.Round(float64(visualEnd.Y-visualStart.Y)/float64(e))) + 1
+
+	dr.DrawWoodFrame(start, frame_width, frame_height, zoom, darkness, empty)
+}
+
+func (dr *Drawer) DrawWoodFrame(start vars.Position, frame_width, frame_height int, zoom float32, darkness int, empty bool) {
+	frame_start_x := 12
+	frame_start_y := 0
+
+	e := float32(zoom)
+	cell := e * dr.app.Variables.Tileset_size
+
+	for x := range frame_width {
+		for y := range frame_height {
+			if x != 0 && y != 0 && x != frame_width-1 && y != frame_height-1 && empty {
+				continue
+			}
+
+			var ind_x, ind_y int
+			switch x {
+			case 0:
+				ind_x = 0
+			case frame_width - 1:
+				ind_x = 2
+			default:
+				ind_x = 1
+			}
+			switch y {
+			case 0:
+				ind_y = 0
+			case frame_height - 1:
+				ind_y = 2
+			default:
+				ind_y = 1
+			}
+
+			dr.DrawImage(
+				vars.UI_SPRITE_TEXTURE,
+				cell*(float32(x)+start.X)-cell/2,
+				cell*(float32(y)+start.Y)-cell/2,
+				float32(frame_start_x+ind_x), float32(frame_start_y+ind_y+darkness*3),
+				1, 1, e*dr.app.Variables.Zoom, 0,
+			)
+		}
+	}
+}
+
+func (dr *Drawer) DrawBorderedInput(x, y, width, height, border int32, border_color, input_color rl.Color) {
+	// Border
+	rl.DrawRectangle(x-border, y, width+(2*border), height, border_color)
+	rl.DrawRectangle(x, y-border, width, height+(2*border), border_color)
+
+	// Input
+	rl.DrawRectangle(x, y+border, width, height-(2*border), input_color)
+	rl.DrawRectangle(x+border, y, width-(2*border), height, input_color)
+}
+
+func (dr *Drawer) DrawCursor(x, y, width, height int32, text string, color rl.Color) {
+	cursor_duration := 750
+	elapsed := int(time.Since(dr.app.Variables.StartTime).Milliseconds())
+	too_late := time.Since(dr.app.Variables.Player.LastTimeTyped).Milliseconds() > 300
+	text_size := rl.MeasureText(text, int32(dr.app.Variables.FontSize))
+
+	if (elapsed/cursor_duration)%2 == 0 && too_late {
+		rl.DrawRectangle(
+			x+text_size, y, width, height, color,
+		)
+	}
+}
+
 --- FILE: ./src/drawer/game.go ---
 package drawer
 
@@ -25834,6 +26195,33 @@ import (
 )
 
 func (dr *Drawer) DrawGameView() {
+	rl.BeginTextureMode(dr.gameTexture)
+	dr.DrawGame()
+	rl.EndTextureMode()
+
+	talking := dr.app.Variables.PanelsVariables.Talk.Talking != nil
+	if talking {
+		rl.BeginShaderMode(dr.darkenShader)
+	}
+
+	rl.DrawTextureRec(
+		dr.gameTexture.Texture,
+		rl.NewRectangle(
+			0, 0,
+			float32(dr.gameTexture.Texture.Width),
+			-float32(dr.gameTexture.Texture.Height),
+		),
+		rl.NewVector2(0, 0),
+		rl.White,
+	)
+
+	if talking {
+		rl.EndShaderMode()
+		dr.DrawTalk()
+	}
+}
+
+func (dr *Drawer) DrawGame() {
 	dr.DrawMap()
 	dr.DrawGameInteractions()
 
@@ -25977,71 +26365,114 @@ func (dr *Drawer) DrawInventory() {
 	}
 }
 
---- FILE: ./src/drawer/interactions.go ---
+--- FILE: ./src/drawer/map.go ---
 package drawer
 
-func (dr *Drawer) DrawGameInteractions() {
-	for _, item := range dr.app.Manager.Interactions("Game") {
+import (
+	"path/filepath"
+	"strings"
+	"tap/client/gui/src/parser"
 
-		// Draw main item
-		if item.Emote != nil {
-			frame := item.Emote.CurrentFrame(dr.app.Variables.StartTime)
-			dr.DrawImage(
-				item.Emote.Texture,
-				item.Emote.X, item.Emote.Y,
-				frame.IndX, frame.IndY,
-				frame.RatioX, frame.RatioY,
-				item.Emote.Zoom,
-				item.Emote.Rotation,
-			)
-		}
+	vars "tap/client/gui/src/variables"
+)
 
-		// Draw buttons only if hovered
-		if item.IsHovered() {
-			for _, btn := range item.Buttons {
-				btn_frame := btn.CurrentFrame()
-				dr.DrawImage(
-					btn.Texture,
-					btn.X, btn.Y,
-					btn_frame.IndX, btn_frame.IndY,
-					btn_frame.RatioX, btn_frame.RatioY,
-					btn.Zoom,
-					btn.Rotation,
-				)
-			}
+func (dr *Drawer) DrawMap() {
+	cur_room := dr.app.Rooms[dr.app.Variables.Current_room]
+	if cur_room == nil {
+		return
+	}
+
+	for _, layer := range cur_room.Layers {
+		if !layer.Visible || layer.Name == "InFrontOfPlayer" {
+			continue
 		}
+		dr.DrawLayer(layer, cur_room.Tilesets)
 	}
 }
 
---- FILE: ./src/drawer/left_panel.go ---
-package drawer
-
-import vars "tap/client/gui/src/variables"
-
-func (dr *Drawer) DrawLeftPanel() {
-	dr.DrawWoodFrameAt(
-		vars.Position{X: 1, Y: 4},
-		vars.Position{X: 7, Y: 17},
-		1, 0, false,
+func (dr *Drawer) DrawLayer(layer parser.Layer, tilesets []parser.Tileset) {
+	const (
+		FLIPPED_HORIZONTALLY_FLAG = 0x80000000
+		FLIPPED_VERTICALLY_FLAG   = 0x40000000
+		FLIPPED_DIAGONALLY_FLAG   = 0x20000000
 	)
-}
 
---- FILE: ./src/drawer/mouse.go ---
-package drawer
+	for i, rawTile := range layer.Data {
+		if rawTile == 0 {
+			continue
+		}
 
-import vars "tap/client/gui/src/variables"
+		flipH := (rawTile & FLIPPED_HORIZONTALLY_FLAG) != 0
+		flipV := (rawTile & FLIPPED_VERTICALLY_FLAG) != 0
+		flipD := (rawTile & FLIPPED_DIAGONALLY_FLAG) != 0
 
-func (dr *Drawer) DrawMouse() {
-	indX := 21
-	indY := 8
+		tile := rawTile & 0x0FFFFFFF
+		if tile == 0 {
+			continue
+		}
 
-	dr.DrawImage(
-		vars.UI_SPRITE_TEXTURE,
-		dr.app.Variables.Mouse.X,
-		dr.app.Variables.Mouse.Y,
-		float32(indX), float32(indY), 1, 1,
-		dr.app.Variables.Zoom/2, 0,
-	)
+		gridX := i % layer.Width
+		gridY := i / layer.Width
+
+		posX := float32(gridX * int(dr.app.Variables.Tileset_size))
+		posY := float32(gridY * int(dr.app.Variables.Tileset_size))
+
+		var activeTileset parser.Tileset
+		for j := len(tilesets) - 1; j >= 0; j-- {
+			if tile >= tilesets[j].FirstGID {
+				activeTileset = tilesets[j]
+				break
+			}
+		}
+
+		if activeTileset.FirstGID == 0 {
+			continue
+		}
+
+		sourcePath := activeTileset.Source
+		baseName := filepath.Base(sourcePath)
+		textureName := strings.TrimSuffix(baseName, filepath.Ext(baseName))
+
+		texture, ok := (*dr.app.Textures)[textureName]
+		if !ok {
+			continue
+		}
+
+		localID := tile - activeTileset.FirstGID
+		localID = dr.GetLocalID(localID, textureName)
+
+		cols := int(texture.Width) / vars.FRAME_WIDTH
+		if cols == 0 {
+			cols = 1
+		}
+
+		indX := float32(localID % cols)
+		indY := float32(localID / cols)
+
+		var rotation float32 = 0
+		var rX, rY float32 = 1, 1
+
+		if flipD {
+			rotation = 90
+			rX = 1
+			rY = -1
+			if flipH {
+				rX = -rX
+			}
+			if flipV {
+				rY = -rY
+			}
+		} else {
+			if flipH {
+				rX = -1
+			}
+			if flipV {
+				rY = -1
+			}
+		}
+
+		dr.DrawImage(textureName, posX, posY, indX, indY, rX, rY, dr.app.Variables.Zoom, rotation)
+	}
 }
 
 --- FILE: ./src/drawer/player.go ---
@@ -26156,114 +26587,123 @@ func (dr *Drawer) GetPlayerTexture(p *vars.Player) (string, int, int) {
 	return texture_name, ind_x, ind_y
 }
 
---- FILE: ./src/drawer/utils.go ---
+--- FILE: ./src/drawer/shader/blur.fs ---
+#version 330
+
+// Attributs d'entrée passés par raylib
+in vec2 fragTexCoord;
+in vec4 fragColor;
+
+// Uniforms obligatoires de raylib
+uniform sampler2D texture0;
+uniform vec4 colDiffuse;
+
+// Propriétés du flou (taille de l'écran ou de la texture)
+uniform float renderWidth = 800.0;
+uniform float renderHeight = 450.0;
+
+out vec4 finalColor;
+
+uniform float blurStrength = 3.0;
+
+void main()
+{
+    vec2 texelSize = (1.0 / vec2(renderWidth, renderHeight)) * blurStrength;
+    vec4 sum = vec4(0.0);
+
+    // Noyau de flou simple (Box blur / Flou Gaussien simplifié 3x3)
+    sum += texture(texture0, fragTexCoord + vec2(-1.0, -1.0) * texelSize) * 0.0625;
+    sum += texture(texture0, fragTexCoord + vec2( 0.0, -1.0) * texelSize) * 0.125;
+    sum += texture(texture0, fragTexCoord + vec2( 1.0, -1.0) * texelSize) * 0.0625;
+    
+    sum += texture(texture0, fragTexCoord + vec2(-1.0,  0.0) * texelSize) * 0.125;
+    sum += texture(texture0, fragTexCoord + vec2( 0.0,  0.0) * texelSize) * 0.25;
+    sum += texture(texture0, fragTexCoord + vec2( 1.0,  0.0) * texelSize) * 0.125;
+    
+    sum += texture(texture0, fragTexCoord + vec2(-1.0,  1.0) * texelSize) * 0.0625;
+    sum += texture(texture0, fragTexCoord + vec2( 0.0,  1.0) * texelSize) * 0.125;
+    sum += texture(texture0, fragTexCoord + vec2( 1.0,  1.0) * texelSize) * 0.0625;
+
+    finalColor = sum * fragColor * colDiffuse;
+}
+--- FILE: ./src/drawer/shader/darken.fs ---
+#version 330
+
+in vec2 fragTexCoord;
+in vec4 fragColor;
+
+uniform sampler2D texture0;
+uniform vec4 colDiffuse;
+
+out vec4 finalColor;
+
+uniform float darkenStrength = 0.5;
+
+void main()
+{
+    vec4 texColor = texture(texture0, fragTexCoord);
+
+    vec3 darkened = texColor.rgb * darkenStrength;
+
+    finalColor = vec4(darkened, texColor.a) * fragColor * colDiffuse;
+}
+--- FILE: ./src/drawer/talk.go ---
 package drawer
 
 import (
-	"math"
-	"time"
-
 	vars "tap/client/gui/src/variables"
+	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func (dr *Drawer) DrawImage(texture_name string, posX, posY, indX, indY, ratioX, ratioY, zoom, rotation float32) {
-	texture := (*dr.app.Textures)[texture_name]
+// DrawTalk displays the npc dialogue box centered near the bottom of the screen
+func (dr *Drawer) DrawTalk() {
+	talk := dr.app.Variables.PanelsVariables.Talk.Talking
+	if talk == nil {
+		return
+	}
 
-	sourceW := ratioX * float32(vars.FRAME_WIDTH)
-	sourceH := ratioY * float32(vars.FRAME_HEIGHT)
+	box_start_x := 6.0
+	box_start_y := 12.0
+	box_width := 20.0
+	box_height := 4.5
 
-	sourceRec := rl.NewRectangle(
-		indX*float32(vars.FRAME_WIDTH), indY*float32(vars.FRAME_HEIGHT),
-		sourceW, sourceH,
+	dr.DrawWoodFrameAt(
+		vars.Position{X: float32(box_start_x), Y: float32(box_start_y)},
+		vars.Position{X: float32(box_start_x + box_width), Y: float32(box_start_y + box_height)},
+		1, 0, false,
 	)
 
-	destW := float32(vars.FRAME_WIDTH) * zoom * ratioX
-	destH := float32(vars.FRAME_HEIGHT) * zoom * ratioY
+	// Show a placeholder while waiting for the server answer
+	const msPerChar = 30 // vitesse de frappe
 
-	destRec := rl.NewRectangle(posX+(destW/2), posY+(destH/2), destW, destH)
-
-	origin := rl.NewVector2(destW/2, destH/2)
-
-	rl.DrawTexturePro(texture, sourceRec, destRec, origin, rotation, rl.White)
-}
-
-func (dr *Drawer) DrawWoodFrameAt(visualStart vars.Position, visualEnd vars.Position, zoom float32, darkness int, empty bool) {
-	e := float32(zoom)
-
-	start := vars.Position{
-		X: visualStart.X / e,
-		Y: visualStart.Y / e,
+	text := "..."
+	elapsed := time.Since(talk.Start)
+	if talk.Result != "" {
+		text = talk.Result
+		elapsed = time.Since(talk.ResultStart)
 	}
+	runes := []rune(text)
+	index := int(elapsed.Milliseconds()) / msPerChar
+	index = max(0, min(len(runes), index))
+	text = string(runes[:index])
 
-	frame_width := int(math.Round(float64(visualEnd.X-visualStart.X)/float64(e))) + 1
-	frame_height := int(math.Round(float64(visualEnd.Y-visualStart.Y)/float64(e))) + 1
+	rl.DrawText(
+		text,
+		int32(float32(box_start_x+0.75)*dr.app.Variables.Tileset_size),
+		int32(float32(box_start_y+0.75)*dr.app.Variables.Tileset_size),
+		int32(dr.app.Variables.FontSize),
+		dr.app.Colors["chat_pseudo_text"],
+	)
 
-	dr.DrawWoodFrame(start, frame_width, frame_height, zoom, darkness, empty)
-}
-
-func (dr *Drawer) DrawWoodFrame(start vars.Position, frame_width, frame_height int, zoom float32, darkness int, empty bool) {
-	frame_start_x := 12
-	frame_start_y := 0
-
-	e := float32(zoom)
-	cell := e * dr.app.Variables.Tileset_size
-
-	for x := range frame_width {
-		for y := range frame_height {
-			if x != 0 && y != 0 && x != frame_width-1 && y != frame_height-1 && empty {
-				continue
-			}
-
-			var ind_x, ind_y int
-			switch x {
-			case 0:
-				ind_x = 0
-			case frame_width - 1:
-				ind_x = 2
-			default:
-				ind_x = 1
-			}
-			switch y {
-			case 0:
-				ind_y = 0
-			case frame_height - 1:
-				ind_y = 2
-			default:
-				ind_y = 1
-			}
-
-			dr.DrawImage(
-				vars.UI_SPRITE_TEXTURE,
-				cell*(float32(x)+start.X)-cell/2,
-				cell*(float32(y)+start.Y)-cell/2,
-				float32(frame_start_x+ind_x), float32(frame_start_y+ind_y+darkness*3),
-				1, 1, e*dr.app.Variables.Zoom, 0,
-			)
-		}
-	}
-}
-
-func (dr *Drawer) DrawBorderedInput(x, y, width, height, border int32, border_color, input_color rl.Color) {
-	// Border
-	rl.DrawRectangle(x-border, y, width+(2*border), height, border_color)
-	rl.DrawRectangle(x, y-border, width, height+(2*border), border_color)
-
-	// Input
-	rl.DrawRectangle(x, y+border, width, height-(2*border), input_color)
-	rl.DrawRectangle(x+border, y, width-(2*border), height, input_color)
-}
-
-func (dr *Drawer) DrawCursor(x, y, width, height int32, text string, color rl.Color) {
-	cursor_duration := 750
-	elapsed := int(time.Since(dr.app.Variables.StartTime).Milliseconds())
-	too_late := time.Since(dr.app.Variables.Player.LastTimeTyped).Milliseconds() > 300
-	text_size := rl.MeasureText(text, int32(dr.app.Variables.FontSize))
-
-	if (elapsed/cursor_duration)%2 == 0 && too_late {
-		rl.DrawRectangle(
-			x+text_size, y, width, height, color,
+	if talk.Result != "" {
+		rl.DrawText(
+			"click to continue",
+			int32(float32(box_start_x+box_width-6)*dr.app.Variables.Tileset_size),
+			int32(float32(box_start_y+box_height-0.9)*dr.app.Variables.Tileset_size),
+			int32(dr.app.Variables.FontSize*0.6),
+			dr.app.Colors["chat_pseudo_text"],
 		)
 	}
 }
@@ -26781,150 +27221,6 @@ func (up *Updater) UpdatePseudo() {
 	up.app.Variables.Player.Pseudo = pseudo
 }
 
---- FILE: ./src/updater/player.go ---
-package updater
-
-import (
-	"fmt"
-	"math"
-	vars "tap/client/gui/src/variables"
-	panel "tap/client/tui/panels"
-	pr "tap/protocol"
-
-	rl "github.com/gen2brain/raylib-go/raylib"
-)
-
-func (up *Updater) UpdatePlayer() {
-	current_room := up.app.Rooms[up.app.Variables.Current_room]
-	if current_room == nil || len(current_room.Collisions) == 0 || len(current_room.Collisions[0]) == 0 {
-		return
-	}
-
-	tile_size := up.app.Variables.Tileset_size
-	if tile_size == 0 {
-		tile_size = 16
-	}
-
-	oldX := up.app.Variables.Player.Position.X
-	oldY := up.app.Variables.Player.Position.Y
-	oldDirX := up.app.Variables.Player.Direction.X
-	oldDirY := up.app.Variables.Player.Direction.Y
-	speed := float32(up.app.Variables.Player.Speed)
-
-	dir_x := 0
-	dir_y := 0
-
-	var dx, dy float32
-	if rl.IsKeyDown(rl.KeyDown) {
-		dir_y = 1
-		dy += speed
-	} else if rl.IsKeyDown(rl.KeyUp) {
-		dir_y = -1
-		dy -= speed
-	}
-
-	if rl.IsKeyDown(rl.KeyRight) {
-		dir_x = 1
-		dx += speed
-	} else if rl.IsKeyDown(rl.KeyLeft) {
-		dir_x = -1
-		dx -= speed
-	}
-
-	up.app.Variables.Player.Direction = &vars.Direction{X: float32(dir_x), Y: float32(dir_y)}
-
-	if dx == 0 && dy == 0 {
-		up.SendNotif(oldX, oldY, oldDirX, oldDirY, false)
-
-	} else if dir_x != 0 && dir_y != 0 {
-		dx *= float32(math.Sqrt(0.5))
-		dy *= float32(math.Sqrt(0.5))
-	}
-
-	newX := up.app.Variables.Player.Position.X + dx
-	if up.canMove(current_room, newX, up.app.Variables.Player.Position.Y, int(tile_size)) {
-		up.app.Variables.Player.Position.X = newX
-	}
-
-	newY := up.app.Variables.Player.Position.Y + dy
-	if up.canMove(current_room, up.app.Variables.Player.Position.X, newY, int(tile_size)) {
-		up.app.Variables.Player.Position.Y = newY
-	}
-
-	up.UpdateMove()
-	up.SendNotif(oldX, oldY, oldDirX, oldDirY, false)
-}
-
-func (up *Updater) UpdateMove() {
-	const marge float32 = 1
-	tileSize := up.app.Variables.Tileset_size
-	pos := up.app.Variables.Player.Position
-	dir := up.app.Variables.Player.Direction
-
-	// Define room limits
-	transitions := []struct {
-		direction  string
-		atBoundary bool
-		isMoving   bool
-		updatePos  func()
-	}{
-		{
-			direction:  "east",
-			atBoundary: pos.X >= (31-marge)*tileSize,
-			isMoving:   dir.X == 1,
-			updatePos:  func() { pos.X = marge * tileSize },
-		},
-		{
-			direction:  "west",
-			atBoundary: pos.X <= marge*tileSize,
-			isMoving:   dir.X == -1,
-			updatePos:  func() { pos.X = (31 - marge) * tileSize },
-		},
-		{
-			direction:  "south",
-			atBoundary: pos.Y >= (17-marge)*tileSize,
-			isMoving:   dir.Y == 1,
-			updatePos:  func() { pos.Y = marge * tileSize },
-		},
-		{
-			direction:  "north",
-			atBoundary: pos.Y <= marge*tileSize,
-			isMoving:   dir.Y == -1,
-			updatePos:  func() { pos.Y = (17 - marge) * tileSize },
-		},
-	}
-
-	// Check player position to move
-	for _, t := range transitions {
-		if t.atBoundary && t.isMoving {
-			up.actionsChan <- panel.Action{
-				Type:    panel.ActionSendServer,
-				Payload: pr.CmdMove + " " + t.direction,
-			}
-			t.updatePos()
-			up.app.ResetRemotePlayers()
-			break
-		}
-	}
-}
-
-func (up *Updater) SendNotif(oldX, oldY, oldDirX, oldDirY float32, first_notif bool) {
-	newPosX := up.app.Variables.Player.Position.X
-	newPosY := up.app.Variables.Player.Position.Y
-	newDirX := up.app.Variables.Player.Direction.X
-	newDirY := up.app.Variables.Player.Direction.Y
-	emoteIndex := up.app.Variables.Player.EmoteIndex
-
-	if oldX != newPosX || oldY != newPosY || oldDirX != newDirX || oldDirY != newDirY || first_notif {
-		payload := fmt.Sprintf("%s %f %f %f %f %d", pr.CmdNotifyPlayerPosition, newPosX, newPosY, newDirX, newDirY, emoteIndex)
-
-		up.actionsChan <- panel.Action{
-			Type:    panel.ActionSendServer,
-			Payload: payload,
-		}
-	}
-}
-
 --- FILE: ./src/updater/update.go ---
 package updater
 
@@ -27383,21 +27679,24 @@ func (up *Updater) canMove(room *parser.Map, x, y float32, tile_size int) bool {
 		}
 	}
 
-	for _, i := range up.app.Manager.Interactions(up.app.Variables.Current_view) {
-		inter := i.Rect()
-		inter.X += 0.2 * up.app.Variables.Tileset_size
-		inter.Y += 0.2 * up.app.Variables.Tileset_size
-		inter.Width -= 0.4 * up.app.Variables.Tileset_size
-		inter.Height -= 0.4 * up.app.Variables.Tileset_size
+	// Check collisions with view interactions
+	for _, view := range []string{"Items", "Npcs", up.app.Variables.Current_view} {
+		for _, i := range up.app.Manager.Interactions(view) {
+			inter := i.Rect()
+			inter.X += 0.2 * up.app.Variables.Tileset_size
+			inter.Y += 0.2 * up.app.Variables.Tileset_size
+			inter.Width -= 0.4 * up.app.Variables.Tileset_size
+			inter.Height -= 0.4 * up.app.Variables.Tileset_size
 
-		player_rect := rl.NewRectangle(
-			up_left.X, up_left.Y,
-			down_right.X-up_left.X,
-			down_right.Y-up_left.Y,
-		)
+			player_rect := rl.NewRectangle(
+				up_left.X, up_left.Y,
+				down_right.X-up_left.X,
+				down_right.Y-up_left.Y,
+			)
 
-		if rl.CheckCollisionRecs(inter, player_rect) {
-			return false
+			if rl.CheckCollisionRecs(inter, player_rect) {
+				return false
+			}
 		}
 	}
 
@@ -27534,30 +27833,6 @@ func (up *Updater) buildChatEmotes() {
 	up.app.Manager.SetViewEmotes("Chat", emotes)
 }
 
---- FILE: ./src/updater/game.go ---
-package updater
-
-func (up *Updater) UpdateGameView() {
-	// Init Buttons/Emotes
-	if len(up.app.Manager.Buttons("Game")) == 0 {
-		up.buildGameButtons()
-	}
-	if len(up.app.Manager.Emotes("Game")) == 0 {
-		up.buildGameEmotes()
-	}
-	if len(up.app.Manager.Interactions("Game")) == 0 {
-		up.buildGameInteractions()
-	}
-
-	up.UpdatePlayer()
-
-	up.app.Manager.Update("Game")
-	if up.app.Variables.PanelsVariables.Chat.Open {
-		up.UpdateChat()
-	}
-	up.app.Manager.Update("Inventory")
-}
-
 --- FILE: ./src/updater/interactions.go ---
 package updater
 
@@ -27585,6 +27860,198 @@ func (up *Updater) UpdateMouse() {
 	// up.app.Variables.Mouse.Down = down
 	up.app.Variables.Mouse.X = mouse.X
 	up.app.Variables.Mouse.Y = mouse.Y
+}
+
+--- FILE: ./src/updater/game.go ---
+package updater
+
+func (up *Updater) UpdateGameView() {
+	// Skip update if Talking
+	if up.app.Variables.PanelsVariables.Talk.Talking != nil {
+		up.UpdateTalk()
+		return
+	}
+
+	// Init Buttons/Emotes
+	if len(up.app.Manager.Buttons("Game")) == 0 {
+		up.buildGameButtons()
+	}
+	if len(up.app.Manager.Emotes("Game")) == 0 {
+		up.buildGameEmotes()
+	}
+	if len(up.app.Manager.Interactions("Game")) == 0 {
+		up.buildGameInteractions()
+	}
+
+	up.UpdatePlayer()
+
+	up.app.Manager.Update("Game")
+	up.app.Manager.Update("Items")
+	up.app.Manager.Update("Npcs")
+	if up.app.Variables.PanelsVariables.Chat.Open {
+		up.UpdateChat()
+	}
+	up.app.Manager.Update("Inventory")
+}
+
+--- FILE: ./src/updater/player.go ---
+package updater
+
+import (
+	"fmt"
+	"math"
+	vars "tap/client/gui/src/variables"
+	panel "tap/client/tui/panels"
+	pr "tap/protocol"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+func (up *Updater) UpdatePlayer() {
+	current_room := up.app.Rooms[up.app.Variables.Current_room]
+	if current_room == nil || len(current_room.Collisions) == 0 || len(current_room.Collisions[0]) == 0 {
+		return
+	}
+
+	tile_size := up.app.Variables.Tileset_size
+	if tile_size == 0 {
+		tile_size = 16
+	}
+
+	oldX := up.app.Variables.Player.Position.X
+	oldY := up.app.Variables.Player.Position.Y
+	oldDirX := up.app.Variables.Player.Direction.X
+	oldDirY := up.app.Variables.Player.Direction.Y
+	speed := float32(up.app.Variables.Player.Speed)
+
+	dir_x := 0
+	dir_y := 0
+
+	var dx, dy float32
+	if rl.IsKeyDown(rl.KeyDown) {
+		dir_y = 1
+		dy += speed
+	} else if rl.IsKeyDown(rl.KeyUp) {
+		dir_y = -1
+		dy -= speed
+	}
+
+	if rl.IsKeyDown(rl.KeyRight) {
+		dir_x = 1
+		dx += speed
+	} else if rl.IsKeyDown(rl.KeyLeft) {
+		dir_x = -1
+		dx -= speed
+	}
+
+	up.app.Variables.Player.Direction = &vars.Direction{X: float32(dir_x), Y: float32(dir_y)}
+
+	if dx == 0 && dy == 0 {
+		up.SendNotif(oldX, oldY, oldDirX, oldDirY, false)
+
+	} else if dir_x != 0 && dir_y != 0 {
+		dx *= float32(math.Sqrt(0.5))
+		dy *= float32(math.Sqrt(0.5))
+	}
+
+	newX := up.app.Variables.Player.Position.X + dx
+	if up.canMove(current_room, newX, up.app.Variables.Player.Position.Y, int(tile_size)) {
+		up.app.Variables.Player.Position.X = newX
+	}
+
+	newY := up.app.Variables.Player.Position.Y + dy
+	if up.canMove(current_room, up.app.Variables.Player.Position.X, newY, int(tile_size)) {
+		up.app.Variables.Player.Position.Y = newY
+	}
+
+	up.UpdateMove()
+	up.SendNotif(oldX, oldY, oldDirX, oldDirY, false)
+}
+
+func (up *Updater) UpdateMove() {
+	const marge float32 = 1
+	tileSize := up.app.Variables.Tileset_size
+	pos := up.app.Variables.Player.Position
+	dir := up.app.Variables.Player.Direction
+
+	// Define room limits
+	transitions := []struct {
+		direction  string
+		atBoundary bool
+		isMoving   bool
+		updatePos  func()
+	}{
+		{
+			direction:  "east",
+			atBoundary: pos.X >= (31-marge)*tileSize,
+			isMoving:   dir.X == 1,
+			updatePos:  func() { pos.X = marge * tileSize },
+		},
+		{
+			direction:  "west",
+			atBoundary: pos.X <= marge*tileSize,
+			isMoving:   dir.X == -1,
+			updatePos:  func() { pos.X = (31 - marge) * tileSize },
+		},
+		{
+			direction:  "south",
+			atBoundary: pos.Y >= (17-marge)*tileSize,
+			isMoving:   dir.Y == 1,
+			updatePos:  func() { pos.Y = marge * tileSize },
+		},
+		{
+			direction:  "north",
+			atBoundary: pos.Y <= marge*tileSize,
+			isMoving:   dir.Y == -1,
+			updatePos:  func() { pos.Y = (17 - marge) * tileSize },
+		},
+	}
+
+	// Check player position to move
+	for _, t := range transitions {
+		if t.atBoundary && t.isMoving {
+			up.actionsChan <- panel.Action{
+				Type:    panel.ActionSendServer,
+				Payload: pr.CmdMove + " " + t.direction,
+			}
+			t.updatePos()
+			up.app.ResetRemotePlayers()
+			break
+		}
+	}
+}
+
+func (up *Updater) SendNotif(oldX, oldY, oldDirX, oldDirY float32, first_notif bool) {
+	newPosX := up.app.Variables.Player.Position.X
+	newPosY := up.app.Variables.Player.Position.Y
+	newDirX := up.app.Variables.Player.Direction.X
+	newDirY := up.app.Variables.Player.Direction.Y
+	emoteIndex := up.app.Variables.Player.EmoteIndex
+
+	if oldX != newPosX || oldY != newPosY || oldDirX != newDirX || oldDirY != newDirY || first_notif {
+		payload := fmt.Sprintf("%s %f %f %f %f %d", pr.CmdNotifyPlayerPosition, newPosX, newPosY, newDirX, newDirY, emoteIndex)
+
+		up.actionsChan <- panel.Action{
+			Type:    panel.ActionSendServer,
+			Payload: payload,
+		}
+	}
+}
+
+--- FILE: ./src/updater/talk.go ---
+package updater
+
+import rl "github.com/gen2brain/raylib-go/raylib"
+
+func (up *Updater) UpdateTalk() {
+	talk := up.app.Variables.PanelsVariables.Talk.Talking
+	if talk == nil || talk.Result == "" {
+		return
+	}
+
+	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) || rl.IsKeyPressed(rl.KeyEnter) || rl.IsKeyPressed(rl.KeySpace) {
+		up.app.EndTalk()
+	}
 }
 
 --- FILE: ./src/variables/colors.go ---
@@ -27641,6 +28108,8 @@ const (
 	PLAYER_TEXTURE       = "teemo 8 directions"
 	PLAYER_REST_TEXTURE  = "Basic Charakter Spritesheet"
 	PLAYER_ANIM_DURATION = 100000000
+
+	NPC_TEXTURE = "free_character_spritesheet_by-cupnooble"
 
 	LOGO_TEXTURE       = "logo"
 	UI_SPRITE_TEXTURE  = "Sprite sheet for Basic Pack"
@@ -27706,6 +28175,7 @@ type PanelVariables struct {
 	Chat      *ChatPanel
 	LeftPanel *LeftPanel
 	Inventory *InventoryPanel
+	Talk      *TalkPanel
 }
 
 func GetPanelsVariables() *PanelVariables {
@@ -27731,6 +28201,10 @@ func GetPanelsVariables() *PanelVariables {
 		Inventory: &InventoryPanel{
 			Open:    true,
 			NbItems: 0,
+		},
+		Talk: &TalkPanel{
+			Talking:  nil,
+			LastTalk: "",
 		},
 	}
 }
@@ -27788,7 +28262,7 @@ type Size struct {
 type Variables struct {
 	Player        *Player
 	RemotePlayers *map[string]*Player
-	ItemPositions *map[string]Position
+	ItemPositions *map[string]*Position
 	Collisions    [][]bool
 	Tileset_size  float32
 
@@ -27826,6 +28300,23 @@ func GetVariables() *Variables {
 			Down:    false,
 		},
 	}
+}
+
+--- FILE: ./src/variables/talk.go ---
+package variables
+
+import "time"
+
+type Talk struct {
+	NpcID       string
+	Result      string
+	Start       time.Time
+	ResultStart time.Time
+}
+
+type TalkPanel struct {
+	Talking  *Talk
+	LastTalk string
 }
 
 --- FILE: ./src/app.go ---
@@ -28372,133 +28863,6 @@ rules.tmx
  <image source="../assets/Sprout Sorry pack/Tests/teemo 8 directions.png" width="128" height="48"/>
 </tileset>
 
---- FILE: ./tilesets/test.tmx ---
-<?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="32" height="18" tilewidth="16" tileheight="16" infinite="0" nextlayerid="7" nextobjectid="1">
- <editorsettings>
-  <export target="../maps/entrance.json" format="json"/>
- </editorsettings>
- <tileset firstgid="1" source="Water.tsx"/>
- <tileset firstgid="5" source="Grass.tsx"/>
- <tileset firstgid="82" source="Basic Grass Biom things 1.tsx"/>
- <tileset firstgid="127" source="Wood Bridge.tsx"/>
- <tileset firstgid="142" source="Paths.tsx"/>
- <tileset firstgid="158" source="Free_Chicken_House.tsx"/>
- <tileset firstgid="167" source="Free Chicken Sprites.tsx"/>
- <tileset firstgid="175" source="Fences.tsx"/>
- <tileset firstgid="191" source="collisions.tsx"/>
- <layer id="1" name="Water" width="32" height="18">
-  <data encoding="csv">
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
-0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
-0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
-0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
-0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
-0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
-0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
-0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
-0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
-0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
-0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
-0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
-0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
-0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
-0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
-0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-</data>
- </layer>
- <layer id="2" name="Floor" width="32" height="18">
-  <data encoding="csv">
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,6,6,6,7,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,5,6,6,6,6,6,6,6,6,6,6,33,17,17,17,18,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,16,17,17,17,17,17,17,17,17,17,17,17,17,17,17,32,7,0,5,6,6,6,7,0,0,0,0,
-0,0,0,0,0,16,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,32,6,33,17,17,17,18,0,0,0,0,
-0,0,0,0,0,16,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,18,0,0,0,0,
-0,0,0,5,6,33,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,18,0,0,0,0,
-0,0,0,16,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,18,0,0,0,0,
-0,0,0,16,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,18,0,0,0,0,
-0,0,0,16,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,18,0,0,0,0,
-0,0,0,16,17,21,28,22,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,21,28,29,0,0,0,0,
-0,0,0,16,21,29,0,27,22,17,17,17,17,17,17,17,17,17,17,17,21,28,28,22,17,18,0,0,0,0,0,0,
-0,0,0,27,29,0,0,0,27,28,22,17,17,17,17,17,17,17,17,17,18,0,0,27,28,29,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,27,28,28,28,28,28,28,28,28,28,29,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-</data>
- </layer>
- <layer id="3" name="OnFloor" width="32" height="18">
-  <data encoding="csv">
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,99,0,0,0,0,0,126,0,0,0,98,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,98,0,0,0,0,0,0,0,0,0,0,0,0,123,0,0,125,0,0,98,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,98,0,0,0,0,0,0,106,176,177,177,177,177,177,177,177,178,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,179,0,0,0,0,0,0,167,179,0,0,0,0,0,0,107,0,0,0,125,0,0,
-0,0,0,126,0,0,91,0,116,0,179,168,0,161,162,163,0,0,179,106,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,184,190,107,164,165,166,168,188,186,0,0,92,93,115,0,0,0,0,0,0,0,0,
-0,130,130,131,155,156,156,156,148,0,0,0,0,0,0,0,0,0,147,156,156,156,156,156,156,156,157,129,130,130,130,0,
-0,0,0,0,0,0,0,0,151,156,156,156,148,0,147,156,156,156,152,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,116,0,0,116,0,0,0,0,151,156,148,0,115,0,0,0,106,0,0,0,107,115,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,106,0,0,0,146,0,115,0,106,0,0,0,91,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,92,93,0,146,0,0,0,0,0,0,0,115,0,0,0,0,0,0,123,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,150,0,0,107,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,123,0,0,0,98,0,0,0,0,0,0,0,127,0,0,0,0,0,0,0,0,0,0,0,0,126,0,0,0,0,
-0,0,0,0,126,0,0,0,0,0,0,0,0,0,132,0,0,0,0,0,0,0,0,125,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,123,0,0,0,0,0,0,132,0,0,0,0,0,98,0,0,0,0,0,98,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-</data>
- </layer>
- <layer id="6" name="InFrontOfPlayer" width="32" height="18">
-  <data encoding="csv">
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,82,0,0,0,0,0,0,158,159,160,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,83,84,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,82,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,83,84,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-</data>
- </layer>
- <layer id="4" name="Collisions" width="32" height="18" visible="0">
-  <data encoding="csv">
-195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,
-195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,
-195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,192,0,0,0,191,195,195,195,195,195,195,195,195,195,195,195,
-195,195,195,195,195,192,0,0,0,0,0,0,0,0,0,0,0,0,0,0,191,195,195,195,195,195,195,195,195,195,195,195,
-195,195,195,195,195,192,0,0,0,0,212,206,206,206,206,206,206,206,211,0,0,191,195,192,0,0,0,191,195,195,195,195,
-195,195,195,195,195,192,0,0,0,0,201,0,0,0,0,0,0,0,201,0,0,0,0,0,0,0,0,191,195,195,195,195,
-195,195,195,195,195,192,205,0,0,0,201,0,0,191,195,192,0,0,201,0,0,0,0,0,0,0,0,191,195,195,195,195,
-195,195,195,217,193,0,0,0,0,0,214,207,0,191,195,192,0,208,213,0,0,191,192,0,0,0,0,191,195,195,195,195,
-195,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-195,195,195,192,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,191,195,195,195,195,
-195,195,195,192,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,191,195,195,195,195,
-195,195,195,192,0,0,194,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,205,0,0,0,194,216,195,195,195,195,
-195,195,195,192,0,216,195,215,0,0,0,191,192,0,0,0,0,0,0,0,0,194,194,0,0,191,195,195,195,195,195,195,
-195,195,195,215,216,195,195,195,215,194,0,0,0,0,0,0,0,0,0,0,191,195,195,215,194,216,195,195,195,195,195,195,
-195,195,195,195,195,195,195,195,195,195,215,194,194,194,0,194,194,194,194,194,216,195,195,195,195,195,195,195,195,195,195,195,
-195,195,195,195,195,195,195,195,195,195,195,195,195,195,0,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,
-195,195,195,195,195,195,195,195,195,195,195,195,195,195,0,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,
-195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195
-</data>
- </layer>
-</map>
-
 --- FILE: ./tilesets/Inventory_Light_Herat_Spritesheet.tsx ---
 <?xml version="1.0" encoding="UTF-8"?>
 <tileset version="1.10" tiledversion="1.12.2" name="Inventory_Light_Herat_Spritesheet" tilewidth="16" tileheight="16" tilecount="147" columns="7">
@@ -28513,7 +28877,7 @@ rules.tmx
 
 --- FILE: ./tilesets/sprout-lands.tiled-session ---
 {
-    "activeFile": "Sprite sheet for Basic Pack.tsx",
+    "activeFile": "test copy.tmx",
     "expandedProjectPaths": [
         "."
     ],
@@ -28742,8 +29106,8 @@ rules.tmx
             "scale": 2,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 267.25,
-                "y": 138
+                "x": 267.5,
+                "y": 138.25
             }
         },
         "test.tsx": {
@@ -28754,7 +29118,7 @@ rules.tmx
     },
     "frame.defaultDuration": 200,
     "last.exportedFilePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps",
-    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Lands - UI Pack - Basic pack/emojis-free/emoji style ui",
+    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Sorry pack/Tests",
     "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
@@ -28777,23 +29141,24 @@ rules.tmx
         "dialog box small.tsx",
         "Chest.tsx",
         "Inventory_Light_Herat_Spritesheet.tsx",
-        "inventory_example_with_slots_2.tsx"
+        "inventory_example_with_slots_2.tsx",
+        "test copy.tmx"
     ],
     "project": "sprout-lands.tiled-project",
     "property.type": "bool",
     "recentFiles": [
-        "dialog box big.tsx",
-        "dialog box small.tsx",
-        "Chest.tsx",
-        "Inventory_Light_Herat_Spritesheet.tsx",
-        "inventory_example_with_slots_2.tsx",
         "Water.tsx",
         "test.tmx",
         "Basic Charakter Actions.tsx",
         "Basic Charakter Spritesheet.tsx",
         "Egg_And_Nest.tsx",
         "Free Chicken Sprites.tsx",
-        "rules.tmx"
+        "rules.tmx",
+        "Free Cow Sprites.tsx",
+        "Free_Chicken_House.tsx",
+        "Sprite sheet for Basic Pack.tsx",
+        "dialog box medium.tsx",
+        "dialog box big.tsx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {
@@ -28845,18 +29210,18 @@ rules.tmx
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,5,6,6,6,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,16,21,28,22,18,0,0,0,5,6,6,6,6,6,6,6,6,6,7,0,0,0,0,0,0,0,0,0,
-0,0,0,0,16,18,0,16,18,0,0,0,16,17,17,17,17,17,17,17,17,17,32,6,6,6,6,7,0,0,0,0,
-0,0,0,0,16,18,0,16,18,0,0,0,16,17,17,17,17,17,17,17,17,17,17,21,28,28,22,18,0,0,0,0,
-0,0,0,0,16,18,0,16,32,7,0,5,33,17,17,17,17,17,17,17,17,17,17,18,0,0,16,32,7,0,0,0,
-0,0,0,0,16,18,0,27,22,32,6,33,21,28,28,28,22,17,17,17,17,17,17,32,7,0,27,22,18,0,0,0,
-0,0,0,0,16,18,0,0,27,28,28,28,29,0,0,0,27,22,17,17,17,17,17,17,18,0,0,16,18,0,0,0,
-0,0,0,0,16,18,0,0,0,0,0,0,0,0,0,0,0,27,28,22,17,17,17,17,18,0,0,16,18,0,0,0,
-0,0,0,0,16,18,0,0,0,0,0,0,0,5,6,6,6,7,0,27,22,17,17,21,29,0,0,16,18,0,0,0,
-0,0,0,0,16,18,0,0,0,0,0,0,5,33,21,28,22,18,0,0,27,28,28,29,0,0,5,33,18,0,0,0,
-0,0,0,0,16,32,7,0,0,0,0,0,16,21,29,0,16,32,7,0,0,0,0,0,0,0,16,21,29,0,0,0,
-0,0,0,0,27,22,32,6,7,0,0,5,33,18,0,0,27,22,32,7,0,0,0,0,5,6,33,18,0,0,0,0,
-0,0,0,0,0,27,28,22,32,6,6,33,21,29,0,0,0,27,22,32,6,6,6,6,33,21,28,29,0,0,0,0,
+0,0,0,0,16,17,17,17,18,0,0,0,5,6,6,6,6,6,6,6,6,6,6,6,6,7,0,0,0,0,0,0,
+0,0,0,0,16,17,17,17,18,0,0,0,16,17,17,17,17,17,17,17,17,17,17,17,17,32,6,7,0,0,0,0,
+0,0,0,0,16,17,17,17,32,7,0,5,33,17,17,17,17,17,17,17,17,17,17,21,28,22,17,32,7,0,0,0,
+0,0,0,0,16,17,17,17,17,32,6,33,17,17,17,17,17,17,17,17,17,17,17,18,0,27,22,17,32,7,0,0,
+0,0,0,0,16,17,17,17,17,17,17,17,21,28,28,28,22,17,17,17,17,17,17,32,7,0,27,22,17,18,0,0,
+0,0,0,0,16,17,21,28,28,28,28,28,29,0,0,0,27,22,17,17,17,17,17,17,18,0,0,16,17,18,0,0,
+0,0,0,0,16,17,18,0,0,0,0,0,0,5,6,7,0,27,28,22,17,17,17,17,18,0,0,16,17,18,0,0,
+0,0,0,0,16,17,18,0,0,0,0,0,5,33,17,32,6,7,0,27,22,17,17,21,29,0,0,16,17,18,0,0,
+0,0,0,0,16,17,32,7,0,0,0,5,33,17,17,17,17,32,7,0,27,28,28,29,0,0,5,33,17,18,0,0,
+0,0,0,0,16,17,17,32,6,6,6,33,17,21,28,28,22,17,32,7,0,0,0,0,0,5,33,21,28,29,0,0,
+0,0,0,0,27,22,17,17,17,17,17,17,17,18,0,0,27,22,17,32,6,6,6,6,6,33,17,18,0,0,0,0,
+0,0,0,0,0,27,28,22,17,17,17,17,21,29,0,0,0,27,22,17,17,17,17,17,17,21,28,29,0,0,0,0,
 0,0,0,0,0,0,0,27,28,28,28,28,29,0,0,0,0,0,27,28,28,28,28,28,28,29,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
@@ -28911,17 +29276,17 @@ rules.tmx
 195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,
 195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,
 195,195,195,195,192,0,0,0,191,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,
-195,195,195,195,192,0,194,0,191,195,195,195,192,0,0,0,0,0,0,0,0,0,191,195,195,195,195,195,195,195,195,195,
-195,195,195,195,192,191,195,192,191,195,195,195,192,0,0,0,0,0,0,0,0,0,0,0,0,0,0,191,195,195,195,195,
-195,195,195,195,192,191,195,192,191,195,195,195,192,0,0,0,0,0,0,0,0,0,0,0,194,194,0,191,195,195,195,195,
-195,195,195,195,192,191,195,192,0,191,195,192,0,0,0,0,0,191,192,0,0,0,0,191,195,195,192,0,191,195,195,195,
-195,195,195,195,192,191,195,215,0,0,0,0,0,194,194,194,0,0,0,0,0,0,0,0,191,195,215,0,191,195,195,195,
-0,0,0,0,0,191,195,195,215,194,194,194,216,195,195,195,215,0,0,0,0,0,0,0,191,195,195,192,191,195,195,195,
-195,195,195,195,192,191,195,195,195,195,195,195,195,195,195,195,195,215,194,0,0,0,0,0,191,195,195,192,191,195,195,195,
-195,195,195,195,192,191,195,195,195,195,195,195,195,192,0,0,0,191,195,215,0,0,0,0,216,195,195,192,191,195,195,195,
-195,195,195,195,192,191,195,195,195,195,195,195,192,0,0,194,0,191,195,195,215,194,194,216,195,195,192,0,191,195,195,195,
-195,195,195,195,192,0,191,195,195,195,195,195,192,0,216,195,192,0,191,195,195,195,195,195,195,195,192,0,216,195,195,195,
-195,195,195,195,215,0,0,0,191,195,195,192,0,191,195,195,215,0,0,191,195,195,195,195,192,0,0,191,195,195,195,195,
+195,195,195,195,192,0,0,0,191,195,195,195,192,0,0,0,0,0,0,0,0,0,0,0,0,191,195,195,195,195,195,195,
+195,195,195,195,192,0,0,0,191,195,195,195,192,0,0,0,0,0,0,0,0,0,0,0,0,0,0,191,195,195,195,195,
+195,195,195,195,192,0,0,0,0,191,195,192,0,0,0,0,0,0,0,0,0,0,0,0,194,0,0,0,191,195,195,195,
+195,195,195,195,192,0,0,0,0,0,0,0,0,0,0,0,0,191,192,0,0,0,0,191,195,215,0,0,0,191,195,195,
+195,195,195,195,192,0,0,0,0,0,0,0,0,194,194,194,0,0,0,0,0,0,0,0,191,195,215,0,0,191,195,195,
+0,0,0,0,0,0,0,194,194,194,194,194,216,195,195,195,215,0,0,0,0,0,0,0,191,195,195,192,0,191,195,195,
+195,195,195,195,192,0,191,195,195,195,195,195,195,192,0,191,195,215,194,0,0,0,0,0,191,195,195,192,0,191,195,195,
+195,195,195,195,192,0,191,195,195,195,195,195,192,0,0,0,0,191,195,215,0,0,0,0,216,195,195,192,0,191,195,195,
+195,195,195,195,192,0,0,191,195,195,195,192,0,0,0,0,0,0,191,195,215,194,194,216,195,195,192,0,0,191,195,195,
+195,195,195,195,192,0,0,0,0,0,0,0,0,0,194,194,0,0,0,191,195,195,195,195,195,192,0,0,194,216,195,195,
+195,195,195,195,215,0,0,0,0,0,0,0,0,191,195,195,215,0,0,0,0,0,0,0,0,0,0,191,195,195,195,195,
 195,195,195,195,195,215,194,0,0,0,0,0,0,216,195,195,195,215,0,0,0,0,0,0,0,0,194,216,195,195,195,195,
 195,195,195,195,195,195,195,215,194,194,194,194,216,195,195,195,195,195,215,194,194,194,194,194,194,216,195,195,195,195,195,195,
 195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,
@@ -28929,5 +29294,138 @@ rules.tmx
 </data>
  </layer>
 </map>
+
+--- FILE: ./tilesets/test.tmx ---
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="32" height="18" tilewidth="16" tileheight="16" infinite="0" nextlayerid="7" nextobjectid="1">
+ <editorsettings>
+  <export target="../maps/entrance.json" format="json"/>
+ </editorsettings>
+ <tileset firstgid="1" source="Water.tsx"/>
+ <tileset firstgid="5" source="Grass.tsx"/>
+ <tileset firstgid="82" source="Basic Grass Biom things 1.tsx"/>
+ <tileset firstgid="127" source="Wood Bridge.tsx"/>
+ <tileset firstgid="142" source="Paths.tsx"/>
+ <tileset firstgid="158" source="Free_Chicken_House.tsx"/>
+ <tileset firstgid="167" source="Free Chicken Sprites.tsx"/>
+ <tileset firstgid="175" source="Fences.tsx"/>
+ <tileset firstgid="191" source="collisions.tsx"/>
+ <layer id="1" name="Water" width="32" height="18">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
+0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
+0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
+0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
+0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
+0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
+0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
+0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
+0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
+0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
+0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
+0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
+0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
+0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
+0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
+0,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="2" name="Floor" width="32" height="18">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,6,6,6,7,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,5,6,6,6,6,6,6,6,6,6,6,33,17,17,17,18,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,16,17,17,17,17,17,17,17,17,17,17,17,17,17,17,32,7,0,5,6,6,6,7,0,0,0,0,
+0,0,0,0,0,16,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,32,6,33,17,17,17,18,0,0,0,0,
+0,0,0,0,0,16,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,18,0,0,0,0,
+0,0,0,5,6,33,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,18,0,0,0,0,
+0,0,0,16,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,18,0,0,0,0,
+0,0,0,16,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,18,0,0,0,0,
+0,0,0,16,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,18,0,0,0,0,
+0,0,0,16,17,21,28,22,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,21,28,29,0,0,0,0,
+0,0,0,16,21,29,0,27,22,17,17,17,17,17,17,17,17,17,17,17,21,28,28,22,17,18,0,0,0,0,0,0,
+0,0,0,27,29,0,0,0,27,28,22,17,17,17,17,17,17,17,17,17,18,0,0,27,28,29,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,27,28,28,28,28,28,28,28,28,28,29,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="3" name="OnFloor" width="32" height="18">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,99,0,0,0,0,0,126,0,0,0,98,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,98,0,0,0,0,0,0,0,0,0,0,0,0,123,0,0,125,0,0,98,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,98,0,0,0,0,0,0,106,176,177,177,177,177,177,177,177,178,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,179,0,0,0,0,0,0,167,179,0,0,0,0,0,0,107,0,0,0,125,0,0,
+0,0,0,126,0,0,91,0,116,0,179,168,0,161,162,163,0,0,179,106,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,184,190,107,164,165,166,168,188,186,0,0,92,93,115,0,0,0,0,0,0,0,0,
+0,130,130,131,155,156,156,156,148,0,0,0,0,0,0,0,0,0,147,156,156,156,156,156,156,156,157,129,130,130,130,0,
+0,0,0,0,0,0,0,0,151,156,156,156,148,0,147,156,156,156,152,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,116,0,0,116,0,0,0,0,151,156,148,0,115,0,0,0,106,0,0,0,107,115,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,106,0,0,0,146,0,115,0,106,0,0,0,91,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,92,93,0,146,0,0,0,0,0,0,0,115,0,0,0,0,0,0,123,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,150,0,0,107,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,123,0,0,0,98,0,0,0,0,0,0,0,127,0,0,0,0,0,0,0,0,0,0,0,0,126,0,0,0,0,
+0,0,0,0,126,0,0,0,0,0,0,0,0,0,132,0,0,0,0,0,0,0,0,125,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,123,0,0,0,0,0,0,132,0,0,0,0,0,98,0,0,0,0,0,98,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="6" name="InFrontOfPlayer" width="32" height="18">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,82,0,0,0,0,0,0,158,159,160,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,83,84,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,82,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,83,84,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="4" name="Collisions" width="32" height="18" visible="0">
+  <data encoding="csv">
+195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,
+195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,
+195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,192,0,0,0,191,195,195,195,195,195,195,195,195,195,195,195,
+195,195,195,195,195,192,0,0,0,0,0,0,0,0,0,0,0,0,0,0,191,195,195,195,195,195,195,195,195,195,195,195,
+195,195,195,195,195,192,0,0,0,0,212,206,206,206,206,206,206,206,211,0,0,191,195,192,0,0,0,191,195,195,195,195,
+195,195,195,195,195,192,0,0,0,0,201,0,0,0,0,0,0,0,201,0,0,0,0,0,0,0,0,191,195,195,195,195,
+195,195,195,195,195,192,205,0,0,0,201,0,0,191,195,192,0,0,201,0,0,0,0,0,0,0,0,191,195,195,195,195,
+195,195,195,217,193,0,0,0,0,0,214,207,0,191,195,192,0,208,213,0,0,191,192,0,0,0,0,191,195,195,195,195,
+195,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+195,195,195,192,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,191,195,195,195,195,
+195,195,195,192,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,191,195,195,195,195,
+195,195,195,192,0,0,194,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,205,0,0,0,194,216,195,195,195,195,
+195,195,195,192,0,216,195,215,0,0,0,191,192,0,0,0,0,0,0,0,0,194,194,0,0,191,195,195,195,195,195,195,
+195,195,195,215,216,195,195,195,215,194,0,0,0,0,0,0,0,0,0,0,191,195,195,215,194,216,195,195,195,195,195,195,
+195,195,195,195,195,195,195,195,195,195,215,194,194,194,0,194,194,194,194,194,216,195,195,195,195,195,195,195,195,195,195,195,
+195,195,195,195,195,195,195,195,195,195,195,195,195,195,0,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,
+195,195,195,195,195,195,195,195,195,195,195,195,195,195,0,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,
+195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195,195
+</data>
+ </layer>
+</map>
+
+--- FILE: ./tilesets/free_character_spritesheet_by-cupnooble.tsx ---
+<?xml version="1.0" encoding="UTF-8"?>
+<tileset version="1.10" tiledversion="1.12.2" name="free_character_spritesheet_by-cupnooble" tilewidth="16" tileheight="16" tilecount="48" columns="8">
+ <image source="../assets/Sprout Sorry pack/Tests/free_character_spritesheet_by-cupnooble.png" width="128" height="96"/>
+</tileset>
 
 --- FILE: ./project.txt ---

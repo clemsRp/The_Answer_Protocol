@@ -12,7 +12,6 @@ func (dr *Drawer) DrawChat() {
 	chat_start_x := float32(vars.CHAT_START_X)
 	chat_start_y := float32(vars.CHAT_START_Y)
 
-	dr.initChatTexture(chat_width)
 	dr.drawChatPanel(chat_start_x, chat_start_y, chat_width, chat_height)
 	dr.drawChatInput(chat_start_x, chat_start_y, chat_width, chat_height)
 
@@ -25,20 +24,36 @@ func (dr *Drawer) DrawChat() {
 	dr.DrawScope()
 }
 
-func (dr *Drawer) initChatTexture(chat_width float32) {
-	// Init chatTexture
-	scope := dr.app.Variables.PanelsVariables.Chat.CurrentScope
-	chats := dr.app.Variables.PanelsVariables.Chat.ScopeChats[scope]
+func (dr *Drawer) RenderChatTexture() {
+	chat := dr.app.Variables.PanelsVariables.Chat
+	if !chat.Open {
+		return
+	}
+	dr.initChatTexture(float32(vars.CHAT_WIDTH))
 
-	if dr.app.Variables.PanelsVariables.Chat.LastNbChats != len(chats) || dr.chatTexture.ID == 0 {
+	chats := chat.ScopeChats[chat.CurrentScope]
+	rl.BeginTextureMode(dr.chatTexture)
+	rl.ClearBackground(rl.Blank)
+	for ind, c := range chats {
+		dr.DrawChatMsg(c, 0, 0, float32(ind), false)
+	}
+	rl.EndTextureMode()
+}
+
+func (dr *Drawer) initChatTexture(chat_width float32) {
+	chat := dr.app.Variables.PanelsVariables.Chat
+	chats := chat.ScopeChats[chat.CurrentScope]
+
+	if chat.LastNbChats != len(chats) || chat.LastMsgScope != chat.CurrentScope || dr.chatTexture.ID == 0 {
 		if dr.chatTexture.ID != 0 {
 			rl.UnloadRenderTexture(dr.chatTexture)
 		}
-
 		dr.chatTexture = rl.LoadRenderTexture(
 			int32(chat_width*dr.app.Variables.Tileset_size),
 			int32((2*float32(len(chats))+4.5)*dr.app.Variables.Tileset_size),
 		)
+		chat.LastNbChats = len(chats)
+		chat.LastMsgScope = chat.CurrentScope
 	}
 }
 
@@ -94,20 +109,6 @@ func (dr *Drawer) drawChatInput(chat_start_x, chat_start_y, chat_width, chat_hei
 }
 
 func (dr *Drawer) DrawChats(chat_start_x, chat_start_y, chat_height float32) {
-	scope := dr.app.Variables.PanelsVariables.Chat.CurrentScope
-	chats := dr.app.Variables.PanelsVariables.Chat.ScopeChats[scope]
-
-	// Draw chats on chatTexture
-	rl.BeginTextureMode(dr.chatTexture)
-	rl.ClearBackground(rl.Blank)
-	for ind, chat := range chats {
-		dr.DrawChatMsg(
-			chat, 0, 0,
-			float32(ind), false,
-		)
-	}
-	rl.EndTextureMode()
-
 	// Display needed part of the chat texture for scroll system
 	tex := dr.chatTexture.Texture
 	viewHeight := (chat_height - 1) * dr.app.Variables.Tileset_size

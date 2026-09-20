@@ -17,6 +17,7 @@ type PanelVariables struct {
 	Chat      *ChatPanel
 	LeftPanel *LeftPanel
 	Inventory *InventoryPanel
+	Talk      *TalkPanel
 }
 
 func GetPanelsVariables() *PanelVariables {
@@ -42,6 +43,10 @@ func GetPanelsVariables() *PanelVariables {
 		Inventory: &InventoryPanel{
 			Open:    true,
 			NbItems: 0,
+		},
+		Talk: &TalkPanel{
+			Talking:  nil,
+			LastTalk: "",
 		},
 	}
 }

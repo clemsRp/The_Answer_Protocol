@@ -1,5 +1,5 @@
 {
-    "activeFile": "Sprite sheet for Basic Pack.tsx",
+    "activeFile": "test copy.tmx",
     "expandedProjectPaths": [
         "."
     ],
@@ -228,8 +228,8 @@
             "scale": 2,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 267.25,
-                "y": 138
+                "x": 267.5,
+                "y": 138.25
             }
         },
         "test.tsx": {
@@ -240,7 +240,7 @@
     },
     "frame.defaultDuration": 200,
     "last.exportedFilePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps",
-    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Lands - UI Pack - Basic pack/emojis-free/emoji style ui",
+    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Sorry pack/Tests",
     "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
@@ -263,23 +263,24 @@
         "dialog box small.tsx",
         "Chest.tsx",
         "Inventory_Light_Herat_Spritesheet.tsx",
-        "inventory_example_with_slots_2.tsx"
+        "inventory_example_with_slots_2.tsx",
+        "test copy.tmx"
     ],
     "project": "sprout-lands.tiled-project",
     "property.type": "bool",
     "recentFiles": [
-        "dialog box big.tsx",
-        "dialog box small.tsx",
-        "Chest.tsx",
-        "Inventory_Light_Herat_Spritesheet.tsx",
-        "inventory_example_with_slots_2.tsx",
         "Water.tsx",
         "test.tmx",
         "Basic Charakter Actions.tsx",
         "Basic Charakter Spritesheet.tsx",
         "Egg_And_Nest.tsx",
         "Free Chicken Sprites.tsx",
-        "rules.tmx"
+        "rules.tmx",
+        "Free Cow Sprites.tsx",
+        "Free_Chicken_House.tsx",
+        "Sprite sheet for Basic Pack.tsx",
+        "dialog box medium.tsx",
+        "dialog box big.tsx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

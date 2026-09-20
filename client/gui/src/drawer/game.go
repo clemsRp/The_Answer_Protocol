@@ -7,6 +7,33 @@ import (
 )
 
 func (dr *Drawer) DrawGameView() {
+	rl.BeginTextureMode(dr.gameTexture)
+	dr.DrawGame()
+	rl.EndTextureMode()
+
+	talking := dr.app.Variables.PanelsVariables.Talk.Talking != nil
+	if talking {
+		rl.BeginShaderMode(dr.darkenShader)
+	}
+
+	rl.DrawTextureRec(
+		dr.gameTexture.Texture,
+		rl.NewRectangle(
+			0, 0,
+			float32(dr.gameTexture.Texture.Width),
+			-float32(dr.gameTexture.Texture.Height),
+		),
+		rl.NewVector2(0, 0),
+		rl.White,
+	)
+
+	if talking {
+		rl.EndShaderMode()
+		dr.DrawTalk()
+	}
+}
+
+func (dr *Drawer) DrawGame() {
 	dr.DrawMap()
 	dr.DrawGameInteractions()
 

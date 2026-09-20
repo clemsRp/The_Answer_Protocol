@@ -8,6 +8,8 @@ const (
 	PLAYER_REST_TEXTURE  = "Basic Charakter Spritesheet"
 	PLAYER_ANIM_DURATION = 100000000
 
+	NPC_TEXTURE = "free_character_spritesheet_by-cupnooble"
+
 	LOGO_TEXTURE       = "logo"
 	UI_SPRITE_TEXTURE  = "Sprite sheet for Basic Pack"
 	PLAY_TEXTURE       = "UI Big Play Button"
