@@ -58,6 +58,7 @@ func (dr *Drawer) DrawGame() {
 	dr.DrawGameButtons()
 	dr.DrawInventoryEmotes()
 	dr.DrawInventoryButtons()
+	dr.DrawGameSelects()
 }
 
 func (dr *Drawer) DrawPlayerPanel() {
@@ -70,8 +71,8 @@ func (dr *Drawer) DrawPlayerPanel() {
 	}
 
 	// Draw left panel
-	if dr.app.Variables.PanelsVariables.LeftPanel.Open {
-		dr.DrawLeftPanel()
+	if dr.app.Variables.PanelsVariables.Group.Open {
+		dr.DrawGroupPanel()
 	}
 
 	dr.DrawInventory()
@@ -158,21 +159,19 @@ func (dr *Drawer) DrawInventory() {
 	start_x *= dr.app.Variables.Zoom / 2 * vars.FRAME_WIDTH
 	start_x -= 0.1 * dr.app.Variables.Tileset_size
 
-	if dr.app.Variables.PanelsVariables.Inventory.Open {
-		for index := range *dr.app.Variables.PanelsVariables.InventoryItems {
-			indX := 12.4
-			if index == len(*dr.app.Variables.PanelsVariables.InventoryItems)-1 {
-				indX += 3
-			}
-
-			// Draw frame
-			dr.DrawImage(
-				vars.INVENTORY_TEXTURE,
-				start_x+float32(index)*dr.app.Variables.Tileset_size,
-				1.1*dr.app.Variables.Tileset_size,
-				float32(indX), 1, 3.3, 5,
-				dr.app.Variables.Zoom/3, 0,
-			)
+	for index := range *dr.app.Variables.PanelsVariables.InventoryItems {
+		indX := 12.4
+		if index == len(*dr.app.Variables.PanelsVariables.InventoryItems)-1 {
+			indX += 3
 		}
+
+		// Draw frame
+		dr.DrawImage(
+			vars.INVENTORY_TEXTURE,
+			start_x+float32(index)*dr.app.Variables.Tileset_size,
+			1.1*dr.app.Variables.Tileset_size,
+			float32(indX), 1, 3.3, 5,
+			dr.app.Variables.Zoom/3, 0,
+		)
 	}
 }

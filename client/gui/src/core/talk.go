@@ -13,8 +13,9 @@ func (app *App) SetTalkResult(npcID, result string) {
 	if app.Variables.PanelsVariables.Talk.Talking == nil || app.Variables.PanelsVariables.Talk.Talking.NpcID != npcID {
 		return
 	}
-	app.Variables.PanelsVariables.Talk.Talking.Result = result
 	app.Variables.PanelsVariables.Talk.Talking.ResultStart = time.Now()
+	app.Variables.PanelsVariables.Talk.Talking.Result = result
+	*app.Variables.PanelsVariables.Talk.Results = append(*app.Variables.PanelsVariables.Talk.Results, result)
 }
 
 func (app *App) EndTalk() {

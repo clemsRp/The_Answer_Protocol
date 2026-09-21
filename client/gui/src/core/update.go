@@ -69,7 +69,20 @@ func (app *App) UpdateInteraction(roomNpcs, players []string, npcData map[string
 }
 
 func (app *App) UpdateGroup(groupState state.GroupState) {
-	app.Variables.PanelsVariables.GroupState = &groupState
+	app.QueueUpdate(func() {
+		app.Variables.PanelsVariables.GroupState = &groupState
+
+		current := "Invite"
+		if sel := app.Manager.Selects("Group"); len(sel) > 0 {
+			current = sel[0].CurrentOption
+		}
+		selects := app.GetGroupSelects()
+		if len(selects) > 0 {
+			selects[0].CurrentOption = current
+		}
+		app.Manager.SetViewSelects("Group", selects)
+		app.Manager.SetViewOptions("Group", app.GetGroupOptions(current))
+	})
 }
 
 func (app *App) UpdateCombat(combatState state.CombatState) {

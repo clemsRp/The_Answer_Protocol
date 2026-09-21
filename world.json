@@ -21,7 +21,7 @@
                     "south": "merchant_tent"
                 },
                 "items": ["crisp_apple"],
-                "npcs": ["farmer_fiona"]
+                "npcs": ["angry_crow"]
             },
             "abandoned_farm": {
                 "name": "Abandoned Farm",

@@ -1,6 +1,7 @@
 package drawer
 
 import (
+	"fmt"
 	vars "tap/client/gui/src/variables"
 	"time"
 
@@ -26,25 +27,40 @@ func (dr *Drawer) DrawTalk() {
 	)
 
 	// Show a placeholder while waiting for the server answer
-	const msPerChar = 30 // vitesse de frappe
+	const msPerChar = 30
+	var text string
 
-	text := "..."
-	elapsed := time.Since(talk.Start)
-	if talk.Result != "" {
+	// Animate text
+	if !dr.app.Variables.PanelsVariables.Talk.Finished {
+		text = "..."
+		elapsed := time.Since(talk.Start)
+
+		if talk.Result != "" {
+			text = talk.Result
+			elapsed = time.Since(talk.ResultStart)
+			runes := []rune(text)
+			index := int(elapsed.Milliseconds()) / msPerChar
+			index = max(0, min(len(runes), index))
+			text = string(runes[:index])
+
+			// Check animation end
+			fmt.Println(index, len(talk.Result))
+			if index >= len(talk.Result)-1 {
+				dr.app.Variables.PanelsVariables.Talk.Finished = true
+			}
+		}
+
+		// Don't animate text
+	} else {
 		text = talk.Result
-		elapsed = time.Since(talk.ResultStart)
 	}
-	runes := []rune(text)
-	index := int(elapsed.Milliseconds()) / msPerChar
-	index = max(0, min(len(runes), index))
-	text = string(runes[:index])
 
 	rl.DrawText(
 		text,
 		int32(float32(box_start_x+0.75)*dr.app.Variables.Tileset_size),
 		int32(float32(box_start_y+0.75)*dr.app.Variables.Tileset_size),
 		int32(dr.app.Variables.FontSize),
-		dr.app.Colors["chat_pseudo_text"],
+		dr.app.Colors["pseudo_text"],
 	)
 
 	if talk.Result != "" {
@@ -53,7 +69,7 @@ func (dr *Drawer) DrawTalk() {
 			int32(float32(box_start_x+box_width-6)*dr.app.Variables.Tileset_size),
 			int32(float32(box_start_y+box_height-0.9)*dr.app.Variables.Tileset_size),
 			int32(dr.app.Variables.FontSize*0.6),
-			dr.app.Colors["chat_pseudo_text"],
+			dr.app.Colors["pseudo_text"],
 		)
 	}
 }

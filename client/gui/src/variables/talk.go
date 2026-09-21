@@ -12,4 +12,7 @@ type Talk struct {
 type TalkPanel struct {
 	Talking  *Talk
 	LastTalk string
+	Finished bool
+	NbLoop   int
+	Results  *[]string
 }

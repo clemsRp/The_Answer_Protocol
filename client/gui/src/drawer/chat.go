@@ -202,7 +202,7 @@ func (dr *Drawer) DrawChatMsg(chat vars.Chat, start_x, start_y, index float32, b
 		int32(posX+2.7*dr.app.Variables.Tileset_size),
 		int32(posY+0.7*dr.app.Variables.Tileset_size),
 		int32(dr.app.Variables.FontSize),
-		dr.app.Colors["chat_pseudo_text"],
+		dr.app.Colors["pseudo_text"],
 	)
 
 	// Draw message

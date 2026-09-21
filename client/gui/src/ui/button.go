@@ -38,6 +38,10 @@ func (b *Button) CurrentFrame() Frame {
 	return b.Normal
 }
 
+func (m *Manager) SetViewButtons(view string, buttons []*Button) {
+	m.views_buttons[view] = buttons
+}
+
 func (m *Manager) Buttons(view string) []*Button {
 	return m.views_buttons[view]
 }

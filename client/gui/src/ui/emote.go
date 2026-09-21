@@ -36,6 +36,10 @@ func (e *Emote) CurrentFrame(start_time time.Time) Frame {
 	return *error_frame.Frame
 }
 
+func (m *Manager) SetViewEmotes(view string, emotes []*Emote) {
+	m.views_emotes[view] = emotes
+}
+
 func (m *Manager) Emotes(view string) []*Emote {
 	return m.views_emotes[view]
 }

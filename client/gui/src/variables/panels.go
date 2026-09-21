@@ -14,11 +14,14 @@ type PanelVariables struct {
 	GroupState  *state.GroupState
 	CombatState *state.CombatState
 
-	Chat      *ChatPanel
-	LeftPanel *LeftPanel
-	Inventory *InventoryPanel
-	Talk      *TalkPanel
+	Chat  *ChatPanel
+	Group *GroupPanel
+	Talk  *TalkPanel
 }
+
+var (
+	results = make([]string, 0)
+)
 
 func GetPanelsVariables() *PanelVariables {
 	return &PanelVariables{
@@ -37,16 +40,21 @@ func GetPanelsVariables() *PanelVariables {
 			ScrollActive:    false,
 			LastFrameScroll: false,
 		},
-		LeftPanel: &LeftPanel{
-			Open: false,
-		},
-		Inventory: &InventoryPanel{
-			Open:    true,
-			NbItems: 0,
+		Group: &GroupPanel{
+			Open:          false,
+			InGroup:       false,
+			Leader:        "",
+			Grouped:       make([]string, 0),
+			UnGrouped:     make([]string, 0),
+			Invitations:   make([]string, 0),
+			SendPromotion: false,
+			Promote:       false,
 		},
 		Talk: &TalkPanel{
 			Talking:  nil,
 			LastTalk: "",
+			Finished: false,
+			Results:  &results,
 		},
 	}
 }

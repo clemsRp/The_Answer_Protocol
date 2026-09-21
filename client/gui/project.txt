@@ -270,6 +270,8 @@
 │   │   ├── app.go
 │   │   ├── items.go
 │   │   ├── npcs.go
+│   │   ├── options.go
+│   │   ├── selects.go
 │   │   ├── talk.go
 │   │   └── update.go
 │   ├── drawer
@@ -280,11 +282,13 @@
 │   │   ├── draw.go
 │   │   ├── emotes.go
 │   │   ├── game.go
+│   │   ├── group.go
 │   │   ├── interactions.go
-│   │   ├── left_panel.go
 │   │   ├── map.go
 │   │   ├── mouse.go
+│   │   ├── options.go
 │   │   ├── player.go
+│   │   ├── selects.go
 │   │   ├── shader
 │   │   │   ├── blur.fs
 │   │   │   └── darken.fs
@@ -300,7 +304,9 @@
 │   │   ├── emote.go
 │   │   ├── interaction.go
 │   │   ├── item.go
-│   │   └── manager.go
+│   │   ├── manager.go
+│   │   ├── option.go
+│   │   └── select.go
 │   ├── updater
 │   │   ├── buttons.go
 │   │   ├── chat.go
@@ -310,15 +316,17 @@
 │   │   ├── game.go
 │   │   ├── interactions.go
 │   │   ├── mouse.go
+│   │   ├── options.go
 │   │   ├── player.go
+│   │   ├── selects.go
 │   │   ├── talk.go
 │   │   └── update.go
 │   └── variables
 │       ├── chat.go
 │       ├── colors.go
 │       ├── constants.go
+│       ├── group.go
 │       ├── inventory.go
-│       ├── left_panel.go
 │       ├── mouse.go
 │       ├── panels.go
 │       ├── player.go
@@ -382,7 +390,7 @@
     ├── Wooden House.tsx
     └── Wooden_House_Walls_Tilset.tsx
 
-48 directories, 334 files
+48 directories, 342 files
 -e 
 === CONTENU DES FICHIERS ===
 
@@ -24663,6 +24671,7 @@ func (app *App) GetNewRoomItems(roomItems []string) []*ui.Interaction {
 			OnClick: func() {
 				// Send the 'Take' command to the server
 				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdTake + " " + it}
+				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + it}
 			},
 		}
 
@@ -24948,6 +24957,9 @@ func (app *App) UpdateInteraction(roomNpcs, players []string, npcData map[string
 
 func (app *App) UpdateGroup(groupState state.GroupState) {
 	app.Variables.PanelsVariables.GroupState = &groupState
+
+	group_selects := app.GetGroupSelects()
+	app.Manager.SetViewSelects("Group", group_selects)
 }
 
 func (app *App) UpdateCombat(combatState state.CombatState) {
@@ -25152,9 +25164,12 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 			Hover:    ui.Frame{IndX: 40, IndY: 8, RatioX: 2, RatioY: 2},
 			Pressed:  ui.Frame{IndX: 42, IndY: 8, RatioX: 2, RatioY: 2},
 			OnClick: func() {
+				app.Variables.PanelsVariables.Chat.Open = false
+				app.Variables.PanelsVariables.Group.Open = false
 				app.Variables.PanelsVariables.Talk.LastTalk = np
 				app.StartTalk(np)
 				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdTalk + " " + np}
+				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectNpc + " " + np}
 			},
 		}
 
@@ -25227,12 +25242,125 @@ func (app *App) SetTalkResult(npcID, result string) {
 	if app.Variables.PanelsVariables.Talk.Talking == nil || app.Variables.PanelsVariables.Talk.Talking.NpcID != npcID {
 		return
 	}
-	app.Variables.PanelsVariables.Talk.Talking.Result = result
 	app.Variables.PanelsVariables.Talk.Talking.ResultStart = time.Now()
+	app.Variables.PanelsVariables.Talk.Talking.Result = result
+	*app.Variables.PanelsVariables.Talk.Results = append(*app.Variables.PanelsVariables.Talk.Results, result)
 }
 
 func (app *App) EndTalk() {
 	app.Variables.PanelsVariables.Talk.Talking = nil
+}
+
+--- FILE: ./src/core/selects.go ---
+package core
+
+import (
+	"tap/client/gui/src/ui"
+	vars "tap/client/gui/src/variables"
+)
+
+type SelectDatas struct {
+	X       float32
+	Y       float32
+	Options []string
+}
+
+var (
+	group_selects = []SelectDatas{
+		{X: 2, Y: 6, Options: []string{"Invite", "Promote", "Kick"}},
+	}
+)
+
+func (app *App) GetGroupSelects() []*ui.Select {
+	selects_elements := make([]*ui.Select, 0)
+
+	for _, s := range group_selects {
+		// Create Select
+		select_element := &ui.Select{
+			ID:            "group_options_select",
+			Texture:       vars.UI_SPRITE_TEXTURE,
+			X:             s.X * app.Variables.Tileset_size,
+			Y:             s.Y * app.Variables.Tileset_size,
+			Zoom:          app.Variables.Zoom / 3,
+			Rotation:      0,
+			Normal:        ui.Frame{IndX: 10, IndY: 11, RatioX: 6, RatioY: 2},
+			Hover:         ui.Frame{IndX: 16, IndY: 11, RatioX: 6, RatioY: 2},
+			ItemNormal:    ui.Frame{IndX: 10, IndY: 11, RatioX: 6, RatioY: 2},
+			ItemHover:     ui.Frame{IndX: 16, IndY: 11, RatioX: 6, RatioY: 2},
+			Options:       s.Options,
+			CurrentOption: s.Options[0],
+			Open:          false,
+			OnChange: func(option string) {
+				app.Manager.SetViewOptions("Group", app.GetGroupOptions(option))
+			},
+		}
+
+		selects_elements = append(selects_elements, select_element)
+	}
+
+	return selects_elements
+}
+
+--- FILE: ./src/core/options.go ---
+package core
+
+import (
+	"fmt"
+	"tap/client/gui/src/ui"
+	vars "tap/client/gui/src/variables"
+	panel "tap/client/tui/panels"
+)
+
+var ()
+
+func (app *App) GetGroupOptions(command string) []*ui.Option {
+	// Set group options datas
+	group_options := map[string]*[]string{
+		"Invite":  &app.Variables.PanelsVariables.GroupState.UnGrouped,
+		"Join":    &app.Variables.PanelsVariables.GroupState.Invitations,
+		"Kick":    &app.Variables.PanelsVariables.GroupState.Grouped,
+		"Promote": &app.Variables.PanelsVariables.GroupState.Grouped,
+	}
+
+	start_x := 2 * app.Variables.Tileset_size
+	start_y := 6 * app.Variables.Tileset_size
+
+	// Create options
+	options := make([]*ui.Option, 0)
+
+	for _, command_option := range *group_options[command] {
+		// Declare accept button
+		accept_btn := &ui.Button{
+			ID:       fmt.Sprintf("accept_btn-%s-%s", command, command_option),
+			Texture:  vars.UI_SPRITE_TEXTURE,
+			X:        start_x,
+			Y:        start_y,
+			Zoom:     app.Variables.Zoom,
+			Rotation: 0,
+			Normal:   ui.Frame{IndX: 15, IndY: 4, RatioX: 1, RatioY: 1},
+			Hover:    ui.Frame{IndX: 15, IndY: 4, RatioX: 1, RatioY: 1},
+			Pressed:  ui.Frame{IndX: 16, IndY: 4, RatioX: 1, RatioY: 1},
+			OnClick: func() {
+				app.ActionsChan <- panel.Action{
+					Type:    panel.ActionSendServer,
+					Payload: fmt.Sprintf("%s %s", command, command_option),
+				}
+			},
+		}
+
+		// Create Option
+		option := &ui.Option{
+			OptionName: command_option,
+			X:          int(start_x),
+			Y:          int(start_y),
+			DeclineBtn: nil,
+			AcceptBtn:  accept_btn,
+		}
+
+		options = append(options, option)
+	}
+
+	return options
 }
 
 --- FILE: ./src/drawer/animations.go ---
@@ -25536,6 +25664,24 @@ func (dr *Drawer) DrawInventoryButtons() {
 	}
 }
 
+func (dr *Drawer) DrawGroupButtons() {
+	if !dr.app.Variables.PanelsVariables.Group.Open {
+		return
+	}
+
+	for _, b := range dr.app.Manager.Buttons("Group") {
+		frame := b.CurrentFrame()
+		dr.DrawImage(
+			b.Texture,
+			b.X, b.Y,
+			frame.IndX, frame.IndY,
+			frame.RatioX, frame.RatioY,
+			b.Zoom,
+			b.Rotation,
+		)
+	}
+}
+
 --- FILE: ./src/drawer/chat.go ---
 package drawer
 
@@ -25551,7 +25697,6 @@ func (dr *Drawer) DrawChat() {
 	chat_start_x := float32(vars.CHAT_START_X)
 	chat_start_y := float32(vars.CHAT_START_Y)
 
-	dr.initChatTexture(chat_width)
 	dr.drawChatPanel(chat_start_x, chat_start_y, chat_width, chat_height)
 	dr.drawChatInput(chat_start_x, chat_start_y, chat_width, chat_height)
 
@@ -25562,6 +25707,22 @@ func (dr *Drawer) DrawChat() {
 	dr.DrawChatButtons()
 
 	dr.DrawScope()
+}
+
+func (dr *Drawer) RenderChatTexture() {
+	chat := dr.app.Variables.PanelsVariables.Chat
+	if !chat.Open {
+		return
+	}
+	dr.initChatTexture(float32(vars.CHAT_WIDTH))
+
+	chats := chat.ScopeChats[chat.CurrentScope]
+	rl.BeginTextureMode(dr.chatTexture)
+	rl.ClearBackground(rl.Blank)
+	for ind, c := range chats {
+		dr.DrawChatMsg(c, 0, 0, float32(ind), false)
+	}
+	rl.EndTextureMode()
 }
 
 func (dr *Drawer) initChatTexture(chat_width float32) {
@@ -25633,20 +25794,6 @@ func (dr *Drawer) drawChatInput(chat_start_x, chat_start_y, chat_width, chat_hei
 }
 
 func (dr *Drawer) DrawChats(chat_start_x, chat_start_y, chat_height float32) {
-	scope := dr.app.Variables.PanelsVariables.Chat.CurrentScope
-	chats := dr.app.Variables.PanelsVariables.Chat.ScopeChats[scope]
-
-	// Draw chats on chatTexture
-	rl.BeginTextureMode(dr.chatTexture)
-	rl.ClearBackground(rl.Blank)
-	for ind, chat := range chats {
-		dr.DrawChatMsg(
-			chat, 0, 0,
-			float32(ind), false,
-		)
-	}
-	rl.EndTextureMode()
-
 	// Display needed part of the chat texture for scroll system
 	tex := dr.chatTexture.Texture
 	viewHeight := (chat_height - 1) * dr.app.Variables.Tileset_size
@@ -26042,19 +26189,6 @@ func (dr *Drawer) DrawGameInteractions() {
 	}
 }
 
---- FILE: ./src/drawer/left_panel.go ---
-package drawer
-
-import vars "tap/client/gui/src/variables"
-
-func (dr *Drawer) DrawLeftPanel() {
-	dr.DrawWoodFrameAt(
-		vars.Position{X: 1, Y: 4},
-		vars.Position{X: 7, Y: 17},
-		1, 0, false,
-	)
-}
-
 --- FILE: ./src/drawer/mouse.go ---
 package drawer
 
@@ -26246,6 +26380,8 @@ func (dr *Drawer) DrawGame() {
 	dr.DrawGameButtons()
 	dr.DrawInventoryEmotes()
 	dr.DrawInventoryButtons()
+	dr.DrawGroupButtons()
+	dr.DrawGameSelects()
 }
 
 func (dr *Drawer) DrawPlayerPanel() {
@@ -26258,8 +26394,8 @@ func (dr *Drawer) DrawPlayerPanel() {
 	}
 
 	// Draw left panel
-	if dr.app.Variables.PanelsVariables.LeftPanel.Open {
-		dr.DrawLeftPanel()
+	if dr.app.Variables.PanelsVariables.Group.Open {
+		dr.DrawGroupPanel()
 	}
 
 	dr.DrawInventory()
@@ -26651,6 +26787,7 @@ void main()
 package drawer
 
 import (
+	"fmt"
 	vars "tap/client/gui/src/variables"
 	"time"
 
@@ -26676,18 +26813,33 @@ func (dr *Drawer) DrawTalk() {
 	)
 
 	// Show a placeholder while waiting for the server answer
-	const msPerChar = 30 // vitesse de frappe
+	const msPerChar = 30
+	var text string
 
-	text := "..."
-	elapsed := time.Since(talk.Start)
-	if talk.Result != "" {
+	// Animate text
+	if !dr.app.Variables.PanelsVariables.Talk.Finished {
+		text = "..."
+		elapsed := time.Since(talk.Start)
+
+		if talk.Result != "" {
+			text = talk.Result
+			elapsed = time.Since(talk.ResultStart)
+			runes := []rune(text)
+			index := int(elapsed.Milliseconds()) / msPerChar
+			index = max(0, min(len(runes), index))
+			text = string(runes[:index])
+
+			// Check animation end
+			fmt.Println(index, len(talk.Result))
+			if index >= len(talk.Result)-1 {
+				dr.app.Variables.PanelsVariables.Talk.Finished = true
+			}
+		}
+
+		// Don't animate text
+	} else {
 		text = talk.Result
-		elapsed = time.Since(talk.ResultStart)
 	}
-	runes := []rune(text)
-	index := int(elapsed.Milliseconds()) / msPerChar
-	index = max(0, min(len(runes), index))
-	text = string(runes[:index])
 
 	rl.DrawText(
 		text,
@@ -26706,6 +26858,134 @@ func (dr *Drawer) DrawTalk() {
 			dr.app.Colors["chat_pseudo_text"],
 		)
 	}
+}
+
+--- FILE: ./src/drawer/group.go ---
+package drawer
+
+import (
+	vars "tap/client/gui/src/variables"
+)
+
+func (dr *Drawer) DrawGroupPanel() {
+	/* group_width := float32(vars.GROUP_WIDTH)
+	group_height := float32(vars.GROUP_HEIGHT)
+	group_start_x := float32(vars.GROUP_START_X)
+	group_start_y := float32(vars.GROUP_START_Y) */
+
+	// Draw frame
+	dr.DrawWoodFrameAt(
+		vars.Position{X: 1, Y: 4},
+		vars.Position{X: 7, Y: 17},
+		1, 0, false,
+	)
+
+	// Draw group management
+
+}
+
+--- FILE: ./src/drawer/selects.go ---
+package drawer
+
+import (
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+func (dr *Drawer) DrawGameSelects() {
+	if !dr.app.Variables.PanelsVariables.Group.Open {
+		return
+	}
+
+	fontSize := int32(dr.app.Variables.FontSize)
+	color := dr.app.Colors["panel_text"]
+
+	for _, s := range dr.app.Manager.Selects("Group") {
+		// Main box (closed state)
+		main := s.MainRect()
+		frame := s.CurrentMainFrame()
+		dr.DrawImage(
+			s.Texture,
+			s.X, s.Y,
+			frame.IndX, frame.IndY,
+			frame.RatioX, frame.RatioY,
+			s.Zoom, s.Rotation,
+		)
+
+		// Current option, centered in the main box
+		textW := rl.MeasureText(s.CurrentOption, fontSize)
+		rl.DrawText(
+			s.CurrentOption,
+			int32(main.X+(main.Width-float32(textW))/2),
+			int32(main.Y+(main.Height-float32(fontSize))/2),
+			fontSize, color,
+		)
+
+		// Options list (open state)
+		if !s.Open {
+			continue
+		}
+		for i, opt := range s.Options {
+			item := s.ItemRect(i)
+			iframe := s.ItemFrame(i)
+			dr.DrawImage(
+				s.Texture,
+				item.X, item.Y,
+				iframe.IndX, iframe.IndY,
+				iframe.RatioX, iframe.RatioY,
+				s.Zoom, s.Rotation,
+			)
+
+			tw := rl.MeasureText(opt, fontSize)
+			rl.DrawText(
+				opt,
+				int32(item.X+(item.Width-float32(tw))/2),
+				int32(item.Y+(item.Height-float32(fontSize))/2),
+				fontSize, color,
+			)
+		}
+	}
+}
+
+--- FILE: ./src/drawer/options.go ---
+package drawer
+
+import (
+	"fmt"
+	"tap/client/gui/src/ui"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+func (dr *Drawer) DrawGroupOptions() {
+	// Draw nothing if panel not open
+	if !dr.app.Variables.PanelsVariables.Group.Open {
+		return
+	}
+
+	for _, opt := range dr.app.Manager.Options("Group") {
+		// Draw option name
+		rl.DrawText(
+			fmt.Sprintf("- %s:", opt.OptionName),
+			int32(opt.X),
+			int32(opt.Y),
+			int32(dr.app.Variables.FontSize),
+			dr.app.Colors["panel_text"],
+		)
+
+		// Draw Decline/Accept button
+		for _, b := range []*ui.Button{opt.DeclineBtn, opt.AcceptBtn} {
+			frame := b.CurrentFrame()
+			dr.DrawImage(
+				b.Texture,
+				b.X, b.Y,
+				frame.IndX, frame.IndY,
+				frame.RatioX, frame.RatioY,
+				b.Zoom,
+				b.Rotation,
+			)
+		}
+	}
+
 }
 
 --- FILE: ./src/gui_client.go ---
@@ -26970,6 +27250,10 @@ func (b *Button) CurrentFrame() Frame {
 	return b.Normal
 }
 
+func (m *Manager) SetViewButtons(view string, buttons []*Button) {
+	m.views_buttons[view] = buttons
+}
+
 func (m *Manager) Buttons(view string) []*Button {
 	return m.views_buttons[view]
 }
@@ -27033,6 +27317,10 @@ func (e *Emote) CurrentFrame(start_time time.Time) Frame {
 	return *error_frame.Frame
 }
 
+func (m *Manager) SetViewEmotes(view string, emotes []*Emote) {
+	m.views_emotes[view] = emotes
+}
+
 func (m *Manager) Emotes(view string) []*Emote {
 	return m.views_emotes[view]
 }
@@ -27071,6 +27359,10 @@ func (i *Interaction) Rect() rl.Rectangle {
 
 func (i *Interaction) IsHovered() bool {
 	return i.hovered
+}
+
+func (m *Manager) SetViewInteractions(view string, items []*Interaction) {
+	m.views_interactions[view] = items
 }
 
 func (m *Manager) Interactions(view string) []*Interaction {
@@ -27134,6 +27426,8 @@ type Manager struct {
 	views_buttons      map[string][]*Button
 	views_emotes       map[string][]*Emote
 	views_interactions map[string][]*Interaction
+	views_selects      map[string][]*Select
+	views_options      map[string][]*Option
 }
 
 func NewManager() *Manager {
@@ -27141,25 +27435,163 @@ func NewManager() *Manager {
 		views_buttons:      map[string][]*Button{},
 		views_emotes:       map[string][]*Emote{},
 		views_interactions: map[string][]*Interaction{},
+		views_selects:      map[string][]*Select{},
+		views_options:      map[string][]*Option{},
 	}
-}
-
-func (m *Manager) SetViewButtons(view string, buttons []*Button) {
-	m.views_buttons[view] = buttons
-}
-
-func (m *Manager) SetViewEmotes(view string, emotes []*Emote) {
-	m.views_emotes[view] = emotes
-}
-
-func (m *Manager) SetViewInteractions(view string, items []*Interaction) {
-	m.views_interactions[view] = items
 }
 
 func (m *Manager) Update(view string) {
 	m.UpdateButtons(view)
 	m.UpdateEmotes(view)
 	m.UpdateInteractions(view)
+	m.UpdateSelects(view)
+}
+
+--- FILE: ./src/ui/select.go ---
+package ui
+
+import (
+	vars "tap/client/gui/src/variables"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+type Select struct {
+	ID      string
+	Texture string
+
+	X, Y     float32
+	Zoom     float32
+	Rotation float32
+
+	Normal Frame
+	Hover  Frame
+
+	ItemNormal Frame
+	ItemHover  Frame
+
+	Options       []string
+	CurrentOption string
+	Open          bool
+
+	OnChange func(option string)
+
+	hovered      bool
+	hoveredIndex int
+}
+
+func (s *Select) MainRect() rl.Rectangle {
+	// Get main rectangle
+	w := float32(vars.FRAME_WIDTH) * s.Zoom * s.Normal.RatioX
+	h := float32(vars.FRAME_HEIGHT) * s.Zoom * s.Normal.RatioY
+
+	return rl.NewRectangle(s.X, s.Y, w, h)
+}
+
+func (s *Select) ItemRect(index int) rl.Rectangle {
+	// Get item rectangle
+	w := float32(vars.FRAME_WIDTH) * s.Zoom * s.ItemNormal.RatioX
+	h := float32(vars.FRAME_HEIGHT) * s.Zoom * s.ItemNormal.RatioY
+	mainH := float32(vars.FRAME_HEIGHT) * s.Zoom * s.Normal.RatioY
+
+	y := s.Y + mainH + (float32(index) * h)
+
+	return rl.NewRectangle(s.X, y, w, h)
+}
+
+func (s *Select) CurrentMainFrame() Frame {
+	// Get current frame
+	if s.hovered || s.Open {
+		return s.Hover
+	}
+
+	return s.Normal
+}
+
+func (m *Manager) SetViewSelects(view string, selects []*Select) {
+	m.views_selects[view] = selects
+}
+
+func (m *Manager) Selects(view string) []*Select {
+	return m.views_selects[view]
+}
+
+func (m *Manager) UpdateSelects(view string) {
+	selects := m.views_selects[view]
+	if len(selects) == 0 {
+		return
+	}
+
+	mouse := rl.GetMousePosition()
+	clicked := rl.IsMouseButtonPressed(rl.MouseButtonLeft)
+
+	for i := len(selects) - 1; i >= 0; i-- {
+		s := selects[i]
+
+		// Check main collision
+		s.hovered = rl.CheckCollisionPointRec(mouse, s.MainRect())
+		s.hoveredIndex = -1
+
+		if s.Open {
+			// Check items collisions
+			for j := range s.Options {
+				if rl.CheckCollisionPointRec(mouse, s.ItemRect(j)) {
+					s.hoveredIndex = j
+					break
+				}
+			}
+
+			// Handle click
+			if clicked {
+				if s.hoveredIndex != -1 {
+					// Update current option
+					s.CurrentOption = s.Options[s.hoveredIndex]
+					s.Open = false
+					if s.OnChange != nil {
+						s.OnChange(s.CurrentOption)
+					}
+				} else {
+					// Close select
+					s.Open = false
+				}
+			}
+		} else {
+			// Open select
+			if s.hovered && clicked {
+				s.Open = true
+			}
+		}
+	}
+}
+
+func (s *Select) HoveredIndex() int {
+	return s.hoveredIndex
+}
+
+func (s *Select) ItemFrame(index int) Frame {
+	if s.Open && s.hoveredIndex == index {
+		return s.ItemHover
+	}
+	return s.ItemNormal
+}
+
+--- FILE: ./src/ui/option.go ---
+package ui
+
+type Option struct {
+	OptionName string
+	X          int
+	Y          int
+	DeclineBtn *Button
+	AcceptBtn  *Button
+}
+
+func (m *Manager) SetViewOptions(view string, options []*Option) {
+	m.views_options[view] = options
+}
+
+func (m *Manager) Options(view string) []*Option {
+	return m.views_options[view]
 }
 
 --- FILE: ./src/updater/connect.go ---
@@ -27327,7 +27759,7 @@ func (up *Updater) buildGameButtons() {
 		Normal:  ui.Frame{IndX: 40, IndY: 6, RatioX: 2, RatioY: 2},
 		Pressed: ui.Frame{IndX: 42, IndY: 6, RatioX: 2, RatioY: 2},
 		OnClick: func() {
-			up.app.Variables.PanelsVariables.LeftPanel.Open = !up.app.Variables.PanelsVariables.LeftPanel.Open
+			up.app.Variables.PanelsVariables.Group.Open = !up.app.Variables.PanelsVariables.Group.Open
 		},
 	}
 
@@ -27416,6 +27848,26 @@ func (up *Updater) buildChatButtons() {
 	}
 
 	up.app.Manager.SetViewButtons("Chat", []*ui.Button{sendchatBtn, previousScopeBtn, nextScopeBtn})
+}
+
+func (up *Updater) buildGroupButtons() {
+	createBtn := &ui.Button{
+		ID:      "create_group",
+		Texture: vars.UI_SPRITE_TEXTURE,
+		X:       2 * up.app.Variables.Tileset_size,
+		Y:       10 * up.app.Variables.Tileset_size,
+		Zoom:    up.app.Variables.Zoom,
+		Normal:  ui.Frame{IndX: 17, IndY: 0, RatioX: 1, RatioY: 1},
+		Pressed: ui.Frame{IndX: 18, IndY: 0, RatioX: 1, RatioY: 1},
+		OnClick: func() {
+			up.actionsChan <- panel.Action{
+				Type:    panel.ActionSendServer,
+				Payload: pr.CmdCreateGroup,
+			}
+		},
+	}
+
+	up.app.Manager.SetViewButtons("Group", []*ui.Button{createBtn})
 }
 
 --- FILE: ./src/updater/chat.go ---
@@ -27840,8 +28292,6 @@ import (
 	"tap/client/gui/src/ui"
 )
 
-var nb_click = 0
-
 func (up *Updater) buildGameInteractions() {
 	up.app.Manager.SetViewInteractions("Game", []*ui.Interaction{})
 }
@@ -27882,6 +28332,12 @@ func (up *Updater) UpdateGameView() {
 	if len(up.app.Manager.Interactions("Game")) == 0 {
 		up.buildGameInteractions()
 	}
+	if len(up.app.Manager.Buttons("Group")) == 0 {
+		up.buildGroupButtons()
+	}
+	if len(up.app.Manager.Selects("Group")) == 0 {
+		up.buildGroupSelects()
+	}
 
 	up.UpdatePlayer()
 
@@ -27892,6 +28348,9 @@ func (up *Updater) UpdateGameView() {
 		up.UpdateChat()
 	}
 	up.app.Manager.Update("Inventory")
+	if up.app.Variables.PanelsVariables.Group.Open {
+		up.app.Manager.Update("Group")
+	}
 }
 
 --- FILE: ./src/updater/player.go ---
@@ -28041,17 +28500,71 @@ func (up *Updater) SendNotif(oldX, oldY, oldDirX, oldDirY float32, first_notif b
 --- FILE: ./src/updater/talk.go ---
 package updater
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	"slices"
+	panel "tap/client/tui/panels"
+	pr "tap/protocol"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
 func (up *Updater) UpdateTalk() {
-	talk := up.app.Variables.PanelsVariables.Talk.Talking
+	t := up.app.Variables.PanelsVariables.Talk
+	talk := t.Talking
 	if talk == nil || talk.Result == "" {
 		return
 	}
 
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) || rl.IsKeyPressed(rl.KeyEnter) || rl.IsKeyPressed(rl.KeySpace) {
-		up.app.EndTalk()
+		// End animation
+		if !t.Finished {
+			t.Finished = true
+			return
+		}
+
+		// Handle next dialogue
+		if t.Results != nil && slices.Contains(*t.Results, talk.Result) {
+			t.NbLoop++
+
+		} else {
+			// Reset value for next loop
+			t.NbLoop = 0
+		}
+
+		// End dialogue
+		if t.NbLoop > 1 {
+			t.NbLoop = 0
+			t.Finished = false
+			talk.Result = ""
+			*t.Results = make([]string, 0)
+			up.app.EndTalk()
+
+		} else {
+			// Next dialogue
+			t.Finished = false
+			talk.Result = ""
+			up.actionsChan <- panel.Action{
+				Type:    panel.ActionSendServer,
+				Payload: pr.CmdTalk + " " + t.Talking.NpcID,
+			}
+		}
 	}
+}
+
+--- FILE: ./src/updater/selects.go ---
+package updater
+
+func (up *Updater) buildGroupSelects() {
+	up.app.Manager.SetViewSelects("Group", up.app.GetGroupSelects())
+}
+
+--- FILE: ./src/updater/options.go ---
+package updater
+
+import "tap/client/gui/src/ui"
+
+func (up *Updater) buildGroupOptions() {
+	up.app.Manager.SetViewOptions("Group", []*ui.Option{})
 }
 
 --- FILE: ./src/variables/colors.go ---
@@ -28138,13 +28651,6 @@ type InventoryPanel struct {
 	NbItems int
 }
 
---- FILE: ./src/variables/left_panel.go ---
-package variables
-
-type LeftPanel struct {
-	Open bool
-}
-
 --- FILE: ./src/variables/mouse.go ---
 package variables
 
@@ -28173,10 +28679,14 @@ type PanelVariables struct {
 	CombatState *state.CombatState
 
 	Chat      *ChatPanel
-	LeftPanel *LeftPanel
+	Group     *GroupPanel
 	Inventory *InventoryPanel
 	Talk      *TalkPanel
 }
+
+var (
+	results = make([]string, 0)
+)
 
 func GetPanelsVariables() *PanelVariables {
 	return &PanelVariables{
@@ -28195,8 +28705,15 @@ func GetPanelsVariables() *PanelVariables {
 			ScrollActive:    false,
 			LastFrameScroll: false,
 		},
-		LeftPanel: &LeftPanel{
-			Open: false,
+		Group: &GroupPanel{
+			Open:          false,
+			InGroup:       false,
+			Leader:        "",
+			Grouped:       make([]string, 0),
+			UnGrouped:     make([]string, 0),
+			Invitations:   make([]string, 0),
+			SendPromotion: false,
+			Promote:       false,
 		},
 		Inventory: &InventoryPanel{
 			Open:    true,
@@ -28205,6 +28722,8 @@ func GetPanelsVariables() *PanelVariables {
 		Talk: &TalkPanel{
 			Talking:  nil,
 			LastTalk: "",
+			Finished: false,
+			Results:  &results,
 		},
 	}
 }
@@ -28317,6 +28836,23 @@ type Talk struct {
 type TalkPanel struct {
 	Talking  *Talk
 	LastTalk string
+	Finished bool
+	NbLoop   int
+	Results  *[]string
+}
+
+--- FILE: ./src/variables/group.go ---
+package variables
+
+type GroupPanel struct {
+	Open          bool
+	InGroup       bool
+	Leader        string
+	Grouped       []string
+	UnGrouped     []string
+	Invitations   []string
+	SendPromotion bool
+	Promote       bool
 }
 
 --- FILE: ./src/app.go ---
@@ -28361,6 +28897,7 @@ func (app *App) Update() {
 }
 
 func (app *App) Draw() {
+	app.Drawer.RenderChatTexture()
 	if app.Variables.Current_view == "Connect" {
 		app.Drawer.DrawConnectView()
 
@@ -29087,7 +29624,7 @@ rules.tmx
             "selectedLayer": 1,
             "viewCenter": {
                 "x": 240.10889292196003,
-                "y": 149.45553539019963
+                "y": 159.80036297640652
             }
         },
         "teemo 8 directions.tsx": {
@@ -29106,8 +29643,8 @@ rules.tmx
             "scale": 2,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 267.5,
-                "y": 138.25
+                "x": 256,
+                "y": 143.75
             }
         },
         "test.tsx": {

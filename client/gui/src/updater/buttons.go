@@ -83,7 +83,7 @@ func (up *Updater) buildGameButtons() {
 		Normal:  ui.Frame{IndX: 40, IndY: 6, RatioX: 2, RatioY: 2},
 		Pressed: ui.Frame{IndX: 42, IndY: 6, RatioX: 2, RatioY: 2},
 		OnClick: func() {
-			up.app.Variables.PanelsVariables.LeftPanel.Open = !up.app.Variables.PanelsVariables.LeftPanel.Open
+			up.app.Variables.PanelsVariables.Group.Open = !up.app.Variables.PanelsVariables.Group.Open
 		},
 	}
 
@@ -172,4 +172,24 @@ func (up *Updater) buildChatButtons() {
 	}
 
 	up.app.Manager.SetViewButtons("Chat", []*ui.Button{sendchatBtn, previousScopeBtn, nextScopeBtn})
+}
+
+func (up *Updater) buildGroupButtons() {
+	createBtn := &ui.Button{
+		ID:      "create_group",
+		Texture: vars.UI_SPRITE_TEXTURE,
+		X:       2 * up.app.Variables.Tileset_size,
+		Y:       10 * up.app.Variables.Tileset_size,
+		Zoom:    up.app.Variables.Zoom,
+		Normal:  ui.Frame{IndX: 17, IndY: 0, RatioX: 1, RatioY: 1},
+		Pressed: ui.Frame{IndX: 18, IndY: 0, RatioX: 1, RatioY: 1},
+		OnClick: func() {
+			up.actionsChan <- panel.Action{
+				Type:    panel.ActionSendServer,
+				Payload: pr.CmdCreateGroup,
+			}
+		},
+	}
+
+	up.app.Manager.SetViewButtons("Group", []*ui.Button{createBtn})
 }

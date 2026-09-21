@@ -9,6 +9,8 @@ type Manager struct {
 	views_buttons      map[string][]*Button
 	views_emotes       map[string][]*Emote
 	views_interactions map[string][]*Interaction
+	views_selects      map[string][]*Select
+	views_options      map[string][]*Option
 }
 
 func NewManager() *Manager {
@@ -16,23 +18,15 @@ func NewManager() *Manager {
 		views_buttons:      map[string][]*Button{},
 		views_emotes:       map[string][]*Emote{},
 		views_interactions: map[string][]*Interaction{},
+		views_selects:      map[string][]*Select{},
+		views_options:      map[string][]*Option{},
 	}
-}
-
-func (m *Manager) SetViewButtons(view string, buttons []*Button) {
-	m.views_buttons[view] = buttons
-}
-
-func (m *Manager) SetViewEmotes(view string, emotes []*Emote) {
-	m.views_emotes[view] = emotes
-}
-
-func (m *Manager) SetViewInteractions(view string, items []*Interaction) {
-	m.views_interactions[view] = items
 }
 
 func (m *Manager) Update(view string) {
 	m.UpdateButtons(view)
 	m.UpdateEmotes(view)
 	m.UpdateInteractions(view)
+	m.UpdateSelects(view)
+	m.UpdateOptions(view)
 }

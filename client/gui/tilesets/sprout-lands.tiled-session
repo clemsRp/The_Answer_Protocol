@@ -209,7 +209,7 @@
             "selectedLayer": 1,
             "viewCenter": {
                 "x": 240.10889292196003,
-                "y": 149.45553539019963
+                "y": 159.80036297640652
             }
         },
         "teemo 8 directions.tsx": {
@@ -228,8 +228,8 @@
             "scale": 2,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 267.5,
-                "y": 138.25
+                "x": 256,
+                "y": 143.75
             }
         },
         "test.tsx": {

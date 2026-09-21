@@ -30,6 +30,10 @@ func (i *Interaction) IsHovered() bool {
 	return i.hovered
 }
 
+func (m *Manager) SetViewInteractions(view string, items []*Interaction) {
+	m.views_interactions[view] = items
+}
+
 func (m *Manager) Interactions(view string) []*Interaction {
 	return m.views_interactions[view]
 }
