@@ -55,3 +55,17 @@ func (dr *Drawer) DrawInventoryButtons() {
 		)
 	}
 }
+
+func (dr *Drawer) DrawGroupButtons() {
+	for _, b := range dr.app.Manager.Buttons("Group") {
+		frame := b.CurrentFrame()
+		dr.DrawImage(
+			b.Texture,
+			b.X, b.Y,
+			frame.IndX, frame.IndY,
+			frame.RatioX, frame.RatioY,
+			b.Zoom,
+			b.Rotation,
+		)
+	}
+}

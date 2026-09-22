@@ -1,6 +1,7 @@
 package updater
 
 import (
+	rl "github.com/gen2brain/raylib-go/raylib"
 	"slices"
 	"tap/client/gui/src/ui"
 	vars "tap/client/gui/src/variables"
@@ -175,19 +176,36 @@ func (up *Updater) buildChatButtons() {
 }
 
 func (up *Updater) buildGroupButtons() {
+	// Calculate position
+	title_width := rl.MeasureText(
+		"Group", int32(1.5*up.app.Variables.FontSize),
+	)
+
+	posX := float32((vars.GROUP_START_X+1.5)*up.app.Variables.Tileset_size) + float32(title_width)
+	posY := float32((vars.GROUP_START_Y + 0.85) * up.app.Variables.Tileset_size)
+
 	createBtn := &ui.Button{
 		ID:      "create_group",
 		Texture: vars.UI_SPRITE_TEXTURE,
-		X:       2 * up.app.Variables.Tileset_size,
-		Y:       10 * up.app.Variables.Tileset_size,
-		Zoom:    up.app.Variables.Zoom,
-		Normal:  ui.Frame{IndX: 17, IndY: 0, RatioX: 1, RatioY: 1},
-		Pressed: ui.Frame{IndX: 18, IndY: 0, RatioX: 1, RatioY: 1},
+		X:       posX - 0.5*up.app.Variables.Tileset_size,
+		Y:       posY - 0.7*up.app.Variables.FontSize,
+		Zoom:    up.app.Variables.Zoom * 11 / 20,
+		Normal:  ui.Frame{IndX: 10, IndY: 11, RatioX: 6, RatioY: 2},
+		Pressed: ui.Frame{IndX: 16, IndY: 11, RatioX: 6, RatioY: 2},
 		OnClick: func() {
+			var payload string
+			if up.app.Variables.PanelsVariables.Group.InGroup {
+				payload = pr.CmdLeaveGroup
+			} else {
+				payload = pr.CmdCreateGroup
+			}
+
 			up.actionsChan <- panel.Action{
 				Type:    panel.ActionSendServer,
-				Payload: pr.CmdCreateGroup,
+				Payload: payload,
 			}
+
+			up.app.Variables.PanelsVariables.Group.InGroup = !up.app.Variables.PanelsVariables.Group.InGroup
 		},
 	}
 
