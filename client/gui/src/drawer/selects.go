@@ -13,6 +13,10 @@ func (dr *Drawer) DrawGameSelects() {
 	color := dr.app.Colors["panel_text"]
 
 	for _, s := range dr.app.Manager.Selects("Group") {
+		if len(s.Options) == 0 || s.CurrentOption == "" {
+			continue
+		}
+
 		// Main box (closed state)
 		main := s.MainRect()
 		frame := s.CurrentMainFrame()

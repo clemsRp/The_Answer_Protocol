@@ -43,7 +43,7 @@ func GetPanelsVariables() *PanelVariables {
 		Group: &GroupPanel{
 			Open:          false,
 			InGroup:       false,
-			Leader:        "",
+			Leader:        "None",
 			Grouped:       make([]string, 0),
 			UnGrouped:     make([]string, 0),
 			Invitations:   make([]string, 0),

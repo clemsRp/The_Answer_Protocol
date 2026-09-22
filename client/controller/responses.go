@@ -234,6 +234,8 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 
 	case res.Msg == pr.MsgOK:
 		switch {
+		// case lastCmd == pr.I
+
 		case lastCmd == pr.CmdLeaveGroup || lastCmd == pr.LeaveGroup:
 			c.gameState.UpdateGroupState(func(gs *state.GroupState) {
 				gs.Group = ""

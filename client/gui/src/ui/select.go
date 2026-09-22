@@ -78,6 +78,10 @@ func (m *Manager) UpdateSelects(view string) {
 	for i := len(selects) - 1; i >= 0; i-- {
 		s := selects[i]
 
+		if s.CurrentOption == "" || len(s.Options) == 0 {
+			continue
+		}
+
 		// Check main collision
 		s.hovered = rl.CheckCollisionPointRec(mouse, s.MainRect())
 		s.hoveredIndex = -1

@@ -108,3 +108,13 @@ func (dr *Drawer) DrawCursor(x, y, width, height int32, text string, color rl.Co
 		)
 	}
 }
+
+func (dr *Drawer) LimitString(text string, limit int) string {
+	res := text
+	if len(res) > limit {
+		res = string([]rune(res)[:limit-2])
+		res += "..."
+	}
+
+	return res
+}

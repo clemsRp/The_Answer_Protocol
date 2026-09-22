@@ -1,12 +1,13 @@
 package updater
 
 import (
-	rl "github.com/gen2brain/raylib-go/raylib"
 	"slices"
 	"tap/client/gui/src/ui"
 	vars "tap/client/gui/src/variables"
 	panel "tap/client/tui/panels"
 	pr "tap/protocol"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 func (up *Updater) buildConnectButtons() {
@@ -193,11 +194,14 @@ func (up *Updater) buildGroupButtons() {
 		Normal:  ui.Frame{IndX: 10, IndY: 11, RatioX: 6, RatioY: 2},
 		Pressed: ui.Frame{IndX: 16, IndY: 11, RatioX: 6, RatioY: 2},
 		OnClick: func() {
-			var payload string
+			var payload, leader string
 			if up.app.Variables.PanelsVariables.Group.InGroup {
 				payload = pr.CmdLeaveGroup
+				leader = "None"
+
 			} else {
 				payload = pr.CmdCreateGroup
+				leader = up.app.Variables.Player.Pseudo
 			}
 
 			up.actionsChan <- panel.Action{
@@ -206,6 +210,7 @@ func (up *Updater) buildGroupButtons() {
 			}
 
 			up.app.Variables.PanelsVariables.Group.InGroup = !up.app.Variables.PanelsVariables.Group.InGroup
+			up.app.Variables.PanelsVariables.Group.Leader = leader
 		},
 	}
 

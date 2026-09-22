@@ -14,13 +14,15 @@ func (dr *Drawer) DrawGroupOptions() {
 	}
 
 	for _, opt := range dr.app.Manager.Options("Group") {
+		opt_name := dr.LimitString(opt.OptionName, 10)
+
 		// Draw option name
 		rl.DrawText(
-			fmt.Sprintf("- %s:", opt.OptionName),
+			fmt.Sprintf("- %s:", opt_name),
 			int32(opt.X),
 			int32(opt.Y),
 			int32(dr.app.Variables.FontSize),
-			dr.app.Colors["panel_text"],
+			dr.app.Colors["pseudo_text"],
 		)
 
 		// Draw Decline/Accept button
