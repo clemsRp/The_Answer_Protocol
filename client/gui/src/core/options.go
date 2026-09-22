@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"tap/client/gui/src/ui"
 	vars "tap/client/gui/src/variables"
@@ -37,6 +38,16 @@ func (app *App) GetGroupOptions(command string) []*ui.Option {
 	}
 
 	for index, command_option := range *group_options[command] {
+		// Skip already invited players
+		if slices.Contains(app.Variables.PanelsVariables.Group.SendInvitations, command_option) && command == "Join" {
+			continue
+		}
+
+		// Skip already invited players
+		if app.Variables.PanelsVariables.Group.SendPromotion && command == "Promote" {
+			continue
+		}
+
 		jump_line := float32(index) * 1.5 * app.Variables.FontSize
 
 		// Declare accept button
@@ -52,6 +63,27 @@ func (app *App) GetGroupOptions(command string) []*ui.Option {
 			Pressed:  ui.Frame{IndX: 16, IndY: 4, RatioX: 1, RatioY: 1},
 			OnClick: func() {
 				group_options_funcs[command](command, command_option)
+
+				// Refresh select
+				selects := app.GetGroupSelects()
+				next_current := ""
+				if len(selects) > 0 {
+					valid := false
+					for _, opt := range selects[0].Options {
+						if opt == command {
+							valid = true
+							break
+						}
+					}
+					if valid {
+						next_current = command
+					} else if len(selects[0].Options) > 0 {
+						next_current = selects[0].Options[0]
+					}
+					selects[0].CurrentOption = next_current
+				}
+				app.Manager.SetViewSelects("Group", selects)
+				app.Manager.SetViewOptions("Group", app.GetGroupOptions(next_current))
 
 				app.ActionsChan <- panel.Action{
 					Type:    panel.ActionSendServer,
@@ -86,6 +118,8 @@ func (app *App) InviteFunc(command, command_option string) {
 	}
 
 	gr.UnGrouped = new_ungrouped
+
+	app.Variables.PanelsVariables.Group.SendInvitations = append(app.Variables.PanelsVariables.Group.SendInvitations, command_option)
 }
 
 func (app *App) JoinFunc(command, command_option string) {

@@ -1,6 +1,7 @@
 package drawer
 
 import (
+	"fmt"
 	"strconv"
 	vars "tap/client/gui/src/variables"
 
@@ -13,6 +14,8 @@ func (dr *Drawer) DrawGroupPanel() {
 	group_start_x := float32(vars.GROUP_START_X)
 	group_start_y := float32(vars.GROUP_START_Y)
 	group := dr.app.Variables.PanelsVariables.Group
+
+	fmt.Println(len(group.UnGrouped), len(group.SendInvitations))
 
 	// Draw frame
 	dr.DrawWoodFrameAt(

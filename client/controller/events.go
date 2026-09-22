@@ -39,6 +39,7 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 
 			c.ui.QueueUpdate(func() {
 				c.ui.AddRemotePlayer(target)
+				c.sendToNetwork(pr.CmdUnGrouped)
 				c.sendToNetwork(pr.CmdNotifyPlayerPosition)
 				c.sendToNetwork(pr.CmdGetPlayerPositions)
 			})
@@ -59,6 +60,8 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 			c.ui.QueueUpdate(func() {
 				c.ui.RemoveRemotePlayer(target)
 				c.sendToNetwork(pr.CmdNotifyPlayerPosition)
+				c.sendToNetwork(pr.CmdUnGrouped)
+				c.sendToNetwork(pr.CmdGrouped)
 				c.sendToNetwork(pr.CmdGetPlayerPositions)
 			})
 			c.refreshUI()
