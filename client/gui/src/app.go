@@ -29,6 +29,11 @@ func NewApp(actionsChan chan panel.Action) *App {
 }
 
 func (app *App) Update() {
+	// Handle quit
+	if rl.IsKeyPressed(rl.KeyEscape) {
+		app.Running = false
+	}
+
 	app.Updater.UpdateMouse()
 	if app.Variables.Current_view == "Connect" {
 		app.Updater.UpdateConnectView()
@@ -50,7 +55,7 @@ func (app *App) Draw() {
 }
 
 func (app *App) Start() {
-	for !rl.WindowShouldClose() {
+	for !rl.WindowShouldClose() && app.Running {
 		app.DrainQueue()
 
 		app.Update()

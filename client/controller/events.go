@@ -141,6 +141,8 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 				gs.Group = ""
 				gs.Leader = false
 				gs.Grouped = make([]string, 0)
+				gs.SendPromotion = false
+				gs.Promotion = false
 			})
 		} else {
 			c.sendToNetwork(pr.CmdGrouped)
@@ -190,6 +192,7 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 				targetCopy := ""
 				gs.LastKick = &targetCopy
 				gs.Leader = (newLeader == playerSnap.Name)
+				gs.LeaderName = newLeader
 				gs.Promotion = false
 				gs.SendPromotion = false
 			})

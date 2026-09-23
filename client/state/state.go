@@ -28,6 +28,7 @@ type Player struct {
 type GroupState struct {
 	Group         string
 	LastKick      *string
+	LeaderName    string
 	Leader        bool
 	Promotion     bool
 	SendPromotion bool

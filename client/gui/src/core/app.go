@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"sync"
 	"tap/client/gui/src/parser"
 	"tap/client/gui/src/ui"
 	vars "tap/client/gui/src/variables"
@@ -22,7 +21,7 @@ type App struct {
 	ScreenWidth  int
 	ScreenHeight int
 	ActionsChan  chan panel.Action
-	closeOnce    sync.Once
+	Running      bool
 
 	updateQueue chan func()
 }
@@ -33,6 +32,7 @@ func NewApp(actionsChan chan panel.Action) *App {
 
 	rl.InitWindow(0, 0, "TAP")
 	rl.HideCursor()
+	rl.SetExitKey(0)
 
 	monitor := rl.GetCurrentMonitor()
 	screenWidth := rl.GetMonitorWidth(monitor)
@@ -50,6 +50,7 @@ func NewApp(actionsChan chan panel.Action) *App {
 		ScreenHeight: screenHeight,
 		ActionsChan:  actionsChan,
 		updateQueue:  make(chan func(), 256),
+		Running:      true,
 	}
 
 	// Parse maps

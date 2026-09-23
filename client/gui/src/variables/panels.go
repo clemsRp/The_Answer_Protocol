@@ -14,9 +14,10 @@ type PanelVariables struct {
 	GroupState  *state.GroupState
 	CombatState *state.CombatState
 
-	Chat  *ChatPanel
-	Group *GroupPanel
-	Talk  *TalkPanel
+	Chat    *ChatPanel
+	Group   *GroupPanel
+	Inspect *InspectPanel
+	Talk    *TalkPanel
 }
 
 var (
@@ -48,8 +49,11 @@ func GetPanelsVariables() *PanelVariables {
 			UnGrouped:       make([]string, 0),
 			Invitations:     make([]string, 0),
 			SendInvitations: make([]string, 0),
-			SendPromotion:   false,
+			SendPromotion:   "",
 			Promote:         false,
+		},
+		Inspect: &InspectPanel{
+			Open: false,
 		},
 		Talk: &TalkPanel{
 			Talking:  nil,

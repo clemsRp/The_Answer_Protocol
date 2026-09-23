@@ -23,6 +23,7 @@
 │   │   ├── emotes.go
 │   │   ├── game.go
 │   │   ├── group.go
+│   │   ├── inspect.go
 │   │   ├── interactions.go
 │   │   ├── map.go
 │   │   ├── mouse.go
@@ -66,6 +67,7 @@
 │       ├── colors.go
 │       ├── constants.go
 │       ├── group.go
+│       ├── inspect.go
 │       ├── mouse.go
 │       ├── panels.go
 │       ├── player.go
@@ -129,7 +131,7 @@
     ├── Wooden House.tsx
     └── Wooden_House_Walls_Tilset.tsx
 
-10 directories, 119 files
+10 directories, 121 files
 -e 
 === CONTENU DES FICHIERS ===
 
@@ -202,7 +204,7 @@
             0, 0, 0, 0, 99, 0, 0, 0, 0, 0, 126, 0, 0, 0, 98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 123, 0, 0, 125, 0, 0, 98, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 98, 0, 0, 0, 0, 0, 0, 106, 176, 177, 177, 177, 177, 177, 177, 177, 178, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 98, 0, 0, 0, 0, 0, 0, 106, 176, 189, 189, 189, 189, 189, 189, 189, 178, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 179, 0, 0, 0, 0, 0, 0, 167, 179, 0, 0, 0, 0, 0, 0, 107, 0, 0, 0, 125, 0, 0,
             0, 0, 0, 126, 0, 0, 91, 0, 116, 0, 179, 168, 0, 161, 162, 163, 0, 0, 179, 106, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 184, 190, 107, 164, 165, 166, 168, 188, 186, 0, 0, 92, 93, 115, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -535,7 +537,6 @@ package core
 
 import (
 	"fmt"
-	"sync"
 	"tap/client/gui/src/parser"
 	"tap/client/gui/src/ui"
 	vars "tap/client/gui/src/variables"
@@ -555,7 +556,7 @@ type App struct {
 	ScreenWidth  int
 	ScreenHeight int
 	ActionsChan  chan panel.Action
-	closeOnce    sync.Once
+	Running      bool
 
 	updateQueue chan func()
 }
@@ -566,6 +567,7 @@ func NewApp(actionsChan chan panel.Action) *App {
 
 	rl.InitWindow(0, 0, "TAP")
 	rl.HideCursor()
+	rl.SetExitKey(0)
 
 	monitor := rl.GetCurrentMonitor()
 	screenWidth := rl.GetMonitorWidth(monitor)
@@ -583,6 +585,7 @@ func NewApp(actionsChan chan panel.Action) *App {
 		ScreenHeight: screenHeight,
 		ActionsChan:  actionsChan,
 		updateQueue:  make(chan func(), 256),
+		Running:      true,
 	}
 
 	// Parse maps
@@ -771,7 +774,10 @@ func (app *App) GetNewRoomItems(roomItems []string) []*ui.Interaction {
 			Pressed:  ui.Frame{IndX: 54, IndY: 8, RatioX: 2, RatioY: 2},
 			OnClick: func() {
 				// Send the 'Take' command to the server
-				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdTake + " " + it}
+				app.QueueUpdate(func() {
+					app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + it}
+					app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdTake + " " + it}
+				})
 			},
 		}
 
@@ -839,6 +845,8 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 			Hover:    ui.Frame{IndX: 52, IndY: 10, RatioX: 2, RatioY: 2},
 			Pressed:  ui.Frame{IndX: 54, IndY: 10, RatioX: 2, RatioY: 2},
 			OnClick: func() {
+				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + it}
+
 				// Get offset datas
 				dirX := app.Variables.Player.Direction.X
 				dirY := app.Variables.Player.Direction.Y
@@ -854,7 +862,6 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 					app.Variables.Player.Position.Y+dirY*tileset_size,
 				)
 				if !found {
-					// No free spot found, abort drop
 					return
 				}
 
@@ -893,7 +900,7 @@ func (app *App) FindNearestFreeTile(startX, startY float32) (float32, float32, b
 	maxRadius := len(room.Collisions) + len(room.Collisions[0])
 
 	// Expand ring by ring around the starting tile
-	for radius := 0; radius <= maxRadius; radius++ {
+	for radius := 1; radius <= maxRadius; radius++ {
 		for dx := -radius; dx <= radius; dx++ {
 			for dy := -radius; dy <= radius; dy++ {
 				// Only check the ring border, skip cells already checked at smaller radius
@@ -989,6 +996,8 @@ package core
 
 import (
 	"fmt"
+	"regexp"
+	"slices"
 	"strings"
 	"tap/client/state"
 	panel "tap/client/tui/panels"
@@ -996,8 +1005,6 @@ import (
 	"time"
 
 	vars "tap/client/gui/src/variables"
-
-	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 func (app *App) ShowConnectPage() {
@@ -1084,12 +1091,38 @@ func (app *App) UpdateGroup(groupState state.GroupState) {
 func (app *App) UpdateGroupPanel(grS state.GroupState) {
 	gr := app.Variables.PanelsVariables.Group
 
+	// Sync everything
 	gr.InGroup = grS.Group != ""
+	gr.IsLeader = grS.Leader
+	if gr.IsLeader {
+		gr.Leader = app.GetPseudo()
+	}
 	gr.Grouped = grS.Grouped
 	gr.UnGrouped = grS.UnGrouped
 	gr.Invitations = grS.Invitations
-	gr.SendPromotion = grS.SendPromotion
 	gr.Promote = grS.Promotion
+
+	if !grS.SendPromotion {
+		if gr.SendPromotion != "" {
+			gr.Leader = gr.SendPromotion
+		}
+		gr.SendPromotion = ""
+	}
+
+	// Drop a pending promotion
+	if gr.SendPromotion != "" && (!slices.Contains(gr.Grouped, gr.SendPromotion) || !gr.IsLeader) {
+		gr.SendPromotion = ""
+	}
+
+	// Drop invitations
+	gr.SendInvitations = slices.DeleteFunc(gr.SendInvitations, func(p string) bool {
+		return slices.Contains(gr.Grouped, p) || !slices.Contains(gr.UnGrouped, p)
+	})
+
+	if !gr.InGroup {
+		gr.Promote = false
+		gr.SendPromotion = ""
+	}
 }
 
 func (app *App) UpdateCombat(combatState state.CombatState) {
@@ -1122,7 +1155,13 @@ func (app *App) AppendChat(scope, user, msg string) {
 	chats[scope_up] = append(chats[scope_up], new_chat)
 }
 
-func (app *App) UpdateInspector(text string)                      {}
+func (app *App) UpdateInspector(text string) {
+	re := regexp.MustCompile(`\[.+?\]`)
+	text = re.ReplaceAllString(text, "")
+
+	app.Variables.PanelsVariables.Inspect.Datas = text
+}
+
 func (app *App) AppendCombatChat(user, msg string)                {}
 func (app *App) AppendServerResponse(res protocol.ServerResponse) {}
 func (app *App) AppendCliMessage(text string)                     {}
@@ -1212,12 +1251,7 @@ func (app *App) SetPseudo(pseudo string) {
 }
 
 func (app *App) Stop() {
-	app.closeOnce.Do(func() {
-		if app.Textures != nil {
-			app.Textures.UnloadTextures()
-		}
-		rl.CloseWindow()
-	})
+	app.Running = false
 }
 
 --- FILE: ./src/core/npcs.go ---
@@ -1298,6 +1332,7 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 				app.Variables.PanelsVariables.Group.Open = false
 				app.Variables.PanelsVariables.Talk.LastTalk = np
 				app.StartTalk(np)
+				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectNpc + " " + np}
 				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdTalk + " " + np}
 				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectNpc + " " + np}
 			},
@@ -1405,13 +1440,13 @@ func (app *App) GetGroupSelects() []*ui.Select {
 	options := make([]string, 0)
 	gr := app.Variables.PanelsVariables.Group
 
-	if len(gr.UnGrouped) > 0 && gr.InGroup && gr.Leader == app.Variables.Player.Pseudo && len(gr.UnGrouped) > len(gr.SendInvitations) {
+	if len(gr.UnGrouped) > 0 && gr.InGroup && gr.IsLeader && len(gr.UnGrouped) > 0 {
 		options = append(options, "Invite")
 	}
-	if len(gr.Grouped) > 0 && gr.InGroup && gr.Leader == app.Variables.Player.Pseudo {
+	if len(gr.Grouped) > 0 && gr.InGroup && gr.IsLeader {
 		options = append(options, "Kick")
 	}
-	if len(gr.Grouped) > 0 && gr.InGroup && gr.Leader == app.Variables.Player.Pseudo && !gr.SendPromotion {
+	if len(gr.Grouped) > 0 && gr.InGroup && gr.IsLeader && gr.SendPromotion == "" {
 		options = append(options, "Promote")
 	}
 	if len(gr.Invitations) > 0 && !gr.InGroup {
@@ -1458,10 +1493,27 @@ import (
 	"tap/client/gui/src/ui"
 	vars "tap/client/gui/src/variables"
 	panel "tap/client/tui/panels"
+	pr "tap/protocol"
 )
 
 func (app *App) GetGroupOptions(command string) []*ui.Option {
-	// Set group options datas
+	options := make([]*ui.Option, 0)
+
+	// Add the current tab's entries
+	options = append(options, app.buildTabOptions(command)...)
+
+	// Add the accept/decline promotion prompt if one is pending
+	if app.Variables.PanelsVariables.Group.Promote {
+		options = append(options, app.buildPromoteOption())
+	}
+
+	return options
+}
+
+func (app *App) buildTabOptions(command string) []*ui.Option {
+	options := make([]*ui.Option, 0)
+
+	// Map each tab name to its underlying data slice
 	group_options := map[string]*[]string{
 		"Invite":  &app.Variables.PanelsVariables.Group.UnGrouped,
 		"Join":    &app.Variables.PanelsVariables.Group.Invitations,
@@ -1469,61 +1521,26 @@ func (app *App) GetGroupOptions(command string) []*ui.Option {
 		"Promote": &app.Variables.PanelsVariables.Group.Grouped,
 	}
 
-	group_options_funcs := map[string]func(command, command_option string){
-		"Invite":  app.InviteFunc,
-		"Join":    app.JoinFunc,
-		"Promote": app.PromoteFunc,
-		"Kick":    app.KickFunc,
+	// Bail out if the tab is unknown
+	target_options, ok := group_options[command]
+	if !ok || target_options == nil {
+		return options
 	}
 
 	start_x := 4.25 * app.Variables.Tileset_size
 	start_y := 7.1 * app.Variables.Tileset_size
 	end_x := (vars.GROUP_START_X + vars.GROUP_WIDTH - 1.3) * app.Variables.Tileset_size
 
-	// Create options
-	options := make([]*ui.Option, 0)
-
-	target_options, ok := group_options[command]
-	if !ok || target_options == nil {
-		return options
-	}
-
-	for index, command_option := range *group_options[command] {
-		// Skip already invited players
-		if slices.Contains(app.Variables.PanelsVariables.Group.SendInvitations, command_option) && command == "Join" {
-			continue
-		}
-
-		// Skip already invited players
-		if app.Variables.PanelsVariables.Group.SendPromotion && command == "Promote" {
+	for index, command_option := range *target_options {
+		// Skip an entry already handled locally
+		if app.shouldSkipTabOption(command, command_option) {
 			continue
 		}
 
 		jump_line := float32(index) * 1.5 * app.Variables.FontSize
+		accept_btn := app.buildTabAcceptButton(command, command_option, end_x, start_y+jump_line)
 
-		// Declare accept button
-		accept_btn := &ui.Button{
-			ID:       fmt.Sprintf("accept_btn-%s-%s", command, command_option),
-			Texture:  vars.UI_SPRITE_TEXTURE,
-			X:        end_x,
-			Y:        start_y + jump_line - 0.18*app.Variables.Tileset_size,
-			Zoom:     app.Variables.Zoom * 0.75,
-			Rotation: 0,
-			Normal:   ui.Frame{IndX: 15, IndY: 4, RatioX: 1, RatioY: 1},
-			Hover:    ui.Frame{IndX: 15, IndY: 4, RatioX: 1, RatioY: 1},
-			Pressed:  ui.Frame{IndX: 16, IndY: 4, RatioX: 1, RatioY: 1},
-			OnClick: func() {
-				group_options_funcs[command](command, command_option)
-				app.Manager.SetViewOptions("Group", app.GetGroupOptions(command))
-
-				app.ActionsChan <- panel.Action{
-					Type:    panel.ActionSendServer,
-					Payload: fmt.Sprintf("GROUP %s %s", strings.ToUpper(command), command_option),
-				}
-			},
-		}
-
-		// Create Option
+		// Create the row
 		option := &ui.Option{
 			OptionName: command_option,
 			X:          int(start_x),
@@ -1538,6 +1555,118 @@ func (app *App) GetGroupOptions(command string) []*ui.Option {
 	return options
 }
 
+func (app *App) shouldSkipTabOption(command, command_option string) bool {
+	gr := app.Variables.PanelsVariables.Group
+
+	// Skip a player already invited to join
+	if command == "Join" && slices.Contains(gr.SendInvitations, command_option) {
+		return true
+	}
+
+	// Skip promoting while another promotion is already pending
+	if command == "Promote" && gr.SendPromotion != "" {
+		return true
+	}
+
+	return false
+}
+
+func (app *App) buildTabAcceptButton(command, command_option string, x, y float32) *ui.Button {
+	return &ui.Button{
+		ID:       fmt.Sprintf("accept_btn-%s-%s", command, command_option),
+		Texture:  vars.UI_SPRITE_TEXTURE,
+		X:        x,
+		Y:        y - 0.18*app.Variables.Tileset_size,
+		Zoom:     app.Variables.Zoom * 0.75,
+		Rotation: 0,
+		Normal:   ui.Frame{IndX: 15, IndY: 4, RatioX: 1, RatioY: 1},
+		Hover:    ui.Frame{IndX: 15, IndY: 4, RatioX: 1, RatioY: 1},
+		Pressed:  ui.Frame{IndX: 16, IndY: 4, RatioX: 1, RatioY: 1},
+		OnClick: func() {
+			// Run the local side effect for this command
+			app.groupCommandFuncs()[command](command, command_option)
+
+			// Refresh the select and options after the local change
+			app.RefreshGroupView(command)
+
+			// Notify the server of the action
+			app.ActionsChan <- panel.Action{
+				Type:    panel.ActionSendServer,
+				Payload: fmt.Sprintf("GROUP %s %s", strings.ToUpper(command), command_option),
+			}
+		},
+	}
+}
+
+func (app *App) groupCommandFuncs() map[string]func(command, command_option string) {
+	return map[string]func(command, command_option string){
+		"Invite":  app.InviteFunc,
+		"Join":    app.JoinFunc,
+		"Promote": app.PromoteFunc,
+		"Kick":    app.KickFunc,
+	}
+}
+
+func (app *App) buildPromoteOption() *ui.Option {
+	promote_x := (vars.GROUP_START_X + 0.7) * app.Variables.Tileset_size
+	promote_y := (vars.GROUP_START_Y+2)*app.Variables.Tileset_size + 2.5*app.Variables.FontSize
+	end_x := (vars.GROUP_START_X + vars.GROUP_WIDTH - 1.3) * app.Variables.Tileset_size
+
+	decline_btn := app.buildPromoteButton("decline_btn-promotion", end_x-1.2*app.Variables.Tileset_size, promote_y, 5, pr.CmdDeclinePromoteGroup)
+	accept_btn := app.buildPromoteButton("accept_btn-promotion", end_x, promote_y, 4, pr.CmdAcceptPromoteGroup)
+
+	return &ui.Option{
+		OptionName: "promote_option",
+		X:          int(promote_x),
+		Y:          int(promote_y),
+		DeclineBtn: decline_btn,
+		AcceptBtn:  accept_btn,
+	}
+}
+
+func (app *App) buildPromoteButton(id string, x, y float32, frame_ind_y float32, payload string) *ui.Button {
+	return &ui.Button{
+		ID:       id,
+		Texture:  vars.UI_SPRITE_TEXTURE,
+		X:        x,
+		Y:        y - 0.18*app.Variables.Tileset_size,
+		Zoom:     app.Variables.Zoom * 0.75,
+		Rotation: 0,
+		Normal:   ui.Frame{IndX: 15, IndY: frame_ind_y, RatioX: 1, RatioY: 1},
+		Hover:    ui.Frame{IndX: 15, IndY: frame_ind_y, RatioX: 1, RatioY: 1},
+		Pressed:  ui.Frame{IndX: 16, IndY: frame_ind_y, RatioX: 1, RatioY: 1},
+		OnClick: func() {
+			if payload == pr.CmdAcceptPromoteGroup {
+				app.Variables.PanelsVariables.Group.Leader = app.GetPseudo()
+			}
+			app.Variables.PanelsVariables.Group.Promote = false
+			app.RefreshGroupView("")
+			app.ActionsChan <- panel.Action{
+				Type:    panel.ActionSendServer,
+				Payload: payload,
+			}
+		},
+	}
+}
+
+func (app *App) RefreshGroupView(command string) {
+	selects := app.GetGroupSelects()
+	next_current := ""
+
+	if len(selects) > 0 {
+		// Keep the current tab if still valid, else fall back to the first one
+		if slices.Contains(selects[0].Options, command) {
+			next_current = command
+		} else if len(selects[0].Options) > 0 {
+			next_current = selects[0].Options[0]
+		}
+		selects[0].CurrentOption = next_current
+	}
+
+	app.Manager.SetViewSelects("Group", selects)
+	app.Manager.SetViewOptions("Group", app.GetGroupOptions(next_current))
+}
+
 func (app *App) InviteFunc(command, command_option string) {
 	gr := app.Variables.PanelsVariables.Group
 
@@ -1549,7 +1678,6 @@ func (app *App) InviteFunc(command, command_option string) {
 	}
 
 	gr.UnGrouped = new_ungrouped
-
 	app.Variables.PanelsVariables.Group.SendInvitations = append(app.Variables.PanelsVariables.Group.SendInvitations, command_option)
 }
 
@@ -1558,11 +1686,13 @@ func (app *App) JoinFunc(command, command_option string) {
 }
 
 func (app *App) PromoteFunc(command, command_option string) {
-
+	app.Variables.PanelsVariables.Group.SendPromotion = command_option
 }
 
 func (app *App) KickFunc(command, command_option string) {
-
+	if app.Variables.PanelsVariables.Group.SendPromotion == command_option {
+		app.Variables.PanelsVariables.Group.SendPromotion = ""
+	}
 }
 
 --- FILE: ./src/drawer/animations.go ---
@@ -2527,9 +2657,14 @@ func (dr *Drawer) DrawPlayerPanel() {
 		dr.DrawChat()
 	}
 
-	// Draw left panel
+	// Draw group
 	if dr.app.Variables.PanelsVariables.Group.Open {
 		dr.DrawGroupPanel()
+	}
+
+	// Draw inspect
+	if dr.app.Variables.PanelsVariables.Inspect.Open {
+		dr.DrawInspectPanel()
 	}
 
 	dr.DrawInventory()
@@ -2919,7 +3054,6 @@ void main()
 package drawer
 
 import (
-	"fmt"
 	vars "tap/client/gui/src/variables"
 	"time"
 
@@ -2962,7 +3096,6 @@ func (dr *Drawer) DrawTalk() {
 			text = string(runes[:index])
 
 			// Check animation end
-			fmt.Println(index, len(talk.Result))
 			if index >= len(talk.Result)-1 {
 				dr.app.Variables.PanelsVariables.Talk.Finished = true
 			}
@@ -2990,6 +3123,8 @@ func (dr *Drawer) DrawTalk() {
 			dr.app.Colors["pseudo_text"],
 		)
 	}
+
+	dr.DrawTalkButtons()
 }
 
 --- FILE: ./src/drawer/selects.go ---
@@ -3075,6 +3210,10 @@ func (dr *Drawer) DrawGroupOptions() {
 	}
 
 	for _, opt := range dr.app.Manager.Options("Group") {
+		if opt.OptionName == "promote_option" && !dr.app.Variables.PanelsVariables.Group.Promote {
+			continue
+		}
+
 		opt_name := dr.LimitString(opt.OptionName, 10)
 
 		// Draw option name
@@ -3179,11 +3318,38 @@ func (dr *Drawer) DrawGroupButtons() {
 	}
 }
 
+func (dr *Drawer) DrawTalkButtons() {
+	for _, b := range dr.app.Manager.Buttons("Talk") {
+		frame := b.CurrentFrame()
+		dr.DrawImage(
+			b.Texture,
+			b.X, b.Y,
+			frame.IndX, frame.IndY,
+			frame.RatioX, frame.RatioY,
+			b.Zoom,
+			b.Rotation,
+		)
+	}
+}
+
+func (dr *Drawer) DrawInspectButtons() {
+	for _, b := range dr.app.Manager.Buttons("Inspect") {
+		frame := b.CurrentFrame()
+		dr.DrawImage(
+			b.Texture,
+			b.X, b.Y,
+			frame.IndX, frame.IndY,
+			frame.RatioX, frame.RatioY,
+			b.Zoom,
+			b.Rotation,
+		)
+	}
+}
+
 --- FILE: ./src/drawer/group.go ---
 package drawer
 
 import (
-	"fmt"
 	"strconv"
 	vars "tap/client/gui/src/variables"
 
@@ -3196,8 +3362,6 @@ func (dr *Drawer) DrawGroupPanel() {
 	group_start_x := float32(vars.GROUP_START_X)
 	group_start_y := float32(vars.GROUP_START_Y)
 	group := dr.app.Variables.PanelsVariables.Group
-
-	fmt.Println(len(group.UnGrouped), len(group.SendInvitations))
 
 	// Draw frame
 	dr.DrawWoodFrameAt(
@@ -3297,6 +3461,70 @@ func (dr *Drawer) DrawGroupDatas(group *vars.GroupPanel, group_start_x, group_st
 
 		index++
 	}
+}
+
+--- FILE: ./src/drawer/inspect.go ---
+package drawer
+
+import (
+	vars "tap/client/gui/src/variables"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+func (dr *Drawer) DrawInspectPanel() {
+	inspect_width := float32(vars.INSPECT_WIDTH)
+	inspect_height := float32(vars.INSPECT_HEIGHT)
+	inspect_start_x := float32(vars.INSPECT_START_X)
+	inspect_start_y := float32(vars.INSPECT_START_Y)
+
+	// Draw frame
+	dr.DrawWoodFrameAt(
+		vars.Position{X: inspect_start_x, Y: inspect_start_y},
+		vars.Position{X: inspect_start_x + inspect_width, Y: inspect_start_y + inspect_height},
+		1, 0, false,
+	)
+
+	tile := dr.app.Variables.Tileset_size
+
+	// Draw inspect management
+	rl.DrawText(
+		"Inspect",
+		int32((inspect_start_x+0.7)*tile),
+		int32((inspect_start_y+0.7)*tile),
+		int32(1.5*dr.app.Variables.FontSize),
+		dr.app.Colors["pseudo_text"],
+	)
+
+	// Calculate center_text
+	inspect_title_width := vars.INSPECT_WIDTH * dr.app.Variables.Tileset_size
+	title_width := rl.MeasureText(
+		"Inspect", int32(1.5*dr.app.Variables.FontSize),
+	)
+	payload_width := rl.MeasureText(
+		"Self", int32(dr.app.Variables.FontSize),
+	)
+	center_text := (inspect_title_width + float32(title_width-payload_width)) / 2
+
+	dr.DrawInspectButtons()
+
+	// Draw button text
+	rl.DrawText(
+		"Self",
+		int32((vars.INSPECT_START_X)*dr.app.Variables.Tileset_size+center_text),
+		int32((vars.INSPECT_START_Y+0.85)*dr.app.Variables.Tileset_size),
+		int32(dr.app.Variables.FontSize),
+		dr.app.Colors["panel_text"],
+	)
+
+	// Draw inspect datas
+	rl.DrawText(
+		dr.app.Variables.PanelsVariables.Inspect.Datas,
+		int32((inspect_start_x+0.7)*tile),
+		int32((inspect_start_y+1)*tile)+int32(2*dr.app.Variables.FontSize),
+		int32(0.85*dr.app.Variables.FontSize),
+		dr.app.Colors["pseudo_text"],
+	)
 }
 
 --- FILE: ./src/gui_client.go ---
@@ -4479,6 +4707,14 @@ func (up *Updater) UpdateGameView() {
 	if len(up.app.Manager.Selects("Group")) == 0 {
 		up.buildGroupSelects()
 	}
+	if len(up.app.Manager.Buttons("Inspect")) == 0 {
+		up.buildInspectButtons()
+	}
+
+	// Skip game update if needed
+	if up.app.Variables.Current_view != "Game" {
+		return
+	}
 
 	up.UpdatePlayer()
 
@@ -4488,9 +4724,15 @@ func (up *Updater) UpdateGameView() {
 	if up.app.Variables.PanelsVariables.Chat.Open {
 		up.UpdateChat()
 	}
+
 	up.app.Manager.Update("Inventory")
+
 	if up.app.Variables.PanelsVariables.Group.Open {
 		up.app.Manager.Update("Group")
+	}
+
+	if up.app.Variables.PanelsVariables.Inspect.Open {
+		up.app.Manager.Update("Inspect")
 	}
 }
 
@@ -4656,6 +4898,13 @@ func (up *Updater) UpdateTalk() {
 		return
 	}
 
+	// Init Buttons/Emotes
+	if len(up.app.Manager.Buttons("Talk")) == 0 {
+		up.buildTalkButtons()
+	}
+
+	up.app.Manager.Update("Talk")
+
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) || rl.IsKeyPressed(rl.KeyEnter) || rl.IsKeyPressed(rl.KeySpace) {
 		// End animation
 		if !t.Finished {
@@ -4787,8 +5036,8 @@ func (up *Updater) buildConnectButtons() {
 }
 
 func (up *Updater) buildGameButtons() {
-	leftPanelBtn := &ui.Button{
-		ID:      "open_left_panel",
+	groupBtn := &ui.Button{
+		ID:      "open_group",
 		Texture: vars.UI_SPRITE_TEXTURE,
 		X:       up.app.Variables.Tileset_size,
 		Y:       3 * up.app.Variables.Tileset_size,
@@ -4800,10 +5049,23 @@ func (up *Updater) buildGameButtons() {
 		},
 	}
 
+	inspectorBtn := &ui.Button{
+		ID:      "open_inspector",
+		Texture: vars.UI_SPRITE_TEXTURE,
+		X:       2 * up.app.Variables.Tileset_size,
+		Y:       3 * up.app.Variables.Tileset_size,
+		Zoom:    up.app.Variables.Zoom * 0.5,
+		Normal:  ui.Frame{IndX: 44, IndY: 10, RatioX: 2, RatioY: 2},
+		Pressed: ui.Frame{IndX: 46, IndY: 10, RatioX: 2, RatioY: 2},
+		OnClick: func() {
+			up.app.Variables.PanelsVariables.Inspect.Open = !up.app.Variables.PanelsVariables.Inspect.Open
+		},
+	}
+
 	chatBtn := &ui.Button{
 		ID:      "open_chat",
 		Texture: vars.UI_SPRITE_TEXTURE,
-		X:       2 * up.app.Variables.Tileset_size,
+		X:       3 * up.app.Variables.Tileset_size,
 		Y:       3 * up.app.Variables.Tileset_size,
 		Zoom:    up.app.Variables.Zoom * 0.5,
 		Normal:  ui.Frame{IndX: 40, IndY: 8, RatioX: 2, RatioY: 2},
@@ -4816,7 +5078,7 @@ func (up *Updater) buildGameButtons() {
 	quitBtn := &ui.Button{
 		ID:      "quit",
 		Texture: vars.UI_SPRITE_TEXTURE,
-		X:       3 * up.app.Variables.Tileset_size,
+		X:       4 * up.app.Variables.Tileset_size,
 		Y:       3 * up.app.Variables.Tileset_size,
 		Zoom:    up.app.Variables.Zoom * 0.5,
 		Normal:  ui.Frame{IndX: 48, IndY: 10, RatioX: 2, RatioY: 2},
@@ -4830,7 +5092,7 @@ func (up *Updater) buildGameButtons() {
 		},
 	}
 
-	up.app.Manager.SetViewButtons("Game", []*ui.Button{chatBtn, leftPanelBtn, quitBtn})
+	up.app.Manager.SetViewButtons("Game", []*ui.Button{chatBtn, groupBtn, inspectorBtn, quitBtn})
 }
 
 func (up *Updater) buildChatButtons() {
@@ -4928,6 +5190,41 @@ func (up *Updater) buildGroupButtons() {
 	up.app.Manager.SetViewButtons("Group", []*ui.Button{createBtn})
 }
 
+func (up *Updater) buildTalkButtons() {
+	// Define quest button
+
+	up.app.Manager.SetViewButtons("Talk", []*ui.Button{})
+}
+
+func (up *Updater) buildInspectButtons() {
+	// Calculate position
+	title_width := rl.MeasureText(
+		"Inspect", int32(1.5*up.app.Variables.FontSize),
+	)
+
+	posX := float32((vars.INSPECT_START_X+1.5)*up.app.Variables.Tileset_size) + float32(title_width)
+	posY := float32((vars.INSPECT_START_Y + 0.85) * up.app.Variables.Tileset_size)
+
+	// Define inspect self button
+	selfBtn := &ui.Button{
+		ID:      "inspect_self",
+		Texture: vars.UI_SPRITE_TEXTURE,
+		X:       posX - 0.5*up.app.Variables.Tileset_size,
+		Y:       posY - 0.7*up.app.Variables.FontSize,
+		Zoom:    up.app.Variables.Zoom / 2,
+		Normal:  ui.Frame{IndX: 10, IndY: 11, RatioX: 6, RatioY: 2},
+		Pressed: ui.Frame{IndX: 16, IndY: 11, RatioX: 6, RatioY: 2},
+		OnClick: func() {
+			up.actionsChan <- panel.Action{
+				Type:    panel.ActionSendServer,
+				Payload: pr.CmdInspectSelf,
+			}
+		},
+	}
+
+	up.app.Manager.SetViewButtons("Inspect", []*ui.Button{selfBtn})
+}
+
 --- FILE: ./src/variables/colors.go ---
 package variables
 
@@ -5004,7 +5301,12 @@ const (
 	GROUP_START_X = 1
 	GROUP_START_Y = 4
 	GROUP_WIDTH   = 7
-	GROUP_HEIGHT  = 17 - GROUP_START_Y
+	GROUP_HEIGHT  = 11 - GROUP_START_Y
+
+	INSPECT_START_X = 1
+	INSPECT_START_Y = GROUP_START_Y + GROUP_HEIGHT
+	INSPECT_WIDTH   = 7
+	INSPECT_HEIGHT  = 17 - INSPECT_START_Y
 
 	PSEUDO_MAX_CHAR = 28
 	MSG_MAX_CHAR    = 20
@@ -5037,9 +5339,10 @@ type PanelVariables struct {
 	GroupState  *state.GroupState
 	CombatState *state.CombatState
 
-	Chat  *ChatPanel
-	Group *GroupPanel
-	Talk  *TalkPanel
+	Chat    *ChatPanel
+	Group   *GroupPanel
+	Inspect *InspectPanel
+	Talk    *TalkPanel
 }
 
 var (
@@ -5071,8 +5374,11 @@ func GetPanelsVariables() *PanelVariables {
 			UnGrouped:       make([]string, 0),
 			Invitations:     make([]string, 0),
 			SendInvitations: make([]string, 0),
-			SendPromotion:   false,
+			SendPromotion:   "",
 			Promote:         false,
+		},
+		Inspect: &InspectPanel{
+			Open: false,
 		},
 		Talk: &TalkPanel{
 			Talking:  nil,
@@ -5202,13 +5508,22 @@ package variables
 type GroupPanel struct {
 	Open            bool
 	InGroup         bool
+	IsLeader        bool
 	Leader          string
 	Grouped         []string
 	UnGrouped       []string
 	Invitations     []string
 	SendInvitations []string
-	SendPromotion   bool
+	SendPromotion   string
 	Promote         bool
+}
+
+--- FILE: ./src/variables/inspect.go ---
+package variables
+
+type InspectPanel struct {
+	Open  bool
+	Datas string
 }
 
 --- FILE: ./src/app.go ---
@@ -5243,6 +5558,11 @@ func NewApp(actionsChan chan panel.Action) *App {
 }
 
 func (app *App) Update() {
+	// Handle quit
+	if rl.IsKeyPressed(rl.KeyEscape) {
+		app.Running = false
+	}
+
 	app.Updater.UpdateMouse()
 	if app.Variables.Current_view == "Connect" {
 		app.Updater.UpdateConnectView()
@@ -5264,7 +5584,7 @@ func (app *App) Draw() {
 }
 
 func (app *App) Start() {
-	for !rl.WindowShouldClose() {
+	for !rl.WindowShouldClose() && app.Running {
 		app.DrainQueue()
 
 		app.Update()
@@ -6253,7 +6573,7 @@ rules.tmx
 0,0,0,0,99,0,0,0,0,0,126,0,0,0,98,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,98,0,0,0,0,0,0,0,0,0,0,0,0,123,0,0,125,0,0,98,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,98,0,0,0,0,0,0,106,176,177,177,177,177,177,177,177,178,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,98,0,0,0,0,0,0,106,176,189,189,189,189,189,189,189,178,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,179,0,0,0,0,0,0,167,179,0,0,0,0,0,0,107,0,0,0,125,0,0,
 0,0,0,126,0,0,91,0,116,0,179,168,0,161,162,163,0,0,179,106,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,184,190,107,164,165,166,168,188,186,0,0,92,93,115,0,0,0,0,0,0,0,0,

@@ -70,9 +70,14 @@ func (dr *Drawer) DrawPlayerPanel() {
 		dr.DrawChat()
 	}
 
-	// Draw left panel
+	// Draw group
 	if dr.app.Variables.PanelsVariables.Group.Open {
 		dr.DrawGroupPanel()
+	}
+
+	// Draw inspect
+	if dr.app.Variables.PanelsVariables.Inspect.Open {
+		dr.DrawInspectPanel()
 	}
 
 	dr.DrawInventory()

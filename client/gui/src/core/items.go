@@ -91,7 +91,10 @@ func (app *App) GetNewRoomItems(roomItems []string) []*ui.Interaction {
 			Pressed:  ui.Frame{IndX: 54, IndY: 8, RatioX: 2, RatioY: 2},
 			OnClick: func() {
 				// Send the 'Take' command to the server
-				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdTake + " " + it}
+				app.QueueUpdate(func() {
+					app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + it}
+					app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdTake + " " + it}
+				})
 			},
 		}
 
@@ -159,6 +162,8 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 			Hover:    ui.Frame{IndX: 52, IndY: 10, RatioX: 2, RatioY: 2},
 			Pressed:  ui.Frame{IndX: 54, IndY: 10, RatioX: 2, RatioY: 2},
 			OnClick: func() {
+				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + it}
+
 				// Get offset datas
 				dirX := app.Variables.Player.Direction.X
 				dirY := app.Variables.Player.Direction.Y
@@ -174,7 +179,6 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 					app.Variables.Player.Position.Y+dirY*tileset_size,
 				)
 				if !found {
-					// No free spot found, abort drop
 					return
 				}
 
@@ -213,7 +217,7 @@ func (app *App) FindNearestFreeTile(startX, startY float32) (float32, float32, b
 	maxRadius := len(room.Collisions) + len(room.Collisions[0])
 
 	// Expand ring by ring around the starting tile
-	for radius := 0; radius <= maxRadius; radius++ {
+	for radius := 1; radius <= maxRadius; radius++ {
 		for dx := -radius; dx <= radius; dx++ {
 			for dy := -radius; dy <= radius; dy++ {
 				// Only check the ring border, skip cells already checked at smaller radius

@@ -14,6 +14,10 @@ func (dr *Drawer) DrawGroupOptions() {
 	}
 
 	for _, opt := range dr.app.Manager.Options("Group") {
+		if opt.OptionName == "promote_option" && !dr.app.Variables.PanelsVariables.Group.Promote {
+			continue
+		}
+
 		opt_name := dr.LimitString(opt.OptionName, 10)
 
 		// Draw option name

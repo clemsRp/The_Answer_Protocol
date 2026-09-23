@@ -1,7 +1,6 @@
 package drawer
 
 import (
-	"fmt"
 	vars "tap/client/gui/src/variables"
 	"time"
 
@@ -44,7 +43,6 @@ func (dr *Drawer) DrawTalk() {
 			text = string(runes[:index])
 
 			// Check animation end
-			fmt.Println(index, len(talk.Result))
 			if index >= len(talk.Result)-1 {
 				dr.app.Variables.PanelsVariables.Talk.Finished = true
 			}
@@ -72,4 +70,6 @@ func (dr *Drawer) DrawTalk() {
 			dr.app.Colors["pseudo_text"],
 		)
 	}
+
+	dr.DrawTalkButtons()
 }

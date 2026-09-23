@@ -2,6 +2,8 @@ package core
 
 import (
 	"fmt"
+	"regexp"
+	"slices"
 	"strings"
 	"tap/client/state"
 	panel "tap/client/tui/panels"
@@ -9,8 +11,6 @@ import (
 	"time"
 
 	vars "tap/client/gui/src/variables"
-
-	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 func (app *App) ShowConnectPage() {
@@ -97,12 +97,38 @@ func (app *App) UpdateGroup(groupState state.GroupState) {
 func (app *App) UpdateGroupPanel(grS state.GroupState) {
 	gr := app.Variables.PanelsVariables.Group
 
+	// Sync everything
 	gr.InGroup = grS.Group != ""
+	gr.IsLeader = grS.Leader
+	if gr.IsLeader {
+		gr.Leader = app.GetPseudo()
+	}
 	gr.Grouped = grS.Grouped
 	gr.UnGrouped = grS.UnGrouped
 	gr.Invitations = grS.Invitations
-	gr.SendPromotion = grS.SendPromotion
 	gr.Promote = grS.Promotion
+
+	if !grS.SendPromotion {
+		if gr.SendPromotion != "" {
+			gr.Leader = gr.SendPromotion
+		}
+		gr.SendPromotion = ""
+	}
+
+	// Drop a pending promotion
+	if gr.SendPromotion != "" && (!slices.Contains(gr.Grouped, gr.SendPromotion) || !gr.IsLeader) {
+		gr.SendPromotion = ""
+	}
+
+	// Drop invitations
+	gr.SendInvitations = slices.DeleteFunc(gr.SendInvitations, func(p string) bool {
+		return slices.Contains(gr.Grouped, p) || !slices.Contains(gr.UnGrouped, p)
+	})
+
+	if !gr.InGroup {
+		gr.Promote = false
+		gr.SendPromotion = ""
+	}
 }
 
 func (app *App) UpdateCombat(combatState state.CombatState) {
@@ -135,7 +161,13 @@ func (app *App) AppendChat(scope, user, msg string) {
 	chats[scope_up] = append(chats[scope_up], new_chat)
 }
 
-func (app *App) UpdateInspector(text string)                      {}
+func (app *App) UpdateInspector(text string) {
+	re := regexp.MustCompile(`\[.+?\]`)
+	text = re.ReplaceAllString(text, "")
+
+	app.Variables.PanelsVariables.Inspect.Datas = text
+}
+
 func (app *App) AppendCombatChat(user, msg string)                {}
 func (app *App) AppendServerResponse(res protocol.ServerResponse) {}
 func (app *App) AppendCliMessage(text string)                     {}
@@ -225,10 +257,5 @@ func (app *App) SetPseudo(pseudo string) {
 }
 
 func (app *App) Stop() {
-	app.closeOnce.Do(func() {
-		if app.Textures != nil {
-			app.Textures.UnloadTextures()
-		}
-		rl.CloseWindow()
-	})
+	app.Running = false
 }

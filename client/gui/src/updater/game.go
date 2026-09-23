@@ -23,6 +23,14 @@ func (up *Updater) UpdateGameView() {
 	if len(up.app.Manager.Selects("Group")) == 0 {
 		up.buildGroupSelects()
 	}
+	if len(up.app.Manager.Buttons("Inspect")) == 0 {
+		up.buildInspectButtons()
+	}
+
+	// Skip game update if needed
+	if up.app.Variables.Current_view != "Game" {
+		return
+	}
 
 	up.UpdatePlayer()
 
@@ -32,8 +40,14 @@ func (up *Updater) UpdateGameView() {
 	if up.app.Variables.PanelsVariables.Chat.Open {
 		up.UpdateChat()
 	}
+
 	up.app.Manager.Update("Inventory")
+
 	if up.app.Variables.PanelsVariables.Group.Open {
 		up.app.Manager.Update("Group")
+	}
+
+	if up.app.Variables.PanelsVariables.Inspect.Open {
+		up.app.Manager.Update("Inspect")
 	}
 }

@@ -193,11 +193,13 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 		parts := strings.SplitN(res.Msg, "group=", 2)
 		if len(parts) == 2 {
 			groupName := parts[1]
+			playerSnap := c.gameState.GetPlayerSnapshot()
 			c.gameState.UpdateGroupState(func(gs *state.GroupState) {
 				gs.Group = groupName
 				gs.Invitations = make([]string, 0)
 				if lastCmd == pr.CreateGroup || strings.HasPrefix(lastCmd, pr.CmdCreateGroup) {
 					gs.Leader = true
+					gs.LeaderName = playerSnap.Name
 				}
 			})
 			c.sendToNetwork(pr.CmdGrouped)
@@ -210,6 +212,7 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 			playerSnap := c.gameState.GetPlayerSnapshot()
 			c.gameState.UpdateGroupState(func(gs *state.GroupState) {
 				gs.Leader = (pendingLeader == playerSnap.Name)
+				gs.LeaderName = pendingLeader
 				if lastCmd == pr.PromoteGroup || strings.HasPrefix(lastCmd, pr.CmdPromoteGroup) {
 					gs.SendPromotion = true
 				}
@@ -223,10 +226,12 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 		}
 
 	case strings.HasPrefix(res.Msg, pr.PrefixOKNewLeader):
+		playerSnap := c.gameState.GetPlayerSnapshot()
 		c.gameState.UpdateGroupState(func(gs *state.GroupState) {
 			targetCopy := ""
 			gs.LastKick = &targetCopy
 			gs.Leader = true
+			gs.LeaderName = playerSnap.Name
 			gs.Promotion = false
 			gs.SendPromotion = false
 		})
@@ -234,8 +239,6 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 
 	case res.Msg == pr.MsgOK:
 		switch {
-		// case lastCmd == pr.I
-
 		case lastCmd == pr.CmdLeaveGroup || lastCmd == pr.LeaveGroup:
 			c.gameState.UpdateGroupState(func(gs *state.GroupState) {
 				gs.Group = ""
@@ -248,6 +251,17 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 		case lastCmd == pr.CmdDeclinePromoteGroup || lastCmd == pr.DeclinePromoteGroup:
 			c.gameState.UpdateGroupState(func(gs *state.GroupState) {
 				gs.Promotion = false
+			})
+			c.refreshGroupUI()
+
+		case lastCmd == pr.CmdAcceptPromoteGroup || lastCmd == pr.AcceptPromoteGroup:
+			c.gameState.UpdateGroupState(func(gs *state.GroupState) {
+				targetCopy := ""
+				gs.LastKick = &targetCopy
+				gs.Leader = true
+				gs.LeaderName = c.ui.GetPseudo()
+				gs.Promotion = false
+				gs.SendPromotion = false
 			})
 			c.refreshGroupUI()
 

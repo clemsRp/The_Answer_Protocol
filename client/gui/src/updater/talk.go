@@ -15,6 +15,13 @@ func (up *Updater) UpdateTalk() {
 		return
 	}
 
+	// Init Buttons/Emotes
+	if len(up.app.Manager.Buttons("Talk")) == 0 {
+		up.buildTalkButtons()
+	}
+
+	up.app.Manager.Update("Talk")
+
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) || rl.IsKeyPressed(rl.KeyEnter) || rl.IsKeyPressed(rl.KeySpace) {
 		// End animation
 		if !t.Finished {

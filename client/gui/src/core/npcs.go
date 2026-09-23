@@ -75,6 +75,7 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 				app.Variables.PanelsVariables.Group.Open = false
 				app.Variables.PanelsVariables.Talk.LastTalk = np
 				app.StartTalk(np)
+				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectNpc + " " + np}
 				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdTalk + " " + np}
 				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectNpc + " " + np}
 			},

@@ -76,8 +76,8 @@ func (up *Updater) buildConnectButtons() {
 }
 
 func (up *Updater) buildGameButtons() {
-	leftPanelBtn := &ui.Button{
-		ID:      "open_left_panel",
+	groupBtn := &ui.Button{
+		ID:      "open_group",
 		Texture: vars.UI_SPRITE_TEXTURE,
 		X:       up.app.Variables.Tileset_size,
 		Y:       3 * up.app.Variables.Tileset_size,
@@ -89,10 +89,23 @@ func (up *Updater) buildGameButtons() {
 		},
 	}
 
+	inspectorBtn := &ui.Button{
+		ID:      "open_inspector",
+		Texture: vars.UI_SPRITE_TEXTURE,
+		X:       2 * up.app.Variables.Tileset_size,
+		Y:       3 * up.app.Variables.Tileset_size,
+		Zoom:    up.app.Variables.Zoom * 0.5,
+		Normal:  ui.Frame{IndX: 44, IndY: 10, RatioX: 2, RatioY: 2},
+		Pressed: ui.Frame{IndX: 46, IndY: 10, RatioX: 2, RatioY: 2},
+		OnClick: func() {
+			up.app.Variables.PanelsVariables.Inspect.Open = !up.app.Variables.PanelsVariables.Inspect.Open
+		},
+	}
+
 	chatBtn := &ui.Button{
 		ID:      "open_chat",
 		Texture: vars.UI_SPRITE_TEXTURE,
-		X:       2 * up.app.Variables.Tileset_size,
+		X:       3 * up.app.Variables.Tileset_size,
 		Y:       3 * up.app.Variables.Tileset_size,
 		Zoom:    up.app.Variables.Zoom * 0.5,
 		Normal:  ui.Frame{IndX: 40, IndY: 8, RatioX: 2, RatioY: 2},
@@ -105,7 +118,7 @@ func (up *Updater) buildGameButtons() {
 	quitBtn := &ui.Button{
 		ID:      "quit",
 		Texture: vars.UI_SPRITE_TEXTURE,
-		X:       3 * up.app.Variables.Tileset_size,
+		X:       4 * up.app.Variables.Tileset_size,
 		Y:       3 * up.app.Variables.Tileset_size,
 		Zoom:    up.app.Variables.Zoom * 0.5,
 		Normal:  ui.Frame{IndX: 48, IndY: 10, RatioX: 2, RatioY: 2},
@@ -119,7 +132,7 @@ func (up *Updater) buildGameButtons() {
 		},
 	}
 
-	up.app.Manager.SetViewButtons("Game", []*ui.Button{chatBtn, leftPanelBtn, quitBtn})
+	up.app.Manager.SetViewButtons("Game", []*ui.Button{chatBtn, groupBtn, inspectorBtn, quitBtn})
 }
 
 func (up *Updater) buildChatButtons() {
@@ -215,4 +228,39 @@ func (up *Updater) buildGroupButtons() {
 	}
 
 	up.app.Manager.SetViewButtons("Group", []*ui.Button{createBtn})
+}
+
+func (up *Updater) buildTalkButtons() {
+	// Define quest button
+
+	up.app.Manager.SetViewButtons("Talk", []*ui.Button{})
+}
+
+func (up *Updater) buildInspectButtons() {
+	// Calculate position
+	title_width := rl.MeasureText(
+		"Inspect", int32(1.5*up.app.Variables.FontSize),
+	)
+
+	posX := float32((vars.INSPECT_START_X+1.5)*up.app.Variables.Tileset_size) + float32(title_width)
+	posY := float32((vars.INSPECT_START_Y + 0.85) * up.app.Variables.Tileset_size)
+
+	// Define inspect self button
+	selfBtn := &ui.Button{
+		ID:      "inspect_self",
+		Texture: vars.UI_SPRITE_TEXTURE,
+		X:       posX - 0.5*up.app.Variables.Tileset_size,
+		Y:       posY - 0.7*up.app.Variables.FontSize,
+		Zoom:    up.app.Variables.Zoom / 2,
+		Normal:  ui.Frame{IndX: 10, IndY: 11, RatioX: 6, RatioY: 2},
+		Pressed: ui.Frame{IndX: 16, IndY: 11, RatioX: 6, RatioY: 2},
+		OnClick: func() {
+			up.actionsChan <- panel.Action{
+				Type:    panel.ActionSendServer,
+				Payload: pr.CmdInspectSelf,
+			}
+		},
+	}
+
+	up.app.Manager.SetViewButtons("Inspect", []*ui.Button{selfBtn})
 }

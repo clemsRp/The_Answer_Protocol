@@ -207,6 +207,7 @@ func (e *Engine) leave_group(player *Player) (string, error) {
 		delete(e.groups, player.group)
 
 	} else if was_leader {
+		group.leader = group.players[0]
 		e.inform_group(player, player.group, "EVT new_leader="+e.groups[player.group].players[0].name)
 	}
 

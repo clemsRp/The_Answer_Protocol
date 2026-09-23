@@ -69,3 +69,31 @@ func (dr *Drawer) DrawGroupButtons() {
 		)
 	}
 }
+
+func (dr *Drawer) DrawTalkButtons() {
+	for _, b := range dr.app.Manager.Buttons("Talk") {
+		frame := b.CurrentFrame()
+		dr.DrawImage(
+			b.Texture,
+			b.X, b.Y,
+			frame.IndX, frame.IndY,
+			frame.RatioX, frame.RatioY,
+			b.Zoom,
+			b.Rotation,
+		)
+	}
+}
+
+func (dr *Drawer) DrawInspectButtons() {
+	for _, b := range dr.app.Manager.Buttons("Inspect") {
+		frame := b.CurrentFrame()
+		dr.DrawImage(
+			b.Texture,
+			b.X, b.Y,
+			frame.IndX, frame.IndY,
+			frame.RatioX, frame.RatioY,
+			b.Zoom,
+			b.Rotation,
+		)
+	}
+}

@@ -21,13 +21,13 @@ func (app *App) GetGroupSelects() []*ui.Select {
 	options := make([]string, 0)
 	gr := app.Variables.PanelsVariables.Group
 
-	if len(gr.UnGrouped) > 0 && gr.InGroup && gr.Leader == app.Variables.Player.Pseudo && len(gr.UnGrouped) > 0 {
+	if len(gr.UnGrouped) > 0 && gr.InGroup && gr.IsLeader && len(gr.UnGrouped) > 0 {
 		options = append(options, "Invite")
 	}
-	if len(gr.Grouped) > 0 && gr.InGroup && gr.Leader == app.Variables.Player.Pseudo {
+	if len(gr.Grouped) > 0 && gr.InGroup && gr.IsLeader {
 		options = append(options, "Kick")
 	}
-	if len(gr.Grouped) > 0 && gr.InGroup && gr.Leader == app.Variables.Player.Pseudo && !gr.SendPromotion {
+	if len(gr.Grouped) > 0 && gr.InGroup && gr.IsLeader && gr.SendPromotion == "" {
 		options = append(options, "Promote")
 	}
 	if len(gr.Invitations) > 0 && !gr.InGroup {
