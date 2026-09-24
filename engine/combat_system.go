@@ -32,7 +32,7 @@ const (
 	StateDefeat    CombatState = "DEFEAT"
 	StateCancelled CombatState = "CANCELLED"
 
-	MaxTurnSeconds = 5
+	MaxTurnSeconds = 86400
 )
 
 type CombatTurnResult struct {

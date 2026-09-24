@@ -19,6 +19,10 @@ func (up *Updater) UpdateChat() {
 		up.buildChatEmotes()
 	}
 
+	if up.app.Variables.Current_view != "Game" {
+		return
+	}
+
 	if rl.IsKeyPressed(rl.KeyEnter) {
 		up.SendChat()
 	}

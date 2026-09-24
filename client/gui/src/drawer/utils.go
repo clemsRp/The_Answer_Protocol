@@ -45,6 +45,20 @@ func (dr *Drawer) DrawWoodFrameAt(visualStart vars.Position, visualEnd vars.Posi
 }
 
 func (dr *Drawer) DrawWoodFrame(start vars.Position, frame_width, frame_height int, zoom float32, darkness int, empty bool) {
+	e := float32(zoom)
+	cell := e * dr.app.Variables.Tileset_size
+
+	startX := cell * start.X
+	startY := cell * start.Y
+
+	dr.DrawRealWoodFrame(
+		startX, startY,
+		frame_width, frame_height,
+		zoom, darkness, empty,
+	)
+}
+
+func (dr *Drawer) DrawRealWoodFrame(startX, startY float32, frame_width, frame_height int, zoom float32, darkness int, empty bool) {
 	frame_start_x := 12
 	frame_start_y := 0
 
@@ -77,8 +91,8 @@ func (dr *Drawer) DrawWoodFrame(start vars.Position, frame_width, frame_height i
 
 			dr.DrawImage(
 				vars.UI_SPRITE_TEXTURE,
-				cell*(float32(x)+start.X)-cell/2,
-				cell*(float32(y)+start.Y)-cell/2,
+				startX+cell*float32(x)-cell/2,
+				startY+cell*float32(y)-cell/2,
 				float32(frame_start_x+ind_x), float32(frame_start_y+ind_y+darkness*3),
 				1, 1, e*dr.app.Variables.Zoom, 0,
 			)

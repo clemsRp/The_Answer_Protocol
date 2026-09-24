@@ -40,6 +40,9 @@ func (app *App) Update() {
 
 	} else if app.Variables.Current_view == "Game" {
 		app.Updater.UpdateGameView()
+
+	} else if app.Variables.Current_view == "Combat" {
+		app.Updater.UpdateCombatView()
 	}
 }
 
@@ -51,7 +54,11 @@ func (app *App) Draw() {
 
 	} else if app.Variables.Current_view == "Game" {
 		app.Drawer.DrawGameView()
+
+	} else if app.Variables.Current_view == "Combat" {
+		app.Drawer.DrawCombatView()
 	}
+
 	app.Drawer.DrawMouse()
 }
 

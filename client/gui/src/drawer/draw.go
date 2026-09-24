@@ -53,7 +53,7 @@ func NewDrawer(app *core.App) *Drawer {
 	rl.SetShaderValue(
 		dr.blurShader,
 		rl.GetShaderLocation(dr.blurShader, "blurStrength"),
-		[]float32{3.0},
+		[]float32{5.0},
 		rl.ShaderUniformFloat,
 	)
 

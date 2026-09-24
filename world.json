@@ -10,18 +10,18 @@
                     "west": "abandoned_farm"
                 },
                 "items": ["rusty_hoe", "turnip_seed"],
-                "npcs": ["shepherd_hana"]
+				"npcs": ["angry_crow"]
             },
             "village_square": {
-                "name": "Village Square",
+				"name": "Village Square",
                 "description": "A peaceful square paved with moss-covered stones. An old fountain trickles softly at its center, and hens peck lazily between the cobbles.",
                 "exits": {
-                    "west": "entrance",
+					"west": "entrance",
                     "north": "windmill",
                     "south": "merchant_tent"
                 },
                 "items": ["crisp_apple"],
-                "npcs": ["angry_crow"]
+				"npcs": ["shepherd_hana"]
             },
             "abandoned_farm": {
                 "name": "Abandoned Farm",

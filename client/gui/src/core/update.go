@@ -20,6 +20,8 @@ func (app *App) ShowConnectPage() {
 
 func (app *App) ShowGamePage() {
 	app.Variables.Current_view = "Game"
+	app.Variables.Player.Position.X = float32(15.5 * app.Variables.Tileset_size)
+	app.Variables.Player.Position.Y = float32(8.5 * app.Variables.Tileset_size)
 	newPosX := app.Variables.Player.Position.X
 	newPosY := app.Variables.Player.Position.Y
 	newDirX := app.Variables.Player.Direction.X
@@ -35,10 +37,17 @@ func (app *App) ShowGamePage() {
 	app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdGetItemPositions}
 }
 
-func (app *App) ShowCombatPage()                                       {}
-func (app *App) ShowPopupPage()                                        {}
-func (app *App) ClosePopup()                                           {}
-func (app *App) ShowCombatResultPopup(result string, rewards []string) {}
+func (app *App) ShowPopupPage() {}
+func (app *App) ClosePopup()    {}
+
+func (app *App) ShowCombatPage() {
+	app.EndTalk()
+	app.Variables.Current_view = "Combat"
+}
+
+func (app *App) ShowCombatResultPopup(result string, rewards []string) {
+	app.ShowGamePage()
+}
 
 func (app *App) ShowQuestCompletedPopup(questID, reward string) {
 	for _, datas := range app.Variables.Npcs {
@@ -317,7 +326,10 @@ func (app *App) UpdateNpcWithNpc(text string) {
 	app.syncNpcQuest(datas)
 }
 
-func (app *App) AppendCombatChat(user, msg string)                {}
+func (app *App) AppendCombatChat(user, msg string) {
+	app.AppendChat("COMBAT", user, msg)
+}
+
 func (app *App) AppendServerResponse(res protocol.ServerResponse) {}
 func (app *App) AppendCliMessage(text string)                     {}
 func (app *App) AppendCliResponse(res protocol.ServerResponse)    {}

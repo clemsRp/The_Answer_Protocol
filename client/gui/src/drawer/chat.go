@@ -7,6 +7,10 @@ import (
 )
 
 func (dr *Drawer) DrawChat() {
+	if dr.app.Variables.Current_view != "Game" {
+		return
+	}
+
 	chat_width := float32(vars.CHAT_WIDTH)
 	chat_height := float32(vars.CHAT_HEIGHT)
 	chat_start_x := float32(vars.CHAT_START_X)
