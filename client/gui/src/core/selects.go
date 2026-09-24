@@ -21,7 +21,7 @@ func (app *App) GetGroupSelects() []*ui.Select {
 	options := make([]string, 0)
 	gr := app.Variables.PanelsVariables.Group
 
-	if len(gr.UnGrouped) > 0 && gr.InGroup && gr.IsLeader && len(gr.UnGrouped) > 0 {
+	if len(gr.UnGrouped) > 0 && gr.InGroup && gr.IsLeader {
 		options = append(options, "Invite")
 	}
 	if len(gr.Grouped) > 0 && gr.InGroup && gr.IsLeader {

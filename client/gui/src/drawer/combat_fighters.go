@@ -2,6 +2,8 @@ package drawer
 
 import (
 	vars "tap/client/gui/src/variables"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 func (dr *Drawer) drawCombatFightersZone() {
@@ -50,4 +52,41 @@ func (dr *Drawer) drawCombatFightersZone() {
 			0.5, 2, false,
 		)
 	}
+
+	// Draw Combat Fighter Interactions (Emote Photo de Profil & Pseudo)
+	for _, item := range dr.app.Manager.Interactions("Combat") {
+		if item.Emote != nil {
+			frame := item.Emote.CurrentFrame(dr.app.Variables.StartTime)
+			dr.DrawImage(
+				item.Emote.Texture,
+				item.Emote.X, item.Emote.Y,
+				frame.IndX, frame.IndY,
+				frame.RatioX, frame.RatioY,
+				item.Emote.Zoom,
+				item.Emote.Rotation,
+			)
+		}
+
+		// Highlight hovered or selected person
+		isHovered := item.IsHovered()
+		isSelected := dr.app.Variables.PanelsVariables.CombatState != nil &&
+			dr.app.Variables.PanelsVariables.CombatState.SelectedPerson == item.ID
+
+		if isHovered || isSelected {
+			color := dr.app.Colors["panel_text"]
+			if isSelected {
+				color = dr.app.Colors["pseudo_text"]
+			}
+			if item.Emote != nil {
+				rl.DrawText(
+					item.ID,
+					int32(item.Emote.X),
+					int32(item.Emote.Y-0.4*tile),
+					int32(dr.app.Variables.FontSize),
+					color,
+				)
+			}
+		}
+	}
 }
+

@@ -8,6 +8,7 @@
 │   ├── app.go
 │   ├── core
 │   │   ├── app.go
+│   │   ├── combat.go
 │   │   ├── items.go
 │   │   ├── npcs.go
 │   │   ├── options.go
@@ -18,6 +19,10 @@
 │   │   ├── animations.go
 │   │   ├── buttons.go
 │   │   ├── chat.go
+│   │   ├── combat_actions.go
+│   │   ├── combat_chat.go
+│   │   ├── combat_fighters.go
+│   │   ├── combat.go
 │   │   ├── connect.go
 │   │   ├── draw.go
 │   │   ├── emotes.go
@@ -51,6 +56,7 @@
 │   │   ├── buttons.go
 │   │   ├── chat.go
 │   │   ├── collisions.go
+│   │   ├── combat.go
 │   │   ├── connect.go
 │   │   ├── emotes.go
 │   │   ├── game.go
@@ -69,6 +75,7 @@
 │       ├── group.go
 │       ├── inspect.go
 │       ├── mouse.go
+│       ├── npc.go
 │       ├── panels.go
 │       ├── player.go
 │       ├── talk.go
@@ -131,7 +138,7 @@
     ├── Wooden House.tsx
     └── Wooden_House_Walls_Tilset.tsx
 
-10 directories, 121 files
+10 directories, 128 files
 -e 
 === CONTENU DES FICHIERS ===
 
@@ -610,7 +617,7 @@ func (app *App) GetNewRoomItems(roomItems []string) []*ui.Interaction {
 			Normal:   ui.Frame{IndX: 28, IndY: 8, RatioX: 3, RatioY: 3},
 			Pressed:  ui.Frame{IndX: 28, IndY: 8, RatioX: 3, RatioY: 3},
 			Hover:    ui.Frame{IndX: 28, IndY: 8, RatioX: 3, RatioY: 3},
-			OnClick:  func() {}, // Static bubble, no action required
+			OnClick:  func() {},
 		}
 
 		// Create the interactive button to pick up the item
@@ -625,11 +632,7 @@ func (app *App) GetNewRoomItems(roomItems []string) []*ui.Interaction {
 			Hover:    ui.Frame{IndX: 52, IndY: 8, RatioX: 2, RatioY: 2},
 			Pressed:  ui.Frame{IndX: 54, IndY: 8, RatioX: 2, RatioY: 2},
 			OnClick: func() {
-				// Send the 'Take' command to the server
-				app.QueueUpdate(func() {
-					// app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + it}
-					app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdTake + " " + it}
-				})
+				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdTake + " " + it}
 			},
 		}
 
@@ -639,6 +642,7 @@ func (app *App) GetNewRoomItems(roomItems []string) []*ui.Interaction {
 			Emote:   item_emote,
 			Buttons: []*ui.Button{item_bubble, item_btn},
 			Inspect: func(item string) {
+				app.Variables.PanelsVariables.Inspect.LastInspect = "ITEM"
 				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + item}
 			},
 		}
@@ -687,6 +691,7 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 			AnimDuration: 2 * frame_duration,
 			Frames:       frames,
 			Inspect: func(item string) {
+				app.Variables.PanelsVariables.Inspect.LastInspect = "ITEM"
 				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + item}
 			},
 		}
@@ -923,19 +928,25 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 			OnClick: func() {
 				app.Variables.PanelsVariables.Chat.Open = false
 				app.Variables.PanelsVariables.Group.Open = false
+				app.Variables.PanelsVariables.Inspect.Open = false
 				app.Variables.PanelsVariables.Talk.LastTalk = np
 				app.StartTalk(np)
-				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectNpc + " " + np}
 				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdTalk + " " + np}
+
+				app.Variables.PanelsVariables.Inspect.LastInspect = "NPC"
 				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectNpc + " " + np}
 			},
 		}
 
 		// Group the emote and buttons into a single interaction entity
 		npc := &ui.Interaction{
-			ID:      "npc",
+			ID:      np,
 			Emote:   npc_emote,
 			Buttons: []*ui.Button{npc_bubble, npc_btn},
+			Inspect: func(npc_name string) {
+				app.Variables.PanelsVariables.Inspect.LastInspect = "NPC"
+				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectNpc + " " + npc_name}
+			},
 		}
 
 		npcs = append(npcs, npc)
@@ -1055,7 +1066,7 @@ func (app *App) buildTabOptions(command string) []*ui.Option {
 
 	start_x := 4.25 * app.Variables.Tileset_size
 	start_y := 7.1 * app.Variables.Tileset_size
-	end_x := (vars.GROUP_START_X + vars.GROUP_WIDTH - 1.3) * app.Variables.Tileset_size
+	end_x := (vars.GROUP_START_X + vars.GROUP_WIDTH - 1.6) * app.Variables.Tileset_size
 
 	for index, command_option := range *target_options {
 		// Skip an entry already handled locally
@@ -1225,7 +1236,9 @@ func (app *App) KickFunc(command, command_option string) {
 package core
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"tap/client/gui/src/parser"
 	"tap/client/gui/src/ui"
 	vars "tap/client/gui/src/variables"
@@ -1277,6 +1290,8 @@ func NewApp(actionsChan chan panel.Action) *App {
 		Running:      true,
 	}
 
+	app.ParseNpcNames("./world.json")
+
 	// Parse maps
 	var err error
 	maps_folder_path := "./client/gui/maps/"
@@ -1298,6 +1313,25 @@ func NewApp(actionsChan chan panel.Action) *App {
 	app.AddItemPositions()
 
 	return app
+}
+
+func (app *App) ParseNpcNames(filepath string) {
+	// Parse json file
+	data, err := os.ReadFile(filepath)
+	if err != nil {
+		fmt.Printf("Error reading file: %v\n", err)
+	}
+
+	var world []engine.Map
+	if err := json.Unmarshal(data, &world); err != nil {
+		fmt.Printf("JSON parsing error: %v\n", err)
+	}
+
+	// Create NpcConvertor
+	app.Variables.NpcConvertor = make(map[string]string)
+	for npc_id, npc := range world[0].Npcs {
+		app.Variables.NpcConvertor[npc.Name] = npc_id
+	}
 }
 
 func (app *App) AddMissingVariables(screenWidth int) {
@@ -1339,6 +1373,15 @@ func (app *App) AddMissingVariables(screenWidth int) {
 		(vars.GROUP_HEIGHT-0.5)*app.Variables.Tileset_size,
 	)
 
+	app.Variables.PanelsVariables.Talk.Rect = rl.NewRectangle(
+		float32(vars.TALK_START_X)*app.Variables.Tileset_size,
+		float32(vars.TALK_START_Y)*app.Variables.Tileset_size,
+		float32(vars.TALK_WIDTH)*app.Variables.Tileset_size,
+		float32(vars.TALK_HEIGHT)*app.Variables.Tileset_size,
+	)
+
+	app.Variables.Player.Zoom = app.Variables.Zoom
+
 	remote_players := make(map[string]*vars.Player)
 	app.Variables.RemotePlayers = &remote_players
 }
@@ -1358,6 +1401,12 @@ func (app *App) AddItemPositions() {
 	}
 
 	app.Variables.ItemPositions = &positions
+}
+
+func (app *App) GroupContentStartY() float32 {
+	tile := app.Variables.Tileset_size
+	font := app.Variables.FontSize
+	return (vars.GROUP_START_Y+2)*tile + 2*font
 }
 
 func (app *App) QueueUpdate(f func()) {
@@ -1457,11 +1506,11 @@ import (
 	"regexp"
 	"slices"
 	"strings"
-	"unicode/utf8"
 	"tap/client/state"
 	panel "tap/client/tui/panels"
 	"tap/protocol"
 	"time"
+	"unicode/utf8"
 
 	vars "tap/client/gui/src/variables"
 )
@@ -1472,6 +1521,8 @@ func (app *App) ShowConnectPage() {
 
 func (app *App) ShowGamePage() {
 	app.Variables.Current_view = "Game"
+	app.Variables.Player.Position.X = float32(15.5 * app.Variables.Tileset_size)
+	app.Variables.Player.Position.Y = float32(8.5 * app.Variables.Tileset_size)
 	newPosX := app.Variables.Player.Position.X
 	newPosY := app.Variables.Player.Position.Y
 	newDirX := app.Variables.Player.Direction.X
@@ -1487,11 +1538,26 @@ func (app *App) ShowGamePage() {
 	app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdGetItemPositions}
 }
 
-func (app *App) ShowCombatPage()                                       {}
-func (app *App) ShowPopupPage()                                        {}
-func (app *App) ClosePopup()                                           {}
-func (app *App) ShowCombatResultPopup(result string, rewards []string) {}
-func (app *App) ShowQuestCompletedPopup(questID, reward string)        {}
+func (app *App) ShowPopupPage() {}
+func (app *App) ClosePopup()    {}
+
+func (app *App) ShowCombatPage() {
+	app.EndTalk()
+	app.Variables.Current_view = "Combat"
+}
+
+func (app *App) ShowCombatResultPopup(result string, rewards []string) {
+	app.ShowGamePage()
+}
+
+func (app *App) ShowQuestCompletedPopup(questID, reward string) {
+	for _, datas := range app.Variables.Npcs {
+		if datas.QuestID == questID {
+			datas.RequestedQuest = true
+			datas.CompletedQuest = true
+		}
+	}
+}
 
 func (app *App) UpdateNavigation(room *protocol.LookCommandData) {
 	app.Variables.PanelsVariables.Room = room
@@ -1590,6 +1656,22 @@ func (app *App) UpdateCombat(combatState state.CombatState) {
 
 func (app *App) UpdateQuests(quests []protocol.TrackedQuestData) {
 	app.Variables.PanelsVariables.Quests = &quests
+	for _, datas := range app.Variables.Npcs {
+		app.syncNpcQuest(datas)
+	}
+}
+
+func (app *App) syncNpcQuest(datas *vars.NpcDatas) {
+	if datas.QuestID == "" || app.Variables.PanelsVariables.Quests == nil {
+		return
+	}
+	for _, q := range *app.Variables.PanelsVariables.Quests {
+		if q.Id == datas.QuestID {
+			datas.RequestedQuest = true
+			datas.CompletedQuest = q.Status == "completed"
+			return
+		}
+	}
 }
 
 func (app *App) AppendChat(scope, user, msg string) {
@@ -1617,6 +1699,16 @@ func (app *App) AppendChat(scope, user, msg string) {
 func (app *App) UpdateInspector(text string) {
 	re := regexp.MustCompile(`\[.+?\]`)
 	text = re.ReplaceAllString(text, "")
+
+	switch app.Variables.PanelsVariables.Inspect.LastInspect {
+	case "ROOM":
+		app.UpdateNpcWithRoom(text)
+	case "NPC":
+		app.UpdateNpcWithNpc(text)
+
+	default:
+
+	}
 
 	maxLen := 30
 	lines := strings.Split(text, "\n")
@@ -1658,7 +1750,87 @@ func (app *App) UpdateInspector(text string) {
 	app.Variables.PanelsVariables.Inspect.Datas = result.String()
 }
 
-func (app *App) AppendCombatChat(user, msg string)                {}
+func (app *App) UpdateNpcWithRoom(text string) {
+	lines := strings.Split(text, "\n")
+	inNpcSection := false
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+
+		if strings.HasPrefix(line, "NPCS:") {
+			inNpcSection = true
+			continue
+		} else if strings.HasPrefix(line, "PLAYERS:") || strings.HasPrefix(line, "ITEMS:") {
+			inNpcSection = false
+			continue
+		}
+
+		if inNpcSection && strings.HasPrefix(line, "- ") {
+			rawName := strings.TrimPrefix(line, "- ")
+
+			isHostile := strings.Contains(rawName, "(hostile)")
+			isQuest := strings.Contains(rawName, "(quest)")
+
+			npcName := strings.ReplaceAll(rawName, "(hostile)", "")
+			npcName = strings.ReplaceAll(npcName, "(quest)", "")
+			npcName = strings.TrimSpace(npcName)
+
+			npcKey := app.Variables.NpcConvertor[npcName]
+			if npcKey == "" {
+				npcKey = npcName
+			}
+
+			datas, ok := app.Variables.Npcs[npcKey]
+			if !ok {
+				datas = &vars.NpcDatas{}
+				app.Variables.Npcs[npcKey] = datas
+			}
+
+			datas.Hostile = isHostile
+			datas.HasQuest = isQuest
+		}
+	}
+}
+
+func (app *App) UpdateNpcWithNpc(text string) {
+	prefix := "NAME: "
+	startIndex := strings.Index(text, prefix)
+
+	var npc string
+	if startIndex != -1 {
+		startIndex += len(prefix)
+		endIndex := strings.Index(text[startIndex:], "\n")
+
+		if endIndex != -1 {
+			npc = text[startIndex : startIndex+endIndex]
+
+		} else {
+			npc = text[startIndex:]
+		}
+
+		npc = strings.TrimSpace(npc)
+	}
+
+	npc = app.Variables.NpcConvertor[npc]
+
+	datas, ok := app.Variables.Npcs[npc]
+	if !ok {
+		datas = &vars.NpcDatas{}
+		app.Variables.Npcs[npc] = datas
+	}
+
+	datas.Hostile = strings.Contains(text, "HOSTILE: YES")
+	if m := regexp.MustCompile(`QUEST ID:\s*(\S+)`).FindStringSubmatch(text); m != nil {
+		datas.QuestID = m[1]
+	}
+	datas.HasQuest = datas.QuestID != ""
+	app.syncNpcQuest(datas)
+}
+
+func (app *App) AppendCombatChat(user, msg string) {
+	app.AppendChat("COMBAT", user, msg)
+}
+
 func (app *App) AppendServerResponse(res protocol.ServerResponse) {}
 func (app *App) AppendCliMessage(text string)                     {}
 func (app *App) AppendCliResponse(res protocol.ServerResponse)    {}
@@ -1674,12 +1846,14 @@ func (app *App) UpdateRemotePlayerPosition(pseudo string, x, y, dirX, dirY float
 		remotePlayer.Direction.X = dirX
 		remotePlayer.Direction.Y = dirY
 		remotePlayer.EmoteIndex = emoteIndex
+		remotePlayer.Zoom = app.Variables.Zoom
 	} else {
 		(*app.Variables.RemotePlayers)[pseudo] = &vars.Player{
 			Pseudo:     pseudo,
 			Position:   &vars.Position{X: x, Y: y},
 			Direction:  &vars.Direction{X: dirX, Y: dirY},
 			EmoteIndex: emoteIndex,
+			Zoom:       app.Variables.Zoom,
 		}
 	}
 }
@@ -1690,6 +1864,7 @@ func (app *App) AddRemotePlayer(pseudo string) {
 			Pseudo:    pseudo,
 			Position:  &vars.Position{X: app.Variables.StartingPosX, Y: app.Variables.StartingPosY},
 			Direction: &vars.Direction{X: 0, Y: 1},
+			Zoom:      app.Variables.Zoom,
 		}
 	}
 	app.UpdateRemotePlayerPosition(pseudo, app.Variables.StartingPosX, app.Variables.StartingPosY, 0, 1, 0)
@@ -1748,6 +1923,14 @@ func (app *App) SetPseudo(pseudo string) {
 
 func (app *App) Stop() {
 	app.Running = false
+}
+
+--- FILE: ./src/core/combat.go ---
+package core
+
+func (app *App) IsPlayerTurn() bool {
+	cs := app.Variables.PanelsVariables.CombatState
+	return cs != nil && cs.CurrentTurn != "" && cs.CurrentTurn == app.Variables.Player.Pseudo
 }
 
 --- FILE: ./src/drawer/animations.go ---
@@ -2189,6 +2372,20 @@ func (dr *Drawer) DrawWoodFrameAt(visualStart vars.Position, visualEnd vars.Posi
 }
 
 func (dr *Drawer) DrawWoodFrame(start vars.Position, frame_width, frame_height int, zoom float32, darkness int, empty bool) {
+	e := float32(zoom)
+	cell := e * dr.app.Variables.Tileset_size
+
+	startX := cell * start.X
+	startY := cell * start.Y
+
+	dr.DrawRealWoodFrame(
+		startX, startY,
+		frame_width, frame_height,
+		zoom, darkness, empty,
+	)
+}
+
+func (dr *Drawer) DrawRealWoodFrame(startX, startY float32, frame_width, frame_height int, zoom float32, darkness int, empty bool) {
 	frame_start_x := 12
 	frame_start_y := 0
 
@@ -2221,8 +2418,8 @@ func (dr *Drawer) DrawWoodFrame(start vars.Position, frame_width, frame_height i
 
 			dr.DrawImage(
 				vars.UI_SPRITE_TEXTURE,
-				cell*(float32(x)+start.X)-cell/2,
-				cell*(float32(y)+start.Y)-cell/2,
+				startX+cell*float32(x)-cell/2,
+				startY+cell*float32(y)-cell/2,
 				float32(frame_start_x+ind_x), float32(frame_start_y+ind_y+darkness*3),
 				1, 1, e*dr.app.Variables.Zoom, 0,
 			)
@@ -2739,71 +2936,117 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-// DrawTalk displays the npc dialogue box centered near the bottom of the screen
 func (dr *Drawer) DrawTalk() {
 	talk := dr.app.Variables.PanelsVariables.Talk.Talking
 	if talk == nil {
 		return
 	}
 
-	box_start_x := 6.0
-	box_start_y := 12.0
-	box_width := 20.0
-	box_height := 4.5
+	startX := float32(vars.TALK_START_X)
+	startY := float32(vars.TALK_START_Y)
+	width := float32(vars.TALK_WIDTH)
+	height := float32(vars.TALK_HEIGHT)
 
+	dr.drawTalkFrame(startX, startY, width, height)
+
+	text := dr.getAnimatedTalkText()
+	dr.drawTalkContent(text, talk.Result, startX, startY, width, height)
+
+	dr.DrawTalkButtons()
+	dr.DrawTalkButtonTitle()
+}
+
+func (dr *Drawer) drawTalkFrame(startX, startY, width, height float32) {
 	dr.DrawWoodFrameAt(
-		vars.Position{X: float32(box_start_x), Y: float32(box_start_y)},
-		vars.Position{X: float32(box_start_x + box_width), Y: float32(box_start_y + box_height)},
+		vars.Position{X: startX, Y: startY},
+		vars.Position{X: startX + width, Y: startY + height},
 		1, 0, false,
 	)
+}
 
-	// Show a placeholder while waiting for the server answer
-	const msPerChar = 30
-	var text string
+func (dr *Drawer) getAnimatedTalkText() string {
+	talk := dr.app.Variables.PanelsVariables.Talk.Talking
 
-	// Animate text
-	if !dr.app.Variables.PanelsVariables.Talk.Finished {
-		text = "..."
-		elapsed := time.Since(talk.Start)
-
-		if talk.Result != "" {
-			text = talk.Result
-			elapsed = time.Since(talk.ResultStart)
-			runes := []rune(text)
-			index := int(elapsed.Milliseconds()) / msPerChar
-			index = max(0, min(len(runes), index))
-			text = string(runes[:index])
-
-			// Check animation end
-			if index >= len(talk.Result)-1 {
-				dr.app.Variables.PanelsVariables.Talk.Finished = true
-			}
-		}
-
-		// Don't animate text
-	} else {
-		text = talk.Result
+	if dr.app.Variables.PanelsVariables.Talk.Finished {
+		return talk.Result
 	}
+
+	if talk.Result == "" {
+		return "..."
+	}
+
+	const msPerChar = 30
+	elapsed := time.Since(talk.ResultStart)
+	runes := []rune(talk.Result)
+	index := int(elapsed.Milliseconds()) / msPerChar
+	index = max(0, min(len(runes), index))
+
+	if index >= len(talk.Result)-1 {
+		dr.app.Variables.PanelsVariables.Talk.Finished = true
+	}
+
+	return string(runes[:index])
+}
+
+func (dr *Drawer) drawTalkContent(text, result string, startX, startY, width, height float32) {
+	tileSize := float32(dr.app.Variables.Tileset_size)
+	fontSize := dr.app.Variables.FontSize
+	textColor := dr.app.Colors["pseudo_text"]
 
 	rl.DrawText(
 		text,
-		int32(float32(box_start_x+0.75)*dr.app.Variables.Tileset_size),
-		int32(float32(box_start_y+0.75)*dr.app.Variables.Tileset_size),
-		int32(dr.app.Variables.FontSize),
-		dr.app.Colors["pseudo_text"],
+		int32((startX+0.75)*tileSize),
+		int32((startY+0.75)*tileSize),
+		int32(fontSize),
+		textColor,
 	)
 
-	if talk.Result != "" {
+	if result != "" {
 		rl.DrawText(
 			"click to continue",
-			int32(float32(box_start_x+box_width-6)*dr.app.Variables.Tileset_size),
-			int32(float32(box_start_y+box_height-0.9)*dr.app.Variables.Tileset_size),
-			int32(dr.app.Variables.FontSize*0.6),
-			dr.app.Colors["pseudo_text"],
+			int32((startX+width-6)*tileSize),
+			int32((startY+height-0.9)*tileSize),
+			int32(float32(fontSize)*0.6),
+			textColor,
 		)
 	}
+}
 
-	dr.DrawTalkButtons()
+func (dr *Drawer) DrawTalkButtonTitle() {
+	// Get npc datas
+	npc := dr.app.Variables.PanelsVariables.Talk.Talking.NpcID
+	datas := dr.app.Variables.Npcs[npc]
+
+	// Chose title
+	var title string
+	if datas.Hostile {
+		title = "Attack"
+
+	} else if !datas.RequestedQuest {
+		title = "Get Quest"
+
+	} else if !datas.CompletedQuest {
+		title = "Validate Quest"
+	}
+
+	// Calculate coordinates
+	tile := dr.app.Variables.Tileset_size
+	font := dr.app.Variables.FontSize
+
+	center := float32(vars.TALK_START_X+vars.TALK_WIDTH/2) * tile
+	align_title := rl.MeasureText(
+		title, int32(font),
+	) / 2
+
+	posX := center - float32(align_title)
+	posY := float32(vars.TALK_START_Y)*tile - 1.8*font
+
+	// Draw title
+	rl.DrawText(
+		title,
+		int32(posX), int32(posY),
+		int32(font), dr.app.Colors["panel_text"],
+	)
 }
 
 --- FILE: ./src/drawer/selects.go ---
@@ -3029,7 +3272,7 @@ func NewDrawer(app *core.App) *Drawer {
 	rl.SetShaderValue(
 		dr.blurShader,
 		rl.GetShaderLocation(dr.blurShader, "blurStrength"),
-		[]float32{3.0},
+		[]float32{5.0},
 		rl.ShaderUniformFloat,
 	)
 
@@ -3046,6 +3289,10 @@ import (
 )
 
 func (dr *Drawer) DrawChat() {
+	if dr.app.Variables.Current_view != "Game" {
+		return
+	}
+
 	chat_width := float32(vars.CHAT_WIDTH)
 	chat_height := float32(vars.CHAT_HEIGHT)
 	chat_start_x := float32(vars.CHAT_START_X)
@@ -3388,13 +3635,12 @@ func (dr *Drawer) DrawGroupPanel() {
 
 	dr.DrawGroupButtons()
 	dr.DrawCommonButton()
-	dr.DrawGroupOptionsToScreen(group_start_x, group_start_y, group_height)
 
-	if !group.InGroup {
-		return
+	if group.InGroup {
+		dr.DrawGroupDatas(group, group_start_x, group_start_y, group_width, tile, font)
 	}
 
-	dr.DrawGroupDatas(group, group_start_x, group_start_y, group_width, tile, font)
+	dr.DrawGroupOptionsToScreen(group_start_x, group_start_y, group_height)
 }
 
 func (dr *Drawer) RenderGroupTexture() {
@@ -3402,7 +3648,9 @@ func (dr *Drawer) RenderGroupTexture() {
 	if !group.Open {
 		return
 	}
-	dr.initGroupTexture(float32(vars.GROUP_WIDTH))
+
+	options := dr.app.Manager.Options("Group")
+	dr.initGroupTexture(float32(vars.GROUP_WIDTH), len(options))
 
 	rl.BeginTextureMode(dr.groupTexture)
 	rl.ClearBackground(rl.Blank)
@@ -3414,15 +3662,21 @@ func (dr *Drawer) RenderGroupTexture() {
 	rl.EndTextureMode()
 }
 
-func (dr *Drawer) initGroupTexture(group_width float32) {
-	if dr.groupTexture.ID == 0 {
+func (dr *Drawer) initGroupTexture(group_width float32, nb_options int) {
+	group := dr.app.Variables.PanelsVariables.Group
+
+	if group.LastNbOptions != nb_options || dr.groupTexture.ID == 0 {
 		if dr.groupTexture.ID != 0 {
 			rl.UnloadRenderTexture(dr.groupTexture)
 		}
+		row_height := 1.6 * dr.app.Variables.FontSize
+		content_height := float32(nb_options)*row_height + dr.app.Variables.Tileset_size
+
 		dr.groupTexture = rl.LoadRenderTexture(
 			int32(group_width*dr.app.Variables.Tileset_size),
-			int32((2*float32(10)+4.5)*dr.app.Variables.Tileset_size),
+			int32(content_height),
 		)
+		group.LastNbOptions = nb_options
 	}
 }
 
@@ -3497,21 +3751,25 @@ func (dr *Drawer) DrawGroupDatas(group *vars.GroupPanel, group_start_x, group_st
 }
 
 func (dr *Drawer) DrawGroupScrollBar(maxY float32) {
+	tile := dr.app.Variables.Tileset_size
+	content_top := dr.app.GroupContentStartY()
+	content_top_tile := content_top / tile
+
 	// Draw Top part
 	dr.DrawImage(
 		vars.UI_SPRITE_TEXTURE,
-		float32((vars.GROUP_START_X+vars.GROUP_WIDTH-1)*dr.app.Variables.Tileset_size),
-		float32((vars.GROUP_START_Y)*dr.app.Variables.Tileset_size),
+		float32((vars.GROUP_START_X+vars.GROUP_WIDTH-1)*tile),
+		content_top,
 		20, 8, 1, 1, dr.app.Variables.Zoom, 0,
 	)
 
 	// Draw Middle part
-	limit := int(vars.GROUP_HEIGHT - 2)
+	limit := int(float32(vars.GROUP_START_Y+vars.GROUP_HEIGHT) - content_top_tile - 2)
 	for mid := 0; mid < limit; mid++ {
 		dr.DrawImage(
 			vars.UI_SPRITE_TEXTURE,
-			float32((vars.GROUP_START_X+vars.GROUP_WIDTH-1)*dr.app.Variables.Tileset_size),
-			float32((vars.GROUP_START_Y+float32(mid)+1)*dr.app.Variables.Tileset_size),
+			float32((vars.GROUP_START_X+vars.GROUP_WIDTH-1)*tile),
+			content_top+float32(mid+1)*tile,
 			20, 9, 1, 1, dr.app.Variables.Zoom, 0,
 		)
 	}
@@ -3519,13 +3777,13 @@ func (dr *Drawer) DrawGroupScrollBar(maxY float32) {
 	// Draw Bottom part
 	dr.DrawImage(
 		vars.UI_SPRITE_TEXTURE,
-		float32((vars.GROUP_START_X+vars.GROUP_WIDTH-1)*dr.app.Variables.Tileset_size),
-		float32((vars.GROUP_START_Y+vars.GROUP_HEIGHT-1)*dr.app.Variables.Tileset_size),
+		float32((vars.GROUP_START_X+vars.GROUP_WIDTH-1)*tile),
+		content_top+float32(limit+1)*tile,
 		20, 10, 1, 1, dr.app.Variables.Zoom, 0,
 	)
 
-	scroll_bar_start_y := float32(vars.GROUP_START_Y+0.5) * dr.app.Variables.Tileset_size
-	scroll_bar_end_y := dr.app.Variables.Tileset_size * (float32(vars.GROUP_START_Y) + float32(vars.GROUP_HEIGHT) - 0.25)
+	scroll_bar_start_y := content_top + 0.5*tile
+	scroll_bar_end_y := (float32(vars.GROUP_START_Y) + float32(vars.GROUP_HEIGHT) - 0.5) * tile
 
 	cursor_y := dr.app.Variables.PanelsVariables.Group.ScrollBarY
 	current_scroll := dr.app.Variables.PanelsVariables.Group.Scroll
@@ -3540,23 +3798,21 @@ func (dr *Drawer) DrawGroupScrollBar(maxY float32) {
 			dr.app.Variables.PanelsVariables.Group.Scroll = -maxY * percent
 		}
 
-	} else {
-		if maxY > 0 {
-			percent := current_scroll / -maxY
-			cursor_y = scroll_bar_start_y + percent*(scroll_bar_end_y-scroll_bar_start_y)
+	} else if maxY > 0 {
+		percent := current_scroll / -maxY
+		cursor_y = scroll_bar_start_y + percent*(scroll_bar_end_y-scroll_bar_start_y)
 
-			cursor_y = max(scroll_bar_start_y, cursor_y)
-			cursor_y = min(cursor_y, scroll_bar_end_y)
+		cursor_y = max(scroll_bar_start_y, cursor_y)
+		cursor_y = min(cursor_y, scroll_bar_end_y)
 
-			dr.app.Variables.PanelsVariables.Group.ScrollBarY = cursor_y
-		}
+		dr.app.Variables.PanelsVariables.Group.ScrollBarY = cursor_y
 	}
 
 	// Draw cursor
 	dr.DrawImage(
 		vars.UI_SPRITE_TEXTURE,
-		float32((vars.GROUP_START_X+vars.GROUP_WIDTH-1)*dr.app.Variables.Tileset_size),
-		cursor_y-dr.app.Variables.Tileset_size,
+		float32((vars.GROUP_START_X+vars.GROUP_WIDTH-1)*tile),
+		cursor_y-tile,
 		19, 8, 1, 2, dr.app.Variables.Zoom, 0,
 	)
 }
@@ -3641,14 +3897,14 @@ func (dr *Drawer) DrawGroupOptions(group_start_x, group_start_y, group_height fl
 	}
 
 	offsetX := group_start_x * dr.app.Variables.Tileset_size
-	offsetY := (group_start_y + 0.5) * dr.app.Variables.Tileset_size
+	offsetY := dr.app.GroupContentStartY()
 
 	for _, opt := range dr.app.Manager.Options("Group") {
 		if opt.OptionName == "promote_option" && !dr.app.Variables.PanelsVariables.Group.Promote {
 			continue
 		}
 
-		opt_name := dr.LimitString(opt.OptionName, 10)
+		opt_name := dr.LimitString(opt.OptionName, 8)
 
 		rl.DrawText(
 			fmt.Sprintf("- %s:", opt_name),
@@ -3679,10 +3935,12 @@ func (dr *Drawer) DrawGroupOptions(group_start_x, group_start_y, group_height fl
 
 func (dr *Drawer) DrawGroupOptionsToScreen(group_start_x, group_start_y, group_height float32) {
 	tex := dr.groupTexture.Texture
-	viewHeight := (group_height - 1) * dr.app.Variables.Tileset_size
+	tile := dr.app.Variables.Tileset_size
 
-	offsetX := group_start_x * dr.app.Variables.Tileset_size
-	offsetY := (group_start_y + 0.5) * dr.app.Variables.Tileset_size
+	offsetX := group_start_x * tile
+	// On découpe à partir du bas de la ligne "Members", pas du haut du panel.
+	offsetY := dr.app.GroupContentStartY()
+	viewHeight := (group_start_y+group_height)*tile - offsetY - 0.5*tile
 
 	displayHeight := viewHeight
 	maxY := float32(tex.Height) - displayHeight
@@ -3692,7 +3950,7 @@ func (dr *Drawer) DrawGroupOptionsToScreen(group_start_x, group_start_y, group_h
 		displayHeight = float32(tex.Height)
 		maxY = 0
 		dr.app.Variables.PanelsVariables.Group.ScrollActive = false
-	} else {
+	} else if len(dr.app.Manager.Options("Group")) >= 5 {
 		dr.DrawGroupScrollBar(maxY)
 		dr.app.Variables.PanelsVariables.Group.ScrollActive = true
 	}
@@ -3710,10 +3968,307 @@ func (dr *Drawer) DrawGroupOptionsToScreen(group_start_x, group_start_y, group_h
 	}
 
 	sourceRec := rl.NewRectangle(0, finalY, float32(tex.Width), -displayHeight)
-
 	position := rl.NewVector2(offsetX, offsetY)
 
 	rl.DrawTextureRec(tex, sourceRec, position, rl.White)
+}
+
+--- FILE: ./src/drawer/combat.go ---
+package drawer
+
+import (
+	vars "tap/client/gui/src/variables"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+func (dr *Drawer) DrawCombatView() {
+	dr.drawBlurredGame()
+
+	dr.drawCombatChatZone()
+	dr.drawCombatFightersZone()
+	dr.drawCombatActionsZone()
+}
+
+func (dr *Drawer) drawBlurredGame() {
+	rl.BeginTextureMode(dr.gameTexture)
+	dr.DrawGameView()
+	rl.EndTextureMode()
+
+	rl.BeginShaderMode(dr.blurShader)
+	rl.DrawTextureRec(
+		dr.gameTexture.Texture,
+		rl.NewRectangle(
+			0, 0,
+			float32(dr.gameTexture.Texture.Width),
+			-float32(dr.gameTexture.Texture.Height),
+		),
+		rl.NewVector2(0, 0),
+		rl.White,
+	)
+	rl.EndShaderMode()
+}
+
+func (dr *Drawer) drawCombatFrame(startX, startY, endX, endY float32) {
+	dr.DrawWoodFrameAt(
+		vars.Position{X: startX, Y: startY},
+		vars.Position{X: endX, Y: endY},
+		1, 0, false,
+	)
+}
+
+--- FILE: ./src/drawer/combat_chat.go ---
+package drawer
+
+import (
+	vars "tap/client/gui/src/variables"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+func (dr *Drawer) drawCombatChatZone() {
+	chat_width := float32(vars.COMBAT_CHAT_END_X - vars.COMBAT_CHAT_START_X + 1)
+	chat_height := float32(vars.COMBAT_END_Y - vars.COMBAT_START_Y)
+	chat_start_x := float32(vars.COMBAT_CHAT_START_X)
+	chat_start_y := float32(vars.COMBAT_START_Y)
+
+	dr.drawCombatFrame(chat_start_x, chat_start_y, chat_start_x+chat_width, chat_start_y+chat_height-2)
+	dr.drawCombatChatInput(chat_start_x, chat_start_y, chat_width, chat_height-2)
+	dr.DrawCombatChats(chat_start_x, chat_start_y, chat_height-2)
+
+	for _, b := range dr.app.Manager.Buttons("CombatChat") {
+		frame := b.CurrentFrame()
+		dr.DrawImage(
+			b.Texture,
+			b.X, b.Y,
+			frame.IndX, frame.IndY,
+			frame.RatioX, frame.RatioY,
+			b.Zoom,
+			b.Rotation,
+		)
+	}
+}
+
+func (dr *Drawer) drawCombatChatInput(chat_start_x, chat_start_y, chat_width, chat_height float32) {
+	dr.DrawWoodFrameAt(
+		vars.Position{X: chat_start_x, Y: chat_start_y + chat_height},
+		vars.Position{X: chat_start_x + chat_width, Y: chat_start_y + chat_height + 2},
+		1, 0, false,
+	)
+
+	baseX := int32((chat_start_x + 0.63) * dr.app.Variables.Tileset_size)
+	baseY := int32((chat_start_y + chat_height + 0.63) * dr.app.Variables.Tileset_size)
+
+	input_width := (chat_width - 2) * dr.app.Variables.Tileset_size
+	input_height := dr.app.Variables.Tileset_size * 0.75
+	border := input_height * 0.1
+
+	dr.DrawBorderedInput(
+		baseX, baseY,
+		int32(input_width), int32(input_height), int32(border),
+		rl.NewColor(196, 154, 108, 255),
+		rl.NewColor(232, 207, 166, 255),
+	)
+
+	rl.DrawText(
+		dr.app.Variables.PanelsVariables.Chat.Msg,
+		baseX+int32(0.4*dr.app.Variables.FontSize),
+		baseY+int32(0.4*dr.app.Variables.FontSize),
+		int32(dr.app.Variables.FontSize), dr.app.Colors["panel_text"],
+	)
+
+	dr.DrawCursor(
+		int32(baseX+int32(0.4*dr.app.Variables.FontSize))+int32(border),
+		int32(baseY+int32(0.4*dr.app.Variables.FontSize)),
+		int32(border), int32(dr.app.Variables.FontSize),
+		dr.app.Variables.PanelsVariables.Chat.Msg, dr.app.Colors["panel_text"],
+	)
+}
+
+func (dr *Drawer) DrawCombatChats(chat_start_x, chat_start_y, chat_height float32) {
+	tex := dr.chatTexture.Texture
+	viewHeight := (chat_height - 1) * dr.app.Variables.Tileset_size
+
+	displayHeight := viewHeight
+	maxY := float32(tex.Height) - displayHeight
+	minY := float32(0)
+
+	if float32(tex.Height) < viewHeight {
+		displayHeight = float32(tex.Height)
+		maxY = 0
+		dr.app.Variables.PanelsVariables.Chat.ScrollActive = false
+	} else {
+		dr.DrawCombatChatScrollBar(maxY, chat_start_x, chat_start_y, chat_height)
+		dr.app.Variables.PanelsVariables.Chat.ScrollActive = true
+	}
+
+	sourceY := maxY
+	scroll := dr.app.Variables.PanelsVariables.Chat.Scroll
+	finalY := sourceY + scroll
+
+	if finalY > maxY {
+		finalY = maxY
+		dr.app.Variables.PanelsVariables.Chat.Scroll = finalY - sourceY
+	} else if finalY < minY {
+		finalY = minY
+		dr.app.Variables.PanelsVariables.Chat.Scroll = finalY - sourceY
+	}
+
+	sourceRec := rl.NewRectangle(0, finalY, float32(tex.Width), -displayHeight)
+	position := rl.NewVector2(
+		chat_start_x*dr.app.Variables.Tileset_size,
+		(chat_start_y+0.5)*dr.app.Variables.Tileset_size,
+	)
+
+	rl.DrawTextureRec(tex, sourceRec, position, rl.White)
+}
+
+func (dr *Drawer) DrawCombatChatScrollBar(maxY, chat_start_x, chat_start_y, chat_height float32) {
+	dr.DrawImage(
+		vars.UI_SPRITE_TEXTURE,
+		float32((chat_start_x+vars.CHAT_WIDTH-1)*dr.app.Variables.Tileset_size),
+		float32((chat_start_y)*dr.app.Variables.Tileset_size),
+		20, 8, 1, 1, dr.app.Variables.Zoom, 0,
+	)
+
+	limit := int(chat_height - 2)
+	for mid := 0; mid < limit; mid++ {
+		dr.DrawImage(
+			vars.UI_SPRITE_TEXTURE,
+			float32((chat_start_x+vars.CHAT_WIDTH-1)*dr.app.Variables.Tileset_size),
+			float32((chat_start_y+float32(mid)+1)*dr.app.Variables.Tileset_size),
+			20, 9, 1, 1, dr.app.Variables.Zoom, 0,
+		)
+	}
+
+	dr.DrawImage(
+		vars.UI_SPRITE_TEXTURE,
+		float32((chat_start_x+vars.CHAT_WIDTH-1)*dr.app.Variables.Tileset_size),
+		float32((chat_start_y+chat_height-1)*dr.app.Variables.Tileset_size),
+		20, 10, 1, 1, dr.app.Variables.Zoom, 0,
+	)
+
+	scroll_bar_start_y := (chat_start_y + 0.5) * dr.app.Variables.Tileset_size
+	scroll_bar_end_y := dr.app.Variables.Tileset_size * (chat_start_y + chat_height - 0.25)
+
+	cursor_y := dr.app.Variables.PanelsVariables.Chat.ScrollBarY
+	current_scroll := dr.app.Variables.PanelsVariables.Chat.Scroll
+
+	if rl.IsMouseButtonDown(rl.MouseLeftButton) {
+		cursor_y = max(scroll_bar_start_y, cursor_y)
+		cursor_y = min(cursor_y, scroll_bar_end_y)
+		dr.app.Variables.PanelsVariables.Chat.ScrollBarY = cursor_y
+
+		if scroll_bar_end_y > scroll_bar_start_y {
+			percent := (cursor_y - scroll_bar_start_y) / (scroll_bar_end_y - scroll_bar_start_y)
+			dr.app.Variables.PanelsVariables.Chat.Scroll = -maxY * percent
+		}
+	} else {
+		if maxY > 0 {
+			percent := current_scroll / -maxY
+			cursor_y = scroll_bar_start_y + percent*(scroll_bar_end_y-scroll_bar_start_y)
+			cursor_y = max(scroll_bar_start_y, cursor_y)
+			cursor_y = min(cursor_y, scroll_bar_end_y)
+			dr.app.Variables.PanelsVariables.Chat.ScrollBarY = cursor_y
+		}
+	}
+
+	dr.DrawImage(
+		vars.UI_SPRITE_TEXTURE,
+		float32((chat_start_x+vars.CHAT_WIDTH-1)*dr.app.Variables.Tileset_size),
+		cursor_y-dr.app.Variables.Tileset_size,
+		19, 8, 1, 2, dr.app.Variables.Zoom, 0,
+	)
+}
+
+--- FILE: ./src/drawer/combat_fighters.go ---
+package drawer
+
+import (
+	vars "tap/client/gui/src/variables"
+)
+
+func (dr *Drawer) drawCombatFightersZone() {
+	// Draw frame
+	dr.drawCombatFrame(
+		vars.COMBAT_START_X, vars.COMBAT_START_Y,
+		vars.COMBAT_LEFT_END_X, vars.COMBAT_FIGHTERS_END_Y,
+	)
+
+	tile := dr.app.Variables.Tileset_size
+	zoom := dr.app.Variables.Zoom
+	frame_size := 4
+
+	opponents := dr.app.Variables.PanelsVariables.CombatState.Opponents
+	team := dr.app.Variables.PanelsVariables.CombatState.Team
+
+	// Calculate placement variables
+	panel_start_x := vars.COMBAT_START_X * tile
+	panel_start_y := vars.COMBAT_START_Y * tile
+	panel_width := (vars.COMBAT_LEFT_END_X - vars.COMBAT_START_X) * tile
+	panel_height := (vars.COMBAT_END_Y - vars.COMBAT_START_Y) * tile
+
+	opp_case_width := panel_width / float32(len(opponents))
+	team_case_width := panel_width / float32(len(team))
+
+	// Draw opponents
+	center := float32(opp_case_width-0.5*float32(frame_size)*vars.FRAME_WIDTH*zoom) / 2
+	for index := range len(opponents) {
+		opp_offset := float32(index) * opp_case_width
+		dr.DrawRealWoodFrame(
+			float32(panel_start_x+opp_offset+center),
+			float32(panel_start_y)+tile,
+			frame_size, frame_size,
+			0.5, 2, false,
+		)
+	}
+
+	// Draw team
+	center = float32(team_case_width-0.5*float32(frame_size)*vars.FRAME_WIDTH*zoom) / 2
+	for index := range len(team) {
+		team_offset := float32(index) * team_case_width
+		dr.DrawRealWoodFrame(
+			float32(panel_start_x+team_offset+center),
+			float32(panel_start_y+panel_height)-(float32(frame_size)+4.5)*tile,
+			frame_size, frame_size,
+			0.5, 2, false,
+		)
+	}
+}
+
+--- FILE: ./src/drawer/combat_actions.go ---
+package drawer
+
+import (
+	vars "tap/client/gui/src/variables"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+func (dr *Drawer) drawCombatActionsZone() {
+	dr.drawCombatFrame(
+		vars.COMBAT_START_X, vars.COMBAT_ACTIONS_START_Y,
+		vars.COMBAT_LEFT_END_X, vars.COMBAT_END_Y,
+	)
+
+	if dr.app.IsPlayerTurn() {
+		// TODO: Draw Actions
+		return
+	}
+
+	tile := dr.app.Variables.Tileset_size
+	font := int32(dr.app.Variables.FontSize)
+	text := "Waiting"
+
+	centerX := float32(vars.COMBAT_START_X+vars.COMBAT_LEFT_END_X) / 2 * tile
+	centerY := float32(vars.COMBAT_ACTIONS_START_Y+vars.COMBAT_END_Y) / 2 * tile
+
+	rl.DrawText(
+		text,
+		int32(centerX)-rl.MeasureText(text, font)/2,
+		int32(centerY)-font/2,
+		font, dr.app.Colors["pseudo_text"],
+	)
 }
 
 --- FILE: ./src/gui_client.go ---
@@ -4878,6 +5433,8 @@ func (up *Updater) UpdatePlayer() {
 
 	up.UpdateMove()
 	up.SendNotif(oldX, oldY, oldDirX, oldDirY, false)
+
+	up.UpdatePlayersInspect()
 }
 
 func (up *Updater) UpdateMove() {
@@ -4950,6 +5507,21 @@ func (up *Updater) SendNotif(oldX, oldY, oldDirX, oldDirY float32, first_notif b
 	}
 }
 
+func (up *Updater) UpdatePlayersInspect() {
+	for _, p := range *up.app.Variables.RemotePlayers {
+		mouse := rl.GetMousePosition()
+		clicked := rl.IsMouseButtonPressed(rl.MouseButtonLeft)
+		hover := rl.CheckCollisionPointRec(mouse, p.Rect())
+
+		if hover && clicked {
+			up.actionsChan <- panel.Action{
+				Type:    panel.ActionSendServer,
+				Payload: pr.CmdInspectPlayer + " " + p.Pseudo,
+			}
+		}
+	}
+}
+
 --- FILE: ./src/updater/talk.go ---
 package updater
 
@@ -4975,7 +5547,13 @@ func (up *Updater) UpdateTalk() {
 
 	up.app.Manager.Update("Talk")
 
-	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) || rl.IsKeyPressed(rl.KeyEnter) || rl.IsKeyPressed(rl.KeySpace) {
+	mouse := rl.GetMousePosition()
+	clicked := rl.IsMouseButtonPressed(rl.MouseButtonLeft)
+	hover := rl.CheckCollisionPointRec(mouse, up.app.Variables.PanelsVariables.Talk.Rect)
+
+	next := hover && clicked
+
+	if next || rl.IsKeyPressed(rl.KeyEnter) || rl.IsKeyPressed(rl.KeySpace) {
 		// End animation
 		if !t.Finished {
 			t.Finished = true
@@ -5261,9 +5839,52 @@ func (up *Updater) buildGroupButtons() {
 }
 
 func (up *Updater) buildTalkButtons() {
-	// Define quest button
+	tile := up.app.Variables.Tileset_size
+	font := up.app.Variables.FontSize
+	zoom := up.app.Variables.Zoom * 11 / 20
 
-	up.app.Manager.SetViewButtons("Talk", []*ui.Button{})
+	mid_x := (vars.TALK_START_X + vars.TALK_WIDTH/2) * tile
+	btn_width := 6 * vars.FRAME_WIDTH * zoom
+
+	posX := mid_x - btn_width/2
+	posY := float32(vars.TALK_START_Y)*tile - 2.5*font
+
+	// Define quest button
+	talkBtn := &ui.Button{
+		ID:      "quest",
+		Texture: vars.UI_SPRITE_TEXTURE,
+		X:       posX,
+		Y:       posY,
+		Zoom:    zoom,
+		Normal:  ui.Frame{IndX: 10, IndY: 11, RatioX: 6, RatioY: 2},
+		Pressed: ui.Frame{IndX: 16, IndY: 11, RatioX: 6, RatioY: 2},
+		OnClick: func() {
+			// Get npc datas
+			npc := up.app.Variables.PanelsVariables.Talk.Talking.NpcID
+			datas := up.app.Variables.Npcs[npc]
+
+			if datas.Hostile {
+				up.actionsChan <- panel.Action{
+					Type:    panel.ActionSendServer,
+					Payload: pr.CmdAttack + " " + npc,
+				}
+
+			} else if !datas.RequestedQuest && datas.HasQuest {
+				up.actionsChan <- panel.Action{
+					Type:    panel.ActionSendServer,
+					Payload: pr.CmdQuest + " " + npc,
+				}
+
+			} else if !datas.CompletedQuest && datas.RequestedQuest {
+				up.actionsChan <- panel.Action{
+					Type:    panel.ActionSendServer,
+					Payload: pr.CmdCompleteQuest + " " + npc,
+				}
+			}
+		},
+	}
+
+	up.app.Manager.SetViewButtons("Talk", []*ui.Button{talkBtn})
 }
 
 func (up *Updater) buildInspectButtons() {
@@ -5285,6 +5906,7 @@ func (up *Updater) buildInspectButtons() {
 		Normal:  ui.Frame{IndX: 10, IndY: 11, RatioX: 6, RatioY: 2},
 		Pressed: ui.Frame{IndX: 16, IndY: 11, RatioX: 6, RatioY: 2},
 		OnClick: func() {
+			up.app.Variables.PanelsVariables.Inspect.LastInspect = "SELF"
 			up.actionsChan <- panel.Action{
 				Type:    panel.ActionSendServer,
 				Payload: pr.CmdInspectSelf,
@@ -5315,6 +5937,10 @@ func (up *Updater) UpdateChat() {
 	}
 	if len(up.app.Manager.Emotes("Chat")) == 0 {
 		up.buildChatEmotes()
+	}
+
+	if up.app.Variables.Current_view != "Game" {
+		return
 	}
 
 	if rl.IsKeyPressed(rl.KeyEnter) {
@@ -5444,6 +6070,7 @@ func (up *Updater) UpdateGameView() {
 
 	if up.app.Variables.PanelsVariables.Group.Open {
 		up.app.Manager.Update("Group")
+		up.UpdateGroupScroll()
 	}
 
 	if up.app.Variables.PanelsVariables.Inspect.Open {
@@ -5457,6 +6084,11 @@ package updater
 import rl "github.com/gen2brain/raylib-go/raylib"
 
 func (up *Updater) UpdateGroupScroll() {
+	if len(up.app.Manager.Options("Group")) < 5 {
+		up.app.Variables.PanelsVariables.Group.ScrollBarY = 0
+		return
+	}
+
 	mouse := rl.GetMousePosition()
 	hover := rl.CheckCollisionPointRec(mouse, up.app.Variables.PanelsVariables.Group.Rect)
 
@@ -5480,6 +6112,128 @@ func (up *Updater) UpdateGroupScroll() {
 			up.app.Variables.PanelsVariables.Group.ScrollBarY = mouse.Y
 		}
 	}
+}
+
+--- FILE: ./src/updater/combat.go ---
+package updater
+
+import (
+	"fmt"
+	"tap/client/gui/src/ui"
+	vars "tap/client/gui/src/variables"
+	panel "tap/client/tui/panels"
+	pr "tap/protocol"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+func (up *Updater) UpdateCombatView() {
+	up.UpdateGameView()
+
+	// On force le statut "Open" et la scope sur "COMBAT"
+	up.app.Variables.PanelsVariables.Chat.Open = true
+	if up.app.Variables.PanelsVariables.Chat.CurrentScope != "COMBAT" {
+		up.app.Variables.PanelsVariables.Chat.CurrentScope = "COMBAT"
+	}
+
+	if len(up.app.Manager.Buttons("CombatChat")) == 0 {
+		up.buildCombatChatButtons()
+	}
+
+	up.app.Manager.Update("Combat")
+	up.app.Manager.Update("CombatChat")
+
+	up.UpdateCombatChat()
+}
+
+func (up *Updater) UpdateCombatChat() {
+	if rl.IsKeyPressed(rl.KeyEnter) {
+		up.SendCombatChat()
+	}
+
+	up.UpdateChatMsg() // Réutilisation de la logique de frappe standard
+	up.UpdateCombatChatScroll()
+}
+
+func (up *Updater) SendCombatChat() {
+	msg := up.app.Variables.PanelsVariables.Chat.Msg
+	if msg == "" {
+		return
+	}
+
+	up.app.Variables.PanelsVariables.Chat.Msg = ""
+	up.app.Variables.PanelsVariables.Chat.LastMsgText = msg
+	up.app.Variables.PanelsVariables.Chat.LastMsgScope = "COMBAT"
+
+	up.actionsChan <- panel.Action{
+		Type:    panel.ActionSendServer,
+		Payload: fmt.Sprintf("%s %s", pr.CmdChatCombat, msg),
+	}
+}
+
+func (up *Updater) UpdateCombatChatScroll() {
+	mouse := rl.GetMousePosition()
+
+	chat_start_x := float32(vars.COMBAT_CHAT_START_X)
+	chat_width := float32(vars.COMBAT_CHAT_END_X - vars.COMBAT_CHAT_START_X + 1)
+	chat_start_y := float32(vars.COMBAT_START_Y)
+	chat_height := float32(vars.COMBAT_END_Y - vars.COMBAT_START_Y)
+
+	rect := rl.NewRectangle(
+		chat_start_x*up.app.Variables.Tileset_size,
+		chat_start_y*up.app.Variables.Tileset_size,
+		chat_width*up.app.Variables.Tileset_size,
+		chat_height*up.app.Variables.Tileset_size,
+	)
+
+	scrollRect := rl.NewRectangle(
+		(chat_start_x+chat_width-0.6)*up.app.Variables.Tileset_size,
+		(chat_start_y+0.25)*up.app.Variables.Tileset_size,
+		0.25*up.app.Variables.Tileset_size,
+		(chat_height-0.5)*up.app.Variables.Tileset_size,
+	)
+
+	hover := rl.CheckCollisionPointRec(mouse, rect)
+	scroll := rl.GetMouseWheelMove()
+	scroll_speed := 35
+
+	if hover {
+		up.app.Variables.PanelsVariables.Chat.Scroll += scroll * float32(scroll_speed)
+	}
+
+	if up.app.Variables.PanelsVariables.Chat.ScrollActive {
+		clicked := rl.IsMouseButtonPressed(rl.MouseButtonLeft)
+		down := rl.IsMouseButtonDown(rl.MouseButtonLeft)
+		scroll_hover := rl.CheckCollisionPointRec(mouse, scrollRect)
+		last_frame_scroll := up.app.Variables.PanelsVariables.Chat.LastFrameScroll
+
+		up.app.Variables.PanelsVariables.Chat.LastFrameScroll = false
+
+		if (scroll_hover && (clicked || down)) || (last_frame_scroll && down) {
+			up.app.Variables.PanelsVariables.Chat.LastFrameScroll = true
+			up.app.Variables.PanelsVariables.Chat.ScrollBarY = mouse.Y
+		}
+	}
+}
+
+func (up *Updater) buildCombatChatButtons() {
+	chat_start_x := float32(vars.COMBAT_CHAT_START_X)
+	chat_width := float32(vars.COMBAT_CHAT_END_X - vars.COMBAT_CHAT_START_X + 1)
+	chat_start_y := float32(vars.COMBAT_START_Y)
+	chat_height := float32(vars.COMBAT_END_Y - vars.COMBAT_START_Y)
+
+	sendchatBtn := &ui.Button{
+		ID:      "send_combat_chat",
+		Texture: vars.UI_SPRITE_TEXTURE,
+		X:       (chat_start_x + chat_width - 1.4) * up.app.Variables.Tileset_size,
+		Y:       (chat_start_y + chat_height - 1.4) * up.app.Variables.Tileset_size,
+		Zoom:    up.app.Variables.Zoom * 0.5,
+		Normal:  ui.Frame{IndX: 48, IndY: 0, RatioX: 2, RatioY: 2},
+		Pressed: ui.Frame{IndX: 50, IndY: 0, RatioX: 2, RatioY: 2},
+		OnClick: up.SendCombatChat,
+	}
+
+	up.app.Manager.SetViewButtons("CombatChat", []*ui.Button{sendchatBtn})
 }
 
 --- FILE: ./src/variables/colors.go ---
@@ -5508,7 +6262,11 @@ type Mouse struct {
 --- FILE: ./src/variables/player.go ---
 package variables
 
-import "time"
+import (
+	"time"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
 type Direction struct {
 	X float32
@@ -5523,12 +6281,19 @@ type Position struct {
 type Player struct {
 	Direction     *Direction
 	Position      *Position
+	Zoom          float32
 	Speed         int
 	Pseudo        string
 	EmoteIndex    int
 	LastTimeTyped time.Time
 	MaxHp         int
 	Hp            int
+}
+
+func (p *Player) Rect() rl.Rectangle {
+	w := float32(FRAME_WIDTH) * p.Zoom
+	h := float32(FRAME_HEIGHT) * p.Zoom
+	return rl.NewRectangle(p.Position.X, p.Position.Y, w, h)
 }
 
 func GetPlayerVariables() *Player {
@@ -5539,7 +6304,7 @@ func GetPlayerVariables() *Player {
 		},
 		EmoteIndex: 2,
 		MaxHp:      100,
-		Hp:         56,
+		Hp:         100,
 	}
 }
 
@@ -5566,6 +6331,9 @@ type Variables struct {
 	Current_view    string
 	PanelsVariables *PanelVariables
 
+	Npcs         map[string]*NpcDatas
+	NpcConvertor map[string]string
+
 	Zoom         float32
 	FontSize     float32
 	StartTime    time.Time
@@ -5582,6 +6350,7 @@ func GetVariables() *Variables {
 		Current_room:    "entrance",
 		Current_view:    "Connect",
 		PanelsVariables: GetPanelsVariables(),
+		Npcs:            make(map[string]*NpcDatas),
 		MapStart: &Position{
 			X: float32(0),
 			Y: float32(0),
@@ -5601,7 +6370,11 @@ func GetVariables() *Variables {
 --- FILE: ./src/variables/talk.go ---
 package variables
 
-import "time"
+import (
+	"time"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
 type Talk struct {
 	NpcID       string
@@ -5616,6 +6389,7 @@ type TalkPanel struct {
 	Finished bool
 	NbLoop   int
 	Results  *[]string
+	Rect     rl.Rectangle
 }
 
 --- FILE: ./src/variables/chat.go ---
@@ -5667,6 +6441,8 @@ type GroupPanel struct {
 	SendPromotion   string
 	Promote         bool
 
+	LastNbOptions int
+
 	Rect            rl.Rectangle
 	ScrollRect      rl.Rectangle
 	ScrollActive    bool
@@ -5679,8 +6455,9 @@ type GroupPanel struct {
 package variables
 
 type InspectPanel struct {
-	Open  bool
-	Datas string
+	Open        bool
+	Datas       string
+	LastInspect string
 }
 
 --- FILE: ./src/variables/panels.go ---
@@ -5742,7 +6519,8 @@ func GetPanelsVariables() *PanelVariables {
 			LastFrameScroll: false,
 		},
 		Inspect: &InspectPanel{
-			Open: false,
+			Open:        false,
+			LastInspect: "ROOM",
 		},
 		Talk: &TalkPanel{
 			Talking:  nil,
@@ -5791,9 +6569,36 @@ const (
 	INSPECT_WIDTH   = 7
 	INSPECT_HEIGHT  = 17 - INSPECT_START_Y
 
+	TALK_START_X = 6
+	TALK_START_Y = 12
+	TALK_WIDTH   = 20
+	TALK_HEIGHT  = 16.5 - TALK_START_Y
+
+	COMBAT_START_X = 2
+	COMBAT_START_Y = 2
+	COMBAT_END_Y   = 16
+
+	COMBAT_CHAT_START_X = CHAT_START_X
+	COMBAT_CHAT_END_X   = CHAT_START_X + CHAT_WIDTH - 2
+
+	COMBAT_LEFT_END_X      = COMBAT_CHAT_START_X
+	COMBAT_FIGHTERS_END_Y  = 10
+	COMBAT_ACTIONS_START_Y = COMBAT_FIGHTERS_END_Y
+
 	PSEUDO_MAX_CHAR = 28
 	MSG_MAX_CHAR    = 20
 )
+
+--- FILE: ./src/variables/npc.go ---
+package variables
+
+type NpcDatas struct {
+	Hostile        bool
+	HasQuest       bool
+	RequestedQuest bool
+	CompletedQuest bool
+	QuestID        string
+}
 
 --- FILE: ./src/app.go ---
 package gui
@@ -5838,6 +6643,9 @@ func (app *App) Update() {
 
 	} else if app.Variables.Current_view == "Game" {
 		app.Updater.UpdateGameView()
+
+	} else if app.Variables.Current_view == "Combat" {
+		app.Updater.UpdateCombatView()
 	}
 }
 
@@ -5849,7 +6657,11 @@ func (app *App) Draw() {
 
 	} else if app.Variables.Current_view == "Game" {
 		app.Drawer.DrawGameView()
+
+	} else if app.Variables.Current_view == "Combat" {
+		app.Drawer.DrawCombatView()
 	}
+
 	app.Drawer.DrawMouse()
 }
 
@@ -6360,7 +7172,7 @@ rules.tmx
 
 --- FILE: ./tilesets/sprout-lands.tiled-session ---
 {
-    "activeFile": "test copy.tmx",
+    "activeFile": "Chest.tsx",
     "expandedProjectPaths": [
         "."
     ],
@@ -6578,19 +7390,19 @@ rules.tmx
             "scaleInEditor": 5.5
         },
         "test copy.tmx": {
-            "scale": 3.17841796875,
+            "scale": 1.5,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 255.94494116201182,
-                "y": 144.096844563247
+                "x": 256,
+                "y": 143.66666666666666
             }
         },
         "test.tmx": {
             "scale": 2,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 256,
-                "y": 143.75
+                "x": 267.5,
+                "y": 138.25
             }
         },
         "test.tsx": {

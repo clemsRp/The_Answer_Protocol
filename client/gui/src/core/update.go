@@ -43,6 +43,7 @@ func (app *App) ClosePopup()    {}
 func (app *App) ShowCombatPage() {
 	app.EndTalk()
 	app.Variables.Current_view = "Combat"
+	app.RebuildCombatInteractions()
 }
 
 func (app *App) ShowCombatResultPopup(result string, rewards []string) {
@@ -151,6 +152,7 @@ func (app *App) UpdateGroupPanel(grS state.GroupState) {
 
 func (app *App) UpdateCombat(combatState state.CombatState) {
 	app.Variables.PanelsVariables.CombatState = &combatState
+	app.RebuildCombatInteractions()
 }
 
 func (app *App) UpdateQuests(quests []protocol.TrackedQuestData) {
