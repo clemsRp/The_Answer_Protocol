@@ -39,7 +39,15 @@ func (app *App) ShowCombatPage()                                       {}
 func (app *App) ShowPopupPage()                                        {}
 func (app *App) ClosePopup()                                           {}
 func (app *App) ShowCombatResultPopup(result string, rewards []string) {}
-func (app *App) ShowQuestCompletedPopup(questID, reward string)        {}
+
+func (app *App) ShowQuestCompletedPopup(questID, reward string) {
+	for _, datas := range app.Variables.Npcs {
+		if datas.QuestID == questID {
+			datas.RequestedQuest = true
+			datas.CompletedQuest = true
+		}
+	}
+}
 
 func (app *App) UpdateNavigation(room *protocol.LookCommandData) {
 	app.Variables.PanelsVariables.Room = room
@@ -138,9 +146,21 @@ func (app *App) UpdateCombat(combatState state.CombatState) {
 
 func (app *App) UpdateQuests(quests []protocol.TrackedQuestData) {
 	app.Variables.PanelsVariables.Quests = &quests
+	for _, datas := range app.Variables.Npcs {
+		app.syncNpcQuest(datas)
+	}
+}
 
-	for _, quest := range quests {
-
+func (app *App) syncNpcQuest(datas *vars.NpcDatas) {
+	if datas.QuestID == "" || app.Variables.PanelsVariables.Quests == nil {
+		return
+	}
+	for _, q := range *app.Variables.PanelsVariables.Quests {
+		if q.Id == datas.QuestID {
+			datas.RequestedQuest = true
+			datas.CompletedQuest = q.Status == "completed"
+			return
+		}
 	}
 }
 
@@ -283,14 +303,18 @@ func (app *App) UpdateNpcWithNpc(text string) {
 
 	npc = app.Variables.NpcConvertor[npc]
 
-	if datas, ok := app.Variables.Npcs[npc]; !ok {
-		app.Variables.Npcs[npc] = &vars.NpcDatas{}
-		datas = app.Variables.Npcs[npc]
-
-	} else {
-		datas.Hostile = strings.Contains(text, "HOSTILE: YES")
-		datas.HasQuest = strings.Contains(text, "QUEST ID:")
+	datas, ok := app.Variables.Npcs[npc]
+	if !ok {
+		datas = &vars.NpcDatas{}
+		app.Variables.Npcs[npc] = datas
 	}
+
+	datas.Hostile = strings.Contains(text, "HOSTILE: YES")
+	if m := regexp.MustCompile(`QUEST ID:\s*(\S+)`).FindStringSubmatch(text); m != nil {
+		datas.QuestID = m[1]
+	}
+	datas.HasQuest = datas.QuestID != ""
+	app.syncNpcQuest(datas)
 }
 
 func (app *App) AppendCombatChat(user, msg string)                {}

@@ -5,4 +5,5 @@ type NpcDatas struct {
 	HasQuest       bool
 	RequestedQuest bool
 	CompletedQuest bool
+	QuestID        string
 }
