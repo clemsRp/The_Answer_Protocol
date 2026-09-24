@@ -12,6 +12,8 @@ type Interaction struct {
 	Buttons []*Button
 
 	hovered bool
+
+	Inspect func(item string)
 }
 
 func (i *Interaction) Rect() rl.Rectangle {
@@ -51,6 +53,10 @@ func (m *Manager) UpdateInteractions(view string) {
 	for _, item := range items {
 		// Check emote hover
 		item.hovered = rl.CheckCollisionPointRec(mouse, item.Rect())
+
+		if item.hovered && down {
+			item.Inspect(item.ID)
+		}
 
 		button_hovered := false
 

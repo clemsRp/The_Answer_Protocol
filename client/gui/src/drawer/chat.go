@@ -122,7 +122,7 @@ func (dr *Drawer) DrawChats(chat_start_x, chat_start_y, chat_height float32) {
 		maxY = 0
 		dr.app.Variables.PanelsVariables.Chat.ScrollActive = false
 	} else {
-		dr.DrawScrollBar(maxY)
+		dr.DrawChatScrollBar(maxY)
 		dr.app.Variables.PanelsVariables.Chat.ScrollActive = true
 	}
 
@@ -225,7 +225,7 @@ func (dr *Drawer) DrawChatMsg(chat vars.Chat, start_x, start_y, index float32, b
 	}
 }
 
-func (dr *Drawer) DrawScrollBar(maxY float32) {
+func (dr *Drawer) DrawChatScrollBar(maxY float32) {
 	// Draw Top part
 	dr.DrawImage(
 		vars.UI_SPRITE_TEXTURE,

@@ -102,6 +102,19 @@ func (app *App) AddMissingVariables(screenWidth int) {
 		(vars.CHAT_HEIGHT-0.5)*app.Variables.Tileset_size,
 	)
 
+	app.Variables.PanelsVariables.Group.Rect = rl.NewRectangle(
+		vars.GROUP_START_X*app.Variables.Tileset_size,
+		vars.GROUP_START_Y*app.Variables.Tileset_size,
+		vars.GROUP_WIDTH*app.Variables.Tileset_size,
+		vars.GROUP_HEIGHT*app.Variables.Tileset_size,
+	)
+	app.Variables.PanelsVariables.Group.ScrollRect = rl.NewRectangle(
+		(vars.GROUP_START_X+vars.GROUP_WIDTH-0.6)*app.Variables.Tileset_size,
+		(vars.GROUP_START_Y+0.25)*app.Variables.Tileset_size,
+		0.25*app.Variables.Tileset_size,
+		(vars.GROUP_HEIGHT-0.5)*app.Variables.Tileset_size,
+	)
+
 	remote_players := make(map[string]*vars.Player)
 	app.Variables.RemotePlayers = &remote_players
 }
@@ -121,6 +134,12 @@ func (app *App) AddItemPositions() {
 	}
 
 	app.Variables.ItemPositions = &positions
+}
+
+func (app *App) GroupContentStartY() float32 {
+	tile := app.Variables.Tileset_size
+	font := app.Variables.FontSize
+	return (vars.GROUP_START_Y+2)*tile + 2*font
 }
 
 func (app *App) QueueUpdate(f func()) {

@@ -14,7 +14,8 @@ type Drawer struct {
 	blurShader   rl.Shader
 	darkenShader rl.Shader
 
-	chatTexture rl.RenderTexture2D
+	chatTexture  rl.RenderTexture2D
+	groupTexture rl.RenderTexture2D
 }
 
 var (

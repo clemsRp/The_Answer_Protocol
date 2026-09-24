@@ -92,7 +92,7 @@ func (app *App) GetNewRoomItems(roomItems []string) []*ui.Interaction {
 			OnClick: func() {
 				// Send the 'Take' command to the server
 				app.QueueUpdate(func() {
-					app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + it}
+					// app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + it}
 					app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdTake + " " + it}
 				})
 			},
@@ -100,9 +100,12 @@ func (app *App) GetNewRoomItems(roomItems []string) []*ui.Interaction {
 
 		// Group the emote and buttons into a single interaction entity
 		item := &ui.Interaction{
-			ID:      "item",
+			ID:      it,
 			Emote:   item_emote,
 			Buttons: []*ui.Button{item_bubble, item_btn},
+			Inspect: func(item string) {
+				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + item}
+			},
 		}
 
 		items = append(items, item)
@@ -140,7 +143,7 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 
 		// Create the visual representation of the inventory item
 		item_emote := &ui.Emote{
-			ID:           "item_" + it,
+			ID:           it,
 			Texture:      text,
 			X:            start_x + app.Variables.Tileset_size*(float32(ind)+0.115),
 			Y:            0.45*app.Variables.Tileset_size + start_y,
@@ -148,6 +151,9 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 			Rotation:     0,
 			AnimDuration: 2 * frame_duration,
 			Frames:       frames,
+			Inspect: func(item string) {
+				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + item}
+			},
 		}
 
 		// Create the drop button for the inventory item
@@ -162,8 +168,6 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 			Hover:    ui.Frame{IndX: 52, IndY: 10, RatioX: 2, RatioY: 2},
 			Pressed:  ui.Frame{IndX: 54, IndY: 10, RatioX: 2, RatioY: 2},
 			OnClick: func() {
-				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + it}
-
 				// Get offset datas
 				dirX := app.Variables.Player.Direction.X
 				dirY := app.Variables.Player.Direction.Y

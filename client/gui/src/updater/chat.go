@@ -26,7 +26,7 @@ func (up *Updater) UpdateChat() {
 	up.app.Manager.Update("Chat")
 
 	up.UpdateChatMsg()
-	up.UpdateScroll()
+	up.UpdateChatScroll()
 	up.UpdateScope()
 }
 
@@ -68,7 +68,7 @@ func (up *Updater) SendChat() {
 	}
 }
 
-func (up *Updater) UpdateScroll() {
+func (up *Updater) UpdateChatScroll() {
 	mouse := rl.GetMousePosition()
 	hover := rl.CheckCollisionPointRec(mouse, up.app.Variables.PanelsVariables.Chat.Rect)
 

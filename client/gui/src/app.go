@@ -45,6 +45,7 @@ func (app *App) Update() {
 
 func (app *App) Draw() {
 	app.Drawer.RenderChatTexture()
+	app.Drawer.RenderGroupTexture()
 	if app.Variables.Current_view == "Connect" {
 		app.Drawer.DrawConnectView()
 

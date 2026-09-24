@@ -43,7 +43,7 @@ func (app *App) buildTabOptions(command string) []*ui.Option {
 
 	start_x := 4.25 * app.Variables.Tileset_size
 	start_y := 7.1 * app.Variables.Tileset_size
-	end_x := (vars.GROUP_START_X + vars.GROUP_WIDTH - 1.3) * app.Variables.Tileset_size
+	end_x := (vars.GROUP_START_X + vars.GROUP_WIDTH - 1.6) * app.Variables.Tileset_size
 
 	for index, command_option := range *target_options {
 		// Skip an entry already handled locally

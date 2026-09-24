@@ -51,6 +51,9 @@ func GetPanelsVariables() *PanelVariables {
 			SendInvitations: make([]string, 0),
 			SendPromotion:   "",
 			Promote:         false,
+
+			ScrollActive:    false,
+			LastFrameScroll: false,
 		},
 		Inspect: &InspectPanel{
 			Open: false,

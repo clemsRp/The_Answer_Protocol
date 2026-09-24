@@ -45,6 +45,7 @@ func (up *Updater) UpdateGameView() {
 
 	if up.app.Variables.PanelsVariables.Group.Open {
 		up.app.Manager.Update("Group")
+		up.UpdateGroupScroll()
 	}
 
 	if up.app.Variables.PanelsVariables.Inspect.Open {

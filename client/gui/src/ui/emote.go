@@ -1,6 +1,11 @@
 package ui
 
-import "time"
+import (
+	vars "tap/client/gui/src/variables"
+	"time"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
 type EmoteFrame struct {
 	Frame    *Frame
@@ -17,6 +22,19 @@ type Emote struct {
 
 	AnimDuration int
 	Frames       []*EmoteFrame
+	Inspect      func(emote string)
+}
+
+func (e *Emote) Rect() rl.Rectangle {
+	if len(e.Frames) == 0 {
+		return rl.NewRectangle(0, 0, 0, 0)
+	}
+
+	frame := e.Frames[0].Frame
+	w := float32(vars.FRAME_WIDTH) * e.Zoom * frame.RatioX
+	h := float32(vars.FRAME_HEIGHT) * e.Zoom * frame.RatioY
+
+	return rl.NewRectangle(e.X, e.Y, w, h)
 }
 
 func (e *Emote) CurrentFrame(start_time time.Time) Frame {
@@ -45,4 +63,20 @@ func (m *Manager) Emotes(view string) []*Emote {
 }
 
 func (m *Manager) UpdateEmotes(view string) {
+	emotes := m.views_emotes[view]
+	if len(emotes) == 0 {
+		return
+	}
+
+	mouse := rl.GetMousePosition()
+	down := rl.IsMouseButtonDown(rl.MouseButtonLeft)
+
+	for _, emote := range emotes {
+		// Check emote hover
+		hovered := rl.CheckCollisionPointRec(mouse, emote.Rect())
+
+		if hovered && down {
+			emote.Inspect(emote.ID)
+		}
+	}
 }

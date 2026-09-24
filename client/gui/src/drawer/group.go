@@ -35,13 +35,49 @@ func (dr *Drawer) DrawGroupPanel() {
 
 	dr.DrawGroupButtons()
 	dr.DrawCommonButton()
-	dr.DrawGroupOptions()
 
-	if !group.InGroup {
+	if group.InGroup {
+		dr.DrawGroupDatas(group, group_start_x, group_start_y, group_width, tile, font)
+	}
+
+	dr.DrawGroupOptionsToScreen(group_start_x, group_start_y, group_height)
+}
+
+func (dr *Drawer) RenderGroupTexture() {
+	group := dr.app.Variables.PanelsVariables.Group
+	if !group.Open {
 		return
 	}
 
-	dr.DrawGroupDatas(group, group_start_x, group_start_y, group_width, tile, font)
+	options := dr.app.Manager.Options("Group")
+	dr.initGroupTexture(float32(vars.GROUP_WIDTH), len(options))
+
+	rl.BeginTextureMode(dr.groupTexture)
+	rl.ClearBackground(rl.Blank)
+	dr.DrawGroupOptions(
+		vars.GROUP_START_X,
+		vars.GROUP_START_Y,
+		vars.GROUP_HEIGHT,
+	)
+	rl.EndTextureMode()
+}
+
+func (dr *Drawer) initGroupTexture(group_width float32, nb_options int) {
+	group := dr.app.Variables.PanelsVariables.Group
+
+	if group.LastNbOptions != nb_options || dr.groupTexture.ID == 0 {
+		if dr.groupTexture.ID != 0 {
+			rl.UnloadRenderTexture(dr.groupTexture)
+		}
+		row_height := 1.6 * dr.app.Variables.FontSize
+		content_height := float32(nb_options)*row_height + dr.app.Variables.Tileset_size
+
+		dr.groupTexture = rl.LoadRenderTexture(
+			int32(group_width*dr.app.Variables.Tileset_size),
+			int32(content_height),
+		)
+		group.LastNbOptions = nb_options
+	}
 }
 
 func (dr *Drawer) DrawCommonButton() {
@@ -112,4 +148,71 @@ func (dr *Drawer) DrawGroupDatas(group *vars.GroupPanel, group_start_x, group_st
 
 		index++
 	}
+}
+
+func (dr *Drawer) DrawGroupScrollBar(maxY float32) {
+	tile := dr.app.Variables.Tileset_size
+	content_top := dr.app.GroupContentStartY()
+	content_top_tile := content_top / tile
+
+	// Draw Top part
+	dr.DrawImage(
+		vars.UI_SPRITE_TEXTURE,
+		float32((vars.GROUP_START_X+vars.GROUP_WIDTH-1)*tile),
+		content_top,
+		20, 8, 1, 1, dr.app.Variables.Zoom, 0,
+	)
+
+	// Draw Middle part
+	limit := int(float32(vars.GROUP_START_Y+vars.GROUP_HEIGHT) - content_top_tile - 2)
+	for mid := 0; mid < limit; mid++ {
+		dr.DrawImage(
+			vars.UI_SPRITE_TEXTURE,
+			float32((vars.GROUP_START_X+vars.GROUP_WIDTH-1)*tile),
+			content_top+float32(mid+1)*tile,
+			20, 9, 1, 1, dr.app.Variables.Zoom, 0,
+		)
+	}
+
+	// Draw Bottom part
+	dr.DrawImage(
+		vars.UI_SPRITE_TEXTURE,
+		float32((vars.GROUP_START_X+vars.GROUP_WIDTH-1)*tile),
+		content_top+float32(limit+1)*tile,
+		20, 10, 1, 1, dr.app.Variables.Zoom, 0,
+	)
+
+	scroll_bar_start_y := content_top + 0.5*tile
+	scroll_bar_end_y := (float32(vars.GROUP_START_Y) + float32(vars.GROUP_HEIGHT) - 0.5) * tile
+
+	cursor_y := dr.app.Variables.PanelsVariables.Group.ScrollBarY
+	current_scroll := dr.app.Variables.PanelsVariables.Group.Scroll
+
+	if rl.IsMouseButtonDown(rl.MouseLeftButton) {
+		cursor_y = max(scroll_bar_start_y, cursor_y)
+		cursor_y = min(cursor_y, scroll_bar_end_y)
+		dr.app.Variables.PanelsVariables.Group.ScrollBarY = cursor_y
+
+		if scroll_bar_end_y > scroll_bar_start_y {
+			percent := (cursor_y - scroll_bar_start_y) / (scroll_bar_end_y - scroll_bar_start_y)
+			dr.app.Variables.PanelsVariables.Group.Scroll = -maxY * percent
+		}
+
+	} else if maxY > 0 {
+		percent := current_scroll / -maxY
+		cursor_y = scroll_bar_start_y + percent*(scroll_bar_end_y-scroll_bar_start_y)
+
+		cursor_y = max(scroll_bar_start_y, cursor_y)
+		cursor_y = min(cursor_y, scroll_bar_end_y)
+
+		dr.app.Variables.PanelsVariables.Group.ScrollBarY = cursor_y
+	}
+
+	// Draw cursor
+	dr.DrawImage(
+		vars.UI_SPRITE_TEXTURE,
+		float32((vars.GROUP_START_X+vars.GROUP_WIDTH-1)*tile),
+		cursor_y-tile,
+		19, 8, 1, 2, dr.app.Variables.Zoom, 0,
+	)
 }

@@ -44,7 +44,6 @@
 │   │   ├── button.go
 │   │   ├── emote.go
 │   │   ├── interaction.go
-│   │   ├── item.go
 │   │   ├── manager.go
 │   │   ├── option.go
 │   │   └── select.go
@@ -55,6 +54,7 @@
 │   │   ├── connect.go
 │   │   ├── emotes.go
 │   │   ├── game.go
+│   │   ├── group.go
 │   │   ├── interactions.go
 │   │   ├── mouse.go
 │   │   ├── options.go
@@ -532,154 +532,6 @@
  "version":"1.10",
  "width":32
 }
---- FILE: ./src/core/app.go ---
-package core
-
-import (
-	"fmt"
-	"tap/client/gui/src/parser"
-	"tap/client/gui/src/ui"
-	vars "tap/client/gui/src/variables"
-	panel "tap/client/tui/panels"
-	"tap/engine"
-	"time"
-
-	rl "github.com/gen2brain/raylib-go/raylib"
-)
-
-type App struct {
-	Textures     *parser.Textures
-	Variables    *vars.Variables
-	Colors       map[string]rl.Color
-	Manager      *ui.Manager
-	Rooms        map[string]*parser.Map
-	ScreenWidth  int
-	ScreenHeight int
-	ActionsChan  chan panel.Action
-	Running      bool
-
-	updateQueue chan func()
-}
-
-func NewApp(actionsChan chan panel.Action) *App {
-	rl.SetTraceLogLevel(rl.LogNone)
-	rl.SetTargetFPS(60)
-
-	rl.InitWindow(0, 0, "TAP")
-	rl.HideCursor()
-	rl.SetExitKey(0)
-
-	monitor := rl.GetCurrentMonitor()
-	screenWidth := rl.GetMonitorWidth(monitor)
-	screenHeight := rl.GetMonitorHeight(monitor)
-
-	rl.SetWindowSize(screenWidth, screenHeight)
-
-	// Init App
-	app := &App{
-		Textures:     parser.LoadTextures(),
-		Variables:    vars.GetVariables(),
-		Colors:       vars.GetColors(),
-		Manager:      ui.NewManager(),
-		ScreenWidth:  screenWidth,
-		ScreenHeight: screenHeight,
-		ActionsChan:  actionsChan,
-		updateQueue:  make(chan func(), 256),
-		Running:      true,
-	}
-
-	// Parse maps
-	var err error
-	maps_folder_path := "./client/gui/maps/"
-	app.Rooms, err = parser.ParseRooms(
-		[]string{
-			maps_folder_path + engine.RoomEntrance,
-			maps_folder_path + engine.RoomVillageSquare,
-		},
-	)
-
-	// Handle error
-	if err != nil {
-		fmt.Println("Error parsing rooms:", err)
-		app.Stop()
-		return nil
-	}
-
-	app.AddMissingVariables(screenWidth)
-	app.AddItemPositions()
-
-	return app
-}
-
-func (app *App) AddMissingVariables(screenWidth int) {
-	app.Variables.Tileset_size = float32(screenWidth / 32)
-	app.Variables.FontSize = 0.4 * app.Variables.Tileset_size
-	app.Variables.Player.Speed = int(0.12 * app.Variables.Tileset_size)
-	app.Variables.Zoom = float32(app.Variables.Tileset_size) / float32(vars.FRAME_WIDTH)
-	app.Variables.StartTime = time.Now()
-	app.Variables.Player.LastTimeTyped = time.Now()
-	app.Variables.StartingPosX = float32(15.5 * app.Variables.Tileset_size)
-	app.Variables.StartingPosY = float32(8.5 * app.Variables.Tileset_size)
-	app.Variables.Player.Position = &vars.Position{
-		X: app.Variables.StartingPosX,
-		Y: app.Variables.StartingPosY,
-	}
-	app.Variables.PanelsVariables.Chat.Rect = rl.NewRectangle(
-		vars.CHAT_START_X*app.Variables.Tileset_size,
-		vars.CHAT_START_Y*app.Variables.Tileset_size,
-		vars.CHAT_WIDTH*app.Variables.Tileset_size,
-		vars.CHAT_HEIGHT*app.Variables.Tileset_size,
-	)
-	app.Variables.PanelsVariables.Chat.ScrollRect = rl.NewRectangle(
-		(vars.CHAT_START_X+vars.CHAT_WIDTH-0.6)*app.Variables.Tileset_size,
-		(vars.CHAT_START_Y+0.25)*app.Variables.Tileset_size,
-		0.25*app.Variables.Tileset_size,
-		(vars.CHAT_HEIGHT-0.5)*app.Variables.Tileset_size,
-	)
-
-	remote_players := make(map[string]*vars.Player)
-	app.Variables.RemotePlayers = &remote_players
-}
-
-func (app *App) AddItemPositions() {
-	positions := make(map[string]*vars.Position)
-
-	// Set positions
-	// TODO Define all items
-	positions["turnip_seed"] = &vars.Position{X: 4, Y: 11}
-	positions["rusty_hoe"] = &vars.Position{X: 4, Y: 9}
-
-	// Scale positions to map size
-	for _, pos := range positions {
-		(*pos).X *= app.Variables.Tileset_size
-		(*pos).Y *= app.Variables.Tileset_size
-	}
-
-	app.Variables.ItemPositions = &positions
-}
-
-func (app *App) QueueUpdate(f func()) {
-	if f == nil {
-		return
-	}
-	select {
-	case app.updateQueue <- f:
-	default:
-		fmt.Println("GUI: update queue full, dropping app UI update")
-	}
-}
-
-func (app *App) DrainQueue() {
-	for {
-		select {
-		case f := <-app.updateQueue:
-			f()
-		default:
-			return
-		}
-	}
-}
-
 --- FILE: ./src/core/items.go ---
 package core
 
@@ -775,7 +627,7 @@ func (app *App) GetNewRoomItems(roomItems []string) []*ui.Interaction {
 			OnClick: func() {
 				// Send the 'Take' command to the server
 				app.QueueUpdate(func() {
-					app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + it}
+					// app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + it}
 					app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdTake + " " + it}
 				})
 			},
@@ -783,9 +635,12 @@ func (app *App) GetNewRoomItems(roomItems []string) []*ui.Interaction {
 
 		// Group the emote and buttons into a single interaction entity
 		item := &ui.Interaction{
-			ID:      "item",
+			ID:      it,
 			Emote:   item_emote,
 			Buttons: []*ui.Button{item_bubble, item_btn},
+			Inspect: func(item string) {
+				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + item}
+			},
 		}
 
 		items = append(items, item)
@@ -823,7 +678,7 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 
 		// Create the visual representation of the inventory item
 		item_emote := &ui.Emote{
-			ID:           "item_" + it,
+			ID:           it,
 			Texture:      text,
 			X:            start_x + app.Variables.Tileset_size*(float32(ind)+0.115),
 			Y:            0.45*app.Variables.Tileset_size + start_y,
@@ -831,6 +686,9 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 			Rotation:     0,
 			AnimDuration: 2 * frame_duration,
 			Frames:       frames,
+			Inspect: func(item string) {
+				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + item}
+			},
 		}
 
 		// Create the drop button for the inventory item
@@ -845,8 +703,6 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 			Hover:    ui.Frame{IndX: 52, IndY: 10, RatioX: 2, RatioY: 2},
 			Pressed:  ui.Frame{IndX: 54, IndY: 10, RatioX: 2, RatioY: 2},
 			OnClick: func() {
-				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + it}
-
 				// Get offset datas
 				dirX := app.Variables.Player.Direction.X
 				dirY := app.Variables.Player.Direction.Y
@@ -989,269 +845,6 @@ func get_item_datas(item string, frame_duration int) (string, []*ui.EmoteFrame) 
 	}
 
 	return texture, frames
-}
-
---- FILE: ./src/core/update.go ---
-package core
-
-import (
-	"fmt"
-	"regexp"
-	"slices"
-	"strings"
-	"tap/client/state"
-	panel "tap/client/tui/panels"
-	"tap/protocol"
-	"time"
-
-	vars "tap/client/gui/src/variables"
-)
-
-func (app *App) ShowConnectPage() {
-	app.Variables.Current_view = "Connect"
-}
-
-func (app *App) ShowGamePage() {
-	app.Variables.Current_view = "Game"
-	newPosX := app.Variables.Player.Position.X
-	newPosY := app.Variables.Player.Position.Y
-	newDirX := app.Variables.Player.Direction.X
-	newDirY := app.Variables.Player.Direction.Y
-	emoteIndex := app.Variables.Player.EmoteIndex
-	payload := fmt.Sprintf("%s %f %f %f %f %d", protocol.CmdNotifyPlayerPosition, newPosX, newPosY, newDirX, newDirY, emoteIndex)
-
-	app.ActionsChan <- panel.Action{
-		Type:    panel.ActionSendServer,
-		Payload: payload,
-	}
-	app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdGetPlayerPositions}
-	app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdGetItemPositions}
-}
-
-func (app *App) ShowCombatPage()                                       {}
-func (app *App) ShowPopupPage()                                        {}
-func (app *App) ClosePopup()                                           {}
-func (app *App) ShowCombatResultPopup(result string, rewards []string) {}
-func (app *App) ShowQuestCompletedPopup(questID, reward string)        {}
-
-func (app *App) UpdateNavigation(room *protocol.LookCommandData) {
-	app.Variables.PanelsVariables.Room = room
-	app.Variables.Current_room = strings.SplitN(room.Id, "room.", 2)[1]
-}
-
-func (app *App) UpdateItems(roomItems, inventory []string) {
-	app.Variables.PanelsVariables.RoomItems = &roomItems
-	app.Variables.PanelsVariables.InventoryItems = &inventory
-
-	items := app.GetNewRoomItems(roomItems)
-	app.Manager.SetViewInteractions("Items", items)
-
-	invent_buttons, invent_emotes := app.GetNewInventory(inventory)
-	app.Manager.SetViewEmotes("Inventory", invent_emotes)
-	app.Manager.SetViewButtons("Inventory", invent_buttons)
-}
-
-func (app *App) UpdateDatas(text string) {}
-func (app *App) UpdateInteraction(roomNpcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string, quests []protocol.TrackedQuestData, completed_quests []string) {
-	npcs := app.GetNewRoomNpcs(roomNpcs)
-	app.Manager.SetViewInteractions("Npcs", npcs)
-
-	npc := app.Variables.PanelsVariables.Talk.LastTalk
-	if talk_res, ok := npcDialogues[npc]; ok {
-		app.SetTalkResult(npc, talk_res)
-	}
-}
-
-func (app *App) UpdateGroup(groupState state.GroupState) {
-	app.QueueUpdate(func() {
-		app.Variables.PanelsVariables.GroupState = &groupState
-		app.UpdateGroupPanel(groupState)
-
-		prev := ""
-		if sel := app.Manager.Selects("Group"); len(sel) > 0 {
-			prev = sel[0].CurrentOption
-		}
-		selects := app.GetGroupSelects()
-		current := ""
-		if len(selects) > 0 {
-			for _, opt := range selects[0].Options {
-				if opt == prev {
-					selects[0].CurrentOption = prev
-					break
-				}
-			}
-			current = selects[0].CurrentOption
-		}
-
-		app.Manager.SetViewOptions("Group", app.GetGroupOptions(current))
-		app.Manager.SetViewSelects("Group", selects)
-	})
-}
-
-func (app *App) UpdateGroupPanel(grS state.GroupState) {
-	gr := app.Variables.PanelsVariables.Group
-
-	// Sync everything
-	gr.InGroup = grS.Group != ""
-	gr.IsLeader = grS.Leader
-	if gr.IsLeader {
-		gr.Leader = app.GetPseudo()
-	}
-	gr.Grouped = grS.Grouped
-	gr.UnGrouped = grS.UnGrouped
-	gr.Invitations = grS.Invitations
-	gr.Promote = grS.Promotion
-
-	if !grS.SendPromotion {
-		if gr.SendPromotion != "" {
-			gr.Leader = gr.SendPromotion
-		}
-		gr.SendPromotion = ""
-	}
-
-	// Drop a pending promotion
-	if gr.SendPromotion != "" && (!slices.Contains(gr.Grouped, gr.SendPromotion) || !gr.IsLeader) {
-		gr.SendPromotion = ""
-	}
-
-	// Drop invitations
-	gr.SendInvitations = slices.DeleteFunc(gr.SendInvitations, func(p string) bool {
-		return slices.Contains(gr.Grouped, p) || !slices.Contains(gr.UnGrouped, p)
-	})
-
-	if !gr.InGroup {
-		gr.Promote = false
-		gr.SendPromotion = ""
-	}
-}
-
-func (app *App) UpdateCombat(combatState state.CombatState) {
-	app.Variables.PanelsVariables.CombatState = &combatState
-}
-
-func (app *App) UpdateQuests(quests []protocol.TrackedQuestData) {
-	app.Variables.PanelsVariables.Quests = &quests
-}
-
-func (app *App) AppendChat(scope, user, msg string) {
-	scope_up := strings.ToUpper(scope)
-	chats := app.Variables.PanelsVariables.Chat.ScopeChats
-
-	emote_index := app.Variables.Player.EmoteIndex
-	if user != app.Variables.Player.Pseudo {
-		emote_index = 0
-		if remotePlayer, exists := (*app.Variables.RemotePlayers)[user]; exists {
-			emote_index = remotePlayer.EmoteIndex
-		}
-	}
-
-	new_chat := vars.Chat{
-		Msg:        msg,
-		Pseudo:     user,
-		Time:       time.Now(),
-		EmoteIndex: emote_index,
-	}
-
-	chats[scope_up] = append(chats[scope_up], new_chat)
-}
-
-func (app *App) UpdateInspector(text string) {
-	re := regexp.MustCompile(`\[.+?\]`)
-	text = re.ReplaceAllString(text, "")
-
-	app.Variables.PanelsVariables.Inspect.Datas = text
-}
-
-func (app *App) AppendCombatChat(user, msg string)                {}
-func (app *App) AppendServerResponse(res protocol.ServerResponse) {}
-func (app *App) AppendCliMessage(text string)                     {}
-func (app *App) AppendCliResponse(res protocol.ServerResponse)    {}
-
-func (app *App) UpdateRemotePlayerPosition(pseudo string, x, y, dirX, dirY float32, emoteIndex int) {
-	if pseudo == app.Variables.Player.Pseudo {
-		return
-	}
-
-	if remotePlayer, exists := (*app.Variables.RemotePlayers)[pseudo]; exists {
-		remotePlayer.Position.X = x
-		remotePlayer.Position.Y = y
-		remotePlayer.Direction.X = dirX
-		remotePlayer.Direction.Y = dirY
-		remotePlayer.EmoteIndex = emoteIndex
-	} else {
-		(*app.Variables.RemotePlayers)[pseudo] = &vars.Player{
-			Pseudo:     pseudo,
-			Position:   &vars.Position{X: x, Y: y},
-			Direction:  &vars.Direction{X: dirX, Y: dirY},
-			EmoteIndex: emoteIndex,
-		}
-	}
-}
-
-func (app *App) AddRemotePlayer(pseudo string) {
-	if _, exists := (*app.Variables.RemotePlayers)[pseudo]; !exists {
-		(*app.Variables.RemotePlayers)[pseudo] = &vars.Player{
-			Pseudo:    pseudo,
-			Position:  &vars.Position{X: app.Variables.StartingPosX, Y: app.Variables.StartingPosY},
-			Direction: &vars.Direction{X: 0, Y: 1},
-		}
-	}
-	app.UpdateRemotePlayerPosition(pseudo, app.Variables.StartingPosX, app.Variables.StartingPosY, 0, 1, 0)
-}
-
-func (app *App) RemoveRemotePlayer(pseudo string) {
-	if app.Variables.RemotePlayers != nil {
-		new_remote_players := make(map[string]*vars.Player)
-
-		for player_pseudo, player := range *app.Variables.RemotePlayers {
-			if player_pseudo != pseudo {
-				new_remote_players[player_pseudo] = player
-			}
-		}
-
-		app.Variables.RemotePlayers = &new_remote_players
-	}
-}
-
-func (app *App) ResetRemotePlayers() {
-	remote_players := make(map[string]*vars.Player)
-	app.Variables.RemotePlayers = &remote_players
-}
-
-func (app *App) UpdateItemPosition(name string, x, y float32) {
-	if item, exists := (*app.Variables.ItemPositions)[name]; exists {
-		(*item).X = x
-		(*item).Y = y
-	} else {
-		(*app.Variables.ItemPositions)[name] = &vars.Position{X: x, Y: y}
-	}
-
-	for _, item := range app.Manager.Interactions("Game") {
-		if item.Emote.ID == "item_"+name {
-			// Update emote position
-			item.Emote.X = x
-			item.Emote.Y = y
-
-			// Update buttons positions
-			item.Buttons[0].X = x - 0.2*app.Variables.Tileset_size
-			item.Buttons[0].Y = y - 1.2*app.Variables.Tileset_size
-			item.Buttons[1].X = x + 0.15*app.Variables.Tileset_size
-			item.Buttons[1].Y = y - 0.85*app.Variables.Tileset_size
-			break
-		}
-	}
-}
-
-func (app *App) GetPseudo() string {
-	return app.Variables.Player.Pseudo
-}
-
-func (app *App) SetPseudo(pseudo string) {
-	app.Variables.Player.Pseudo = pseudo
-}
-
-func (app *App) Stop() {
-	app.Running = false
 }
 
 --- FILE: ./src/core/npcs.go ---
@@ -1414,73 +1007,6 @@ func (app *App) SetTalkResult(npcID, result string) {
 
 func (app *App) EndTalk() {
 	app.Variables.PanelsVariables.Talk.Talking = nil
-}
-
---- FILE: ./src/core/selects.go ---
-package core
-
-import (
-	"tap/client/gui/src/ui"
-	vars "tap/client/gui/src/variables"
-)
-
-type SelectDatas struct {
-	X       float32
-	Y       float32
-	Options []string
-}
-
-var (
-	group_selects = SelectDatas{
-		X: 2, Y: 7, Options: make([]string, 0),
-	}
-)
-
-func (app *App) GetGroupSelects() []*ui.Select {
-	options := make([]string, 0)
-	gr := app.Variables.PanelsVariables.Group
-
-	if len(gr.UnGrouped) > 0 && gr.InGroup && gr.IsLeader && len(gr.UnGrouped) > 0 {
-		options = append(options, "Invite")
-	}
-	if len(gr.Grouped) > 0 && gr.InGroup && gr.IsLeader {
-		options = append(options, "Kick")
-	}
-	if len(gr.Grouped) > 0 && gr.InGroup && gr.IsLeader && gr.SendPromotion == "" {
-		options = append(options, "Promote")
-	}
-	if len(gr.Invitations) > 0 && !gr.InGroup {
-		options = append(options, "Join")
-	}
-
-	group_selects.Options = options
-
-	cur_option := ""
-	if len(group_selects.Options) > 0 {
-		cur_option = group_selects.Options[0]
-	}
-
-	// Create Select
-	select_element := &ui.Select{
-		ID:            "group_options_select",
-		Texture:       vars.UI_SPRITE_TEXTURE,
-		X:             group_selects.X * app.Variables.Tileset_size,
-		Y:             group_selects.Y * app.Variables.Tileset_size,
-		Zoom:          app.Variables.Zoom / 3,
-		Rotation:      0,
-		Normal:        ui.Frame{IndX: 10, IndY: 11, RatioX: 6, RatioY: 2},
-		Hover:         ui.Frame{IndX: 16, IndY: 11, RatioX: 6, RatioY: 2},
-		ItemNormal:    ui.Frame{IndX: 10, IndY: 11, RatioX: 6, RatioY: 2},
-		ItemHover:     ui.Frame{IndX: 16, IndY: 11, RatioX: 6, RatioY: 2},
-		Options:       group_selects.Options,
-		CurrentOption: cur_option,
-		Open:          false,
-		OnChange: func(option string) {
-			app.Manager.SetViewOptions("Group", app.GetGroupOptions(option))
-		},
-	}
-
-	return []*ui.Select{select_element}
 }
 
 --- FILE: ./src/core/options.go ---
@@ -1693,6 +1219,535 @@ func (app *App) KickFunc(command, command_option string) {
 	if app.Variables.PanelsVariables.Group.SendPromotion == command_option {
 		app.Variables.PanelsVariables.Group.SendPromotion = ""
 	}
+}
+
+--- FILE: ./src/core/app.go ---
+package core
+
+import (
+	"fmt"
+	"tap/client/gui/src/parser"
+	"tap/client/gui/src/ui"
+	vars "tap/client/gui/src/variables"
+	panel "tap/client/tui/panels"
+	"tap/engine"
+	"time"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+type App struct {
+	Textures     *parser.Textures
+	Variables    *vars.Variables
+	Colors       map[string]rl.Color
+	Manager      *ui.Manager
+	Rooms        map[string]*parser.Map
+	ScreenWidth  int
+	ScreenHeight int
+	ActionsChan  chan panel.Action
+	Running      bool
+
+	updateQueue chan func()
+}
+
+func NewApp(actionsChan chan panel.Action) *App {
+	rl.SetTraceLogLevel(rl.LogNone)
+	rl.SetTargetFPS(60)
+
+	rl.InitWindow(0, 0, "TAP")
+	rl.HideCursor()
+	rl.SetExitKey(0)
+
+	monitor := rl.GetCurrentMonitor()
+	screenWidth := rl.GetMonitorWidth(monitor)
+	screenHeight := rl.GetMonitorHeight(monitor)
+
+	rl.SetWindowSize(screenWidth, screenHeight)
+
+	// Init App
+	app := &App{
+		Textures:     parser.LoadTextures(),
+		Variables:    vars.GetVariables(),
+		Colors:       vars.GetColors(),
+		Manager:      ui.NewManager(),
+		ScreenWidth:  screenWidth,
+		ScreenHeight: screenHeight,
+		ActionsChan:  actionsChan,
+		updateQueue:  make(chan func(), 256),
+		Running:      true,
+	}
+
+	// Parse maps
+	var err error
+	maps_folder_path := "./client/gui/maps/"
+	app.Rooms, err = parser.ParseRooms(
+		[]string{
+			maps_folder_path + engine.RoomEntrance,
+			maps_folder_path + engine.RoomVillageSquare,
+		},
+	)
+
+	// Handle error
+	if err != nil {
+		fmt.Println("Error parsing rooms:", err)
+		app.Stop()
+		return nil
+	}
+
+	app.AddMissingVariables(screenWidth)
+	app.AddItemPositions()
+
+	return app
+}
+
+func (app *App) AddMissingVariables(screenWidth int) {
+	app.Variables.Tileset_size = float32(screenWidth / 32)
+	app.Variables.FontSize = 0.4 * app.Variables.Tileset_size
+	app.Variables.Player.Speed = int(0.12 * app.Variables.Tileset_size)
+	app.Variables.Zoom = float32(app.Variables.Tileset_size) / float32(vars.FRAME_WIDTH)
+	app.Variables.StartTime = time.Now()
+	app.Variables.Player.LastTimeTyped = time.Now()
+	app.Variables.StartingPosX = float32(15.5 * app.Variables.Tileset_size)
+	app.Variables.StartingPosY = float32(8.5 * app.Variables.Tileset_size)
+	app.Variables.Player.Position = &vars.Position{
+		X: app.Variables.StartingPosX,
+		Y: app.Variables.StartingPosY,
+	}
+	app.Variables.PanelsVariables.Chat.Rect = rl.NewRectangle(
+		vars.CHAT_START_X*app.Variables.Tileset_size,
+		vars.CHAT_START_Y*app.Variables.Tileset_size,
+		vars.CHAT_WIDTH*app.Variables.Tileset_size,
+		vars.CHAT_HEIGHT*app.Variables.Tileset_size,
+	)
+	app.Variables.PanelsVariables.Chat.ScrollRect = rl.NewRectangle(
+		(vars.CHAT_START_X+vars.CHAT_WIDTH-0.6)*app.Variables.Tileset_size,
+		(vars.CHAT_START_Y+0.25)*app.Variables.Tileset_size,
+		0.25*app.Variables.Tileset_size,
+		(vars.CHAT_HEIGHT-0.5)*app.Variables.Tileset_size,
+	)
+
+	app.Variables.PanelsVariables.Group.Rect = rl.NewRectangle(
+		vars.GROUP_START_X*app.Variables.Tileset_size,
+		vars.GROUP_START_Y*app.Variables.Tileset_size,
+		vars.GROUP_WIDTH*app.Variables.Tileset_size,
+		vars.GROUP_HEIGHT*app.Variables.Tileset_size,
+	)
+	app.Variables.PanelsVariables.Group.ScrollRect = rl.NewRectangle(
+		(vars.GROUP_START_X+vars.GROUP_WIDTH-0.6)*app.Variables.Tileset_size,
+		(vars.GROUP_START_Y+0.25)*app.Variables.Tileset_size,
+		0.25*app.Variables.Tileset_size,
+		(vars.GROUP_HEIGHT-0.5)*app.Variables.Tileset_size,
+	)
+
+	remote_players := make(map[string]*vars.Player)
+	app.Variables.RemotePlayers = &remote_players
+}
+
+func (app *App) AddItemPositions() {
+	positions := make(map[string]*vars.Position)
+
+	// Set positions
+	// TODO Define all items
+	positions["turnip_seed"] = &vars.Position{X: 4, Y: 11}
+	positions["rusty_hoe"] = &vars.Position{X: 4, Y: 9}
+
+	// Scale positions to map size
+	for _, pos := range positions {
+		(*pos).X *= app.Variables.Tileset_size
+		(*pos).Y *= app.Variables.Tileset_size
+	}
+
+	app.Variables.ItemPositions = &positions
+}
+
+func (app *App) QueueUpdate(f func()) {
+	if f == nil {
+		return
+	}
+	select {
+	case app.updateQueue <- f:
+	default:
+		fmt.Println("GUI: update queue full, dropping app UI update")
+	}
+}
+
+func (app *App) DrainQueue() {
+	for {
+		select {
+		case f := <-app.updateQueue:
+			f()
+		default:
+			return
+		}
+	}
+}
+
+--- FILE: ./src/core/selects.go ---
+package core
+
+import (
+	"tap/client/gui/src/ui"
+	vars "tap/client/gui/src/variables"
+)
+
+type SelectDatas struct {
+	X       float32
+	Y       float32
+	Options []string
+}
+
+var (
+	group_selects = SelectDatas{
+		X: 2, Y: 7, Options: make([]string, 0),
+	}
+)
+
+func (app *App) GetGroupSelects() []*ui.Select {
+	options := make([]string, 0)
+	gr := app.Variables.PanelsVariables.Group
+
+	if len(gr.UnGrouped) > 0 && gr.InGroup && gr.IsLeader && len(gr.UnGrouped) > 0 {
+		options = append(options, "Invite")
+	}
+	if len(gr.Grouped) > 0 && gr.InGroup && gr.IsLeader {
+		options = append(options, "Kick")
+	}
+	if len(gr.Grouped) > 0 && gr.InGroup && gr.IsLeader && gr.SendPromotion == "" {
+		options = append(options, "Promote")
+	}
+	if len(gr.Invitations) > 0 && !gr.InGroup {
+		options = append(options, "Join")
+	}
+
+	group_selects.Options = options
+
+	cur_option := ""
+	if len(group_selects.Options) > 0 {
+		cur_option = group_selects.Options[0]
+	}
+
+	// Create Select
+	select_element := &ui.Select{
+		ID:            "group_options_select",
+		Texture:       vars.UI_SPRITE_TEXTURE,
+		X:             group_selects.X * app.Variables.Tileset_size,
+		Y:             group_selects.Y * app.Variables.Tileset_size,
+		Zoom:          app.Variables.Zoom / 3,
+		Rotation:      0,
+		Normal:        ui.Frame{IndX: 10, IndY: 11, RatioX: 6, RatioY: 2},
+		Hover:         ui.Frame{IndX: 16, IndY: 11, RatioX: 6, RatioY: 2},
+		ItemNormal:    ui.Frame{IndX: 10, IndY: 11, RatioX: 6, RatioY: 2},
+		ItemHover:     ui.Frame{IndX: 16, IndY: 11, RatioX: 6, RatioY: 2},
+		Options:       group_selects.Options,
+		CurrentOption: cur_option,
+		Open:          false,
+		OnChange: func(option string) {
+			app.Manager.SetViewOptions("Group", app.GetGroupOptions(option))
+		},
+	}
+
+	return []*ui.Select{select_element}
+}
+
+--- FILE: ./src/core/update.go ---
+package core
+
+import (
+	"fmt"
+	"regexp"
+	"slices"
+	"strings"
+	"unicode/utf8"
+	"tap/client/state"
+	panel "tap/client/tui/panels"
+	"tap/protocol"
+	"time"
+
+	vars "tap/client/gui/src/variables"
+)
+
+func (app *App) ShowConnectPage() {
+	app.Variables.Current_view = "Connect"
+}
+
+func (app *App) ShowGamePage() {
+	app.Variables.Current_view = "Game"
+	newPosX := app.Variables.Player.Position.X
+	newPosY := app.Variables.Player.Position.Y
+	newDirX := app.Variables.Player.Direction.X
+	newDirY := app.Variables.Player.Direction.Y
+	emoteIndex := app.Variables.Player.EmoteIndex
+	payload := fmt.Sprintf("%s %f %f %f %f %d", protocol.CmdNotifyPlayerPosition, newPosX, newPosY, newDirX, newDirY, emoteIndex)
+
+	app.ActionsChan <- panel.Action{
+		Type:    panel.ActionSendServer,
+		Payload: payload,
+	}
+	app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdGetPlayerPositions}
+	app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdGetItemPositions}
+}
+
+func (app *App) ShowCombatPage()                                       {}
+func (app *App) ShowPopupPage()                                        {}
+func (app *App) ClosePopup()                                           {}
+func (app *App) ShowCombatResultPopup(result string, rewards []string) {}
+func (app *App) ShowQuestCompletedPopup(questID, reward string)        {}
+
+func (app *App) UpdateNavigation(room *protocol.LookCommandData) {
+	app.Variables.PanelsVariables.Room = room
+	app.Variables.Current_room = strings.SplitN(room.Id, "room.", 2)[1]
+}
+
+func (app *App) UpdateItems(roomItems, inventory []string) {
+	app.Variables.PanelsVariables.RoomItems = &roomItems
+	app.Variables.PanelsVariables.InventoryItems = &inventory
+
+	items := app.GetNewRoomItems(roomItems)
+	app.Manager.SetViewInteractions("Items", items)
+
+	invent_buttons, invent_emotes := app.GetNewInventory(inventory)
+	app.Manager.SetViewEmotes("Inventory", invent_emotes)
+	app.Manager.SetViewButtons("Inventory", invent_buttons)
+}
+
+func (app *App) UpdateDatas(text string) {}
+func (app *App) UpdateInteraction(roomNpcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string, quests []protocol.TrackedQuestData, completed_quests []string) {
+	npcs := app.GetNewRoomNpcs(roomNpcs)
+	app.Manager.SetViewInteractions("Npcs", npcs)
+
+	npc := app.Variables.PanelsVariables.Talk.LastTalk
+	if talk_res, ok := npcDialogues[npc]; ok {
+		app.SetTalkResult(npc, talk_res)
+	}
+}
+
+func (app *App) UpdateGroup(groupState state.GroupState) {
+	app.QueueUpdate(func() {
+		app.Variables.PanelsVariables.GroupState = &groupState
+		app.UpdateGroupPanel(groupState)
+
+		prev := ""
+		if sel := app.Manager.Selects("Group"); len(sel) > 0 {
+			prev = sel[0].CurrentOption
+		}
+		selects := app.GetGroupSelects()
+		current := ""
+		if len(selects) > 0 {
+			for _, opt := range selects[0].Options {
+				if opt == prev {
+					selects[0].CurrentOption = prev
+					break
+				}
+			}
+			current = selects[0].CurrentOption
+		}
+
+		app.Manager.SetViewOptions("Group", app.GetGroupOptions(current))
+		app.Manager.SetViewSelects("Group", selects)
+	})
+}
+
+func (app *App) UpdateGroupPanel(grS state.GroupState) {
+	gr := app.Variables.PanelsVariables.Group
+
+	// Sync everything
+	gr.InGroup = grS.Group != ""
+	gr.IsLeader = grS.Leader
+	if gr.IsLeader {
+		gr.Leader = app.GetPseudo()
+	}
+	gr.Grouped = grS.Grouped
+	gr.UnGrouped = grS.UnGrouped
+	gr.Invitations = grS.Invitations
+	gr.Promote = grS.Promotion
+
+	if !grS.SendPromotion {
+		if gr.SendPromotion != "" {
+			gr.Leader = gr.SendPromotion
+		}
+		gr.SendPromotion = ""
+	}
+
+	// Drop a pending promotion
+	if gr.SendPromotion != "" && (!slices.Contains(gr.Grouped, gr.SendPromotion) || !gr.IsLeader) {
+		gr.SendPromotion = ""
+	}
+
+	// Drop invitations
+	gr.SendInvitations = slices.DeleteFunc(gr.SendInvitations, func(p string) bool {
+		return slices.Contains(gr.Grouped, p) || !slices.Contains(gr.UnGrouped, p)
+	})
+
+	if !gr.InGroup {
+		gr.Promote = false
+		gr.SendPromotion = ""
+	}
+}
+
+func (app *App) UpdateCombat(combatState state.CombatState) {
+	app.Variables.PanelsVariables.CombatState = &combatState
+}
+
+func (app *App) UpdateQuests(quests []protocol.TrackedQuestData) {
+	app.Variables.PanelsVariables.Quests = &quests
+}
+
+func (app *App) AppendChat(scope, user, msg string) {
+	scope_up := strings.ToUpper(scope)
+	chats := app.Variables.PanelsVariables.Chat.ScopeChats
+
+	emote_index := app.Variables.Player.EmoteIndex
+	if user != app.Variables.Player.Pseudo {
+		emote_index = 0
+		if remotePlayer, exists := (*app.Variables.RemotePlayers)[user]; exists {
+			emote_index = remotePlayer.EmoteIndex
+		}
+	}
+
+	new_chat := vars.Chat{
+		Msg:        msg,
+		Pseudo:     user,
+		Time:       time.Now(),
+		EmoteIndex: emote_index,
+	}
+
+	chats[scope_up] = append(chats[scope_up], new_chat)
+}
+
+func (app *App) UpdateInspector(text string) {
+	re := regexp.MustCompile(`\[.+?\]`)
+	text = re.ReplaceAllString(text, "")
+
+	maxLen := 30
+	lines := strings.Split(text, "\n")
+	var result strings.Builder
+
+	for lineIndex, line := range lines {
+		if lineIndex > 0 {
+			result.WriteString("\n")
+		}
+
+		words := strings.Fields(line)
+		if len(words) == 0 {
+			continue
+		}
+
+		currentLineLen := 0
+		for i, word := range words {
+			wordLen := utf8.RuneCountInString(word)
+
+			if i == 0 {
+				result.WriteString(word)
+				currentLineLen = wordLen
+				continue
+			}
+
+			if currentLineLen+1+wordLen > maxLen {
+				result.WriteString("\n")
+				result.WriteString(word)
+				currentLineLen = wordLen
+
+			} else {
+				result.WriteString(" ")
+				result.WriteString(word)
+				currentLineLen += 1 + wordLen
+			}
+		}
+	}
+
+	app.Variables.PanelsVariables.Inspect.Datas = result.String()
+}
+
+func (app *App) AppendCombatChat(user, msg string)                {}
+func (app *App) AppendServerResponse(res protocol.ServerResponse) {}
+func (app *App) AppendCliMessage(text string)                     {}
+func (app *App) AppendCliResponse(res protocol.ServerResponse)    {}
+
+func (app *App) UpdateRemotePlayerPosition(pseudo string, x, y, dirX, dirY float32, emoteIndex int) {
+	if pseudo == app.Variables.Player.Pseudo {
+		return
+	}
+
+	if remotePlayer, exists := (*app.Variables.RemotePlayers)[pseudo]; exists {
+		remotePlayer.Position.X = x
+		remotePlayer.Position.Y = y
+		remotePlayer.Direction.X = dirX
+		remotePlayer.Direction.Y = dirY
+		remotePlayer.EmoteIndex = emoteIndex
+	} else {
+		(*app.Variables.RemotePlayers)[pseudo] = &vars.Player{
+			Pseudo:     pseudo,
+			Position:   &vars.Position{X: x, Y: y},
+			Direction:  &vars.Direction{X: dirX, Y: dirY},
+			EmoteIndex: emoteIndex,
+		}
+	}
+}
+
+func (app *App) AddRemotePlayer(pseudo string) {
+	if _, exists := (*app.Variables.RemotePlayers)[pseudo]; !exists {
+		(*app.Variables.RemotePlayers)[pseudo] = &vars.Player{
+			Pseudo:    pseudo,
+			Position:  &vars.Position{X: app.Variables.StartingPosX, Y: app.Variables.StartingPosY},
+			Direction: &vars.Direction{X: 0, Y: 1},
+		}
+	}
+	app.UpdateRemotePlayerPosition(pseudo, app.Variables.StartingPosX, app.Variables.StartingPosY, 0, 1, 0)
+}
+
+func (app *App) RemoveRemotePlayer(pseudo string) {
+	if app.Variables.RemotePlayers != nil {
+		new_remote_players := make(map[string]*vars.Player)
+
+		for player_pseudo, player := range *app.Variables.RemotePlayers {
+			if player_pseudo != pseudo {
+				new_remote_players[player_pseudo] = player
+			}
+		}
+
+		app.Variables.RemotePlayers = &new_remote_players
+	}
+}
+
+func (app *App) ResetRemotePlayers() {
+	remote_players := make(map[string]*vars.Player)
+	app.Variables.RemotePlayers = &remote_players
+}
+
+func (app *App) UpdateItemPosition(name string, x, y float32) {
+	if item, exists := (*app.Variables.ItemPositions)[name]; exists {
+		(*item).X = x
+		(*item).Y = y
+	} else {
+		(*app.Variables.ItemPositions)[name] = &vars.Position{X: x, Y: y}
+	}
+
+	for _, item := range app.Manager.Interactions("Game") {
+		if item.Emote.ID == "item_"+name {
+			// Update emote position
+			item.Emote.X = x
+			item.Emote.Y = y
+
+			// Update buttons positions
+			item.Buttons[0].X = x - 0.2*app.Variables.Tileset_size
+			item.Buttons[0].Y = y - 1.2*app.Variables.Tileset_size
+			item.Buttons[1].X = x + 0.15*app.Variables.Tileset_size
+			item.Buttons[1].Y = y - 0.85*app.Variables.Tileset_size
+			break
+		}
+	}
+}
+
+func (app *App) GetPseudo() string {
+	return app.Variables.Player.Pseudo
+}
+
+func (app *App) SetPseudo(pseudo string) {
+	app.Variables.Player.Pseudo = pseudo
+}
+
+func (app *App) Stop() {
+	app.Running = false
 }
 
 --- FILE: ./src/drawer/animations.go ---
@@ -1935,382 +1990,6 @@ func (dr *Drawer) DrawConnectView() {
 		int32(border), int32(dr.app.Variables.FontSize),
 		dr.app.Variables.Player.Pseudo+"  ", rl.Black,
 	)
-}
-
---- FILE: ./src/drawer/chat.go ---
-package drawer
-
-import (
-	vars "tap/client/gui/src/variables"
-
-	rl "github.com/gen2brain/raylib-go/raylib"
-)
-
-func (dr *Drawer) DrawChat() {
-	chat_width := float32(vars.CHAT_WIDTH)
-	chat_height := float32(vars.CHAT_HEIGHT)
-	chat_start_x := float32(vars.CHAT_START_X)
-	chat_start_y := float32(vars.CHAT_START_Y)
-
-	dr.drawChatPanel(chat_start_x, chat_start_y, chat_width, chat_height)
-	dr.drawChatInput(chat_start_x, chat_start_y, chat_width, chat_height)
-
-	// Draw chats
-	dr.DrawChats(chat_start_x, chat_start_y, chat_height)
-
-	dr.DrawChatEmotes()
-	dr.DrawChatButtons()
-
-	dr.DrawScope()
-}
-
-func (dr *Drawer) RenderChatTexture() {
-	chat := dr.app.Variables.PanelsVariables.Chat
-	if !chat.Open {
-		return
-	}
-	dr.initChatTexture(float32(vars.CHAT_WIDTH))
-
-	chats := chat.ScopeChats[chat.CurrentScope]
-	rl.BeginTextureMode(dr.chatTexture)
-	rl.ClearBackground(rl.Blank)
-	for ind, c := range chats {
-		dr.DrawChatMsg(c, 0, 0, float32(ind), false)
-	}
-	rl.EndTextureMode()
-}
-
-func (dr *Drawer) initChatTexture(chat_width float32) {
-	chat := dr.app.Variables.PanelsVariables.Chat
-	chats := chat.ScopeChats[chat.CurrentScope]
-
-	if chat.LastNbChats != len(chats) || chat.LastMsgScope != chat.CurrentScope || dr.chatTexture.ID == 0 {
-		if dr.chatTexture.ID != 0 {
-			rl.UnloadRenderTexture(dr.chatTexture)
-		}
-		dr.chatTexture = rl.LoadRenderTexture(
-			int32(chat_width*dr.app.Variables.Tileset_size),
-			int32((2*float32(len(chats))+4.5)*dr.app.Variables.Tileset_size),
-		)
-		chat.LastNbChats = len(chats)
-		chat.LastMsgScope = chat.CurrentScope
-	}
-}
-
-func (dr *Drawer) drawChatPanel(chat_start_x, chat_start_y, chat_width, chat_height float32) {
-	// Draw panel
-	dr.DrawWoodFrameAt(
-		vars.Position{X: chat_start_x, Y: chat_start_y},
-		vars.Position{X: chat_start_x + chat_width, Y: chat_start_y + chat_height},
-		1, 0, false,
-	)
-}
-
-func (dr *Drawer) drawChatInput(chat_start_x, chat_start_y, chat_width, chat_height float32) {
-	// Draw input
-	dr.DrawWoodFrameAt(
-		vars.Position{X: chat_start_x, Y: chat_start_y + chat_height},
-		vars.Position{X: chat_start_x + chat_width, Y: 17},
-		1, 0, false,
-	)
-
-	baseX := int32((chat_start_x + 0.63) * dr.app.Variables.Tileset_size)
-	baseY := int32((chat_start_y + chat_height + 0.63) * dr.app.Variables.Tileset_size)
-
-	input_width := (chat_width - 2) * dr.app.Variables.Tileset_size
-	input_height := dr.app.Variables.Tileset_size * 0.75
-	border := input_height * 0.1
-
-	dr.DrawBorderedInput(
-		baseX,
-		baseY,
-		int32(input_width),
-		int32(input_height),
-		int32(border),
-		rl.NewColor(196, 154, 108, 255),
-		rl.NewColor(232, 207, 166, 255),
-	)
-
-	// Draw message
-	rl.DrawText(
-		dr.app.Variables.PanelsVariables.Chat.Msg,
-		baseX+int32(0.4*dr.app.Variables.FontSize),
-		baseY+int32(0.4*dr.app.Variables.FontSize),
-		int32(dr.app.Variables.FontSize), dr.app.Colors["panel_text"],
-	)
-
-	// Draw cursor
-	dr.DrawCursor(
-		int32(baseX+int32(0.4*dr.app.Variables.FontSize))+int32(border),
-		int32(baseY+int32(0.4*dr.app.Variables.FontSize)),
-		int32(border), int32(dr.app.Variables.FontSize),
-		dr.app.Variables.PanelsVariables.Chat.Msg, dr.app.Colors["panel_text"],
-	)
-}
-
-func (dr *Drawer) DrawChats(chat_start_x, chat_start_y, chat_height float32) {
-	// Display needed part of the chat texture for scroll system
-	tex := dr.chatTexture.Texture
-	viewHeight := (chat_height - 1) * dr.app.Variables.Tileset_size
-
-	displayHeight := viewHeight
-	maxY := float32(tex.Height) - displayHeight
-	minY := float32(0)
-
-	if float32(tex.Height) < viewHeight {
-		displayHeight = float32(tex.Height)
-		maxY = 0
-		dr.app.Variables.PanelsVariables.Chat.ScrollActive = false
-	} else {
-		dr.DrawScrollBar(maxY)
-		dr.app.Variables.PanelsVariables.Chat.ScrollActive = true
-	}
-
-	sourceY := maxY
-	scroll := dr.app.Variables.PanelsVariables.Chat.Scroll
-	finalY := sourceY + scroll
-
-	if finalY > maxY {
-		finalY = maxY
-		dr.app.Variables.PanelsVariables.Chat.Scroll = finalY - sourceY
-
-	} else if finalY < minY {
-		finalY = minY
-		dr.app.Variables.PanelsVariables.Chat.Scroll = finalY - sourceY
-	}
-
-	sourceRec := rl.NewRectangle(0, finalY, float32(tex.Width), -displayHeight)
-	position := rl.NewVector2(
-		chat_start_x*dr.app.Variables.Tileset_size,
-		(chat_start_y+0.5)*dr.app.Variables.Tileset_size,
-	)
-
-	rl.DrawTextureRec(tex, sourceRec, position, rl.White)
-}
-
-func (dr *Drawer) DrawChatMsg(chat vars.Chat, start_x, start_y, index float32, border_bottom bool) {
-	posX := float32(start_x * dr.app.Variables.Tileset_size)
-	posY := float32((start_y + 2*index) * dr.app.Variables.Tileset_size)
-
-	// Draw Woodframe
-	dr.DrawImage(
-		vars.UI_SPRITE_TEXTURE,
-		posX, posY,
-		12, 6, 3, 3,
-		dr.app.Variables.Zoom, 0,
-	)
-
-	// Draw dialogue bubble
-	box_type := "big"
-	var box_width float32
-	box_width = 11
-
-	// Draw box/frame
-	if len(chat.Msg) <= vars.MSG_MAX_CHAR/3 {
-		box_type = "small"
-		box_width = 7
-
-	} else if len(chat.Msg) <= vars.MSG_MAX_CHAR*2/3 {
-		box_type = "medium"
-		box_width = 8
-	}
-
-	dr.DrawImage(
-		"dialog box "+box_type,
-		posX+2.4*dr.app.Variables.Tileset_size,
-		posY+dr.app.Variables.Tileset_size,
-		0, 0, box_width, 3,
-		dr.app.Variables.Zoom/2, 0,
-	)
-
-	// Draw emote
-	e := dr.app.Manager.Emotes("Connect")[chat.EmoteIndex]
-	frame := e.CurrentFrame(dr.app.Variables.StartTime)
-	dr.DrawImage(
-		e.Texture,
-		posX+dr.app.Variables.Tileset_size,
-		posY+dr.app.Variables.Tileset_size,
-		frame.IndX, frame.IndY,
-		frame.RatioX, frame.RatioY,
-		e.Zoom/2,
-		e.Rotation,
-	)
-
-	// Draw Pseudo
-	rl.DrawText(
-		chat.Pseudo,
-		int32(posX+2.7*dr.app.Variables.Tileset_size),
-		int32(posY+0.7*dr.app.Variables.Tileset_size),
-		int32(dr.app.Variables.FontSize),
-		dr.app.Colors["pseudo_text"],
-	)
-
-	// Draw message
-	rl.DrawText(
-		chat.Msg,
-		int32(posX+3*dr.app.Variables.Tileset_size),
-		int32(posY+1.5*dr.app.Variables.Tileset_size),
-		int32(dr.app.Variables.FontSize),
-		dr.app.Colors["panel_text"],
-	)
-
-	// Draw border bottom
-	if border_bottom {
-		rl.DrawRectangle(
-			int32(posX+dr.app.Variables.Tileset_size),
-			int32(posY+2*dr.app.Variables.Tileset_size),
-			int32(8*dr.app.Variables.Tileset_size), 3,
-			rl.Black,
-		)
-	}
-}
-
-func (dr *Drawer) DrawScrollBar(maxY float32) {
-	// Draw Top part
-	dr.DrawImage(
-		vars.UI_SPRITE_TEXTURE,
-		float32((vars.CHAT_START_X+vars.CHAT_WIDTH-1)*dr.app.Variables.Tileset_size),
-		float32((vars.CHAT_START_Y)*dr.app.Variables.Tileset_size),
-		20, 8, 1, 1, dr.app.Variables.Zoom, 0,
-	)
-
-	// Draw Middle part
-	limit := int(vars.CHAT_HEIGHT - 2)
-	for mid := 0; mid < limit; mid++ {
-		dr.DrawImage(
-			vars.UI_SPRITE_TEXTURE,
-			float32((vars.CHAT_START_X+vars.CHAT_WIDTH-1)*dr.app.Variables.Tileset_size),
-			float32((vars.CHAT_START_Y+float32(mid)+1)*dr.app.Variables.Tileset_size),
-			20, 9, 1, 1, dr.app.Variables.Zoom, 0,
-		)
-	}
-
-	// Draw Bottom part
-	dr.DrawImage(
-		vars.UI_SPRITE_TEXTURE,
-		float32((vars.CHAT_START_X+vars.CHAT_WIDTH-1)*dr.app.Variables.Tileset_size),
-		float32((vars.CHAT_START_Y+vars.CHAT_HEIGHT-1)*dr.app.Variables.Tileset_size),
-		20, 10, 1, 1, dr.app.Variables.Zoom, 0,
-	)
-
-	scroll_bar_start_y := float32(1.5) * dr.app.Variables.Tileset_size
-	scroll_bar_end_y := dr.app.Variables.Tileset_size * (float32(vars.CHAT_START_Y) + float32(vars.CHAT_HEIGHT) - 0.25)
-
-	cursor_y := dr.app.Variables.PanelsVariables.Chat.ScrollBarY
-	current_scroll := dr.app.Variables.PanelsVariables.Chat.Scroll
-
-	if rl.IsMouseButtonDown(rl.MouseLeftButton) {
-		cursor_y = max(scroll_bar_start_y, cursor_y)
-		cursor_y = min(cursor_y, scroll_bar_end_y)
-		dr.app.Variables.PanelsVariables.Chat.ScrollBarY = cursor_y
-
-		if scroll_bar_end_y > scroll_bar_start_y {
-			percent := (cursor_y - scroll_bar_start_y) / (scroll_bar_end_y - scroll_bar_start_y)
-			dr.app.Variables.PanelsVariables.Chat.Scroll = -maxY * percent
-		}
-
-	} else {
-		if maxY > 0 {
-			percent := current_scroll / -maxY
-			cursor_y = scroll_bar_start_y + percent*(scroll_bar_end_y-scroll_bar_start_y)
-
-			cursor_y = max(scroll_bar_start_y, cursor_y)
-			cursor_y = min(cursor_y, scroll_bar_end_y)
-
-			dr.app.Variables.PanelsVariables.Chat.ScrollBarY = cursor_y
-		}
-	}
-
-	// Draw cursor
-	dr.DrawImage(
-		vars.UI_SPRITE_TEXTURE,
-		float32((vars.CHAT_START_X+vars.CHAT_WIDTH-1)*dr.app.Variables.Tileset_size),
-		cursor_y-dr.app.Variables.Tileset_size,
-		19, 8, 1, 2, dr.app.Variables.Zoom, 0,
-	)
-}
-
-func (dr *Drawer) DrawScope() {
-	// Draw Frame
-	dr.DrawWoodFrameAt(
-		vars.Position{X: vars.CHAT_START_X + 2, Y: 0.5},
-		vars.Position{X: vars.CHAT_START_X + vars.CHAT_WIDTH - 2, Y: 2},
-		0.5, 2, false,
-	)
-
-	// Draw scope
-	scope := dr.app.Variables.PanelsVariables.Chat.CurrentScope
-	font_size := 3 * int32(dr.app.Variables.FontSize)
-	center_text := float32(rl.MeasureText(scope, font_size) / 2)
-
-	rl.DrawText(
-		scope,
-		int32((vars.CHAT_START_X+vars.CHAT_WIDTH/2)*dr.app.Variables.Tileset_size-center_text),
-		int32(vars.CHAT_START_Y+font_size*13/22),
-		font_size, rl.NewColor(232, 207, 166, 255),
-	)
-}
-
---- FILE: ./src/drawer/draw.go ---
-package drawer
-
-import (
-	"tap/client/gui/src/core"
-	vars "tap/client/gui/src/variables"
-
-	rl "github.com/gen2brain/raylib-go/raylib"
-)
-
-type Drawer struct {
-	app *core.App
-
-	gameTexture  rl.RenderTexture2D
-	blurShader   rl.Shader
-	darkenShader rl.Shader
-
-	chatTexture rl.RenderTexture2D
-}
-
-var (
-	Down  = vars.Direction{X: 0, Y: 1}
-	Up    = vars.Direction{X: 0, Y: -1}
-	Left  = vars.Direction{X: -1, Y: 0}
-	Right = vars.Direction{X: 1, Y: 0}
-
-	DownLeft  = vars.Direction{X: -1, Y: 1}
-	DownRight = vars.Direction{X: 1, Y: 1}
-	UpLeft    = vars.Direction{X: -1, Y: -1}
-	UpRight   = vars.Direction{X: 1, Y: -1}
-)
-
-func NewDrawer(app *core.App) *Drawer {
-	dr := &Drawer{
-		app:          app,
-		gameTexture:  rl.LoadRenderTexture(int32(app.ScreenWidth), int32(app.ScreenHeight)),
-		blurShader:   rl.LoadShader("", "./client/gui/src/drawer/shader/blur.fs"),
-		darkenShader: rl.LoadShader("", "./client/gui/src/drawer/shader/darken.fs"),
-	}
-
-	rl.SetShaderValue(
-		dr.blurShader,
-		rl.GetShaderLocation(dr.blurShader, "renderWidth"),
-		[]float32{float32(app.ScreenWidth)},
-		rl.ShaderUniformFloat,
-	)
-	rl.SetShaderValue(
-		dr.blurShader,
-		rl.GetShaderLocation(dr.blurShader, "renderHeight"),
-		[]float32{float32(app.ScreenHeight)},
-		rl.ShaderUniformFloat,
-	)
-	rl.SetShaderValue(
-		dr.blurShader,
-		rl.GetShaderLocation(dr.blurShader, "blurStrength"),
-		[]float32{3.0},
-		rl.ShaderUniformFloat,
-	)
-
-	return dr
 }
 
 --- FILE: ./src/drawer/emotes.go ---
@@ -3193,58 +2872,6 @@ func (dr *Drawer) DrawGameSelects() {
 	}
 }
 
---- FILE: ./src/drawer/options.go ---
-package drawer
-
-import (
-	"fmt"
-	"tap/client/gui/src/ui"
-
-	rl "github.com/gen2brain/raylib-go/raylib"
-)
-
-func (dr *Drawer) DrawGroupOptions() {
-	// Draw nothing if panel not open
-	if !dr.app.Variables.PanelsVariables.Group.Open {
-		return
-	}
-
-	for _, opt := range dr.app.Manager.Options("Group") {
-		if opt.OptionName == "promote_option" && !dr.app.Variables.PanelsVariables.Group.Promote {
-			continue
-		}
-
-		opt_name := dr.LimitString(opt.OptionName, 10)
-
-		// Draw option name
-		rl.DrawText(
-			fmt.Sprintf("- %s:", opt_name),
-			int32(opt.X),
-			int32(opt.Y),
-			int32(dr.app.Variables.FontSize),
-			dr.app.Colors["pseudo_text"],
-		)
-
-		// Draw Decline/Accept button
-		for _, b := range []*ui.Button{opt.DeclineBtn, opt.AcceptBtn} {
-			if b == nil {
-				continue
-			}
-
-			frame := b.CurrentFrame()
-			dr.DrawImage(
-				b.Texture,
-				b.X, b.Y,
-				frame.IndX, frame.IndY,
-				frame.RatioX, frame.RatioY,
-				b.Zoom,
-				b.Rotation,
-			)
-		}
-	}
-
-}
-
 --- FILE: ./src/drawer/buttons.go ---
 package drawer
 
@@ -3346,6 +2973,383 @@ func (dr *Drawer) DrawInspectButtons() {
 	}
 }
 
+--- FILE: ./src/drawer/draw.go ---
+package drawer
+
+import (
+	"tap/client/gui/src/core"
+	vars "tap/client/gui/src/variables"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+type Drawer struct {
+	app *core.App
+
+	gameTexture  rl.RenderTexture2D
+	blurShader   rl.Shader
+	darkenShader rl.Shader
+
+	chatTexture  rl.RenderTexture2D
+	groupTexture rl.RenderTexture2D
+}
+
+var (
+	Down  = vars.Direction{X: 0, Y: 1}
+	Up    = vars.Direction{X: 0, Y: -1}
+	Left  = vars.Direction{X: -1, Y: 0}
+	Right = vars.Direction{X: 1, Y: 0}
+
+	DownLeft  = vars.Direction{X: -1, Y: 1}
+	DownRight = vars.Direction{X: 1, Y: 1}
+	UpLeft    = vars.Direction{X: -1, Y: -1}
+	UpRight   = vars.Direction{X: 1, Y: -1}
+)
+
+func NewDrawer(app *core.App) *Drawer {
+	dr := &Drawer{
+		app:          app,
+		gameTexture:  rl.LoadRenderTexture(int32(app.ScreenWidth), int32(app.ScreenHeight)),
+		blurShader:   rl.LoadShader("", "./client/gui/src/drawer/shader/blur.fs"),
+		darkenShader: rl.LoadShader("", "./client/gui/src/drawer/shader/darken.fs"),
+	}
+
+	rl.SetShaderValue(
+		dr.blurShader,
+		rl.GetShaderLocation(dr.blurShader, "renderWidth"),
+		[]float32{float32(app.ScreenWidth)},
+		rl.ShaderUniformFloat,
+	)
+	rl.SetShaderValue(
+		dr.blurShader,
+		rl.GetShaderLocation(dr.blurShader, "renderHeight"),
+		[]float32{float32(app.ScreenHeight)},
+		rl.ShaderUniformFloat,
+	)
+	rl.SetShaderValue(
+		dr.blurShader,
+		rl.GetShaderLocation(dr.blurShader, "blurStrength"),
+		[]float32{3.0},
+		rl.ShaderUniformFloat,
+	)
+
+	return dr
+}
+
+--- FILE: ./src/drawer/chat.go ---
+package drawer
+
+import (
+	vars "tap/client/gui/src/variables"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+func (dr *Drawer) DrawChat() {
+	chat_width := float32(vars.CHAT_WIDTH)
+	chat_height := float32(vars.CHAT_HEIGHT)
+	chat_start_x := float32(vars.CHAT_START_X)
+	chat_start_y := float32(vars.CHAT_START_Y)
+
+	dr.drawChatPanel(chat_start_x, chat_start_y, chat_width, chat_height)
+	dr.drawChatInput(chat_start_x, chat_start_y, chat_width, chat_height)
+
+	// Draw chats
+	dr.DrawChats(chat_start_x, chat_start_y, chat_height)
+
+	dr.DrawChatEmotes()
+	dr.DrawChatButtons()
+
+	dr.DrawScope()
+}
+
+func (dr *Drawer) RenderChatTexture() {
+	chat := dr.app.Variables.PanelsVariables.Chat
+	if !chat.Open {
+		return
+	}
+	dr.initChatTexture(float32(vars.CHAT_WIDTH))
+
+	chats := chat.ScopeChats[chat.CurrentScope]
+	rl.BeginTextureMode(dr.chatTexture)
+	rl.ClearBackground(rl.Blank)
+	for ind, c := range chats {
+		dr.DrawChatMsg(c, 0, 0, float32(ind), false)
+	}
+	rl.EndTextureMode()
+}
+
+func (dr *Drawer) initChatTexture(chat_width float32) {
+	chat := dr.app.Variables.PanelsVariables.Chat
+	chats := chat.ScopeChats[chat.CurrentScope]
+
+	if chat.LastNbChats != len(chats) || chat.LastMsgScope != chat.CurrentScope || dr.chatTexture.ID == 0 {
+		if dr.chatTexture.ID != 0 {
+			rl.UnloadRenderTexture(dr.chatTexture)
+		}
+		dr.chatTexture = rl.LoadRenderTexture(
+			int32(chat_width*dr.app.Variables.Tileset_size),
+			int32((2*float32(len(chats))+4.5)*dr.app.Variables.Tileset_size),
+		)
+		chat.LastNbChats = len(chats)
+		chat.LastMsgScope = chat.CurrentScope
+	}
+}
+
+func (dr *Drawer) drawChatPanel(chat_start_x, chat_start_y, chat_width, chat_height float32) {
+	// Draw panel
+	dr.DrawWoodFrameAt(
+		vars.Position{X: chat_start_x, Y: chat_start_y},
+		vars.Position{X: chat_start_x + chat_width, Y: chat_start_y + chat_height},
+		1, 0, false,
+	)
+}
+
+func (dr *Drawer) drawChatInput(chat_start_x, chat_start_y, chat_width, chat_height float32) {
+	// Draw input
+	dr.DrawWoodFrameAt(
+		vars.Position{X: chat_start_x, Y: chat_start_y + chat_height},
+		vars.Position{X: chat_start_x + chat_width, Y: 17},
+		1, 0, false,
+	)
+
+	baseX := int32((chat_start_x + 0.63) * dr.app.Variables.Tileset_size)
+	baseY := int32((chat_start_y + chat_height + 0.63) * dr.app.Variables.Tileset_size)
+
+	input_width := (chat_width - 2) * dr.app.Variables.Tileset_size
+	input_height := dr.app.Variables.Tileset_size * 0.75
+	border := input_height * 0.1
+
+	dr.DrawBorderedInput(
+		baseX,
+		baseY,
+		int32(input_width),
+		int32(input_height),
+		int32(border),
+		rl.NewColor(196, 154, 108, 255),
+		rl.NewColor(232, 207, 166, 255),
+	)
+
+	// Draw message
+	rl.DrawText(
+		dr.app.Variables.PanelsVariables.Chat.Msg,
+		baseX+int32(0.4*dr.app.Variables.FontSize),
+		baseY+int32(0.4*dr.app.Variables.FontSize),
+		int32(dr.app.Variables.FontSize), dr.app.Colors["panel_text"],
+	)
+
+	// Draw cursor
+	dr.DrawCursor(
+		int32(baseX+int32(0.4*dr.app.Variables.FontSize))+int32(border),
+		int32(baseY+int32(0.4*dr.app.Variables.FontSize)),
+		int32(border), int32(dr.app.Variables.FontSize),
+		dr.app.Variables.PanelsVariables.Chat.Msg, dr.app.Colors["panel_text"],
+	)
+}
+
+func (dr *Drawer) DrawChats(chat_start_x, chat_start_y, chat_height float32) {
+	// Display needed part of the chat texture for scroll system
+	tex := dr.chatTexture.Texture
+	viewHeight := (chat_height - 1) * dr.app.Variables.Tileset_size
+
+	displayHeight := viewHeight
+	maxY := float32(tex.Height) - displayHeight
+	minY := float32(0)
+
+	if float32(tex.Height) < viewHeight {
+		displayHeight = float32(tex.Height)
+		maxY = 0
+		dr.app.Variables.PanelsVariables.Chat.ScrollActive = false
+	} else {
+		dr.DrawChatScrollBar(maxY)
+		dr.app.Variables.PanelsVariables.Chat.ScrollActive = true
+	}
+
+	sourceY := maxY
+	scroll := dr.app.Variables.PanelsVariables.Chat.Scroll
+	finalY := sourceY + scroll
+
+	if finalY > maxY {
+		finalY = maxY
+		dr.app.Variables.PanelsVariables.Chat.Scroll = finalY - sourceY
+
+	} else if finalY < minY {
+		finalY = minY
+		dr.app.Variables.PanelsVariables.Chat.Scroll = finalY - sourceY
+	}
+
+	sourceRec := rl.NewRectangle(0, finalY, float32(tex.Width), -displayHeight)
+	position := rl.NewVector2(
+		chat_start_x*dr.app.Variables.Tileset_size,
+		(chat_start_y+0.5)*dr.app.Variables.Tileset_size,
+	)
+
+	rl.DrawTextureRec(tex, sourceRec, position, rl.White)
+}
+
+func (dr *Drawer) DrawChatMsg(chat vars.Chat, start_x, start_y, index float32, border_bottom bool) {
+	posX := float32(start_x * dr.app.Variables.Tileset_size)
+	posY := float32((start_y + 2*index) * dr.app.Variables.Tileset_size)
+
+	// Draw Woodframe
+	dr.DrawImage(
+		vars.UI_SPRITE_TEXTURE,
+		posX, posY,
+		12, 6, 3, 3,
+		dr.app.Variables.Zoom, 0,
+	)
+
+	// Draw dialogue bubble
+	box_type := "big"
+	var box_width float32
+	box_width = 11
+
+	// Draw box/frame
+	if len(chat.Msg) <= vars.MSG_MAX_CHAR/3 {
+		box_type = "small"
+		box_width = 7
+
+	} else if len(chat.Msg) <= vars.MSG_MAX_CHAR*2/3 {
+		box_type = "medium"
+		box_width = 8
+	}
+
+	dr.DrawImage(
+		"dialog box "+box_type,
+		posX+2.4*dr.app.Variables.Tileset_size,
+		posY+dr.app.Variables.Tileset_size,
+		0, 0, box_width, 3,
+		dr.app.Variables.Zoom/2, 0,
+	)
+
+	// Draw emote
+	e := dr.app.Manager.Emotes("Connect")[chat.EmoteIndex]
+	frame := e.CurrentFrame(dr.app.Variables.StartTime)
+	dr.DrawImage(
+		e.Texture,
+		posX+dr.app.Variables.Tileset_size,
+		posY+dr.app.Variables.Tileset_size,
+		frame.IndX, frame.IndY,
+		frame.RatioX, frame.RatioY,
+		e.Zoom/2,
+		e.Rotation,
+	)
+
+	// Draw Pseudo
+	rl.DrawText(
+		chat.Pseudo,
+		int32(posX+2.7*dr.app.Variables.Tileset_size),
+		int32(posY+0.7*dr.app.Variables.Tileset_size),
+		int32(dr.app.Variables.FontSize),
+		dr.app.Colors["pseudo_text"],
+	)
+
+	// Draw message
+	rl.DrawText(
+		chat.Msg,
+		int32(posX+3*dr.app.Variables.Tileset_size),
+		int32(posY+1.5*dr.app.Variables.Tileset_size),
+		int32(dr.app.Variables.FontSize),
+		dr.app.Colors["panel_text"],
+	)
+
+	// Draw border bottom
+	if border_bottom {
+		rl.DrawRectangle(
+			int32(posX+dr.app.Variables.Tileset_size),
+			int32(posY+2*dr.app.Variables.Tileset_size),
+			int32(8*dr.app.Variables.Tileset_size), 3,
+			rl.Black,
+		)
+	}
+}
+
+func (dr *Drawer) DrawChatScrollBar(maxY float32) {
+	// Draw Top part
+	dr.DrawImage(
+		vars.UI_SPRITE_TEXTURE,
+		float32((vars.CHAT_START_X+vars.CHAT_WIDTH-1)*dr.app.Variables.Tileset_size),
+		float32((vars.CHAT_START_Y)*dr.app.Variables.Tileset_size),
+		20, 8, 1, 1, dr.app.Variables.Zoom, 0,
+	)
+
+	// Draw Middle part
+	limit := int(vars.CHAT_HEIGHT - 2)
+	for mid := 0; mid < limit; mid++ {
+		dr.DrawImage(
+			vars.UI_SPRITE_TEXTURE,
+			float32((vars.CHAT_START_X+vars.CHAT_WIDTH-1)*dr.app.Variables.Tileset_size),
+			float32((vars.CHAT_START_Y+float32(mid)+1)*dr.app.Variables.Tileset_size),
+			20, 9, 1, 1, dr.app.Variables.Zoom, 0,
+		)
+	}
+
+	// Draw Bottom part
+	dr.DrawImage(
+		vars.UI_SPRITE_TEXTURE,
+		float32((vars.CHAT_START_X+vars.CHAT_WIDTH-1)*dr.app.Variables.Tileset_size),
+		float32((vars.CHAT_START_Y+vars.CHAT_HEIGHT-1)*dr.app.Variables.Tileset_size),
+		20, 10, 1, 1, dr.app.Variables.Zoom, 0,
+	)
+
+	scroll_bar_start_y := float32(1.5) * dr.app.Variables.Tileset_size
+	scroll_bar_end_y := dr.app.Variables.Tileset_size * (float32(vars.CHAT_START_Y) + float32(vars.CHAT_HEIGHT) - 0.25)
+
+	cursor_y := dr.app.Variables.PanelsVariables.Chat.ScrollBarY
+	current_scroll := dr.app.Variables.PanelsVariables.Chat.Scroll
+
+	if rl.IsMouseButtonDown(rl.MouseLeftButton) {
+		cursor_y = max(scroll_bar_start_y, cursor_y)
+		cursor_y = min(cursor_y, scroll_bar_end_y)
+		dr.app.Variables.PanelsVariables.Chat.ScrollBarY = cursor_y
+
+		if scroll_bar_end_y > scroll_bar_start_y {
+			percent := (cursor_y - scroll_bar_start_y) / (scroll_bar_end_y - scroll_bar_start_y)
+			dr.app.Variables.PanelsVariables.Chat.Scroll = -maxY * percent
+		}
+
+	} else {
+		if maxY > 0 {
+			percent := current_scroll / -maxY
+			cursor_y = scroll_bar_start_y + percent*(scroll_bar_end_y-scroll_bar_start_y)
+
+			cursor_y = max(scroll_bar_start_y, cursor_y)
+			cursor_y = min(cursor_y, scroll_bar_end_y)
+
+			dr.app.Variables.PanelsVariables.Chat.ScrollBarY = cursor_y
+		}
+	}
+
+	// Draw cursor
+	dr.DrawImage(
+		vars.UI_SPRITE_TEXTURE,
+		float32((vars.CHAT_START_X+vars.CHAT_WIDTH-1)*dr.app.Variables.Tileset_size),
+		cursor_y-dr.app.Variables.Tileset_size,
+		19, 8, 1, 2, dr.app.Variables.Zoom, 0,
+	)
+}
+
+func (dr *Drawer) DrawScope() {
+	// Draw Frame
+	dr.DrawWoodFrameAt(
+		vars.Position{X: vars.CHAT_START_X + 2, Y: 0.5},
+		vars.Position{X: vars.CHAT_START_X + vars.CHAT_WIDTH - 2, Y: 2},
+		0.5, 2, false,
+	)
+
+	// Draw scope
+	scope := dr.app.Variables.PanelsVariables.Chat.CurrentScope
+	font_size := 3 * int32(dr.app.Variables.FontSize)
+	center_text := float32(rl.MeasureText(scope, font_size) / 2)
+
+	rl.DrawText(
+		scope,
+		int32((vars.CHAT_START_X+vars.CHAT_WIDTH/2)*dr.app.Variables.Tileset_size-center_text),
+		int32(vars.CHAT_START_Y+font_size*13/22),
+		font_size, rl.NewColor(232, 207, 166, 255),
+	)
+}
+
 --- FILE: ./src/drawer/group.go ---
 package drawer
 
@@ -3384,13 +3388,42 @@ func (dr *Drawer) DrawGroupPanel() {
 
 	dr.DrawGroupButtons()
 	dr.DrawCommonButton()
-	dr.DrawGroupOptions()
+	dr.DrawGroupOptionsToScreen(group_start_x, group_start_y, group_height)
 
 	if !group.InGroup {
 		return
 	}
 
 	dr.DrawGroupDatas(group, group_start_x, group_start_y, group_width, tile, font)
+}
+
+func (dr *Drawer) RenderGroupTexture() {
+	group := dr.app.Variables.PanelsVariables.Group
+	if !group.Open {
+		return
+	}
+	dr.initGroupTexture(float32(vars.GROUP_WIDTH))
+
+	rl.BeginTextureMode(dr.groupTexture)
+	rl.ClearBackground(rl.Blank)
+	dr.DrawGroupOptions(
+		vars.GROUP_START_X,
+		vars.GROUP_START_Y,
+		vars.GROUP_HEIGHT,
+	)
+	rl.EndTextureMode()
+}
+
+func (dr *Drawer) initGroupTexture(group_width float32) {
+	if dr.groupTexture.ID == 0 {
+		if dr.groupTexture.ID != 0 {
+			rl.UnloadRenderTexture(dr.groupTexture)
+		}
+		dr.groupTexture = rl.LoadRenderTexture(
+			int32(group_width*dr.app.Variables.Tileset_size),
+			int32((2*float32(10)+4.5)*dr.app.Variables.Tileset_size),
+		)
+	}
 }
 
 func (dr *Drawer) DrawCommonButton() {
@@ -3463,6 +3496,71 @@ func (dr *Drawer) DrawGroupDatas(group *vars.GroupPanel, group_start_x, group_st
 	}
 }
 
+func (dr *Drawer) DrawGroupScrollBar(maxY float32) {
+	// Draw Top part
+	dr.DrawImage(
+		vars.UI_SPRITE_TEXTURE,
+		float32((vars.GROUP_START_X+vars.GROUP_WIDTH-1)*dr.app.Variables.Tileset_size),
+		float32((vars.GROUP_START_Y)*dr.app.Variables.Tileset_size),
+		20, 8, 1, 1, dr.app.Variables.Zoom, 0,
+	)
+
+	// Draw Middle part
+	limit := int(vars.GROUP_HEIGHT - 2)
+	for mid := 0; mid < limit; mid++ {
+		dr.DrawImage(
+			vars.UI_SPRITE_TEXTURE,
+			float32((vars.GROUP_START_X+vars.GROUP_WIDTH-1)*dr.app.Variables.Tileset_size),
+			float32((vars.GROUP_START_Y+float32(mid)+1)*dr.app.Variables.Tileset_size),
+			20, 9, 1, 1, dr.app.Variables.Zoom, 0,
+		)
+	}
+
+	// Draw Bottom part
+	dr.DrawImage(
+		vars.UI_SPRITE_TEXTURE,
+		float32((vars.GROUP_START_X+vars.GROUP_WIDTH-1)*dr.app.Variables.Tileset_size),
+		float32((vars.GROUP_START_Y+vars.GROUP_HEIGHT-1)*dr.app.Variables.Tileset_size),
+		20, 10, 1, 1, dr.app.Variables.Zoom, 0,
+	)
+
+	scroll_bar_start_y := float32(vars.GROUP_START_Y+0.5) * dr.app.Variables.Tileset_size
+	scroll_bar_end_y := dr.app.Variables.Tileset_size * (float32(vars.GROUP_START_Y) + float32(vars.GROUP_HEIGHT) - 0.25)
+
+	cursor_y := dr.app.Variables.PanelsVariables.Group.ScrollBarY
+	current_scroll := dr.app.Variables.PanelsVariables.Group.Scroll
+
+	if rl.IsMouseButtonDown(rl.MouseLeftButton) {
+		cursor_y = max(scroll_bar_start_y, cursor_y)
+		cursor_y = min(cursor_y, scroll_bar_end_y)
+		dr.app.Variables.PanelsVariables.Group.ScrollBarY = cursor_y
+
+		if scroll_bar_end_y > scroll_bar_start_y {
+			percent := (cursor_y - scroll_bar_start_y) / (scroll_bar_end_y - scroll_bar_start_y)
+			dr.app.Variables.PanelsVariables.Group.Scroll = -maxY * percent
+		}
+
+	} else {
+		if maxY > 0 {
+			percent := current_scroll / -maxY
+			cursor_y = scroll_bar_start_y + percent*(scroll_bar_end_y-scroll_bar_start_y)
+
+			cursor_y = max(scroll_bar_start_y, cursor_y)
+			cursor_y = min(cursor_y, scroll_bar_end_y)
+
+			dr.app.Variables.PanelsVariables.Group.ScrollBarY = cursor_y
+		}
+	}
+
+	// Draw cursor
+	dr.DrawImage(
+		vars.UI_SPRITE_TEXTURE,
+		float32((vars.GROUP_START_X+vars.GROUP_WIDTH-1)*dr.app.Variables.Tileset_size),
+		cursor_y-dr.app.Variables.Tileset_size,
+		19, 8, 1, 2, dr.app.Variables.Zoom, 0,
+	)
+}
+
 --- FILE: ./src/drawer/inspect.go ---
 package drawer
 
@@ -3525,6 +3623,97 @@ func (dr *Drawer) DrawInspectPanel() {
 		int32(0.85*dr.app.Variables.FontSize),
 		dr.app.Colors["pseudo_text"],
 	)
+}
+
+--- FILE: ./src/drawer/options.go ---
+package drawer
+
+import (
+	"fmt"
+	"tap/client/gui/src/ui"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+func (dr *Drawer) DrawGroupOptions(group_start_x, group_start_y, group_height float32) {
+	if !dr.app.Variables.PanelsVariables.Group.Open {
+		return
+	}
+
+	offsetX := group_start_x * dr.app.Variables.Tileset_size
+	offsetY := (group_start_y + 0.5) * dr.app.Variables.Tileset_size
+
+	for _, opt := range dr.app.Manager.Options("Group") {
+		if opt.OptionName == "promote_option" && !dr.app.Variables.PanelsVariables.Group.Promote {
+			continue
+		}
+
+		opt_name := dr.LimitString(opt.OptionName, 10)
+
+		rl.DrawText(
+			fmt.Sprintf("- %s:", opt_name),
+			int32(opt.X)-int32(offsetX),
+			int32(opt.Y)-int32(offsetY),
+			int32(dr.app.Variables.FontSize),
+			dr.app.Colors["pseudo_text"],
+		)
+
+		for _, b := range []*ui.Button{opt.DeclineBtn, opt.AcceptBtn} {
+			if b == nil {
+				continue
+			}
+
+			frame := b.CurrentFrame()
+
+			dr.DrawImage(
+				b.Texture,
+				b.X-offsetX, b.Y-offsetY,
+				frame.IndX, frame.IndY,
+				frame.RatioX, frame.RatioY,
+				b.Zoom,
+				b.Rotation,
+			)
+		}
+	}
+}
+
+func (dr *Drawer) DrawGroupOptionsToScreen(group_start_x, group_start_y, group_height float32) {
+	tex := dr.groupTexture.Texture
+	viewHeight := (group_height - 1) * dr.app.Variables.Tileset_size
+
+	offsetX := group_start_x * dr.app.Variables.Tileset_size
+	offsetY := (group_start_y + 0.5) * dr.app.Variables.Tileset_size
+
+	displayHeight := viewHeight
+	maxY := float32(tex.Height) - displayHeight
+	minY := float32(0)
+
+	if float32(tex.Height) < viewHeight {
+		displayHeight = float32(tex.Height)
+		maxY = 0
+		dr.app.Variables.PanelsVariables.Group.ScrollActive = false
+	} else {
+		dr.DrawGroupScrollBar(maxY)
+		dr.app.Variables.PanelsVariables.Group.ScrollActive = true
+	}
+
+	sourceY := maxY
+	scroll := dr.app.Variables.PanelsVariables.Group.Scroll
+	finalY := sourceY + scroll
+
+	if finalY > maxY {
+		finalY = maxY
+		dr.app.Variables.PanelsVariables.Group.Scroll = finalY - sourceY
+	} else if finalY < minY {
+		finalY = minY
+		dr.app.Variables.PanelsVariables.Group.Scroll = finalY - sourceY
+	}
+
+	sourceRec := rl.NewRectangle(0, finalY, float32(tex.Width), -displayHeight)
+
+	position := rl.NewVector2(offsetX, offsetY)
+
+	rl.DrawTextureRec(tex, sourceRec, position, rl.White)
 }
 
 --- FILE: ./src/gui_client.go ---
@@ -3820,7 +4009,12 @@ func (m *Manager) UpdateButtons(view string) {
 --- FILE: ./src/ui/emote.go ---
 package ui
 
-import "time"
+import (
+	vars "tap/client/gui/src/variables"
+	"time"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
 type EmoteFrame struct {
 	Frame    *Frame
@@ -3837,6 +4031,19 @@ type Emote struct {
 
 	AnimDuration int
 	Frames       []*EmoteFrame
+	Inspect      func(emote string)
+}
+
+func (e *Emote) Rect() rl.Rectangle {
+	if len(e.Frames) == 0 {
+		return rl.NewRectangle(0, 0, 0, 0)
+	}
+
+	frame := e.Frames[0].Frame
+	w := float32(vars.FRAME_WIDTH) * e.Zoom * frame.RatioX
+	h := float32(vars.FRAME_HEIGHT) * e.Zoom * frame.RatioY
+
+	return rl.NewRectangle(e.X, e.Y, w, h)
 }
 
 func (e *Emote) CurrentFrame(start_time time.Time) Frame {
@@ -3865,6 +4072,22 @@ func (m *Manager) Emotes(view string) []*Emote {
 }
 
 func (m *Manager) UpdateEmotes(view string) {
+	emotes := m.views_emotes[view]
+	if len(emotes) == 0 {
+		return
+	}
+
+	mouse := rl.GetMousePosition()
+	down := rl.IsMouseButtonDown(rl.MouseButtonLeft)
+
+	for _, emote := range emotes {
+		// Check emote hover
+		hovered := rl.CheckCollisionPointRec(mouse, emote.Rect())
+
+		if hovered && down {
+			emote.Inspect(emote.ID)
+		}
+	}
 }
 
 --- FILE: ./src/ui/interaction.go ---
@@ -3882,6 +4105,8 @@ type Interaction struct {
 	Buttons []*Button
 
 	hovered bool
+
+	Inspect func(item string)
 }
 
 func (i *Interaction) Rect() rl.Rectangle {
@@ -3922,6 +4147,10 @@ func (m *Manager) UpdateInteractions(view string) {
 		// Check emote hover
 		item.hovered = rl.CheckCollisionPointRec(mouse, item.Rect())
 
+		if item.hovered && down {
+			item.Inspect(item.ID)
+		}
+
 		button_hovered := false
 
 		// Check buttons interactions
@@ -3949,9 +4178,6 @@ func (m *Manager) UpdateInteractions(view string) {
 		}
 	}
 }
-
---- FILE: ./src/ui/item.go ---
-package ui
 
 --- FILE: ./src/ui/manager.go ---
 package ui
@@ -4237,107 +4463,6 @@ func NewUpdater(app *core.App) *Updater {
 		app:         app,
 		actionsChan: app.ActionsChan,
 	}
-}
-
---- FILE: ./src/updater/chat.go ---
-package updater
-
-import (
-	"fmt"
-	vars "tap/client/gui/src/variables"
-	panel "tap/client/tui/panels"
-	"time"
-
-	pr "tap/protocol"
-
-	rl "github.com/gen2brain/raylib-go/raylib"
-)
-
-func (up *Updater) UpdateChat() {
-	if len(up.app.Manager.Buttons("Chat")) == 0 {
-		up.buildChatButtons()
-	}
-	if len(up.app.Manager.Emotes("Chat")) == 0 {
-		up.buildChatEmotes()
-	}
-
-	if rl.IsKeyPressed(rl.KeyEnter) {
-		up.SendChat()
-	}
-
-	up.app.Manager.Update("Chat")
-
-	up.UpdateChatMsg()
-	up.UpdateScroll()
-	up.UpdateScope()
-}
-
-func (up *Updater) UpdateChatMsg() {
-	msg := up.app.Variables.PanelsVariables.Chat.Msg
-	if rl.IsKeyPressed(rl.KeyBackspace) || rl.IsKeyPressedRepeat(rl.KeyBackspace) {
-		up.app.Variables.Player.LastTimeTyped = time.Now()
-		if len(msg) > 0 {
-			runes := []rune(msg)
-			msg = string(runes[:len(runes)-1])
-		}
-	}
-
-	char := rl.GetCharPressed()
-
-	for char > 0 {
-		up.app.Variables.Player.LastTimeTyped = time.Now()
-		if char >= 32 && len(msg) < vars.MSG_MAX_CHAR {
-			msg += string(char)
-		}
-
-		char = rl.GetCharPressed()
-	}
-
-	up.app.Variables.PanelsVariables.Chat.Msg = msg
-}
-
-func (up *Updater) SendChat() {
-	scope := up.app.Variables.PanelsVariables.Chat.CurrentScope
-	msg := up.app.Variables.PanelsVariables.Chat.Msg
-
-	up.app.Variables.PanelsVariables.Chat.Msg = ""
-	up.app.Variables.PanelsVariables.Chat.LastMsgText = msg
-	up.app.Variables.PanelsVariables.Chat.LastMsgScope = scope
-
-	up.app.ActionsChan <- panel.Action{
-		Type:    panel.ActionSendServer,
-		Payload: fmt.Sprintf("%s %s %s", pr.CmdChat, scope, msg),
-	}
-}
-
-func (up *Updater) UpdateScroll() {
-	mouse := rl.GetMousePosition()
-	hover := rl.CheckCollisionPointRec(mouse, up.app.Variables.PanelsVariables.Chat.Rect)
-
-	scroll := rl.GetMouseWheelMove()
-	scroll_speed := 35
-
-	if hover {
-		up.app.Variables.PanelsVariables.Chat.Scroll += scroll * float32(scroll_speed)
-	}
-
-	if up.app.Variables.PanelsVariables.Chat.ScrollActive {
-		clicked := rl.IsMouseButtonPressed(rl.MouseButtonLeft)
-		down := rl.IsMouseButtonDown(rl.MouseButtonLeft)
-		scroll_hover := rl.CheckCollisionPointRec(mouse, up.app.Variables.PanelsVariables.Chat.ScrollRect)
-		last_frame_scroll := up.app.Variables.PanelsVariables.Chat.LastFrameScroll
-
-		up.app.Variables.PanelsVariables.Chat.LastFrameScroll = false
-
-		if (scroll_hover && (clicked || down)) || (last_frame_scroll && down) {
-			up.app.Variables.PanelsVariables.Chat.LastFrameScroll = true
-			up.app.Variables.PanelsVariables.Chat.ScrollBarY = mouse.Y
-		}
-	}
-}
-
-func (up *Updater) UpdateScope() {
-
 }
 
 --- FILE: ./src/updater/collisions.go ---
@@ -4679,61 +4804,6 @@ func (up *Updater) UpdateMouse() {
 	// up.app.Variables.Mouse.Down = down
 	up.app.Variables.Mouse.X = mouse.X
 	up.app.Variables.Mouse.Y = mouse.Y
-}
-
---- FILE: ./src/updater/game.go ---
-package updater
-
-func (up *Updater) UpdateGameView() {
-	// Skip update if Talking
-	if up.app.Variables.PanelsVariables.Talk.Talking != nil {
-		up.UpdateTalk()
-		return
-	}
-
-	// Init Buttons/Emotes
-	if len(up.app.Manager.Buttons("Game")) == 0 {
-		up.buildGameButtons()
-	}
-	if len(up.app.Manager.Emotes("Game")) == 0 {
-		up.buildGameEmotes()
-	}
-	if len(up.app.Manager.Interactions("Game")) == 0 {
-		up.buildGameInteractions()
-	}
-	if len(up.app.Manager.Buttons("Group")) == 0 {
-		up.buildGroupButtons()
-	}
-	if len(up.app.Manager.Selects("Group")) == 0 {
-		up.buildGroupSelects()
-	}
-	if len(up.app.Manager.Buttons("Inspect")) == 0 {
-		up.buildInspectButtons()
-	}
-
-	// Skip game update if needed
-	if up.app.Variables.Current_view != "Game" {
-		return
-	}
-
-	up.UpdatePlayer()
-
-	up.app.Manager.Update("Game")
-	up.app.Manager.Update("Items")
-	up.app.Manager.Update("Npcs")
-	if up.app.Variables.PanelsVariables.Chat.Open {
-		up.UpdateChat()
-	}
-
-	up.app.Manager.Update("Inventory")
-
-	if up.app.Variables.PanelsVariables.Group.Open {
-		up.app.Manager.Update("Group")
-	}
-
-	if up.app.Variables.PanelsVariables.Inspect.Open {
-		up.app.Manager.Update("Inspect")
-	}
 }
 
 --- FILE: ./src/updater/player.go ---
@@ -5225,6 +5295,193 @@ func (up *Updater) buildInspectButtons() {
 	up.app.Manager.SetViewButtons("Inspect", []*ui.Button{selfBtn})
 }
 
+--- FILE: ./src/updater/chat.go ---
+package updater
+
+import (
+	"fmt"
+	vars "tap/client/gui/src/variables"
+	panel "tap/client/tui/panels"
+	"time"
+
+	pr "tap/protocol"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+func (up *Updater) UpdateChat() {
+	if len(up.app.Manager.Buttons("Chat")) == 0 {
+		up.buildChatButtons()
+	}
+	if len(up.app.Manager.Emotes("Chat")) == 0 {
+		up.buildChatEmotes()
+	}
+
+	if rl.IsKeyPressed(rl.KeyEnter) {
+		up.SendChat()
+	}
+
+	up.app.Manager.Update("Chat")
+
+	up.UpdateChatMsg()
+	up.UpdateChatScroll()
+	up.UpdateScope()
+}
+
+func (up *Updater) UpdateChatMsg() {
+	msg := up.app.Variables.PanelsVariables.Chat.Msg
+	if rl.IsKeyPressed(rl.KeyBackspace) || rl.IsKeyPressedRepeat(rl.KeyBackspace) {
+		up.app.Variables.Player.LastTimeTyped = time.Now()
+		if len(msg) > 0 {
+			runes := []rune(msg)
+			msg = string(runes[:len(runes)-1])
+		}
+	}
+
+	char := rl.GetCharPressed()
+
+	for char > 0 {
+		up.app.Variables.Player.LastTimeTyped = time.Now()
+		if char >= 32 && len(msg) < vars.MSG_MAX_CHAR {
+			msg += string(char)
+		}
+
+		char = rl.GetCharPressed()
+	}
+
+	up.app.Variables.PanelsVariables.Chat.Msg = msg
+}
+
+func (up *Updater) SendChat() {
+	scope := up.app.Variables.PanelsVariables.Chat.CurrentScope
+	msg := up.app.Variables.PanelsVariables.Chat.Msg
+
+	up.app.Variables.PanelsVariables.Chat.Msg = ""
+	up.app.Variables.PanelsVariables.Chat.LastMsgText = msg
+	up.app.Variables.PanelsVariables.Chat.LastMsgScope = scope
+
+	up.app.ActionsChan <- panel.Action{
+		Type:    panel.ActionSendServer,
+		Payload: fmt.Sprintf("%s %s %s", pr.CmdChat, scope, msg),
+	}
+}
+
+func (up *Updater) UpdateChatScroll() {
+	mouse := rl.GetMousePosition()
+	hover := rl.CheckCollisionPointRec(mouse, up.app.Variables.PanelsVariables.Chat.Rect)
+
+	scroll := rl.GetMouseWheelMove()
+	scroll_speed := 35
+
+	if hover {
+		up.app.Variables.PanelsVariables.Chat.Scroll += scroll * float32(scroll_speed)
+	}
+
+	if up.app.Variables.PanelsVariables.Chat.ScrollActive {
+		clicked := rl.IsMouseButtonPressed(rl.MouseButtonLeft)
+		down := rl.IsMouseButtonDown(rl.MouseButtonLeft)
+		scroll_hover := rl.CheckCollisionPointRec(mouse, up.app.Variables.PanelsVariables.Chat.ScrollRect)
+		last_frame_scroll := up.app.Variables.PanelsVariables.Chat.LastFrameScroll
+
+		up.app.Variables.PanelsVariables.Chat.LastFrameScroll = false
+
+		if (scroll_hover && (clicked || down)) || (last_frame_scroll && down) {
+			up.app.Variables.PanelsVariables.Chat.LastFrameScroll = true
+			up.app.Variables.PanelsVariables.Chat.ScrollBarY = mouse.Y
+		}
+	}
+}
+
+func (up *Updater) UpdateScope() {
+
+}
+
+--- FILE: ./src/updater/game.go ---
+package updater
+
+func (up *Updater) UpdateGameView() {
+	// Skip update if Talking
+	if up.app.Variables.PanelsVariables.Talk.Talking != nil {
+		up.UpdateTalk()
+		return
+	}
+
+	// Init Buttons/Emotes
+	if len(up.app.Manager.Buttons("Game")) == 0 {
+		up.buildGameButtons()
+	}
+	if len(up.app.Manager.Emotes("Game")) == 0 {
+		up.buildGameEmotes()
+	}
+	if len(up.app.Manager.Interactions("Game")) == 0 {
+		up.buildGameInteractions()
+	}
+	if len(up.app.Manager.Buttons("Group")) == 0 {
+		up.buildGroupButtons()
+	}
+	if len(up.app.Manager.Selects("Group")) == 0 {
+		up.buildGroupSelects()
+	}
+	if len(up.app.Manager.Buttons("Inspect")) == 0 {
+		up.buildInspectButtons()
+	}
+
+	// Skip game update if needed
+	if up.app.Variables.Current_view != "Game" {
+		return
+	}
+
+	up.UpdatePlayer()
+
+	up.app.Manager.Update("Game")
+	up.app.Manager.Update("Items")
+	up.app.Manager.Update("Npcs")
+	if up.app.Variables.PanelsVariables.Chat.Open {
+		up.UpdateChat()
+	}
+
+	up.app.Manager.Update("Inventory")
+
+	if up.app.Variables.PanelsVariables.Group.Open {
+		up.app.Manager.Update("Group")
+	}
+
+	if up.app.Variables.PanelsVariables.Inspect.Open {
+		up.app.Manager.Update("Inspect")
+	}
+}
+
+--- FILE: ./src/updater/group.go ---
+package updater
+
+import rl "github.com/gen2brain/raylib-go/raylib"
+
+func (up *Updater) UpdateGroupScroll() {
+	mouse := rl.GetMousePosition()
+	hover := rl.CheckCollisionPointRec(mouse, up.app.Variables.PanelsVariables.Group.Rect)
+
+	scroll := rl.GetMouseWheelMove()
+	scroll_speed := 35
+
+	if hover {
+		up.app.Variables.PanelsVariables.Group.Scroll += scroll * float32(scroll_speed)
+	}
+
+	if up.app.Variables.PanelsVariables.Group.ScrollActive {
+		clicked := rl.IsMouseButtonPressed(rl.MouseButtonLeft)
+		down := rl.IsMouseButtonDown(rl.MouseButtonLeft)
+		scroll_hover := rl.CheckCollisionPointRec(mouse, up.app.Variables.PanelsVariables.Group.ScrollRect)
+		last_frame_scroll := up.app.Variables.PanelsVariables.Group.LastFrameScroll
+
+		up.app.Variables.PanelsVariables.Group.LastFrameScroll = false
+
+		if (scroll_hover && (clicked || down)) || (last_frame_scroll && down) {
+			up.app.Variables.PanelsVariables.Group.LastFrameScroll = true
+			up.app.Variables.PanelsVariables.Group.ScrollBarY = mouse.Y
+		}
+	}
+}
+
 --- FILE: ./src/variables/colors.go ---
 package variables
 
@@ -5238,80 +5495,6 @@ func GetColors() map[string]rl.Color {
 	}
 }
 
---- FILE: ./src/variables/chat.go ---
-package variables
-
-import (
-	"time"
-
-	rl "github.com/gen2brain/raylib-go/raylib"
-)
-
-type Chat struct {
-	Msg        string
-	Pseudo     string
-	EmoteIndex int
-	Time       time.Time
-}
-
-type ChatPanel struct {
-	Open            bool
-	CurrentScope    string
-	Msg             string
-	LastMsgText     string
-	LastMsgScope    string
-	ScopeChats      map[string][]Chat
-	LastNbChats     int
-	Rect            rl.Rectangle
-	ScrollRect      rl.Rectangle
-	ScrollActive    bool
-	Scroll          float32
-	ScrollBarY      float32
-	LastFrameScroll bool
-}
-
---- FILE: ./src/variables/constants.go ---
-package variables
-
-const (
-	FRAME_WIDTH  = 16
-	FRAME_HEIGHT = 16
-
-	PLAYER_TEXTURE       = "teemo 8 directions"
-	PLAYER_REST_TEXTURE  = "Basic Charakter Spritesheet"
-	PLAYER_ANIM_DURATION = 100000000
-
-	NPC_TEXTURE = "free_character_spritesheet_by-cupnooble"
-
-	LOGO_TEXTURE       = "logo"
-	UI_SPRITE_TEXTURE  = "Sprite sheet for Basic Pack"
-	PLAY_TEXTURE       = "UI Big Play Button"
-	EMOTES_TEXTURE     = "Teemo Basic emote animations sprite sheet"
-	MSG_BUBBLE_TEXTURE = "dialog box big"
-	DIALOGUE_TEXTURE   = "dialog box medium"
-	CHEST_TEXTURE      = "Chest"
-	HEART_TEXTURE      = "Inventory_Light_Herat_Spritesheet"
-	INVENTORY_TEXTURE  = "inventory_example_with_slots_2"
-
-	CHAT_WIDTH   = 10
-	CHAT_HEIGHT  = 14
-	CHAT_START_X = 31 - CHAT_WIDTH
-	CHAT_START_Y = 1
-
-	GROUP_START_X = 1
-	GROUP_START_Y = 4
-	GROUP_WIDTH   = 7
-	GROUP_HEIGHT  = 11 - GROUP_START_Y
-
-	INSPECT_START_X = 1
-	INSPECT_START_Y = GROUP_START_Y + GROUP_HEIGHT
-	INSPECT_WIDTH   = 7
-	INSPECT_HEIGHT  = 17 - INSPECT_START_Y
-
-	PSEUDO_MAX_CHAR = 28
-	MSG_MAX_CHAR    = 20
-)
-
 --- FILE: ./src/variables/mouse.go ---
 package variables
 
@@ -5320,73 +5503,6 @@ type Mouse struct {
 	Down    bool
 	X       float32
 	Y       float32
-}
-
---- FILE: ./src/variables/panels.go ---
-package variables
-
-import (
-	"tap/client/state"
-	"tap/protocol"
-)
-
-type PanelVariables struct {
-	Room           *protocol.LookCommandData
-	RoomItems      *[]string
-	InventoryItems *[]string
-	Quests         *[]protocol.TrackedQuestData
-
-	GroupState  *state.GroupState
-	CombatState *state.CombatState
-
-	Chat    *ChatPanel
-	Group   *GroupPanel
-	Inspect *InspectPanel
-	Talk    *TalkPanel
-}
-
-var (
-	results = make([]string, 0)
-)
-
-func GetPanelsVariables() *PanelVariables {
-	return &PanelVariables{
-		Room:           &protocol.LookCommandData{},
-		RoomItems:      &[]string{},
-		InventoryItems: &[]string{},
-		Quests:         &[]protocol.TrackedQuestData{},
-		GroupState:     &state.GroupState{},
-		CombatState:    &state.CombatState{},
-
-		Chat: &ChatPanel{
-			Open:            false,
-			CurrentScope:    "GLOBAL",
-			ScopeChats:      make(map[string][]Chat),
-			LastNbChats:     0,
-			ScrollActive:    false,
-			LastFrameScroll: false,
-		},
-		Group: &GroupPanel{
-			Open:            false,
-			InGroup:         false,
-			Leader:          "None",
-			Grouped:         make([]string, 0),
-			UnGrouped:       make([]string, 0),
-			Invitations:     make([]string, 0),
-			SendInvitations: make([]string, 0),
-			SendPromotion:   "",
-			Promote:         false,
-		},
-		Inspect: &InspectPanel{
-			Open: false,
-		},
-		Talk: &TalkPanel{
-			Talking:  nil,
-			LastTalk: "",
-			Finished: false,
-			Results:  &results,
-		},
-	}
 }
 
 --- FILE: ./src/variables/player.go ---
@@ -5502,8 +5618,42 @@ type TalkPanel struct {
 	Results  *[]string
 }
 
+--- FILE: ./src/variables/chat.go ---
+package variables
+
+import (
+	"time"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+type Chat struct {
+	Msg        string
+	Pseudo     string
+	EmoteIndex int
+	Time       time.Time
+}
+
+type ChatPanel struct {
+	Open            bool
+	CurrentScope    string
+	Msg             string
+	LastMsgText     string
+	LastMsgScope    string
+	ScopeChats      map[string][]Chat
+	LastNbChats     int
+	Rect            rl.Rectangle
+	ScrollRect      rl.Rectangle
+	ScrollActive    bool
+	Scroll          float32
+	ScrollBarY      float32
+	LastFrameScroll bool
+}
+
 --- FILE: ./src/variables/group.go ---
 package variables
+
+import rl "github.com/gen2brain/raylib-go/raylib"
 
 type GroupPanel struct {
 	Open            bool
@@ -5516,6 +5666,13 @@ type GroupPanel struct {
 	SendInvitations []string
 	SendPromotion   string
 	Promote         bool
+
+	Rect            rl.Rectangle
+	ScrollRect      rl.Rectangle
+	ScrollActive    bool
+	Scroll          float32
+	ScrollBarY      float32
+	LastFrameScroll bool
 }
 
 --- FILE: ./src/variables/inspect.go ---
@@ -5525,6 +5682,118 @@ type InspectPanel struct {
 	Open  bool
 	Datas string
 }
+
+--- FILE: ./src/variables/panels.go ---
+package variables
+
+import (
+	"tap/client/state"
+	"tap/protocol"
+)
+
+type PanelVariables struct {
+	Room           *protocol.LookCommandData
+	RoomItems      *[]string
+	InventoryItems *[]string
+	Quests         *[]protocol.TrackedQuestData
+
+	GroupState  *state.GroupState
+	CombatState *state.CombatState
+
+	Chat    *ChatPanel
+	Group   *GroupPanel
+	Inspect *InspectPanel
+	Talk    *TalkPanel
+}
+
+var (
+	results = make([]string, 0)
+)
+
+func GetPanelsVariables() *PanelVariables {
+	return &PanelVariables{
+		Room:           &protocol.LookCommandData{},
+		RoomItems:      &[]string{},
+		InventoryItems: &[]string{},
+		Quests:         &[]protocol.TrackedQuestData{},
+		GroupState:     &state.GroupState{},
+		CombatState:    &state.CombatState{},
+
+		Chat: &ChatPanel{
+			Open:            false,
+			CurrentScope:    "GLOBAL",
+			ScopeChats:      make(map[string][]Chat),
+			LastNbChats:     0,
+			ScrollActive:    false,
+			LastFrameScroll: false,
+		},
+		Group: &GroupPanel{
+			Open:            false,
+			InGroup:         false,
+			Leader:          "None",
+			Grouped:         make([]string, 0),
+			UnGrouped:       make([]string, 0),
+			Invitations:     make([]string, 0),
+			SendInvitations: make([]string, 0),
+			SendPromotion:   "",
+			Promote:         false,
+
+			ScrollActive:    false,
+			LastFrameScroll: false,
+		},
+		Inspect: &InspectPanel{
+			Open: false,
+		},
+		Talk: &TalkPanel{
+			Talking:  nil,
+			LastTalk: "",
+			Finished: false,
+			Results:  &results,
+		},
+	}
+}
+
+--- FILE: ./src/variables/constants.go ---
+package variables
+
+const (
+	FRAME_WIDTH  = 16
+	FRAME_HEIGHT = 16
+
+	PLAYER_TEXTURE       = "teemo 8 directions"
+	PLAYER_REST_TEXTURE  = "Basic Charakter Spritesheet"
+	PLAYER_ANIM_DURATION = 100000000
+
+	NPC_TEXTURE = "free_character_spritesheet_by-cupnooble"
+
+	LOGO_TEXTURE       = "logo"
+	UI_SPRITE_TEXTURE  = "Sprite sheet for Basic Pack"
+	PLAY_TEXTURE       = "UI Big Play Button"
+	EMOTES_TEXTURE     = "Teemo Basic emote animations sprite sheet"
+	MSG_BUBBLE_TEXTURE = "dialog box big"
+	DIALOGUE_TEXTURE   = "dialog box medium"
+	CHEST_TEXTURE      = "Chest"
+	HEART_TEXTURE      = "Inventory_Light_Herat_Spritesheet"
+	INVENTORY_TEXTURE  = "inventory_example_with_slots_2"
+
+	CHAT_WIDTH   = 10
+	CHAT_HEIGHT  = 14
+	CHAT_START_X = 31 - CHAT_WIDTH
+	CHAT_START_Y = 1
+
+	GROUP_START_X = 1
+	GROUP_START_Y = 4
+	GROUP_WIDTH   = 7
+	GROUP_HEIGHT  = 10 - GROUP_START_Y
+
+	INSPECT_START_X = 1
+	INSPECT_START_Y = GROUP_START_Y + GROUP_HEIGHT
+	INSPECT_WIDTH   = 7
+	INSPECT_HEIGHT  = 17 - INSPECT_START_Y
+
+	PSEUDO_MAX_CHAR = 28
+	MSG_MAX_CHAR    = 20
+)
 
 --- FILE: ./src/app.go ---
 package gui
@@ -5574,6 +5843,7 @@ func (app *App) Update() {
 
 func (app *App) Draw() {
 	app.Drawer.RenderChatTexture()
+	app.Drawer.RenderGroupTexture()
 	if app.Variables.Current_view == "Connect" {
 		app.Drawer.DrawConnectView()
 
@@ -6640,8 +6910,6 @@ rules.tmx
 <tileset version="1.10" tiledversion="1.12.2" name="free_character_spritesheet_by-cupnooble" tilewidth="16" tileheight="16" tilecount="48" columns="8">
  <image source="../assets/Sprout Sorry pack/Tests/free_character_spritesheet_by-cupnooble.png" width="128" height="96"/>
 </tileset>
-
---- FILE: ./project.txt ---
 
 --- FILE: ./assets/Sprout Lands - Sprites - Basic pack/Sprout Lands color pallet/Sprout Lands defautlt palette snip.PNG ---
 �PNG
@@ -30280,3 +30548,5 @@ f@ �ty���?�/�. ;����W��1z؃��<��U?H���(�,�~\��ԃ̆���b�Y 3N�:t� � 
 
  Want to find more from Cup Nooble ?
  check out their link tree - cupnooble.carrd.co
+
+--- FILE: ./project.txt ---
