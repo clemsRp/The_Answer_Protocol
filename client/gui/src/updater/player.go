@@ -69,6 +69,8 @@ func (up *Updater) UpdatePlayer() {
 
 	up.UpdateMove()
 	up.SendNotif(oldX, oldY, oldDirX, oldDirY, false)
+
+	up.UpdatePlayersInspect()
 }
 
 func (up *Updater) UpdateMove() {
@@ -137,6 +139,21 @@ func (up *Updater) SendNotif(oldX, oldY, oldDirX, oldDirY float32, first_notif b
 		up.actionsChan <- panel.Action{
 			Type:    panel.ActionSendServer,
 			Payload: payload,
+		}
+	}
+}
+
+func (up *Updater) UpdatePlayersInspect() {
+	for _, p := range *up.app.Variables.RemotePlayers {
+		mouse := rl.GetMousePosition()
+		clicked := rl.IsMouseButtonPressed(rl.MouseButtonLeft)
+		hover := rl.CheckCollisionPointRec(mouse, p.Rect())
+
+		if hover && clicked {
+			up.actionsChan <- panel.Action{
+				Type:    panel.ActionSendServer,
+				Payload: pr.CmdInspectPlayer + " " + p.Pseudo,
+			}
 		}
 	}
 }

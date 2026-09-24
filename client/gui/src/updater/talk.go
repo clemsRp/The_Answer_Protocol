@@ -22,7 +22,13 @@ func (up *Updater) UpdateTalk() {
 
 	up.app.Manager.Update("Talk")
 
-	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) || rl.IsKeyPressed(rl.KeyEnter) || rl.IsKeyPressed(rl.KeySpace) {
+	mouse := rl.GetMousePosition()
+	clicked := rl.IsMouseButtonPressed(rl.MouseButtonLeft)
+	hover := rl.CheckCollisionPointRec(mouse, up.app.Variables.PanelsVariables.Talk.Rect)
+
+	next := hover && clicked
+
+	if next || rl.IsKeyPressed(rl.KeyEnter) || rl.IsKeyPressed(rl.KeySpace) {
 		// End animation
 		if !t.Finished {
 			t.Finished = true

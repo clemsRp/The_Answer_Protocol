@@ -56,7 +56,8 @@ func GetPanelsVariables() *PanelVariables {
 			LastFrameScroll: false,
 		},
 		Inspect: &InspectPanel{
-			Open: false,
+			Open:        false,
+			LastInspect: "ROOM",
 		},
 		Talk: &TalkPanel{
 			Talking:  nil,

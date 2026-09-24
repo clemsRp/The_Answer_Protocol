@@ -73,19 +73,25 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 			OnClick: func() {
 				app.Variables.PanelsVariables.Chat.Open = false
 				app.Variables.PanelsVariables.Group.Open = false
+				app.Variables.PanelsVariables.Inspect.Open = false
 				app.Variables.PanelsVariables.Talk.LastTalk = np
 				app.StartTalk(np)
-				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectNpc + " " + np}
 				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdTalk + " " + np}
+
+				app.Variables.PanelsVariables.Inspect.LastInspect = "NPC"
 				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectNpc + " " + np}
 			},
 		}
 
 		// Group the emote and buttons into a single interaction entity
 		npc := &ui.Interaction{
-			ID:      "npc",
+			ID:      np,
 			Emote:   npc_emote,
 			Buttons: []*ui.Button{npc_bubble, npc_btn},
+			Inspect: func(npc_name string) {
+				app.Variables.PanelsVariables.Inspect.LastInspect = "NPC"
+				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectNpc + " " + npc_name}
+			},
 		}
 
 		npcs = append(npcs, npc)

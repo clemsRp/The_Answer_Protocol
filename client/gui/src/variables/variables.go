@@ -20,6 +20,9 @@ type Variables struct {
 	Current_view    string
 	PanelsVariables *PanelVariables
 
+	Npcs         map[string]*NpcDatas
+	NpcConvertor map[string]string
+
 	Zoom         float32
 	FontSize     float32
 	StartTime    time.Time
@@ -36,6 +39,7 @@ func GetVariables() *Variables {
 		Current_room:    "entrance",
 		Current_view:    "Connect",
 		PanelsVariables: GetPanelsVariables(),
+		Npcs:            make(map[string]*NpcDatas),
 		MapStart: &Position{
 			X: float32(0),
 			Y: float32(0),

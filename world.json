@@ -10,7 +10,7 @@
                     "west": "abandoned_farm"
                 },
                 "items": ["rusty_hoe", "turnip_seed"],
-                "npcs": []
+                "npcs": ["shepherd_hana"]
             },
             "village_square": {
                 "name": "Village Square",
@@ -265,7 +265,7 @@
                     "*Caw!* (It charges at you, pecking wildly!)"
                 ],
                 "role": "enemy",
-                "quest_id": "scare_the_crow",
+                "quest_id": "",
                 "stats": {
                     "hp": 15,
                     "max_hp": 15,
@@ -282,7 +282,7 @@
                     "Welcome! Take a look at my wares, everything's fresh and guaranteed magic-free!"
                 ],
                 "role": "dialogue",
-                "quest_id": "",
+                "quest_id": "scare_the_crow",
                 "hostile": false
             },
             "miller_greta": {

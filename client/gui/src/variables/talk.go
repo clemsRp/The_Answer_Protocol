@@ -1,6 +1,10 @@
 package variables
 
-import "time"
+import (
+	"time"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
 type Talk struct {
 	NpcID       string
@@ -15,4 +19,5 @@ type TalkPanel struct {
 	Finished bool
 	NbLoop   int
 	Results  *[]string
+	Rect     rl.Rectangle
 }

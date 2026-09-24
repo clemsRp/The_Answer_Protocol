@@ -75,7 +75,7 @@ func (app *App) GetNewRoomItems(roomItems []string) []*ui.Interaction {
 			Normal:   ui.Frame{IndX: 28, IndY: 8, RatioX: 3, RatioY: 3},
 			Pressed:  ui.Frame{IndX: 28, IndY: 8, RatioX: 3, RatioY: 3},
 			Hover:    ui.Frame{IndX: 28, IndY: 8, RatioX: 3, RatioY: 3},
-			OnClick:  func() {}, // Static bubble, no action required
+			OnClick:  func() {},
 		}
 
 		// Create the interactive button to pick up the item
@@ -90,11 +90,7 @@ func (app *App) GetNewRoomItems(roomItems []string) []*ui.Interaction {
 			Hover:    ui.Frame{IndX: 52, IndY: 8, RatioX: 2, RatioY: 2},
 			Pressed:  ui.Frame{IndX: 54, IndY: 8, RatioX: 2, RatioY: 2},
 			OnClick: func() {
-				// Send the 'Take' command to the server
-				app.QueueUpdate(func() {
-					// app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + it}
-					app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdTake + " " + it}
-				})
+				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdTake + " " + it}
 			},
 		}
 
@@ -104,6 +100,7 @@ func (app *App) GetNewRoomItems(roomItems []string) []*ui.Interaction {
 			Emote:   item_emote,
 			Buttons: []*ui.Button{item_bubble, item_btn},
 			Inspect: func(item string) {
+				app.Variables.PanelsVariables.Inspect.LastInspect = "ITEM"
 				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + item}
 			},
 		}
@@ -152,6 +149,7 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 			AnimDuration: 2 * frame_duration,
 			Frames:       frames,
 			Inspect: func(item string) {
+				app.Variables.PanelsVariables.Inspect.LastInspect = "ITEM"
 				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + item}
 			},
 		}

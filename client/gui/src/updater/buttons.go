@@ -231,9 +231,52 @@ func (up *Updater) buildGroupButtons() {
 }
 
 func (up *Updater) buildTalkButtons() {
-	// Define quest button
+	tile := up.app.Variables.Tileset_size
+	font := up.app.Variables.FontSize
+	zoom := up.app.Variables.Zoom * 11 / 20
 
-	up.app.Manager.SetViewButtons("Talk", []*ui.Button{})
+	mid_x := (vars.TALK_START_X + vars.TALK_WIDTH/2) * tile
+	btn_width := 6 * vars.FRAME_WIDTH * zoom
+
+	posX := mid_x - btn_width/2
+	posY := float32(vars.TALK_START_Y)*tile - 2.5*font
+
+	// Define quest button
+	talkBtn := &ui.Button{
+		ID:      "quest",
+		Texture: vars.UI_SPRITE_TEXTURE,
+		X:       posX,
+		Y:       posY,
+		Zoom:    zoom,
+		Normal:  ui.Frame{IndX: 10, IndY: 11, RatioX: 6, RatioY: 2},
+		Pressed: ui.Frame{IndX: 16, IndY: 11, RatioX: 6, RatioY: 2},
+		OnClick: func() {
+			// Get npc datas
+			npc := up.app.Variables.PanelsVariables.Talk.Talking.NpcID
+			datas := up.app.Variables.Npcs[npc]
+
+			if datas.Hostile {
+				up.actionsChan <- panel.Action{
+					Type:    panel.ActionSendServer,
+					Payload: pr.CmdAttack + " " + npc,
+				}
+
+			} else if !datas.RequestedQuest && datas.HasQuest {
+				up.actionsChan <- panel.Action{
+					Type:    panel.ActionSendServer,
+					Payload: pr.CmdQuest + " " + npc,
+				}
+
+			} else if !datas.CompletedQuest && datas.RequestedQuest {
+				up.actionsChan <- panel.Action{
+					Type:    panel.ActionSendServer,
+					Payload: pr.CmdCompleteQuest + " " + npc,
+				}
+			}
+		},
+	}
+
+	up.app.Manager.SetViewButtons("Talk", []*ui.Button{talkBtn})
 }
 
 func (up *Updater) buildInspectButtons() {
@@ -255,6 +298,7 @@ func (up *Updater) buildInspectButtons() {
 		Normal:  ui.Frame{IndX: 10, IndY: 11, RatioX: 6, RatioY: 2},
 		Pressed: ui.Frame{IndX: 16, IndY: 11, RatioX: 6, RatioY: 2},
 		OnClick: func() {
+			up.app.Variables.PanelsVariables.Inspect.LastInspect = "SELF"
 			up.actionsChan <- panel.Action{
 				Type:    panel.ActionSendServer,
 				Payload: pr.CmdInspectSelf,

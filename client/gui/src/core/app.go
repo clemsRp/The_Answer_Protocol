@@ -1,7 +1,9 @@
 package core
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"tap/client/gui/src/parser"
 	"tap/client/gui/src/ui"
 	vars "tap/client/gui/src/variables"
@@ -53,6 +55,8 @@ func NewApp(actionsChan chan panel.Action) *App {
 		Running:      true,
 	}
 
+	app.ParseNpcNames("./world.json")
+
 	// Parse maps
 	var err error
 	maps_folder_path := "./client/gui/maps/"
@@ -74,6 +78,25 @@ func NewApp(actionsChan chan panel.Action) *App {
 	app.AddItemPositions()
 
 	return app
+}
+
+func (app *App) ParseNpcNames(filepath string) {
+	// Parse json file
+	data, err := os.ReadFile(filepath)
+	if err != nil {
+		fmt.Printf("Error reading file: %v\n", err)
+	}
+
+	var world []engine.Map
+	if err := json.Unmarshal(data, &world); err != nil {
+		fmt.Printf("JSON parsing error: %v\n", err)
+	}
+
+	// Create NpcConvertor
+	app.Variables.NpcConvertor = make(map[string]string)
+	for npc_id, npc := range world[0].Npcs {
+		app.Variables.NpcConvertor[npc.Name] = npc_id
+	}
 }
 
 func (app *App) AddMissingVariables(screenWidth int) {
@@ -114,6 +137,15 @@ func (app *App) AddMissingVariables(screenWidth int) {
 		0.25*app.Variables.Tileset_size,
 		(vars.GROUP_HEIGHT-0.5)*app.Variables.Tileset_size,
 	)
+
+	app.Variables.PanelsVariables.Talk.Rect = rl.NewRectangle(
+		float32(vars.TALK_START_X)*app.Variables.Tileset_size,
+		float32(vars.TALK_START_Y)*app.Variables.Tileset_size,
+		float32(vars.TALK_WIDTH)*app.Variables.Tileset_size,
+		float32(vars.TALK_HEIGHT)*app.Variables.Tileset_size,
+	)
+
+	app.Variables.Player.Zoom = app.Variables.Zoom
 
 	remote_players := make(map[string]*vars.Player)
 	app.Variables.RemotePlayers = &remote_players

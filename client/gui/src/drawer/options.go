@@ -20,7 +20,7 @@ func (dr *Drawer) DrawGroupOptions(group_start_x, group_start_y, group_height fl
 			continue
 		}
 
-		opt_name := dr.LimitString(opt.OptionName, 10)
+		opt_name := dr.LimitString(opt.OptionName, 8)
 
 		rl.DrawText(
 			fmt.Sprintf("- %s:", opt_name),

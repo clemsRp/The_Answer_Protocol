@@ -5,11 +5,11 @@ import (
 	"regexp"
 	"slices"
 	"strings"
-	"unicode/utf8"
 	"tap/client/state"
 	panel "tap/client/tui/panels"
 	"tap/protocol"
 	"time"
+	"unicode/utf8"
 
 	vars "tap/client/gui/src/variables"
 )
@@ -138,6 +138,10 @@ func (app *App) UpdateCombat(combatState state.CombatState) {
 
 func (app *App) UpdateQuests(quests []protocol.TrackedQuestData) {
 	app.Variables.PanelsVariables.Quests = &quests
+
+	for _, quest := range quests {
+
+	}
 }
 
 func (app *App) AppendChat(scope, user, msg string) {
@@ -165,6 +169,16 @@ func (app *App) AppendChat(scope, user, msg string) {
 func (app *App) UpdateInspector(text string) {
 	re := regexp.MustCompile(`\[.+?\]`)
 	text = re.ReplaceAllString(text, "")
+
+	switch app.Variables.PanelsVariables.Inspect.LastInspect {
+	case "ROOM":
+		app.UpdateNpcWithRoom(text)
+	case "NPC":
+		app.UpdateNpcWithNpc(text)
+
+	default:
+
+	}
 
 	maxLen := 30
 	lines := strings.Split(text, "\n")
@@ -206,6 +220,79 @@ func (app *App) UpdateInspector(text string) {
 	app.Variables.PanelsVariables.Inspect.Datas = result.String()
 }
 
+func (app *App) UpdateNpcWithRoom(text string) {
+	lines := strings.Split(text, "\n")
+	inNpcSection := false
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+
+		if strings.HasPrefix(line, "NPCS:") {
+			inNpcSection = true
+			continue
+		} else if strings.HasPrefix(line, "PLAYERS:") || strings.HasPrefix(line, "ITEMS:") {
+			inNpcSection = false
+			continue
+		}
+
+		if inNpcSection && strings.HasPrefix(line, "- ") {
+			rawName := strings.TrimPrefix(line, "- ")
+
+			isHostile := strings.Contains(rawName, "(hostile)")
+			isQuest := strings.Contains(rawName, "(quest)")
+
+			npcName := strings.ReplaceAll(rawName, "(hostile)", "")
+			npcName = strings.ReplaceAll(npcName, "(quest)", "")
+			npcName = strings.TrimSpace(npcName)
+
+			npcKey := app.Variables.NpcConvertor[npcName]
+			if npcKey == "" {
+				npcKey = npcName
+			}
+
+			datas, ok := app.Variables.Npcs[npcKey]
+			if !ok {
+				datas = &vars.NpcDatas{}
+				app.Variables.Npcs[npcKey] = datas
+			}
+
+			datas.Hostile = isHostile
+			datas.HasQuest = isQuest
+		}
+	}
+}
+
+func (app *App) UpdateNpcWithNpc(text string) {
+	prefix := "NAME: "
+	startIndex := strings.Index(text, prefix)
+
+	var npc string
+	if startIndex != -1 {
+		startIndex += len(prefix)
+		endIndex := strings.Index(text[startIndex:], "\n")
+
+		if endIndex != -1 {
+			npc = text[startIndex : startIndex+endIndex]
+
+		} else {
+			npc = text[startIndex:]
+		}
+
+		npc = strings.TrimSpace(npc)
+	}
+
+	npc = app.Variables.NpcConvertor[npc]
+
+	if datas, ok := app.Variables.Npcs[npc]; !ok {
+		app.Variables.Npcs[npc] = &vars.NpcDatas{}
+		datas = app.Variables.Npcs[npc]
+
+	} else {
+		datas.Hostile = strings.Contains(text, "HOSTILE: YES")
+		datas.HasQuest = strings.Contains(text, "QUEST ID:")
+	}
+}
+
 func (app *App) AppendCombatChat(user, msg string)                {}
 func (app *App) AppendServerResponse(res protocol.ServerResponse) {}
 func (app *App) AppendCliMessage(text string)                     {}
@@ -222,12 +309,14 @@ func (app *App) UpdateRemotePlayerPosition(pseudo string, x, y, dirX, dirY float
 		remotePlayer.Direction.X = dirX
 		remotePlayer.Direction.Y = dirY
 		remotePlayer.EmoteIndex = emoteIndex
+		remotePlayer.Zoom = app.Variables.Zoom
 	} else {
 		(*app.Variables.RemotePlayers)[pseudo] = &vars.Player{
 			Pseudo:     pseudo,
 			Position:   &vars.Position{X: x, Y: y},
 			Direction:  &vars.Direction{X: dirX, Y: dirY},
 			EmoteIndex: emoteIndex,
+			Zoom:       app.Variables.Zoom,
 		}
 	}
 }
@@ -238,6 +327,7 @@ func (app *App) AddRemotePlayer(pseudo string) {
 			Pseudo:    pseudo,
 			Position:  &vars.Position{X: app.Variables.StartingPosX, Y: app.Variables.StartingPosY},
 			Direction: &vars.Direction{X: 0, Y: 1},
+			Zoom:      app.Variables.Zoom,
 		}
 	}
 	app.UpdateRemotePlayerPosition(pseudo, app.Variables.StartingPosX, app.Variables.StartingPosY, 0, 1, 0)

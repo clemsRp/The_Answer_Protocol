@@ -1,5 +1,5 @@
 {
-    "activeFile": "test copy.tmx",
+    "activeFile": "Chest.tsx",
     "expandedProjectPaths": [
         "."
     ],
@@ -217,19 +217,19 @@
             "scaleInEditor": 5.5
         },
         "test copy.tmx": {
-            "scale": 3.17841796875,
+            "scale": 1.5,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 255.94494116201182,
-                "y": 144.096844563247
+                "x": 256,
+                "y": 143.66666666666666
             }
         },
         "test.tmx": {
             "scale": 2,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 256,
-                "y": 143.75
+                "x": 267.5,
+                "y": 138.25
             }
         },
         "test.tsx": {
