@@ -53,39 +53,36 @@ func (dr *Drawer) drawCombatFightersZone() {
 		)
 	}
 
-	// Draw Combat Fighter Interactions (Emote Photo de Profil & Pseudo)
+	// Draw Combat Fighter
 	for _, item := range dr.app.Manager.Interactions("Combat") {
 		if item.Emote != nil {
 			frame := item.Emote.CurrentFrame(dr.app.Variables.StartTime)
 			dr.DrawImage(
 				item.Emote.Texture,
-				item.Emote.X, item.Emote.Y,
+				item.Emote.X-0.1*tile, item.Emote.Y-0.1*tile,
 				frame.IndX, frame.IndY,
 				frame.RatioX, frame.RatioY,
-				item.Emote.Zoom,
+				item.Emote.Zoom/1.5,
 				item.Emote.Rotation,
 			)
 		}
 
-		// Highlight hovered or selected person
-		isHovered := item.IsHovered()
-		isSelected := dr.app.Variables.PanelsVariables.CombatState != nil &&
-			dr.app.Variables.PanelsVariables.CombatState.SelectedPerson == item.ID
+		pseudo := dr.LimitString(item.ID, 12)
+		pseudo_len := rl.MeasureText(
+			pseudo, int32(dr.app.Variables.FontSize),
+		)
+		offset := float32(frame_size)*vars.FRAME_WIDTH*zoom*1.5/4
+		center = offset - float32(pseudo_len)/2
 
-		if isHovered || isSelected {
-			color := dr.app.Colors["panel_text"]
-			if isSelected {
-				color = dr.app.Colors["pseudo_text"]
-			}
-			if item.Emote != nil {
-				rl.DrawText(
-					item.ID,
-					int32(item.Emote.X),
-					int32(item.Emote.Y-0.4*tile),
-					int32(dr.app.Variables.FontSize),
-					color,
-				)
-			}
+		color := dr.app.Colors["pseudo_text"]
+		if item.Emote != nil {
+			rl.DrawText(
+				pseudo,
+				int32(item.Emote.X-tile)+int32(center),
+				int32(item.Emote.Y-0.8*tile),
+				int32(dr.app.Variables.FontSize),
+				color,
+			)
 		}
 	}
 }

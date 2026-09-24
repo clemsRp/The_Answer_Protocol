@@ -127,4 +127,3 @@ func (app *App) RebuildCombatInteractions() {
 
 	app.Manager.SetViewInteractions("Combat", interactions)
 }
-

@@ -55,12 +55,14 @@ func (dr *Drawer) drawSinglePseudo(p *vars.Player, color rl.Color) {
 	if p.Pseudo == "" {
 		return
 	}
+	pseudo := dr.LimitString(p.Pseudo, 12)
+
 	font_size := dr.app.Variables.FontSize
-	text_size := rl.MeasureText(p.Pseudo, int32(font_size))
+	text_size := rl.MeasureText(pseudo, int32(font_size))
 	center_text := (vars.FRAME_WIDTH*int32(dr.app.Variables.Zoom) - text_size) / 2
 
 	rl.DrawText(
-		p.Pseudo,
+		pseudo,
 		int32(p.Position.X)+center_text,
 		int32(p.Position.Y)-int32(font_size),
 		int32(font_size), color,

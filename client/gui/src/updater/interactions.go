@@ -11,4 +11,3 @@ func (up *Updater) buildGameInteractions() {
 func (up *Updater) buildCombatInteractions() {
 	up.app.Manager.SetViewInteractions("Combat", []*ui.Interaction{})
 }
-
