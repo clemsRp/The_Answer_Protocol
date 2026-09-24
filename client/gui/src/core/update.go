@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"unicode/utf8"
 	"tap/client/state"
 	panel "tap/client/tui/panels"
 	"tap/protocol"
@@ -165,7 +166,44 @@ func (app *App) UpdateInspector(text string) {
 	re := regexp.MustCompile(`\[.+?\]`)
 	text = re.ReplaceAllString(text, "")
 
-	app.Variables.PanelsVariables.Inspect.Datas = text
+	maxLen := 30
+	lines := strings.Split(text, "\n")
+	var result strings.Builder
+
+	for lineIndex, line := range lines {
+		if lineIndex > 0 {
+			result.WriteString("\n")
+		}
+
+		words := strings.Fields(line)
+		if len(words) == 0 {
+			continue
+		}
+
+		currentLineLen := 0
+		for i, word := range words {
+			wordLen := utf8.RuneCountInString(word)
+
+			if i == 0 {
+				result.WriteString(word)
+				currentLineLen = wordLen
+				continue
+			}
+
+			if currentLineLen+1+wordLen > maxLen {
+				result.WriteString("\n")
+				result.WriteString(word)
+				currentLineLen = wordLen
+
+			} else {
+				result.WriteString(" ")
+				result.WriteString(word)
+				currentLineLen += 1 + wordLen
+			}
+		}
+	}
+
+	app.Variables.PanelsVariables.Inspect.Datas = result.String()
 }
 
 func (app *App) AppendCombatChat(user, msg string)                {}
