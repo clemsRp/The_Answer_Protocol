@@ -22,8 +22,23 @@ func (up *Updater) UpdateCombatView() {
 		up.buildCombatChatButtons()
 	}
 
+	if len(up.app.Manager.Buttons("CombatActions")) == 0 {
+		up.buildCombatActionsButtons()
+	}
+
+	if up.app.Variables.PanelsVariables.InventoryItems != nil {
+		combat_use_buttons := up.app.GetNewCombatInventory(*up.app.Variables.PanelsVariables.InventoryItems)
+		up.app.Manager.SetViewButtons("CombatInventory", combat_use_buttons)
+	}
+
 	up.app.Manager.Update("Combat")
+
+	if up.app.Variables.PanelsVariables.CombatState.CurrentTurn == up.app.GetPseudo() {
+		up.app.Manager.Update("CombatActions")
+	}
+
 	up.app.Manager.Update("CombatChat")
+	up.app.Manager.Update("CombatInventory")
 
 	up.UpdateCombatChat()
 }
@@ -33,7 +48,7 @@ func (up *Updater) UpdateCombatChat() {
 		up.SendCombatChat()
 	}
 
-	up.UpdateChatMsg() // Réutilisation de la logique de frappe standard
+	up.UpdateChatMsg()
 	up.UpdateCombatChatScroll()
 }
 
@@ -116,4 +131,66 @@ func (up *Updater) buildCombatChatButtons() {
 	}
 
 	up.app.Manager.SetViewButtons("CombatChat", []*ui.Button{sendchatBtn})
+}
+
+func (up *Updater) buildCombatActionsButtons() {
+	splitX := float32(vars.COMBAT_START_X) + float32(vars.COMBAT_LEFT_END_X-vars.COMBAT_START_X)/2.0
+	tile := up.app.Variables.Tileset_size
+	zoom := up.app.Variables.Zoom * 11 / 20
+
+	leftCenterX := (float32(vars.COMBAT_START_X) + splitX) / 2 * tile
+	btnWidth := 6 * float32(vars.FRAME_WIDTH) * zoom
+	btnX := leftCenterX - btnWidth/2
+
+	btnAttackY := (float32(vars.COMBAT_ACTIONS_START_Y) + 0.8) * tile
+	btnFleeY := (float32(vars.COMBAT_ACTIONS_START_Y) + 3.2) * tile
+
+	attackBtn := &ui.Button{
+		ID:      "combat_attack",
+		Texture: vars.UI_SPRITE_TEXTURE,
+		X:       btnX,
+		Y:       btnAttackY,
+		Zoom:    zoom,
+		Normal:  ui.Frame{IndX: 10, IndY: 11, RatioX: 6, RatioY: 2},
+		Pressed: ui.Frame{IndX: 16, IndY: 11, RatioX: 6, RatioY: 2},
+		OnClick: func() {
+			cs := up.app.Variables.PanelsVariables.CombatState
+			target := ""
+			if cs != nil {
+				target = cs.SelectedPerson
+				if target == "" && len(cs.Opponents) > 0 {
+					for k := range cs.Opponents {
+						target = k
+						break
+					}
+				}
+			}
+			payload := pr.CmdAttack
+			if target != "" {
+				payload = fmt.Sprintf("%s %s", pr.CmdAttack, target)
+			}
+			up.actionsChan <- panel.Action{
+				Type:    panel.ActionSendServer,
+				Payload: payload,
+			}
+		},
+	}
+
+	fleeBtn := &ui.Button{
+		ID:      "combat_flee",
+		Texture: vars.UI_SPRITE_TEXTURE,
+		X:       btnX,
+		Y:       btnFleeY,
+		Zoom:    zoom,
+		Normal:  ui.Frame{IndX: 10, IndY: 11, RatioX: 6, RatioY: 2},
+		Pressed: ui.Frame{IndX: 16, IndY: 11, RatioX: 6, RatioY: 2},
+		OnClick: func() {
+			up.actionsChan <- panel.Action{
+				Type:    panel.ActionSendServer,
+				Payload: pr.CmdFlee,
+			}
+		},
+	}
+
+	up.app.Manager.SetViewButtons("CombatActions", []*ui.Button{attackBtn, fleeBtn})
 }

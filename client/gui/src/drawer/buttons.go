@@ -97,3 +97,31 @@ func (dr *Drawer) DrawInspectButtons() {
 		)
 	}
 }
+
+func (dr *Drawer) DrawCombatActionsButtons() {
+	for _, b := range dr.app.Manager.Buttons("CombatActions") {
+		frame := b.CurrentFrame()
+		dr.DrawImage(
+			b.Texture,
+			b.X, b.Y,
+			frame.IndX, frame.IndY,
+			frame.RatioX, frame.RatioY,
+			b.Zoom,
+			b.Rotation,
+		)
+	}
+}
+
+func (dr *Drawer) DrawCombatInventoryButtons() {
+	for _, b := range dr.app.Manager.Buttons("CombatInventory") {
+		frame := b.CurrentFrame()
+		dr.DrawImage(
+			b.Texture,
+			b.X, b.Y,
+			frame.IndX, frame.IndY,
+			frame.RatioX, frame.RatioY,
+			b.Zoom,
+			b.Rotation,
+		)
+	}
+}

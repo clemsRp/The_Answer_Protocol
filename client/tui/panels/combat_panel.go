@@ -3,6 +3,7 @@ package panel
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	pr "tap/protocol"
 
@@ -24,7 +25,7 @@ type CombatDatas struct {
 	Current_turn     string
 	SelectedPerson   *string
 	Inventory        []string
-	MyPseudo         string // Ajout du pseudo pour vérifier si c'est notre tour
+	MyPseudo         string
 }
 
 type CombatComponent struct {
@@ -366,6 +367,9 @@ func (c *CombatComponent) GetAllButtons(actionsChan chan<- Action, combat_datas 
 	itemIndices := make(map[string]int)
 
 	for _, item := range combat_datas.Inventory {
+		if !isItemUsable(item) {
+			continue
+		}
 		if idx, exists := itemIndices[item]; exists {
 			itemsList[idx].count++
 		} else {
@@ -500,4 +504,14 @@ func (c *CombatComponent) ListenOutputs(ctx context.Context, wg *sync.WaitGroup,
 			}
 		}
 	}()
+}
+
+func isItemUsable(itemName string) bool {
+	lowerName := strings.ToLower(strings.TrimSpace(itemName))
+	snakeName := strings.ReplaceAll(lowerName, " ", "_")
+
+	if snakeName == "gold_acorn" || snakeName == "golden_egg" || snakeName == "wheat_bundle" || snakeName == "windmill_gear" {
+		return false
+	}
+	return true
 }

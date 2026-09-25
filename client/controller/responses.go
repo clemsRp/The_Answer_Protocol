@@ -93,12 +93,38 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 
 		if res.Datas != nil {
 			var fullTurn struct {
-				CombatState string   `json:"combat_state"`
-				XpReward    int      `json:"xp_reward,omitempty"`
-				ItemsReward []string `json:"items_reward,omitempty"`
+				CombatState  string   `json:"combat_state"`
+				XpReward     int      `json:"xp_reward,omitempty"`
+				ItemsReward  []string `json:"items_reward,omitempty"`
+				PlayerAction *struct {
+					ActorName  string `json:"actor_name"`
+					TargetName string `json:"target_name"`
+					Result     *struct {
+						Damage int `json:"damage"`
+					} `json:"result"`
+				} `json:"player_action,omitempty"`
 			}
 			raw, err := json.Marshal(res.Datas)
 			if err == nil && json.Unmarshal(raw, &fullTurn) == nil {
+				if fullTurn.PlayerAction != nil && fullTurn.PlayerAction.Result != nil && fullTurn.PlayerAction.Result.Damage > 0 {
+					dmg := fullTurn.PlayerAction.Result.Damage
+					actor := fullTurn.PlayerAction.ActorName
+					myPseudo := c.ui.GetPseudo()
+					c.gameState.UpdateCombatState(func(cs *state.CombatState) {
+						if actor == "" || actor == myPseudo {
+							cs.PersonalDamage += dmg
+						}
+						if cs.TeamDamage == nil {
+							cs.TeamDamage = make(map[string]int)
+						}
+						actKey := actor
+						if actKey == "" {
+							actKey = myPseudo
+						}
+						cs.TeamDamage[actKey] += dmg
+						cs.TotalGroupDamage += dmg
+					})
+				}
 				if fullTurn.CombatState == "VICTORY" || fullTurn.CombatState == "DEFEAT" {
 					c.gameState.UpdateCombatState(func(cs *state.CombatState) {
 						cs.InCombat = false

@@ -16,6 +16,7 @@ func (dr *Drawer) DrawCombatView() {
 	dr.DrawPlayerPanel()
 	dr.DrawGameEmotes()
 	dr.DrawInventoryEmotes()
+	dr.DrawCombatInventoryButtons()
 }
 
 func (dr *Drawer) DrawBlurredGame() {

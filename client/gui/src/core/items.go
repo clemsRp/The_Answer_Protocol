@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"strconv"
 	"tap/client/gui/src/ui"
 	vars "tap/client/gui/src/variables"
 	panel "tap/client/tui/panels"
@@ -200,6 +201,53 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 	}
 
 	return invent_buttons, invent_emotes
+}
+
+func (app *App) GetNewCombatInventory(inventory []string) []*ui.Button {
+	use_buttons := make([]*ui.Button, 0)
+
+	pseudo := app.Variables.Player.Pseudo
+	start_x := float32(19)
+
+	if len(pseudo) <= vars.PSEUDO_MAX_CHAR/3 {
+		start_x = 11
+	} else if len(pseudo) <= vars.PSEUDO_MAX_CHAR*2/3 {
+		start_x = 15
+	}
+
+	start_x += 2
+	start_x *= app.Variables.Zoom / 2 * vars.FRAME_WIDTH
+	start_x -= 0.1 * app.Variables.Tileset_size
+	start_y := app.Variables.Tileset_size
+
+	usableIndex := 0
+	for ind, it := range inventory {
+		if !app.IsItemUsable(it) {
+			continue
+		}
+		itemName := it
+		item_btn := &ui.Button{
+			ID:       "combat_use_" + itemName + "_" + strconv.Itoa(ind),
+			Texture:  vars.UI_SPRITE_TEXTURE,
+			X:        start_x + app.Variables.Tileset_size*(float32(usableIndex)+0.645),
+			Y:        0.2*app.Variables.Tileset_size + start_y,
+			Rotation: 0,
+			Zoom:     app.Variables.Zoom / 5,
+			Normal:   ui.Frame{IndX: 52, IndY: 8, RatioX: 2, RatioY: 2},
+			Hover:    ui.Frame{IndX: 52, IndY: 8, RatioX: 2, RatioY: 2},
+			Pressed:  ui.Frame{IndX: 54, IndY: 8, RatioX: 2, RatioY: 2},
+			OnClick: func() {
+				app.ActionsChan <- panel.Action{
+					Type:    panel.ActionSendServer,
+					Payload: fmt.Sprintf("%s %s", pr.CmdUseItem, itemName),
+				}
+			},
+		}
+		use_buttons = append(use_buttons, item_btn)
+		usableIndex++
+	}
+
+	return use_buttons
 }
 
 func (app *App) FindNearestFreeTile(startX, startY float32) (float32, float32, bool) {

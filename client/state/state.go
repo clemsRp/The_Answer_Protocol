@@ -43,14 +43,17 @@ type CombatChat struct {
 }
 
 type CombatState struct {
-	InCombat       bool
-	Chats          []CombatChat
-	LastCombatChat string
-	Opponents      map[string]protocol.CombatPersonData
-	Team           map[string]protocol.CombatPersonData
-	Leader         string
-	CurrentTurn    string
-	SelectedPerson string
+	InCombat         bool
+	Chats            []CombatChat
+	LastCombatChat   string
+	Opponents        map[string]protocol.CombatPersonData
+	Team             map[string]protocol.CombatPersonData
+	Leader           string
+	CurrentTurn      string
+	SelectedPerson   string
+	PersonalDamage   int
+	TotalGroupDamage int
+	TeamDamage       map[string]int
 }
 
 func New() *GameState {
@@ -62,9 +65,10 @@ func New() *GameState {
 			NpcDialogues: make(map[string]string),
 		},
 		Combat: &CombatState{
-			Chats:     make([]CombatChat, 0),
-			Opponents: make(map[string]protocol.CombatPersonData),
-			Team:      make(map[string]protocol.CombatPersonData),
+			Chats:      make([]CombatChat, 0),
+			Opponents:  make(map[string]protocol.CombatPersonData),
+			Team:       make(map[string]protocol.CombatPersonData),
+			TeamDamage: make(map[string]int),
 		},
 	}
 }
@@ -135,6 +139,11 @@ func (gs *GameState) GetCombatSnapshot() CombatState {
 	snap.Team = make(map[string]protocol.CombatPersonData, len(gs.Combat.Team))
 	for k, v := range gs.Combat.Team {
 		snap.Team[k] = v
+	}
+
+	snap.TeamDamage = make(map[string]int, len(gs.Combat.TeamDamage))
+	for k, v := range gs.Combat.TeamDamage {
+		snap.TeamDamage[k] = v
 	}
 
 	return snap

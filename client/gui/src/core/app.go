@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"tap/client/gui/src/parser"
 	"tap/client/gui/src/ui"
 	vars "tap/client/gui/src/variables"
@@ -20,6 +21,7 @@ type App struct {
 	Colors       map[string]rl.Color
 	Manager      *ui.Manager
 	Rooms        map[string]*parser.Map
+	WorldItems   map[string]*engine.Item
 	ScreenWidth  int
 	ScreenHeight int
 	ActionsChan  chan panel.Action
@@ -95,18 +97,51 @@ func (app *App) ParseNpcNames(filepath string) {
 	data, err := os.ReadFile(filepath)
 	if err != nil {
 		fmt.Printf("Error reading file: %v\n", err)
+		return
 	}
 
 	var world []engine.Map
 	if err := json.Unmarshal(data, &world); err != nil {
 		fmt.Printf("JSON parsing error: %v\n", err)
+		return
 	}
 
-	// Create NpcConvertor
-	app.Variables.NpcConvertor = make(map[string]string)
-	for npc_id, npc := range world[0].Npcs {
-		app.Variables.NpcConvertor[npc.Name] = npc_id
+	if len(world) > 0 {
+		app.WorldItems = world[0].Items
+		app.Variables.NpcConvertor = make(map[string]string)
+		for npc_id, npc := range world[0].Npcs {
+			app.Variables.NpcConvertor[npc.Name] = npc_id
+		}
 	}
+}
+
+func (app *App) IsItemUsable(itemName string) bool {
+	if app.WorldItems == nil {
+		app.ParseNpcNames("./world.json")
+	}
+
+	cleanName := strings.TrimSpace(itemName)
+	lowerName := strings.ToLower(cleanName)
+	snakeName := strings.ReplaceAll(lowerName, " ", "_")
+
+	if app.WorldItems != nil {
+		for k, item := range app.WorldItems {
+			if item == nil {
+				continue
+			}
+			itemK := strings.ToLower(k)
+			itemN := strings.ToLower(item.Name)
+			if itemK == lowerName || itemK == snakeName || itemN == lowerName {
+				return item.Type == "weapon" || item.Type == "consumable"
+			}
+		}
+	}
+
+	// Unusable item fallback check (resources/currency)
+	if snakeName == "gold_acorn" || snakeName == "golden_egg" || snakeName == "wheat_bundle" || snakeName == "windmill_gear" {
+		return false
+	}
+	return true
 }
 
 func (app *App) AddMissingVariables(screenWidth int) {

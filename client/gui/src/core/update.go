@@ -44,6 +44,9 @@ func (app *App) ClosePopup()    {}
 
 func (app *App) ShowCombatPage() {
 	app.EndTalk()
+	app.Variables.PanelsVariables.Chat.Open = false
+	app.Variables.PanelsVariables.Group.Open = false
+	app.Variables.PanelsVariables.Inspect.Open = false
 	app.Variables.Current_view = "Combat"
 	app.RebuildCombatInteractions()
 }
@@ -85,6 +88,9 @@ func (app *App) UpdateItems(roomItems, inventory []string) {
 	invent_buttons, invent_emotes := app.GetNewInventory(inventory)
 	app.Manager.SetViewEmotes("Inventory", invent_emotes)
 	app.Manager.SetViewButtons("Inventory", invent_buttons)
+
+	combat_use_buttons := app.GetNewCombatInventory(inventory)
+	app.Manager.SetViewButtons("CombatInventory", combat_use_buttons)
 }
 
 func (app *App) UpdateDatas(text string) {}
