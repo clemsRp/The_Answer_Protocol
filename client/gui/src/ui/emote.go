@@ -75,7 +75,7 @@ func (m *Manager) UpdateEmotes(view string) {
 		// Check emote hover
 		hovered := rl.CheckCollisionPointRec(mouse, emote.Rect())
 
-		if hovered && down {
+		if hovered && down && emote.Inspect != nil {
 			emote.Inspect(emote.ID)
 		}
 	}

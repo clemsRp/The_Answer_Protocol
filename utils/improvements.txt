@@ -1,11 +1,10 @@
-- Quests system
-- world.json
-- timer during combat
-- delete combat after quit
+MANDATORY:
+	- Fix SELF inspect after combat
+	- Add cow animation / InFrontOfPlayer layer
+	- Define items and npcs places/emotes
+	- Create all the maps THEN the world.json
+	- Make a GREAT REVIEW of everything with and without AI
+	- Make README.md files (game engine/server/client logic/GUI/TUI)
 
-- GUI:
-	- Group
-	- Quests
-	- Combat
-	- Npc
-	- Inspector
+OPTIONAL:
+	- Add emotes next to players
