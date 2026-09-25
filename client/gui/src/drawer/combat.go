@@ -7,14 +7,18 @@ import (
 )
 
 func (dr *Drawer) DrawCombatView() {
-	dr.drawBlurredGame()
+	dr.DrawBlurredGame()
 
-	dr.drawCombatChatZone()
-	dr.drawCombatFightersZone()
-	dr.drawCombatActionsZone()
+	dr.DrawCombatChatZone()
+	dr.DrawCombatFightersZone()
+	dr.DrawCombatActionsZone()
+
+	dr.DrawPlayerPanel()
+	dr.DrawGameEmotes()
+	dr.DrawInventoryEmotes()
 }
 
-func (dr *Drawer) drawBlurredGame() {
+func (dr *Drawer) DrawBlurredGame() {
 	rl.BeginTextureMode(dr.gameTexture)
 	dr.DrawGameView()
 	rl.EndTextureMode()
@@ -33,7 +37,7 @@ func (dr *Drawer) drawBlurredGame() {
 	rl.EndShaderMode()
 }
 
-func (dr *Drawer) drawCombatFrame(startX, startY, endX, endY float32) {
+func (dr *Drawer) DrawCombatFrame(startX, startY, endX, endY float32) {
 	dr.DrawWoodFrameAt(
 		vars.Position{X: startX, Y: startY},
 		vars.Position{X: endX, Y: endY},

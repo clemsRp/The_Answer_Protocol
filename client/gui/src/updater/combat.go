@@ -13,7 +13,6 @@ import (
 func (up *Updater) UpdateCombatView() {
 	up.UpdateGameView()
 
-	// On force le statut "Open" et la scope sur "COMBAT"
 	up.app.Variables.PanelsVariables.Chat.Open = true
 	if up.app.Variables.PanelsVariables.Chat.CurrentScope != "COMBAT" {
 		up.app.Variables.PanelsVariables.Chat.CurrentScope = "COMBAT"

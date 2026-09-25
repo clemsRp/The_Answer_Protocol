@@ -31,6 +31,7 @@ func (e *Engine) get_combat_stats(player *Player) (string, any, error) {
 		team[p.name] = pr.CombatPersonData{
 			Name:      p.name,
 			Hp:        p.stats.Hp,
+			MaxHp:     p.stats.HpMax,
 			Inventory: inventory,
 		}
 	}
@@ -44,6 +45,7 @@ func (e *Engine) get_combat_stats(player *Player) (string, any, error) {
 		opponents[npc.Id] = pr.CombatPersonData{
 			Name:      npc.Name,
 			Hp:        npc.Stats.Hp,
+			MaxHp:     npc.Stats.HpMax,
 			Inventory: inventory,
 		}
 	}

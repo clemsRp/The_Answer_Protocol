@@ -26,6 +26,7 @@ type StatusCommandData struct {
 type CombatPersonData struct {
 	Name      string   `json:"name"`
 	Hp        int      `json:"hp"`
+	MaxHp     int      `json:"max_hp"`
 	Inventory []string `json:"inventory"`
 }
 

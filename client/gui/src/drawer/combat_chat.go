@@ -6,14 +6,14 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func (dr *Drawer) drawCombatChatZone() {
+func (dr *Drawer) DrawCombatChatZone() {
 	chat_width := float32(vars.COMBAT_CHAT_END_X - vars.COMBAT_CHAT_START_X + 1)
 	chat_height := float32(vars.COMBAT_END_Y - vars.COMBAT_START_Y)
 	chat_start_x := float32(vars.COMBAT_CHAT_START_X)
 	chat_start_y := float32(vars.COMBAT_START_Y)
 
-	dr.drawCombatFrame(chat_start_x, chat_start_y, chat_start_x+chat_width, chat_start_y+chat_height-2)
-	dr.drawCombatChatInput(chat_start_x, chat_start_y, chat_width, chat_height-2)
+	dr.DrawCombatFrame(chat_start_x, chat_start_y, chat_start_x+chat_width, chat_start_y+chat_height-2)
+	dr.DrawCombatChatInput(chat_start_x, chat_start_y, chat_width, chat_height-2)
 	dr.DrawCombatChats(chat_start_x, chat_start_y, chat_height-2)
 
 	for _, b := range dr.app.Manager.Buttons("CombatChat") {
@@ -29,7 +29,7 @@ func (dr *Drawer) drawCombatChatZone() {
 	}
 }
 
-func (dr *Drawer) drawCombatChatInput(chat_start_x, chat_start_y, chat_width, chat_height float32) {
+func (dr *Drawer) DrawCombatChatInput(chat_start_x, chat_start_y, chat_width, chat_height float32) {
 	dr.DrawWoodFrameAt(
 		vars.Position{X: chat_start_x, Y: chat_start_y + chat_height},
 		vars.Position{X: chat_start_x + chat_width, Y: chat_start_y + chat_height + 2},
@@ -106,7 +106,7 @@ func (dr *Drawer) DrawCombatChats(chat_start_x, chat_start_y, chat_height float3
 func (dr *Drawer) DrawCombatChatScrollBar(maxY, chat_start_x, chat_start_y, chat_height float32) {
 	dr.DrawImage(
 		vars.UI_SPRITE_TEXTURE,
-		float32((chat_start_x+vars.CHAT_WIDTH-1)*dr.app.Variables.Tileset_size),
+		float32((chat_start_x+vars.CHAT_WIDTH-2)*dr.app.Variables.Tileset_size),
 		float32((chat_start_y)*dr.app.Variables.Tileset_size),
 		20, 8, 1, 1, dr.app.Variables.Zoom, 0,
 	)
@@ -115,7 +115,7 @@ func (dr *Drawer) DrawCombatChatScrollBar(maxY, chat_start_x, chat_start_y, chat
 	for mid := 0; mid < limit; mid++ {
 		dr.DrawImage(
 			vars.UI_SPRITE_TEXTURE,
-			float32((chat_start_x+vars.CHAT_WIDTH-1)*dr.app.Variables.Tileset_size),
+			float32((chat_start_x+vars.CHAT_WIDTH-2)*dr.app.Variables.Tileset_size),
 			float32((chat_start_y+float32(mid)+1)*dr.app.Variables.Tileset_size),
 			20, 9, 1, 1, dr.app.Variables.Zoom, 0,
 		)
@@ -123,7 +123,7 @@ func (dr *Drawer) DrawCombatChatScrollBar(maxY, chat_start_x, chat_start_y, chat
 
 	dr.DrawImage(
 		vars.UI_SPRITE_TEXTURE,
-		float32((chat_start_x+vars.CHAT_WIDTH-1)*dr.app.Variables.Tileset_size),
+		float32((chat_start_x+vars.CHAT_WIDTH-2)*dr.app.Variables.Tileset_size),
 		float32((chat_start_y+chat_height-1)*dr.app.Variables.Tileset_size),
 		20, 10, 1, 1, dr.app.Variables.Zoom, 0,
 	)
@@ -155,7 +155,7 @@ func (dr *Drawer) DrawCombatChatScrollBar(maxY, chat_start_x, chat_start_y, chat
 
 	dr.DrawImage(
 		vars.UI_SPRITE_TEXTURE,
-		float32((chat_start_x+vars.CHAT_WIDTH-1)*dr.app.Variables.Tileset_size),
+		float32((chat_start_x+vars.CHAT_WIDTH-2)*dr.app.Variables.Tileset_size),
 		cursor_y-dr.app.Variables.Tileset_size,
 		19, 8, 1, 2, dr.app.Variables.Zoom, 0,
 	)

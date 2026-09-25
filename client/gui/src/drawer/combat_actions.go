@@ -6,8 +6,8 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func (dr *Drawer) drawCombatActionsZone() {
-	dr.drawCombatFrame(
+func (dr *Drawer) DrawCombatActionsZone() {
+	dr.DrawCombatFrame(
 		vars.COMBAT_START_X, vars.COMBAT_ACTIONS_START_Y,
 		vars.COMBAT_LEFT_END_X, vars.COMBAT_END_Y,
 	)

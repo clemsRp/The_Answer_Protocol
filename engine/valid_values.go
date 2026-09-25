@@ -12,6 +12,14 @@ const (
 	RoomVillageSquare = "village_square"
 	RoomAbandonedFarm = "abandoned_farm"
 	RoomMerchantTent  = "merchant_tent"
+	RoomOldBarn       = "old_barn"
+	RoomChickenCoop   = "chicken_coop"
+	RoomNorthBridge   = "north_bridge"
+	RoomWindMill      = "windmill"
+	RoomForestEdge    = "forest_edge"
+	RoomRiverside     = "riverside"
+	RoomFishingDock   = "fishing_dock"
+	RoomOrchard       = "orchard"
 )
 const (
 	South = "south"

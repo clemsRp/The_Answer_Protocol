@@ -64,6 +64,16 @@ func NewApp(actionsChan chan panel.Action) *App {
 		[]string{
 			maps_folder_path + engine.RoomEntrance,
 			maps_folder_path + engine.RoomVillageSquare,
+			maps_folder_path + engine.RoomAbandonedFarm,
+			maps_folder_path + engine.RoomMerchantTent,
+			maps_folder_path + engine.RoomOldBarn,
+			// maps_folder_path + engine.RoomChickenCoop,
+			maps_folder_path + engine.RoomNorthBridge,
+			// maps_folder_path + engine.RoomWindMill,
+			// maps_folder_path + engine.RoomForestEdge,
+			// maps_folder_path + engine.RoomRiverside,
+			// maps_folder_path + engine.RoomFishingDock,
+			// maps_folder_path + engine.RoomOrchard,
 		},
 	)
 

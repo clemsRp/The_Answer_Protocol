@@ -82,7 +82,8 @@ func (app *App) RebuildCombatInteractions() {
 
 			fighterName := name
 			interactions = append(interactions, &ui.Interaction{
-				ID:    fighterName,
+				ID:    "npc-" + fighterName,
+				Name:  fighterName,
 				Emote: getEmoteForFighter(fighterName, emoteX, emoteY),
 				Inspect: func(target string) {
 					if app.Variables.PanelsVariables.CombatState != nil {
@@ -110,11 +111,12 @@ func (app *App) RebuildCombatInteractions() {
 			frameY := (panel_start_y + panel_height) - (frame_size+4.5)*tile
 
 			emoteX := frameX + 0.35*tile
-			emoteY := frameY + 0.35*tile
+			emoteY := frameY + 0.2*tile
 
 			fighterName := name
 			interactions = append(interactions, &ui.Interaction{
-				ID:    fighterName,
+				ID:    "player-" + fighterName,
+				Name:  fighterName,
 				Emote: getEmoteForFighter(fighterName, emoteX, emoteY),
 				Inspect: func(target string) {
 					if app.Variables.PanelsVariables.CombatState != nil {

@@ -114,6 +114,14 @@
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
+        "Premade dialog box  big.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Premade dialog box small.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
         "Simple Milk and grass item.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
@@ -127,6 +135,10 @@
             "scaleInEditor": 2
         },
         "Sprout Lands defautlt palette snip.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Teemo Basic emote animations sprite sheet.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
@@ -200,16 +212,36 @@
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
+        "free_character_spritesheet_by-cupnooble.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
         "inventory_example_with_slots_2.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 3
+        },
+        "north_bridge.tmx": {
+            "scale": 2.1671875,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 256.09228550829124,
+                "y": 143.96539293439076
+            }
+        },
+        "old_barn.tmx": {
+            "scale": 2.1671875,
+            "selectedLayer": 4,
+            "viewCenter": {
+                "x": 256.09228550829124,
+                "y": 143.96539293439076
+            }
         },
         "rules.tmx": {
             "scale": 1.8366666666666667,
             "selectedLayer": 1,
             "viewCenter": {
-                "x": 240.10889292196003,
-                "y": 159.80036297640652
+                "x": 239.83666061705986,
+                "y": 159.52813067150635
             }
         },
         "teemo 8 directions.tsx": {
@@ -217,30 +249,46 @@
             "scaleInEditor": 5.5
         },
         "test copy.tmx": {
-            "scale": 1.5,
+            "scale": 2,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 256,
-                "y": 143.66666666666666
+                "x": 241,
+                "y": 146.5
             }
         },
         "test.tmx": {
             "scale": 2,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 267.5,
-                "y": 138.25
+                "x": 241.5,
+                "y": 143.5
             }
         },
         "test.tsx": {
             "dynamicWrapping": true,
             "scaleInDock": 1,
             "scaleInEditor": 1
+        },
+        "untitled.tmx": {
+            "scale": 2.2265625,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 256.00000000000006,
+                "y": 144.16842105263157
+            }
+        },
+        "untitled2.tmx": {
+            "scale": 2.2265625,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 248.8140350877193,
+                "y": 144.16842105263157
+            }
         }
     },
     "frame.defaultDuration": 200,
     "last.exportedFilePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps",
-    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Sorry pack/Tests",
+    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Sorry pack/Early Access/Village pack/houses/small hut",
     "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
@@ -269,18 +317,18 @@
     "project": "sprout-lands.tiled-project",
     "property.type": "bool",
     "recentFiles": [
-        "Water.tsx",
-        "test.tmx",
-        "Basic Charakter Actions.tsx",
-        "Basic Charakter Spritesheet.tsx",
-        "Egg_And_Nest.tsx",
-        "Free Chicken Sprites.tsx",
-        "rules.tmx",
-        "Free Cow Sprites.tsx",
-        "Free_Chicken_House.tsx",
+        "Tilled_Dirt.tsx",
+        "Tilled_Dirt_Wide.tsx",
+        "Tilled_Dirt_Wide_v2.tsx",
+        "Tilled_Dirt_v2.tsx",
+        "Tilled Dirt.tsx",
+        "Teemo Basic emote animations sprite sheet.tsx",
+        "teemo 8 directions.tsx",
         "Sprite sheet for Basic Pack.tsx",
-        "dialog box medium.tsx",
-        "dialog box big.tsx"
+        "Simple_Milk_and_grass_item.tsx",
+        "Simple Milk and grass item.tsx",
+        "Paths.tsx",
+        "Inventory_Light_Herat_Spritesheet.tsx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

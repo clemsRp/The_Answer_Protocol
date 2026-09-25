@@ -14,6 +14,7 @@ type Interaction struct {
 	hovered bool
 
 	Inspect func(item string)
+	Name    string
 }
 
 func (i *Interaction) Rect() rl.Rectangle {

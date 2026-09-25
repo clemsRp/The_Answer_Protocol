@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"tap/client/state"
 	panel "tap/client/tui/panels"
 	"tap/protocol"
+	pr "tap/protocol"
 	"time"
 	"unicode/utf8"
 
@@ -47,6 +49,15 @@ func (app *App) ShowCombatPage() {
 }
 
 func (app *App) ShowCombatResultPopup(result string, rewards []string) {
+	app.QueueUpdate(func() {
+		app.ActionsChan <- panel.Action{
+			Type:    panel.ActionSendServer,
+			Payload: pr.CmdInspectSelf,
+		}
+		app.Variables.PanelsVariables.Inspect.LastInspect = "SELF"
+	})
+	app.Variables.PanelsVariables.Chat.CurrentScope = "GLOBAL"
+	app.Variables.PanelsVariables.Chat.Open = false
 	app.ShowGamePage()
 }
 
@@ -206,6 +217,8 @@ func (app *App) UpdateInspector(text string) {
 		app.UpdateNpcWithRoom(text)
 	case "NPC":
 		app.UpdateNpcWithNpc(text)
+	case "SELF":
+		app.UpdateSelfHp(text)
 
 	default:
 
@@ -326,6 +339,16 @@ func (app *App) UpdateNpcWithNpc(text string) {
 	}
 	datas.HasQuest = datas.QuestID != ""
 	app.syncNpcQuest(datas)
+}
+
+func (app *App) UpdateSelfHp(text string) {
+	re := regexp.MustCompile(`HP:\s*(\d+)\s*/\s*(\d+)`)
+	match := re.FindStringSubmatch(text)
+
+	if len(match) == 3 {
+		current, _ := strconv.ParseFloat(match[1], 32)
+		app.Variables.Player.Hp = int(current)
+	}
 }
 
 func (app *App) AppendCombatChat(user, msg string) {
