@@ -52,13 +52,11 @@ func (app *App) ShowCombatPage() {
 }
 
 func (app *App) ShowCombatResultPopup(result string, rewards []string) {
-	app.QueueUpdate(func() {
-		app.ActionsChan <- panel.Action{
-			Type:    panel.ActionSendServer,
-			Payload: pr.CmdInspectSelf,
-		}
-		app.Variables.PanelsVariables.Inspect.LastInspect = "SELF"
-	})
+	app.ActionsChan <- panel.Action{
+		Type:    panel.ActionSendServer,
+		Payload: pr.CmdInspectSelf,
+	}
+	app.Variables.PanelsVariables.Inspect.LastInspect = "SELF"
 	app.Variables.PanelsVariables.Chat.CurrentScope = "GLOBAL"
 	app.Variables.PanelsVariables.Chat.Open = false
 	app.ShowGamePage()
@@ -215,59 +213,61 @@ func (app *App) AppendChat(scope, user, msg string) {
 }
 
 func (app *App) UpdateInspector(text string) {
-	re := regexp.MustCompile(`\[.+?\]`)
-	text = re.ReplaceAllString(text, "")
+	app.QueueUpdate(func() {
+		re := regexp.MustCompile(`\[.+?\]`)
+		text = re.ReplaceAllString(text, "")
 
-	switch app.Variables.PanelsVariables.Inspect.LastInspect {
-	case "ROOM":
-		app.UpdateNpcWithRoom(text)
-	case "NPC":
-		app.UpdateNpcWithNpc(text)
-	case "SELF":
-		app.UpdateSelfHp(text)
+		switch app.Variables.PanelsVariables.Inspect.LastInspect {
+		case "ROOM":
+			app.UpdateNpcWithRoom(text)
+		case "NPC":
+			app.UpdateNpcWithNpc(text)
+		case "SELF":
+			app.UpdateSelfHp(text)
 
-	default:
+		default:
 
-	}
-
-	maxLen := 30
-	lines := strings.Split(text, "\n")
-	var result strings.Builder
-
-	for lineIndex, line := range lines {
-		if lineIndex > 0 {
-			result.WriteString("\n")
 		}
 
-		words := strings.Fields(line)
-		if len(words) == 0 {
-			continue
-		}
+		maxLen := 30
+		lines := strings.Split(text, "\n")
+		var result strings.Builder
 
-		currentLineLen := 0
-		for i, word := range words {
-			wordLen := utf8.RuneCountInString(word)
+		for lineIndex, line := range lines {
+			if lineIndex > 0 {
+				result.WriteString("\n")
+			}
 
-			if i == 0 {
-				result.WriteString(word)
-				currentLineLen = wordLen
+			words := strings.Fields(line)
+			if len(words) == 0 {
 				continue
 			}
 
-			if currentLineLen+1+wordLen > maxLen {
-				result.WriteString("\n")
-				result.WriteString(word)
-				currentLineLen = wordLen
+			currentLineLen := 0
+			for i, word := range words {
+				wordLen := utf8.RuneCountInString(word)
 
-			} else {
-				result.WriteString(" ")
-				result.WriteString(word)
-				currentLineLen += 1 + wordLen
+				if i == 0 {
+					result.WriteString(word)
+					currentLineLen = wordLen
+					continue
+				}
+
+				if currentLineLen+1+wordLen > maxLen {
+					result.WriteString("\n")
+					result.WriteString(word)
+					currentLineLen = wordLen
+
+				} else {
+					result.WriteString(" ")
+					result.WriteString(word)
+					currentLineLen += 1 + wordLen
+				}
 			}
 		}
-	}
 
-	app.Variables.PanelsVariables.Inspect.Datas = result.String()
+		app.Variables.PanelsVariables.Inspect.Datas = result.String()
+	})
 }
 
 func (app *App) UpdateNpcWithRoom(text string) {
@@ -353,7 +353,10 @@ func (app *App) UpdateSelfHp(text string) {
 
 	if len(match) == 3 {
 		current, _ := strconv.ParseFloat(match[1], 32)
+		max, _ := strconv.ParseFloat(match[2], 32)
+
 		app.Variables.Player.Hp = int(current)
+		app.Variables.Player.MaxHp = int(max)
 	}
 }
 

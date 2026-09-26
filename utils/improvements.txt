@@ -1,6 +1,5 @@
 MANDATORY:
-	- Fix SELF inspect after combat
-	- Add cow animation / InFrontOfPlayer layer
+	- Add quest panel and mandatory buttons
 	- Define items and npcs places/emotes
 	- Create all the maps THEN the world.json
 	- Make a GREAT REVIEW of everything with and without AI

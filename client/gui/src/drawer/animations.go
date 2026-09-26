@@ -32,6 +32,28 @@ var (
 			{Step: 1000, Id: 0},
 		},
 
+		// Cows
+		{0, "Free Cow Sprites"}: []localIDS{
+			{Step: 1500, Id: 0},
+			{Step: 100, Id: 2},
+			{Step: 1500, Id: 4},
+		},
+		{1, "Free Cow Sprites"}: []localIDS{
+			{Step: 1500, Id: 1},
+			{Step: 100, Id: 3},
+			{Step: 1500, Id: 5},
+		},
+		{6, "Free Cow Sprites"}: []localIDS{
+			{Step: 1500, Id: 6},
+			{Step: 100, Id: 8},
+			{Step: 1500, Id: 10},
+		},
+		{7, "Free Cow Sprites"}: []localIDS{
+			{Step: 1500, Id: 7},
+			{Step: 100, Id: 9},
+			{Step: 1500, Id: 11},
+		},
+
 		// Flowers
 		{24, "Basic Grass Biom things 1"}: []localIDS{
 			{Step: 750, Id: 24},
