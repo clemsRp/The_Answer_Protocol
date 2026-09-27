@@ -90,6 +90,10 @@ func (dr *Drawer) DrawTalkButtonTitle() {
 
 	// Chose title
 	var title string
+	if datas == nil {
+		return
+	}
+
 	if datas.Hostile {
 		title = "Attack"
 

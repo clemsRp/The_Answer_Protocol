@@ -1,6 +1,7 @@
 package core
 
 import (
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"slices"
@@ -52,10 +53,13 @@ func (app *App) ShowCombatPage() {
 }
 
 func (app *App) ShowCombatResultPopup(result string, rewards []string) {
-	app.ActionsChan <- panel.Action{
-		Type:    panel.ActionSendServer,
-		Payload: pr.CmdInspectSelf,
-	}
+	app.QueueUpdate(func() {
+		app.ActionsChan <- panel.Action{
+			Type:    panel.ActionSendServer,
+			Payload: pr.CmdInspectSelf,
+		}
+		app.Variables.PanelsVariables.Inspect.Open = true
+	})
 	app.Variables.PanelsVariables.Inspect.LastInspect = "SELF"
 	app.Variables.PanelsVariables.Chat.CurrentScope = "GLOBAL"
 	app.Variables.PanelsVariables.Chat.Open = false
@@ -358,6 +362,22 @@ func (app *App) UpdateSelfHp(text string) {
 		app.Variables.Player.Hp = int(current)
 		app.Variables.Player.MaxHp = int(max)
 	}
+}
+
+func (app *App) UpdateStatus(datas any) {
+	bytes, err := json.Marshal(datas)
+
+	if err == nil {
+		var statusData pr.StatusCommandData
+		json.Unmarshal(bytes, &statusData)
+		fmt.Println(statusData.Hp, statusData.MaxHp)
+		app.Variables.Player.Hp = int(statusData.Hp)
+		app.Variables.Player.MaxHp = int(statusData.MaxHp)
+	}
+}
+
+func (app *App) UpdateWho(nb_players int) {
+	app.Variables.PanelsVariables.Datas.NbServerPlayers = nb_players
 }
 
 func (app *App) AppendCombatChat(user, msg string) {

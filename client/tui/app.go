@@ -538,6 +538,8 @@ func (m *MyApp) UpdateItemPosition(pseudo string, X float32, Y float32) {
 
 func (m *MyApp) AddRemotePlayer(pseudo string)    {}
 func (m *MyApp) RemoveRemotePlayer(pseudo string) {}
+func (m *MyApp) UpdateStatus(datas any)           {}
+func (m *MyApp) UpdateWho(nb_players int)         {}
 
 func (m *MyApp) GetPseudo() string {
 	return m.pseudo

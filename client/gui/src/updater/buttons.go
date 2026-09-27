@@ -76,36 +76,53 @@ func (up *Updater) buildConnectButtons() {
 }
 
 func (up *Updater) buildGameButtons() {
+	datasBtn := &ui.Button{
+		ID:      "open_datas",
+		Texture: vars.UI_SPRITE_TEXTURE,
+		X:       up.app.Variables.Tileset_size,
+		Y:       3 * up.app.Variables.Tileset_size,
+		Zoom:    up.app.Variables.Zoom * 0.5,
+		Normal:  ui.Frame{IndX: 48, IndY: 2, RatioX: 2, RatioY: 2},
+		Pressed: ui.Frame{IndX: 50, IndY: 2, RatioX: 2, RatioY: 2},
+		OnClick: func() {
+			up.app.Variables.PanelsVariables.Datas.Open = !up.app.Variables.PanelsVariables.Datas.Open
+			up.app.Variables.PanelsVariables.Group.Open = false
+			up.app.Variables.PanelsVariables.Inspect.Open = false
+		},
+	}
+
 	groupBtn := &ui.Button{
 		ID:      "open_group",
 		Texture: vars.UI_SPRITE_TEXTURE,
-		X:       up.app.Variables.Tileset_size,
+		X:       2 * up.app.Variables.Tileset_size,
 		Y:       3 * up.app.Variables.Tileset_size,
 		Zoom:    up.app.Variables.Zoom * 0.5,
 		Normal:  ui.Frame{IndX: 40, IndY: 6, RatioX: 2, RatioY: 2},
 		Pressed: ui.Frame{IndX: 42, IndY: 6, RatioX: 2, RatioY: 2},
 		OnClick: func() {
 			up.app.Variables.PanelsVariables.Group.Open = !up.app.Variables.PanelsVariables.Group.Open
+			up.app.Variables.PanelsVariables.Datas.Open = false
 		},
 	}
 
 	inspectorBtn := &ui.Button{
 		ID:      "open_inspector",
 		Texture: vars.UI_SPRITE_TEXTURE,
-		X:       2 * up.app.Variables.Tileset_size,
+		X:       3 * up.app.Variables.Tileset_size,
 		Y:       3 * up.app.Variables.Tileset_size,
 		Zoom:    up.app.Variables.Zoom * 0.5,
 		Normal:  ui.Frame{IndX: 44, IndY: 10, RatioX: 2, RatioY: 2},
 		Pressed: ui.Frame{IndX: 46, IndY: 10, RatioX: 2, RatioY: 2},
 		OnClick: func() {
 			up.app.Variables.PanelsVariables.Inspect.Open = !up.app.Variables.PanelsVariables.Inspect.Open
+			up.app.Variables.PanelsVariables.Datas.Open = false
 		},
 	}
 
 	chatBtn := &ui.Button{
 		ID:      "open_chat",
 		Texture: vars.UI_SPRITE_TEXTURE,
-		X:       3 * up.app.Variables.Tileset_size,
+		X:       4 * up.app.Variables.Tileset_size,
 		Y:       3 * up.app.Variables.Tileset_size,
 		Zoom:    up.app.Variables.Zoom * 0.5,
 		Normal:  ui.Frame{IndX: 40, IndY: 8, RatioX: 2, RatioY: 2},
@@ -118,7 +135,7 @@ func (up *Updater) buildGameButtons() {
 	quitBtn := &ui.Button{
 		ID:      "quit",
 		Texture: vars.UI_SPRITE_TEXTURE,
-		X:       4 * up.app.Variables.Tileset_size,
+		X:       5 * up.app.Variables.Tileset_size,
 		Y:       3 * up.app.Variables.Tileset_size,
 		Zoom:    up.app.Variables.Zoom * 0.5,
 		Normal:  ui.Frame{IndX: 48, IndY: 10, RatioX: 2, RatioY: 2},
@@ -132,7 +149,7 @@ func (up *Updater) buildGameButtons() {
 		},
 	}
 
-	up.app.Manager.SetViewButtons("Game", []*ui.Button{chatBtn, groupBtn, inspectorBtn, quitBtn})
+	up.app.Manager.SetViewButtons("Game", []*ui.Button{datasBtn, groupBtn, inspectorBtn, chatBtn, quitBtn})
 }
 
 func (up *Updater) buildChatButtons() {
@@ -230,6 +247,40 @@ func (up *Updater) buildGroupButtons() {
 	up.app.Manager.SetViewButtons("Group", []*ui.Button{createBtn})
 }
 
+func (up *Updater) buildDatasButtons() {
+	// Calculate position
+	title_width := rl.MeasureText(
+		"Datas", int32(1.5*up.app.Variables.FontSize),
+	)
+
+	posX := float32((vars.DATAS_START_X+1.5)*up.app.Variables.Tileset_size) + float32(title_width)
+	posY := float32((vars.DATAS_START_Y + 0.85) * up.app.Variables.Tileset_size)
+
+	refreshBtn := &ui.Button{
+		ID:      "refresh_datas",
+		Texture: vars.UI_SPRITE_TEXTURE,
+		X:       posX - 0.5*up.app.Variables.Tileset_size,
+		Y:       posY - 0.7*up.app.Variables.FontSize,
+		Zoom:    up.app.Variables.Zoom * 11 / 20,
+		Normal:  ui.Frame{IndX: 10, IndY: 11, RatioX: 6, RatioY: 2},
+		Pressed: ui.Frame{IndX: 16, IndY: 11, RatioX: 6, RatioY: 2},
+		OnClick: func() {
+			up.app.QueueUpdate(func() {
+				up.actionsChan <- panel.Action{
+					Type:    panel.ActionSendServer,
+					Payload: pr.CmdWho,
+				}
+				up.actionsChan <- panel.Action{
+					Type:    panel.ActionSendServer,
+					Payload: pr.CmdQuests,
+				}
+			})
+		},
+	}
+
+	up.app.Manager.SetViewButtons("Datas", []*ui.Button{refreshBtn})
+}
+
 func (up *Updater) buildTalkButtons() {
 	tile := up.app.Variables.Tileset_size
 	font := up.app.Variables.FontSize
@@ -298,11 +349,18 @@ func (up *Updater) buildInspectButtons() {
 		Normal:  ui.Frame{IndX: 10, IndY: 11, RatioX: 6, RatioY: 2},
 		Pressed: ui.Frame{IndX: 16, IndY: 11, RatioX: 6, RatioY: 2},
 		OnClick: func() {
-			up.app.Variables.PanelsVariables.Inspect.LastInspect = "SELF"
-			up.actionsChan <- panel.Action{
-				Type:    panel.ActionSendServer,
-				Payload: pr.CmdInspectSelf,
-			}
+			up.app.QueueUpdate(func() {
+				up.app.Variables.PanelsVariables.Inspect.LastInspect = "SELF"
+				up.actionsChan <- panel.Action{
+					Type:    panel.ActionSendServer,
+					Payload: pr.CmdInspectSelf,
+				}
+				up.actionsChan <- panel.Action{
+					Type:    panel.ActionSendServer,
+					Payload: pr.CmdStatus,
+				}
+				up.app.Variables.PanelsVariables.Inspect.Open = true
+			})
 		},
 	}
 

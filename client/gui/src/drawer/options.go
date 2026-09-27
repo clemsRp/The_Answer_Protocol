@@ -66,7 +66,7 @@ func (dr *Drawer) DrawGroupOptionsToScreen(group_start_x, group_start_y, group_h
 		displayHeight = float32(tex.Height)
 		maxY = 0
 		dr.app.Variables.PanelsVariables.Group.ScrollActive = false
-	} else if len(dr.app.Manager.Options("Group")) >= 5 {
+	} else if len(dr.app.Manager.Options("Group")) >= 3 {
 		dr.DrawGroupScrollBar(maxY)
 		dr.app.Variables.PanelsVariables.Group.ScrollActive = true
 	}

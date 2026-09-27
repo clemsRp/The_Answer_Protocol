@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"tap/client/state"
 	"tap/protocol"
@@ -262,6 +263,20 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 			gs.SendPromotion = false
 		})
 		c.sendToNetwork(pr.CmdGrouped)
+
+	case lastCmdBase == pr.CmdStatus && strings.HasPrefix(res.Msg, pr.MsgOK):
+		if res.Datas != nil {
+			c.ui.QueueUpdate(func() {
+				c.ui.UpdateStatus(res.Datas)
+			})
+		}
+
+	case lastCmdBase == pr.CmdWho && strings.HasPrefix(res.Msg, pr.MsgOK):
+		c.ui.QueueUpdate(func() {
+			split_res := strings.SplitN(res.Msg, "players=", 2)
+			nb_players, _ := strconv.Atoi(split_res[1])
+			c.ui.UpdateWho(nb_players)
+		})
 
 	case res.Msg == pr.MsgOK:
 		switch {

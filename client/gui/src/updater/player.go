@@ -115,6 +115,11 @@ func (up *Updater) UpdateMove() {
 	// Check player position to move
 	for _, t := range transitions {
 		if t.atBoundary && t.isMoving {
+			panels := up.app.Variables.PanelsVariables
+			panels.Datas.Open = false
+			panels.Inspect.Open = false
+			panels.Chat.Open = false
+			panels.Group.Open = false
 			up.actionsChan <- panel.Action{
 				Type:    panel.ActionSendServer,
 				Payload: pr.CmdMove + " " + t.direction,

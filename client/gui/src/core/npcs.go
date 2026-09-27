@@ -80,6 +80,7 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 
 				app.Variables.PanelsVariables.Inspect.LastInspect = "NPC"
 				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectNpc + " " + np}
+				app.Variables.PanelsVariables.Inspect.Open = true
 			},
 		}
 
@@ -91,6 +92,7 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 			Inspect: func(npc_name string) {
 				app.Variables.PanelsVariables.Inspect.LastInspect = "NPC"
 				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectNpc + " " + npc_name}
+				app.Variables.PanelsVariables.Inspect.Open = true
 			},
 		}
 

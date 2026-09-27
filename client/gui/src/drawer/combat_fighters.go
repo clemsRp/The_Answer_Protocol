@@ -160,7 +160,6 @@ func (dr *Drawer) DrawFighterPseudo(item *ui.Interaction, cleanID string, shift,
 }
 
 func (dr *Drawer) DrawFighterLive(item *ui.Interaction, cleanID string, shift, turnZoom float32, geo fightersPanelGeometry) {
-	// Define live asset indexs
 	lives_index := []vars.Position{
 		{X: 30, Y: 0},
 		{X: 29, Y: 1},
@@ -170,7 +169,6 @@ func (dr *Drawer) DrawFighterLive(item *ui.Interaction, cleanID string, shift, t
 		{X: 30, Y: 2},
 	}
 
-	// Get corresponding live indexs
 	fighter_live := dr.GetFighterLive(item)
 	live_index := vars.Position{X: 31, Y: 2}
 	for index, pos := range lives_index {
@@ -183,25 +181,24 @@ func (dr *Drawer) DrawFighterLive(item *ui.Interaction, cleanID string, shift, t
 		live_index = vars.Position{X: 30, Y: 0}
 	}
 
-	// Calculate coordinates
 	zoom := dr.app.Variables.Zoom / 1.5
 	if geo.curTurn == item.Name {
 		zoom *= 1.25
 	}
-	live_drawn_width := float32(geo.tile) * zoom
 
-	posX := item.Emote.X + 1.67*float32(geo.tile) - (live_drawn_width / 4) - vars.FRAME_WIDTH*zoom/2
+	live_drawn_width := float32(geo.tile) * zoom
+	absoluteCenter := item.Emote.X - geo.tile - 2*shift + (float32(geo.frameSize) * vars.FRAME_WIDTH * geo.zoom * turnZoom * 1.5 / 4)
+	posX := absoluteCenter - live_drawn_width/8
+
 	posY := item.Emote.Y - shift - 0.8*float32(geo.tile)
 
 	if geo.curTurn == item.Name {
-		posX += 0.2 * geo.tile
 		posY -= 0.15 * geo.tile
 	}
 
-	// Draw live
 	dr.DrawImage(
 		vars.UI_SPRITE_TEXTURE,
-		float32(posX), float32(posY),
+		posX, posY,
 		live_index.X, live_index.Y,
 		1, 1, zoom, 0,
 	)

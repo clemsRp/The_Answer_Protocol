@@ -13,7 +13,7 @@ type SelectDatas struct {
 
 var (
 	group_selects = SelectDatas{
-		X: 2, Y: 7, Options: make([]string, 0),
+		X: 2, Y: 8, Options: make([]string, 0),
 	}
 )
 

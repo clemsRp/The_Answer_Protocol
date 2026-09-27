@@ -15,6 +15,7 @@ type PanelVariables struct {
 	CombatState *state.CombatState
 
 	Chat    *ChatPanel
+	Datas   *DatasPanel
 	Group   *GroupPanel
 	Inspect *InspectPanel
 	Talk    *TalkPanel
@@ -40,6 +41,10 @@ func GetPanelsVariables() *PanelVariables {
 			LastNbChats:     0,
 			ScrollActive:    false,
 			LastFrameScroll: false,
+		},
+		Datas: &DatasPanel{
+			Open:            false,
+			NbServerPlayers: 0,
 		},
 		Group: &GroupPanel{
 			Open:            false,

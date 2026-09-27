@@ -26,6 +26,9 @@ func (up *Updater) UpdateGameView() {
 	if len(up.app.Manager.Buttons("Inspect")) == 0 {
 		up.buildInspectButtons()
 	}
+	if len(up.app.Manager.Buttons("Datas")) == 0 {
+		up.buildDatasButtons()
+	}
 
 	// Skip game update if needed
 	if up.app.Variables.Current_view != "Game" {
@@ -50,5 +53,9 @@ func (up *Updater) UpdateGameView() {
 
 	if up.app.Variables.PanelsVariables.Inspect.Open {
 		up.app.Manager.Update("Inspect")
+	}
+
+	if up.app.Variables.PanelsVariables.Datas.Open {
+		up.app.Manager.Update("Datas")
 	}
 }

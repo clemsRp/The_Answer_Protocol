@@ -260,8 +260,8 @@
             "scale": 2,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 267.5,
-                "y": 138.25
+                "x": 256,
+                "y": 143.75
             }
         },
         "test.tsx": {

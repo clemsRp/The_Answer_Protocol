@@ -3,7 +3,7 @@ package updater
 import rl "github.com/gen2brain/raylib-go/raylib"
 
 func (up *Updater) UpdateGroupScroll() {
-	if len(up.app.Manager.Options("Group")) < 5 {
+	if len(up.app.Manager.Options("Group")) < 3 {
 		up.app.Variables.PanelsVariables.Group.ScrollBarY = 0
 		return
 	}

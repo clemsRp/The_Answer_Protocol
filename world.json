@@ -10,7 +10,7 @@
                     "west": "abandoned_farm"
                 },
                 "items": ["rusty_hoe", "turnip_seed"],
-				"npcs": ["angry_crow"]
+				"npcs": ["shepherd_hana"]
             },
             "village_square": {
 				"name": "Village Square",
@@ -21,7 +21,7 @@
                     "south": "merchant_tent"
                 },
                 "items": ["crisp_apple"],
-				"npcs": ["shepherd_hana"]
+				"npcs": ["angry_crow"]
             },
             "abandoned_farm": {
                 "name": "Abandoned Farm",

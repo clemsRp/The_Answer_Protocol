@@ -28,6 +28,8 @@ type UIApp interface {
 	UpdateCombat(combatState state.CombatState)
 	UpdateDatas(text string)
 	UpdateInspector(text string)
+	UpdateStatus(datas any)
+	UpdateWho(nb_players int)
 	AppendChat(scope, user, msg string)
 	AppendCombatChat(user, msg string)
 	AppendServerResponse(res protocol.ServerResponse)

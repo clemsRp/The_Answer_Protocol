@@ -103,6 +103,7 @@ func (app *App) GetNewRoomItems(roomItems []string) []*ui.Interaction {
 			Inspect: func(item string) {
 				app.Variables.PanelsVariables.Inspect.LastInspect = "ITEM"
 				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + item}
+				app.Variables.PanelsVariables.Inspect.Open = true
 			},
 		}
 
@@ -152,6 +153,7 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 			Inspect: func(item string) {
 				app.Variables.PanelsVariables.Inspect.LastInspect = "ITEM"
 				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + item}
+				app.Variables.PanelsVariables.Inspect.Open = true
 			},
 		}
 
