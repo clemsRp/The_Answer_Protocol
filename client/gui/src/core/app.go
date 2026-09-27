@@ -137,7 +137,7 @@ func (app *App) IsItemUsable(itemName string) bool {
 		}
 	}
 
-	// Unusable item fallback check (resources/currency)
+	// Unusable item fallback check
 	if snakeName == "gold_acorn" || snakeName == "golden_egg" || snakeName == "wheat_bundle" || snakeName == "windmill_gear" {
 		return false
 	}

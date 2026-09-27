@@ -252,8 +252,8 @@
             "scale": 2,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 241,
-                "y": 146.5
+                "x": 256,
+                "y": 143.75
             }
         },
         "test.tmx": {
@@ -317,18 +317,18 @@
     "project": "sprout-lands.tiled-project",
     "property.type": "bool",
     "recentFiles": [
-        "Tilled_Dirt.tsx",
-        "Tilled_Dirt_Wide.tsx",
-        "Tilled_Dirt_Wide_v2.tsx",
-        "Tilled_Dirt_v2.tsx",
-        "Tilled Dirt.tsx",
-        "Teemo Basic emote animations sprite sheet.tsx",
-        "teemo 8 directions.tsx",
+        "Water.tsx",
+        "test.tmx",
+        "Basic Charakter Actions.tsx",
+        "Basic Charakter Spritesheet.tsx",
+        "Egg_And_Nest.tsx",
+        "Free Chicken Sprites.tsx",
+        "rules.tmx",
+        "Free Cow Sprites.tsx",
+        "Free_Chicken_House.tsx",
         "Sprite sheet for Basic Pack.tsx",
-        "Simple_Milk_and_grass_item.tsx",
-        "Simple Milk and grass item.tsx",
-        "Paths.tsx",
-        "Inventory_Light_Herat_Spritesheet.tsx"
+        "dialog box medium.tsx",
+        "dialog box big.tsx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

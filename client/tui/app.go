@@ -294,8 +294,6 @@ func (m *MyApp) ShowQuestCompletedPopup(questID, reward string) {
 	m.ShowPopupPage()
 }
 
-// Controller update callbacks
-
 func (m *MyApp) UpdateNavigation(room *protocol.LookCommandData) {
 	m.grid.RemoveItem(m.Navigation.Layout)
 
@@ -415,7 +413,6 @@ func (m *MyApp) UpdateGroup(groupState state.GroupState) {
 }
 
 func (m *MyApp) UpdateCombat(combatState state.CombatState) {
-	// Conserver le focus du chat si on est en train d'écrire
 	focusInput := false
 	if m.Combat != nil && m.app.GetFocus() == m.Combat.Input {
 		focusInput = true
@@ -430,7 +427,6 @@ func (m *MyApp) UpdateCombat(combatState state.CombatState) {
 
 	lastCombatChat := combatState.LastCombatChat
 
-	// Synchroniser l'inventaire depuis les données de combat de l'équipe si disponible
 	playerInv := make([]string, 0)
 	if myData, ok := combatState.Team[m.pseudo]; ok {
 		playerInv = append([]string{}, myData.Inventory...)
@@ -439,7 +435,6 @@ func (m *MyApp) UpdateCombat(combatState state.CombatState) {
 		playerInv = append([]string{}, m.inventory...)
 	}
 
-	// Conserver et valider selectedPerson (par défaut cibler le premier adversaire)
 	_, inOpponents := combatState.Opponents[m.selectedPerson]
 	_, inTeam := combatState.Team[m.selectedPerson]
 	if !inOpponents && !inTeam {
@@ -468,7 +463,7 @@ func (m *MyApp) UpdateCombat(combatState state.CombatState) {
 	m.Combat = panel.NewCombatComponent(m.app, m.actionsChan, combatDatas)
 	m.combat.AddItem(m.Combat.Layout, 1, 1, 1, 1, 0, 0, true)
 
-	// Gestion intelligente du focus
+	// Handle focus
 	if m.combatVisible {
 		if focusInput {
 			if m.Combat.Input != nil {
@@ -486,9 +481,7 @@ func (m *MyApp) UpdateCombat(combatState state.CombatState) {
 	}
 }
 
-func (m *MyApp) UpdateDatas(text string) {
-	// Status data was previously pushed here.
-}
+func (m *MyApp) UpdateDatas(text string) {}
 
 func (m *MyApp) UpdateQuests(quests []protocol.TrackedQuestData) {
 	if m.Quest != nil {

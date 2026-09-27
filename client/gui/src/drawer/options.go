@@ -54,7 +54,6 @@ func (dr *Drawer) DrawGroupOptionsToScreen(group_start_x, group_start_y, group_h
 	tile := dr.app.Variables.Tileset_size
 
 	offsetX := group_start_x * tile
-	// On découpe à partir du bas de la ligne "Members", pas du haut du panel.
 	offsetY := dr.app.GroupContentStartY()
 	viewHeight := (group_start_y+group_height)*tile - offsetY - 0.5*tile
 

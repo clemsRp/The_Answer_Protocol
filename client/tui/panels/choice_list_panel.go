@@ -202,7 +202,7 @@ func collectOptions(
 
 			optionsFlex.AddItem(actionList, len(locActions)*2, 1, true)
 
-			// Bouton Cancel
+			// Cancel button
 			cancelBtn := tview.NewButton("Cancel").
 				SetLabelColor(tcell.ColorWhite).
 				SetBackgroundColorActivated(btnActiveBg).

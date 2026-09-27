@@ -134,12 +134,32 @@ func (e *Engine) handleCmdLook(player *Player, req []string) (string, any, error
 	return "OK", res, nil
 }
 
+func matchItem(itemId string, item *Item, target string) bool {
+	if strings.EqualFold(itemId, target) {
+		return true
+	}
+	if item != nil && strings.EqualFold(item.Name, target) {
+		return true
+	}
+	return false
+}
+
+func matchNpc(npcId string, npc *Npc, target string) bool {
+	if strings.EqualFold(npcId, target) {
+		return true
+	}
+	if npc != nil && strings.EqualFold(npc.Name, target) {
+		return true
+	}
+	return false
+}
+
 func (e *Engine) handleCmdMove(player *Player, req []string) (string, any, error) {
-	if len(req) != 2 {
+	if len(req) < 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
-	direction := req[1]
+	direction := strings.ToLower(req[1])
 	nextRoomName, exists := player.room.Exits[direction]
 	if !exists {
 		return "", "", errors.New(pr.ErrNoExit)
@@ -150,7 +170,7 @@ func (e *Engine) handleCmdMove(player *Player, req []string) (string, any, error
 	player.room = nextRoom
 	e.inform_room(player, player.room, "EVT ROOM PRESENCE ENTER "+player.name)
 
-	return fmt.Sprintf("OK room=%s", nextRoom.Name), "", nil
+	return fmt.Sprintf("OK room=%s", nextRoom.Id), "", nil
 }
 
 func (e *Engine) handleCmdChat(player *Player, req []string) (string, any, error) {
@@ -277,41 +297,49 @@ func (e *Engine) handleCmdStatus(player *Player, req []string) (string, any, err
 }
 
 func (e *Engine) handleCmdTake(player *Player, req []string) (string, any, error) {
-	if len(req) != 2 {
+	if len(req) < 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
-	object := req[1]
+	target := strings.TrimSpace(strings.Join(req[1:], " "))
+	if target == "" {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
 	for obj_index, item_name := range player.room.Items {
 		item := e.world.Items[item_name]
-		if item_name == object {
-			player.inventory = append(player.inventory, item)
+		if matchItem(item_name, item, target) {
+			itemToTake := item
+			if itemToTake == nil {
+				itemToTake = &Item{Id: item_name, Name: item_name}
+			}
+			player.inventory = append(player.inventory, itemToTake)
 			player.room.Items = append(player.room.Items[:obj_index], player.room.Items[obj_index+1:]...)
-			e.inform_room(player, player.room, "EVT ITEM TOOK "+object)
-			// Recompute quest progress now that the inventory changed, so
-			// the player doesn't have to explicitly ask for it.
+			e.inform_room(player, player.room, "EVT ITEM TOOK "+item_name)
 			e.refreshQuestProgress(player)
-			return "OK taken=" + object, "", nil
+			return "OK taken=" + item_name, "", nil
 		}
 	}
 	return "", "", errors.New(pr.ErrItemNotFound)
 }
 
 func (e *Engine) handleCmdDrop(player *Player, req []string) (string, any, error) {
-	if len(req) != 2 {
+	if len(req) < 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
-	object := req[1]
+	target := strings.TrimSpace(strings.Join(req[1:], " "))
+	if target == "" {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
+
 	for obj_index, obj := range player.inventory {
-		if obj.Id == object {
+		if matchItem(obj.Id, obj, target) {
 			player.inventory = append(player.inventory[:obj_index], player.inventory[obj_index+1:]...)
-			player.room.Items = append(player.room.Items, object)
-			e.inform_room(player, player.room, "EVT ITEM DROPPED "+object)
-			// Dropping the item can un-fulfil a quest's target item, so
-			// recompute progress here too.
+			player.room.Items = append(player.room.Items, obj.Id)
+			e.inform_room(player, player.room, "EVT ITEM DROPPED "+obj.Id)
 			e.refreshQuestProgress(player)
-			return "OK dropped=" + object, "", nil
+			return "OK dropped=" + obj.Id, "", nil
 		}
 	}
 	return "", "", errors.New(pr.ErrItemNotInInventory)
@@ -331,45 +359,45 @@ func (e *Engine) handleCmdInventory(player *Player, req []string) (string, any, 
 }
 
 func (e *Engine) handleCmdQuest(player *Player, req []string) (string, any, error) {
-	if len(req) != 2 {
+	if len(req) < 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
-	npc := req[1]
-	for npc_name, npc_datas := range e.world.Npcs {
-		if npc_name == npc {
-			for _, room_npc := range player.room.Npcs {
-				if room_npc == npc {
-					if npc_datas.QuestId == "" || e.world.Quests[npc_datas.QuestId].Status == "unavailable" {
-						return "", "", errors.New(pr.ErrNoQuestAvailable)
-					}
+	target := strings.TrimSpace(strings.Join(req[1:], " "))
+	if target == "" {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
 
-					// Check if player already has the quest
-					for _, q := range player.quests {
-						if q.Id == npc_datas.QuestId {
-							return "", "", errors.New(pr.ErrNoQuestAvailable)
-						}
-					}
+	for _, room_npc := range player.room.Npcs {
+		npc_datas := e.world.Npcs[room_npc]
+		if matchNpc(room_npc, npc_datas, target) {
+			if npc_datas == nil || npc_datas.QuestId == "" || e.world.Quests[npc_datas.QuestId] == nil {
+				return "", "", errors.New(pr.ErrNoQuestAvailable)
+			}
 
-					quest := e.world.Quests[npc_datas.QuestId]
+			questId := npc_datas.QuestId
+			quest := e.world.Quests[questId]
 
-					// Give quest to player
-					playerQuest := quest.Clone()
-					playerQuest.Status = "active"
-					playerQuest.Progress = "0/1" // Or default progress logic
-					player.quests = append(player.quests, playerQuest)
-
-					e.refreshQuestProgress(player)
-
-					res := pr.QuestData{
-						Id:          npc_datas.QuestId,
-						Reward:      quest.Reward,
-						Description: quest.Description,
-						Status:      "active",
-					}
-					return "OK", res, nil
+			for _, q := range player.quests {
+				if q.Id == questId {
+					return "", "", errors.New(pr.ErrNoQuestAvailable)
 				}
 			}
+
+			playerQuest := quest.Clone()
+			playerQuest.Status = "active"
+			playerQuest.Progress = "0/1"
+			player.quests = append(player.quests, playerQuest)
+
+			e.refreshQuestProgress(player)
+
+			res := pr.QuestData{
+				Id:          questId,
+				Reward:      quest.Reward,
+				Description: quest.Description,
+				Status:      "active",
+			}
+			return "OK", res, nil
 		}
 	}
 	return "", "", errors.New(pr.ErrNpcNotFound)
@@ -395,66 +423,57 @@ func (e *Engine) handleCmdQuests(player *Player, req []string) (string, any, err
 }
 
 func (e *Engine) handleCmdCompleteQuest(player *Player, req []string) (string, any, error) {
-	if len(req) != 2 {
+	if len(req) < 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
-	questId := req[1]
+	questId := strings.TrimSpace(strings.Join(req[1:], " "))
 
 	var playerQuest *Quest
 	for _, q := range player.quests {
-		if q.Id == questId {
+		if strings.EqualFold(q.Id, questId) {
 			playerQuest = q
 			break
 		}
 	}
 
 	if playerQuest == nil || playerQuest.Status != "active" {
-		return "", "", errors.New(pr.ErrNoQuestAvailable) // or a specific error
+		return "", "", errors.New(pr.ErrNoQuestAvailable)
 	}
 
-	// Validate completion
 	completed := false
 	if playerQuest.TargetItem != "" {
 		for _, item := range player.inventory {
-			if item.Id == playerQuest.TargetItem {
+			if matchItem(item.Id, item, playerQuest.TargetItem) {
 				completed = true
 				break
 			}
 		}
 	} else if playerQuest.TargetNpc != "" {
 		for _, npcName := range player.DefeatedNpcs {
-			if npcName == playerQuest.TargetNpc {
+			if strings.EqualFold(npcName, playerQuest.TargetNpc) {
 				completed = true
 				break
 			}
 		}
 	} else {
-		// If no target is specified, complete automatically
 		completed = true
 	}
 
 	if !completed {
-		return "", "", errors.New("ERR 406 QUEST_NOT_COMPLETED") // Custom error or existing one
+		return "", "", errors.New("ERR 406 QUEST_NOT_COMPLETED")
 	}
 
 	playerQuest.Status = "completed"
 	playerQuest.Progress = "1/1"
 
-	// Give reward
 	if playerQuest.Reward != "" {
 		if item, exists := e.world.Items[playerQuest.Reward]; exists {
 			player.inventory = append(player.inventory, item.Clone())
 		}
 	}
 
-	if worldQuest, exists := e.world.Quests[playerQuest.Id]; exists {
-		worldQuest.Status = "unavailable"
-	}
-
 	if playerQuest.TargetItem != "" {
 		removeItemFromInventory(player, playerQuest.TargetItem)
-		e.removeItemFromWorld(playerQuest.TargetItem)
-		e.inform_all(player, "EVT ITEM REMOVED "+playerQuest.TargetItem)
 	}
 
 	e.inform_all(player, "EVT QUEST COMPLETED "+playerQuest.Id)
@@ -469,9 +488,9 @@ func (e *Engine) handleCmdCompleteQuest(player *Player, req []string) (string, a
 	return "OK", res, nil
 }
 
-func removeItemFromInventory(player *Player, itemId string) {
+func removeItemFromInventory(player *Player, target string) {
 	for i, item := range player.inventory {
-		if item.Id == itemId {
+		if matchItem(item.Id, item, target) {
 			player.inventory = append(player.inventory[:i], player.inventory[i+1:]...)
 			return
 		}
@@ -499,14 +518,14 @@ func (e *Engine) refreshQuestProgress(player *Player) {
 		switch {
 		case q.TargetItem != "":
 			for _, item := range player.inventory {
-				if item.Id == q.TargetItem {
+				if matchItem(item.Id, item, q.TargetItem) {
 					ready = true
 					break
 				}
 			}
 		case q.TargetNpc != "":
 			for _, npcName := range player.DefeatedNpcs {
-				if npcName == q.TargetNpc {
+				if strings.EqualFold(npcName, q.TargetNpc) {
 					ready = true
 					break
 				}
@@ -524,38 +543,44 @@ func (e *Engine) refreshQuestProgress(player *Player) {
 }
 
 func (e *Engine) handleCmdTalk(player *Player, req []string) (string, any, error) {
-	if len(req) != 2 {
+	if len(req) < 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
-	npc := req[1]
-	for npc_name, npc_datas := range e.world.Npcs {
-		if npc_name == npc {
-			for _, room_npc := range player.room.Npcs {
-				if room_npc == npc {
-					_, ok := e.dialogues[player.name][npc_name]
-					if !ok {
-						e.dialogues[player.name][npc_name] = 0
-					}
+	target := strings.TrimSpace(strings.Join(req[1:], " "))
+	if target == "" {
+		return "", "", errors.New(pr.ErrInvalidCommand)
+	}
 
-					npc_index := e.dialogues[player.name][npc_name]
-					Datas := npc_datas.Dialogue[npc_index%len(npc_datas.Dialogue)]
-					e.dialogues[player.name][npc_name]++
-
-					return "OK", Datas, nil
-				}
+	for _, room_npc := range player.room.Npcs {
+		npc_datas := e.world.Npcs[room_npc]
+		if matchNpc(room_npc, npc_datas, target) {
+			npc_name := room_npc
+			if _, ok := e.dialogues[player.name][npc_name]; !ok {
+				e.dialogues[player.name][npc_name] = 0
 			}
+
+			npc_index := e.dialogues[player.name][npc_name]
+			var Datas string
+			if npc_datas != nil && len(npc_datas.Dialogue) > 0 {
+				Datas = npc_datas.Dialogue[npc_index%len(npc_datas.Dialogue)]
+			} else {
+				Datas = "..."
+			}
+			e.dialogues[player.name][npc_name]++
+
+			return "OK", Datas, nil
 		}
 	}
 	return "", "", errors.New(pr.ErrNpcNotFound)
 }
 
 func (e *Engine) handleCmdAttack(player *Player, req []string) (string, any, error) {
-	if len(req) != 2 {
+	if len(req) < 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
-	targetName := req[1]
+	targetName := strings.TrimSpace(strings.Join(req[1:], " "))
 
 	combat_session, exists := e.activeCombats[player.stats.CombatId]
 
@@ -563,15 +588,12 @@ func (e *Engine) handleCmdAttack(player *Player, req []string) (string, any, err
 	var fullResponse *FullTurnResponse
 
 	if !exists {
-
-		// Not an existing combat, try to initiate a new combat with NPC
 		npc_copy, err := e.getValidTarget(player, targetName)
 		if err != nil {
 			return "", "", err
 		}
 		combat_session, res, fullResponse = e.initiateCombat(player, npc_copy)
 	} else {
-		// Player is already in combat
 		npc_copy, err := e.getValidTarget(player, targetName)
 		if err != nil {
 			return "", "", err
@@ -629,15 +651,15 @@ func (e *Engine) handleCmdFlee(player *Player, req []string) (string, any, error
 }
 
 func (e *Engine) handleCmdUse(player *Player, req []string) (string, any, error) {
-	if len(req) != 2 {
+	if len(req) < 2 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
-	itemName := req[1]
+	itemName := strings.TrimSpace(strings.Join(req[1:], " "))
 	var itemToUse *Item
 	itemIdx := -1
 	for i, it := range player.inventory {
-		if it.Id == itemName || it.Name == itemName {
+		if matchItem(it.Id, it, itemName) {
 			itemToUse = it
 			itemIdx = i
 			break

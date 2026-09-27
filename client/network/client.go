@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"strings"
@@ -97,7 +98,9 @@ func (c *Client) listenResponses() {
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		c.DisconnectMsg = fmt.Sprintf("Server connection lost with error: %v", err)
+		if c.ctx.Err() == nil && !errors.Is(err, net.ErrClosed) {
+			c.DisconnectMsg = fmt.Sprintf("Server connection lost with error: %v", err)
+		}
 	}
 	c.cancelFunc()
 }

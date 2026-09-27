@@ -23,7 +23,11 @@ func (e *Engine) validateSession(id string, cmd string) (string, error) {
 }
 
 func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
-	req := strings.SplitN(request.Msg, " ", 6)
+	trimmedMsg := strings.TrimSpace(request.Msg)
+	if trimmedMsg == "" {
+		return "", nil, errors.New(pr.ErrInvalidCommand)
+	}
+	req := strings.Split(trimmedMsg, " ")
 	cmd := strings.ToUpper(req[0])
 
 	var pseudo string

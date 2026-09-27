@@ -234,7 +234,7 @@ func CreateOptionBtn(
 			return "[white:#474646]" + transform_name(name, 30)
 		}
 
-		// Ajout des options dans la liste
+		// Add list options
 		for idx, opt := range optsList {
 			isFirst := idx == 0
 			actionList.AddItem(formatItem(opt, isFirst), "", 0, nil)

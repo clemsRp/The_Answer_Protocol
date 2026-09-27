@@ -58,9 +58,7 @@ func main() {
 
 	errChan := make(chan error, 1)
 
-	// Enveloppe tes lancements pour capturer les erreurs fatales
 	go func() {
-		// Si la méthode Start() est bloquante et retourne une erreur quand elle plante
 		if err := e.Start(); err != nil {
 			errChan <- fmt.Errorf("Engine crash: %w", err)
 		}

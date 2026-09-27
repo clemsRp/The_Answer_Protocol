@@ -195,7 +195,7 @@ var aliceQuits = ScenariosCommandTest{
 
 var aliceTakesItem = ScenariosCommandTest{
 	Name:    "Alice takes an item in map",
-	Command: "TAKE sword",
+	Command: "TAKE rusty_hoe",
 	ExpectedReplies: []Reply{
 		{"OK taken=", "alice"},
 	},
@@ -205,7 +205,7 @@ var aliceTakesItem = ScenariosCommandTest{
 
 var aliceDropsItem = ScenariosCommandTest{
 	Name:    "Alice drops an item in map",
-	Command: "DROP sword",
+	Command: "DROP rusty_hoe",
 	ExpectedReplies: []Reply{
 		{"OK dropped=", "alice"},
 	},
@@ -225,7 +225,7 @@ var aliceChecksInventory = ScenariosCommandTest{
 
 var aliceTalksToNPC = ScenariosCommandTest{
 	Name:    "Alice talks to NPC in entrance",
-	Command: "TALK granny_jeanine",
+	Command: "TALK shepherd_hana",
 	ExpectedReplies: []Reply{
 		{"OK", "alice"},
 	},
@@ -235,11 +235,11 @@ var aliceTalksToNPC = ScenariosCommandTest{
 
 var aliceAttacksHostileNPC = ScenariosCommandTest{
 
-	Name:    "Attack hostile NPC",
-	Command: "ATTACK granny_jeanine",
+	Name:    "Attack non-hostile NPC in entrance",
+	Command: "ATTACK shepherd_hana",
 	ExpectedReplies: []Reply{
-		{"OK", "alice"},
+		{protocol.ErrNpcNotHostile, "alice"},
 	},
-	ExpectsJSON:      true,
+	ExpectsJSON:      false,
 	TestOnConnection: "alice",
 }

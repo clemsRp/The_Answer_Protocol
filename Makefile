@@ -1,15 +1,38 @@
 
+deps:
+	go mod download
+	go mod tidy
+
+build: deps
+	mkdir -p exec
+	go build -o exec/server ./cmd/server
+	go build -o exec/gui ./cmd/client/gui
+	go build -o exec/tui ./cmd/client/tui
+
 server:
-	go run ./cmd/server
+	./exec/server
 
 tui:
-	go run ./cmd/client/tui
+	./exec/tui
 
 gui:
-	go run ./cmd/client/gui
+	./exec/gui
 
-debug_project:
-	(tree -I 'node_modules|venv|.git|__pycache__' && echo -e "\n=== CONTENU DES FICHIERS ===\n" && find . -type f ! -path '*/.*' ! -path '*/node_modules/*' ! -path '*/venv/*' ! -name 'Makefile' ! -name '*.ans' ! -name '*.excalidraw' ! -name '*.html' ! -name '*.png' ! -name '*.jpg' ! -name '*.jpeg' ! -name '*.gif' ! -name '*.svg' ! -name '*.webp' -exec sh -c 'for f; do echo "\n--- FILE: $$f ---"; cat "$$f"; done' _ {} +) > project.txt
+test:
+	go test ./tests/network/... ./tests/scenarios/... ./tests/testTUI/... -count=1
 
+format:
+	go fmt ./...
 
-.PHONY: tui gui server debug_project
+clean:
+	rm -rf exec
+
+re:
+	make clean
+	make build
+
+lint:
+	go fmt ./...
+	go vet ./...
+
+.PHONY: deps build server tui gui test format clean re lint

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 	"sort"
+	"strings"
 	pr "tap/protocol"
 	"time"
 
@@ -63,12 +64,12 @@ func (e *Engine) getValidTarget(player *Player, targetName string) (*Npc, error)
 		}
 		for _, fighter := range cs.Fighters {
 			if p, ok := fighter.(*Player); ok {
-				if p.name == targetName {
+				if strings.EqualFold(p.name, targetName) {
 					return nil, errors.New(pr.ErrNoAllyAttack)
 				}
 			}
 			if npc, ok := fighter.(*Npc); ok {
-				if npc.Id == targetName || npc.Name == targetName {
+				if strings.EqualFold(npc.Id, targetName) || strings.EqualFold(npc.Name, targetName) {
 					return npc, nil
 				}
 			}
@@ -80,25 +81,37 @@ func (e *Engine) getValidTarget(player *Player, targetName string) (*Npc, error)
 	for _, cs := range e.activeCombats {
 		if cs.RoomId == player.room.Id {
 			for _, n := range cs.Npcs {
-				if n.Id == targetName || n.Name == targetName {
+				if strings.EqualFold(n.Id, targetName) || strings.EqualFold(n.Name, targetName) {
 					return n, nil
 				}
 			}
 		}
 	}
 
-	// Otherwise, verify if it's a valid base NPC in the room
-	npcBase, exists := e.world.Npcs[targetName]
-	if !exists {
-		return nil, errors.New(pr.ErrNpcNotFound)
-	}
 	room, ok := e.world.Rooms[player.room.Id]
 	if !ok {
 		return nil, errors.New(pr.ErrInternalServer)
 	}
-	if !isNpcInRoom(room, targetName) || slices.Contains(player.DefeatedNpcs, targetName) {
+
+	var targetNpcKey string
+	var npcBase *Npc
+	for _, roomNpcId := range room.Npcs {
+		n := e.world.Npcs[roomNpcId]
+		if strings.EqualFold(roomNpcId, targetName) || (n != nil && strings.EqualFold(n.Name, targetName)) {
+			targetNpcKey = roomNpcId
+			npcBase = n
+			break
+		}
+	}
+
+	if npcBase == nil {
 		return nil, errors.New(pr.ErrNpcNotFound)
 	}
+
+	if slices.Contains(player.DefeatedNpcs, targetNpcKey) || slices.Contains(player.DefeatedNpcs, npcBase.Id) {
+		return nil, errors.New(pr.ErrNpcNotFound)
+	}
+
 	if !npcBase.Hostile {
 		return nil, errors.New(pr.ErrNpcNotHostile)
 	}
@@ -134,9 +147,26 @@ func (e *Engine) initiateCombat(player *Player, npc_copy *Npc) (*CombatSession, 
 	cs.sortTurnsOrderByInitiative()
 	e.activeCombats[combatID] = cs
 
-	res, full_turn_res := cs.processCombatTurn(player, npc_copy)
+	cs.CurrentTurn = 0
+	firstFighter := cs.Fighters[0]
+	if firstFighter.getName() == player.getName() {
+		res, full_turn_res := cs.processCombatTurn(player, npc_copy)
+		return cs, res, full_turn_res
+	}
 
-	return cs, res, full_turn_res
+	response := &FullTurnResponse{
+		NpcReactions: []ActionLog{},
+		CombatState:  cs.State,
+	}
+	cs.TurnResponse = response
+	cs.processNpcsTurn()
+
+	if cs.State == StateOngoing && cs.isFighterTurn(player) {
+		res, full_turn_res := cs.processCombatTurn(player, npc_copy)
+		return cs, res, full_turn_res
+	}
+
+	return cs, "OK", response
 }
 
 func (cs *CombatSession) processCombatTurn(attacker Fighter, target Fighter) (string, *FullTurnResponse) {
@@ -264,13 +294,12 @@ func (cs *CombatSession) nextTurn() {
 		}
 
 		if canPlay {
-			cs.TurnCount++ // Incrémente à chaque nouveau tour valide
+			cs.TurnCount++
 
 			current_player := cs.Fighters[cs.CurrentTurn]
 			msg := fmt.Sprintf("%s %s %s %s", pr.MsgEvt, pr.CategoryCombat, pr.TypeAllyTurn, current_player.getName())
 			cs.Engine.inform_combat_players(cs, nil, msg)
 
-			// Si c'est un joueur, on lance le timer
 			if _, ok := current_player.(*Player); ok {
 				if cs.Timer != nil {
 					cs.Timer.Stop()
@@ -328,7 +357,17 @@ func (e *Engine) end_combat(cs *CombatSession) {
 		player.inCombat = false
 		if cs.State == StateDefeat || player.stats.Hp <= 0 {
 			player.stats.Hp = player.stats.HpMax / 2
-			player.room = e.world.Rooms[RoomEntrance]
+			oldRoom := player.room
+			newRoom := e.world.Rooms[RoomEntrance]
+			if newRoom != nil && oldRoom != newRoom {
+				if oldRoom != nil {
+					e.inform_room(player, oldRoom, "EVT ROOM PRESENCE LEAVE "+player.name)
+				}
+				player.room = newRoom
+				e.inform_room(player, newRoom, "EVT ROOM PRESENCE ENTER "+player.name)
+			} else if newRoom != nil {
+				player.room = newRoom
+			}
 		} else if cs.State == StateVictory {
 			for _, npc := range cs.Npcs {
 				if !slices.Contains(player.DefeatedNpcs, npc.Id) {

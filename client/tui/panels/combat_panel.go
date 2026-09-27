@@ -191,8 +191,6 @@ func (c *CombatComponent) NewMainCombatComponent(actionsChan chan<- Action, comb
 	return main_content, main_content_width, main_content_height
 }
 
-// fillElementList (re)populates an element list, highlighting the currently
-// selected person (if any) with a yellow background.
 func (c *CombatComponent) fillElementList(list *tview.List, element_type string, combat_datas CombatDatas, elements map[string]pr.CombatPersonData) {
 	list.Clear()
 
@@ -219,8 +217,6 @@ func (c *CombatComponent) fillElementList(list *tview.List, element_type string,
 	}
 }
 
-// RefreshCombatSelection redraws the opponents/team lists (to move the yellow
-// highlight) and the stats panel (to show the newly selected person's stats).
 func (c *CombatComponent) RefreshCombatSelection(combat_datas CombatDatas) {
 	if c.OpponentsList != nil {
 		c.fillElementList(c.OpponentsList, "Opponents", combat_datas, combat_datas.Opponents)
@@ -255,7 +251,6 @@ func (c *CombatComponent) GetInfos(datas map[string]string) *tview.List {
 	return list
 }
 
-// fillStats (re)populates the stats list based on the currently selected person.
 func (c *CombatComponent) fillStats(list *tview.List, combat_datas CombatDatas) {
 	list.Clear()
 
@@ -307,8 +302,6 @@ func (c *CombatComponent) GetStats(combat_datas CombatDatas) *tview.List {
 	return list
 }
 
-// GetAllButtons builds the bottom action row.
-// Displays waiting text if it's not our turn.
 func (c *CombatComponent) GetAllButtons(actionsChan chan<- Action, combat_datas CombatDatas) ([]tview.Primitive, int) {
 	if combat_datas.Current_turn == "" || combat_datas.Current_turn != combat_datas.MyPseudo {
 		turnName := combat_datas.Current_turn

@@ -25,7 +25,7 @@ var itemTakeTwiceScenario = []ScenariosCommandTest{
 	aliceTakesItem,
 	{
 		Name:    "Tries to take same item",
-		Command: "TAKE sword",
+		Command: "TAKE rusty_hoe",
 		ExpectedReplies: []Reply{
 			{protocol.ErrItemNotFound, "alice"},
 		},
@@ -44,7 +44,7 @@ var itemDroppedNotInInventoryScenario = []ScenariosCommandTest{
 	connectAlice,
 	{
 		Name:    "Tries to drop item",
-		Command: "DROP sword",
+		Command: "DROP rusty_hoe",
 		ExpectedReplies: []Reply{
 			{protocol.ErrItemNotInInventory, "alice"},
 		},
@@ -59,7 +59,7 @@ var itemDropTwiceScenario = []ScenariosCommandTest{
 	aliceDropsItem,
 	{
 		Name:    "Tries to drop item",
-		Command: "DROP sword",
+		Command: "DROP rusty_hoe",
 		ExpectedReplies: []Reply{
 			{protocol.ErrItemNotInInventory, "alice"},
 		},
