@@ -46,22 +46,18 @@ Clients use a decoupled Controller pattern (`client/controller`):
 
 ### System Architecture Diagram
 
-```mermaid
-flowchart LR
-    %% Clients
-    GUI["GUI Client\n(Raylib)"]
-    TUI["TUI Client\n(Tview)"]
-
-    %% Core system
-    CTRL["Controller\n(Client Logic)"]
-    SRV["Server\n(TCP server)"]
-    ENG["Engine\n(Game Logic)"]
-
-    %% Exchanges
-    GUI <--> CTRL
-    TUI <--> CTRL
-    CTRL <-->|TCP Connection| SRV
-    SRV <-->|Go channels| ENG
+```
+						┌──────────────┐
+						│  GUI Client  │
+						│  (Raylib)    │──┐
+						└──────────────┘  │
+						                  │   ┌────────────────┐      TCP       ┌──────────────┐    Go ch.    ┌──────────────┐
+						                  ├──>│   Controller   │<──────────────>│    Server    │<────────────>│    Engine    │
+						                  │   │ (Client Logic) │   Connection   │ (TCP server) │              │ (Game Logic) │
+						┌──────────────┐  │   └────────────────┘                └──────────────┘              └──────────────┘
+						│  TUI Client  │──┘
+						│  (Tview)     │
+						└──────────────┘
 ```
 
 ---

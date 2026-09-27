@@ -1,0 +1,10 @@
+
+- Charbonneaux's Farm:
+	- Une ferme, dirige par Thomas Charbonneaux, où on peut trouver de savoureux et juteux légumes
+	- Item: Mais sucre
+	- Npc: Thomas Charbonneaux
+
+- Uzols's Farm:
+	- La ferme royale de la principaute d'Uzols
+	- Npc, Le  Prince: 
+	- Item, :

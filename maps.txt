@@ -1,0 +1,9 @@
+												[Blossom Orchard]
+                                                        │
+                [Forest Edge] ───── [Riverside Path] ───┴── [Fishing Dock]
+                      │                     │                     │
+[Chicken Coop] ── [Old Barn] ────── [Wooden Bridge] ─────── [Windmill Yard]
+                      │                     │                     │
+              [Abandoned Farm] ─── [Overgrown Path] ─────── [Village Square]
+                                    (Entrance)                    │
+                                                          [Merchant's Tent]
