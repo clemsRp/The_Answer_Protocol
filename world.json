@@ -1,12 +1,12 @@
 [
     {
         "rooms": {
-            "ferme_charbonneaux": {
-                "name": "La ferme des Légumes Charbonneaux",
-                "description": "ne ferme, dirige par Thomas Charbonneaux, où on peut trouver de savoureux et juteux légumes",
+            "ferme_charbonneau": {
+                "name": "La ferme des Légumes Charbonneau",
+                "description": "Une ferme, dirige par Thomas Charbonneau, où on peut trouver de savoureux et juteux légumes",
                 "exits": {},
-                "items": ["mais_sucre"],
-				"npcs": ["thomas_charbonneaux"]
+                "items": ["mais_sucre", "pioche"],
+				"npcs": ["thomas_charbonneau", "berry"]
             },
             "ferme_uzoloise": {
 				"name": "La ferme Royale",
@@ -22,14 +22,12 @@
                 "items": [],
                 "npcs": ["gabinap"]
             },
-            "merchant_tent": {
-                "name": "Merchant's Tent",
-                "description": "A colorful canvas sheltering all sorts of tools and seeds. It smells of incense and old parchment.",
-                "exits": {
-                    "north": "village_square"
-                },
-                "items": ["gold_acorn"],
-                "npcs": ["merchant_milo"]
+            "verger_de_la_savane": {
+                "name": "Le verger de la Savane",
+                "description": "Une verger où on trouve les meilleurs fruits du Canada",
+                "exits": {},
+                "items": [],
+                "npcs": ["bernard"]
             },
             "old_barn": {
                 "name": "Old Barn",
@@ -129,27 +127,19 @@
                 "charges": 1,
                 "duration": 1
             },
-            "crisp_apple": {
-                "name": "Crisp Apple",
-                "description": "A ripe red apple fallen from a nearby tree. Restores a bit of health.",
+            "pioche": {
+                "name": "Pioche",
+                "description": "Une pioche de la ferme Charbonneau qui sert a cultiver le bon mais sucré",
                 "obtainable": true,
-                "type": "consumable",
-                "target_stat": "hp",
-                "amount": 10,
-                "effect_type": "heal",
-                "charges": 1,
-                "duration": 1
+                "type": "weapon",
+                "worth": 3,
+                "damage": 5
             },
-            "leather_boots": {
-                "name": "Leather Boots",
-                "description": "Old farmer's boots. They give you more confidence and a slight shield.",
+            "graines": {
+                "name": "Graines",
+                "description": "Des graines de qualité",
                 "obtainable": true,
-                "type": "consumable",
-                "target_stat": "shield",
-                "amount": 5,
-                "effect_type": "buff",
-                "charges": 1,
-                "duration": 1
+                "type": "ressource"
             },
             "gold_acorn": {
                 "name": "Gold Acorn",
@@ -241,18 +231,18 @@
             }
         },
         "npcs": {
-            "thomas_charbonneaux": {
-                "name": "Thomas Charbonneaux",
-                "description": "Le patron de la ferme des Légumes Charbonneaux",
+            "thomas_charbonneau": {
+                "name": "Thomas Charbonneau",
+                "description": "Le patron de la ferme des Légumes Charbonneau",
                 "dialogue": [
                     "Salut salut",
 					"Tabarouette",
-					"J'ai panier quelqu chose de gros ...",
+					"J'ai panier quelque chose de gros ...",
 					"Tabarouette, il nous reste encore du mais sucré",
 					"Passez nous voir au 133 chemin du Vide à Sainte-Angèle-de-Monnoir"
                 ],
-                "role": "dialogue",
-                "quest_id": "",
+                "role": "quest",
+                "quest_id": "effraye_berry",
                 "hostile": false
             },
             "le_prince": {
@@ -276,13 +266,13 @@
                 },
                 "hostile": true
             },
-            "paco": {
-                "name": "Paco le Corbeau",
-                "description": "Paco raffole, du mais, surtout s'il est sucré",
+            "berry": {
+                "name": "Berry la Chauve souris",
+                "description": "Berry raffole, du mais, surtout s'il est sucré",
                 "dialogue": [
-                    "*Caw!* (Il se jette sur toi en picorant à tout va !)",
-					"*CAWWWWW!!!*"
-                ],
+				    "*Skriik !* (Elle fond sur toi en battant frénétiquement des ailes !)",
+				    "*SKRIIIIIIIIK !!!*"
+				],
                 "role": "enemy",
                 "quest_id": "",
                 "stats": {
@@ -308,42 +298,45 @@
                 ],
                 "role": "enemy",
                 "quest_id": "",
-                "hostile": true
-            },
-            "shepherd_hana": {
-                "name": "Shepherd Hana",
-                "description": "A gentle coop-keeper who dotes on every hen by name.",
-                "dialogue": [
-                    "One of my hens laid the strangest golden egg this morning!",
-                    "Could you fetch it for me? I'm too short to reach the top nest."
-                ],
-                "role": "quest",
-                "quest_id": "golden_egg_hunt",
-                "hostile": false
-            },
-            "feral_boar": {
-                "name": "Feral Boar",
-                "description": "A hulking, tusked boar that has been trampling crops near the forest edge.",
-                "dialogue": [
-                    "*Snort!* (It stomps the ground and lowers its tusks!)"
-                ],
-                "role": "enemy",
-                "quest_id": "cull_the_boar",
-                "stats": {
+				"stats": {
                     "hp": 25,
                     "max_hp": 25,
                     "status": "healthy",
                     "initiative": 90,
-                    "damage": 18
+                    "damage": 15
                 },
                 "hostile": true
             },
-            "fisherman_jed": {
-                "name": "Fisherman Jed",
-                "description": "A weathered old fisherman who hasn't left the dock in years, or so the rumor goes.",
+            "bernard": {
+                "name": "Bernard",
+                "description": "Patron du Verger de la savane, il coopere avbec les Légumes Charbonneau",
                 "dialogue": [
-                    "Quiet waters today. Good for thinking, bad for fishing.",
-                    "Mind the crates, some of them bite back."
+                    "Venez découvrir notre beau verger en autocueillette",
+					"Rendez vous au 8000 Chemin de la Savane à Saint-Hubert"
+                ],
+                "role": "dialogue",
+                "quest_id": "",
+                "hostile": false
+            },
+            "maya": {
+                "name": "Maya l'abeille",
+                "description": "Maya adore butiner au verger de la Savane",
+                "dialogue": [
+                    "Miam miam, je me regale ici",
+					"Seulement, il y a des moins en moins de fruit à butiner"
+                ],
+                "role": "quest",
+                "quest_id": "trouve_graines",
+                "hostile": false
+            },
+            "bob": {
+                "name": "Bob le blob",
+                "description": "Un blob visqueux et collant. Il n'est pas très bavard",
+                "dialogue": [
+					"...",
+					"blop",
+					"...",
+					"..."
                 ],
                 "role": "dialogue",
                 "quest_id": "",
@@ -351,17 +344,17 @@
             }
         },
         "quests": {
-			"effraye_paco": {
-				"description": "Effraye Paco le corbeau pour qu'il arrete de manger tout le mais sucre",
-				"reward": "",
+			"effraye_berry": {
+				"description": "Effraye Berry la Chauve souris pour qu'il arrete de manger tout le mais sucre",
+				"reward": "graines",
 				"status": "available",
-				"target_npc": "paco"
+				"target_npc": "berry"
 			},
-            "spring_harvest": {
-                "description": "Find a Turnip Seed on the Overgrown Path and bring it to Fiona.",
-                "reward": "pitchfork",
+            "trouve_graines": {
+                "description": "Trouve des graines et rapporte les à Maya pour qu'elle puisse butiner de nouveaux le plus rapidemment possible",
+                "reward": "TODO",
                 "status": "available",
-                "target_item": "turnip_seed"
+                "target_item": "graines"
             },
             "golden_egg_hunt": {
                 "description": "Find the Golden Egg in the Chicken Coop and bring it back to Shepherd Hana.",
