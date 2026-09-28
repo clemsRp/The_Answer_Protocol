@@ -5,25 +5,22 @@
                 "name": "La ferme des Légumes Charbonneaux",
                 "description": "ne ferme, dirige par Thomas Charbonneaux, où on peut trouver de savoureux et juteux légumes",
                 "exits": {},
-                "items": ["mais_sucre", "turnip_seed"],
+                "items": ["mais_sucre"],
 				"npcs": ["thomas_charbonneaux"]
             },
             "ferme_uzoloise": {
 				"name": "La ferme Royale",
                 "description": "La ferme royale de la principaute d'Uzols, où on peut trouver de la viande de qualité",
                 "exits": {},
-                "items": ["crisp_apple"],
+                "items": [],
 				"npcs": ["le_prince"]
             },
-            "abandoned_farm": {
-                "name": "Abandoned Farm",
-                "description": "A barren patch of land surrounded by broken fences. A menacing crow watches you from a fence post.",
-                "exits": {
-                    "north": "old_barn",
-                    "east": "entrance"
-                },
-                "items": ["leather_boots"],
-                "npcs": ["angry_crow"]
+            "fontaneilles": {
+                "name": "Capitale du roquefort",
+                "description": "Une ville qui sent étonnement fort le fromage",
+                "exits": {},
+                "items": [],
+                "npcs": ["gabinap"]
             },
             "merchant_tent": {
                 "name": "Merchant's Tent",
@@ -283,7 +280,7 @@
                 "name": "Paco le Corbeau",
                 "description": "Paco raffole, du mais, surtout s'il est sucré",
                 "dialogue": [
-                    "*Caw!* (It charges at you, pecking wildly!)",
+                    "*Caw!* (Il se jette sur toi en picorant à tout va !)",
 					"*CAWWWWW!!!*"
                 ],
                 "role": "enemy",
@@ -297,16 +294,21 @@
                 },
                 "hostile": true
             },
-            "miller_greta": {
-                "name": "Miller Greta",
-                "description": "A stout, flour-dusted woman tending the creaking windmill.",
+            "gabinap": {
+                "name": "HardcoreLevelingWarrior",
+                "description": "Un jeune palefrenier qui flex en calisthenie",
                 "dialogue": [
-                    "This old mill hasn't turned right since a gear went missing...",
-                    "Bring me spare parts and I'll keep the flour coming!"
+                    "298...",
+                    "299...",
+                    "300!!!",
+                    "DAMNNNN",
+                    "Tema le bibiii !!!",
+                    "Ushh ushh",
+                    "Allez viens que je te battes en pompes"
                 ],
-                "role": "dialogue",
+                "role": "enemy",
                 "quest_id": "",
-                "hostile": false
+                "hostile": true
             },
             "shepherd_hana": {
                 "name": "Shepherd Hana",
