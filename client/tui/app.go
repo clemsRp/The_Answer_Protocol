@@ -526,6 +526,8 @@ func (m *MyApp) AppendCliResponse(res pr.ServerResponse) {
 }
 func (m *MyApp) UpdateRemotePlayerPosition(pseudo string, X float32, Y float32, DirX float32, DirY float32, emoteIndex int) {
 }
+func (m *MyApp) UpdateRemotePlayerEmotes(pseudo string, emote int) {
+}
 func (m *MyApp) UpdateItemPosition(pseudo string, X float32, Y float32) {
 }
 

@@ -92,8 +92,12 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
 		res, datas, err = e.handleCmdNotifyPlayerPosition(player, req)
 	case pr.CmdNotifyItemPosition:
 		res, datas, err = e.handleCmdNotifyItemPosition(player, req)
+	case pr.CmdNotifyPlayerEmote:
+		res, datas, err = e.handleCmdNotifyPlayerEmote(player, req)
 	case pr.CmdGetPlayerPositions:
 		res, datas, err = e.handleCmdGetPlayerPositions(player, req)
+	case pr.CmdGetPlayerEmotes:
+		res, datas, err = e.handleCmdGetPlayerEmotes(player, req)
 	case pr.CmdGetItemPositions:
 		res, datas, err = e.handleCmdGetItemPositions(player, req)
 

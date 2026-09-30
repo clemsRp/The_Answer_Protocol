@@ -46,6 +46,12 @@ func (dr *Drawer) DrawGame() {
 		2, 0, true,
 	)
 
+	for _, layer := range dr.app.Rooms[dr.app.Variables.Current_room].Layers {
+		if layer.Name == "InFrontOfPlayer" {
+			dr.DrawLayer(layer, dr.app.Rooms[dr.app.Variables.Current_room].Tilesets)
+		}
+	}
+
 	dr.DrawPlayerPanel()
 
 	dr.DrawGameEmotes()
@@ -53,12 +59,6 @@ func (dr *Drawer) DrawGame() {
 	dr.DrawInventoryEmotes()
 	dr.DrawInventoryButtons()
 	dr.DrawGameSelects()
-
-	for _, layer := range dr.app.Rooms[dr.app.Variables.Current_room].Layers {
-		if layer.Name == "InFrontOfPlayer" {
-			dr.DrawLayer(layer, dr.app.Rooms[dr.app.Variables.Current_room].Tilesets)
-		}
-	}
 }
 
 func (dr *Drawer) DrawPlayerPanel() {

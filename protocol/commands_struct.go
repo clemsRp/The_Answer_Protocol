@@ -118,6 +118,11 @@ type NotifyPlayerPositionData struct {
 	EmoteIndex float32 `json:"emote_index"`
 }
 
+type NotifyPlayerEmotesData struct {
+	Pseudo string `json:"name"`
+	Emote  int    `json:"emote"`
+}
+
 type NotifyItemPositionData struct {
 	Name string  `json:"name"`
 	X    float32 `json:"x"`

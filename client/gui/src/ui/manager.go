@@ -1,11 +1,15 @@
 package ui
 
+import vars "tap/client/gui/src/variables"
+
 type Frame struct {
 	IndX, IndY     float32
 	RatioX, RatioY float32
 }
 
 type Manager struct {
+	PlayerPos          *vars.Position
+	Tile               float32
 	views_buttons      map[string][]*Button
 	views_emotes       map[string][]*Emote
 	views_interactions map[string][]*Interaction

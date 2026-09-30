@@ -240,8 +240,8 @@
             "scale": 1.8366666666666667,
             "selectedLayer": 1,
             "viewCenter": {
-                "x": 240.10889292196006,
-                "y": 159.80036297640655
+                "x": 240.10889292196003,
+                "y": 160.0725952813067
             }
         },
         "teemo 8 directions.tsx": {
@@ -260,8 +260,8 @@
             "scale": 2,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 255.75,
-                "y": 143.75
+                "x": 265,
+                "y": 179
             }
         },
         "test.tsx": {
@@ -288,7 +288,7 @@
     },
     "frame.defaultDuration": 200,
     "last.exportedFilePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps",
-    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Sorry pack/Early Access/Village pack/houses/small hut",
+    "last.imagePath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/assets/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Icons/special icons",
     "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",

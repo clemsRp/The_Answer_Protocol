@@ -3,9 +3,11 @@ package updater
 import (
 	"fmt"
 	"math"
+	"strconv"
 	vars "tap/client/gui/src/variables"
 	panel "tap/client/tui/panels"
 	pr "tap/protocol"
+	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -71,6 +73,7 @@ func (up *Updater) UpdatePlayer() {
 	up.SendNotif(oldX, oldY, oldDirX, oldDirY, false)
 
 	up.UpdatePlayersInspect()
+	up.UpdatePlayerEmotes()
 }
 
 func (up *Updater) UpdateMove() {
@@ -161,4 +164,75 @@ func (up *Updater) UpdatePlayersInspect() {
 			}
 		}
 	}
+}
+
+const emoteDuration = 5 * time.Second
+
+func (up *Updater) UpdatePlayerEmotes() {
+	emotes := up.app.Variables.PanelsVariables.Emotes
+	player := up.app.Variables.Player
+	tile := up.app.Variables.Tileset_size
+
+	if emotes.LastEmoteIndex >= 0 && time.Since(emotes.LastEmoteTime) >= emoteDuration {
+		emotes.LastEmoteIndex = -1
+	}
+
+	if emotes.Open && time.Since(emotes.OpenTime) >= emoteDuration {
+		emotes.Open = false
+	}
+
+	if !rl.IsMouseButtonPressed(rl.MouseLeftButton) {
+		return
+	}
+	mouse := rl.GetMousePosition()
+
+	if emotes.Open {
+		size := tile / 2
+		startX := player.Position.X + tile
+		startY := player.Position.Y - 0.1*tile
+		for i := 0; i < 6; i++ {
+			x := startX + (float32(i)/2+0.6)*tile
+			y := startY - 0.12*tile
+			if rl.CheckCollisionPointRec(mouse, rl.NewRectangle(x, y, size, size)) {
+				emotes.LastEmoteIndex = i
+				emotes.LastEmoteTime = time.Now()
+				emotes.Open = false
+
+				up.actionsChan <- panel.Action{
+					Type:    panel.ActionSendServer,
+					Payload: pr.CmdNotifyPlayerEmote + " " + strconv.Itoa(i),
+				}
+				return
+			}
+		}
+	}
+
+	if emotes.LastEmoteIndex >= 0 {
+		return
+	}
+
+	halfDiagonal := float32(math.Sqrt(math.Pow(float64(tile), 2) / 2))
+	x := player.Position.X + 0.8*tile
+	y := player.Position.Y - 0.1*tile
+
+	if up.IsClickInLosange(mouse.X, mouse.Y, x, y, halfDiagonal) {
+		emotes.Open = !emotes.Open
+		if emotes.Open {
+			emotes.OpenTime = time.Now()
+		}
+	}
+}
+
+func (up *Updater) IsClickInLosange(mouseX, mouseY, centerX, centerY, halfDiagonal float32) bool {
+	dx := mouseX - centerX
+	if dx < 0 {
+		dx = -dx
+	}
+
+	dy := mouseY - centerY
+	if dy < 0 {
+		dy = -dy
+	}
+
+	return (dx + dy) <= halfDiagonal
 }

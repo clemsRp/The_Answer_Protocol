@@ -3,6 +3,7 @@ package engine
 import (
 	"errors"
 	pr "tap/protocol"
+	"time"
 )
 
 type Direction struct {
@@ -13,6 +14,14 @@ type Direction struct {
 type Position struct {
 	X float32
 	Y float32
+}
+
+const emoteDuration = 5 * time.Second
+const nbPlayerEmotes = 6
+
+type playerEmote struct {
+	data pr.NotifyPlayerEmotesData
+	at   time.Time
 }
 
 type Player struct {

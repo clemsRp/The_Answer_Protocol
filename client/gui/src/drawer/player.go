@@ -35,6 +35,30 @@ func (dr *Drawer) DrawPlayer(p *vars.Player) {
 		p.Position.X, p.Position.Y,
 		float32(ind_x), float32(ind_y), 1, 1, dr.app.Variables.Zoom, 0,
 	)
+
+	if p.Pseudo == dr.app.Variables.Player.Pseudo {
+		dr.DrawPlayerEmotesPanel()
+
+	} else {
+		datas, ok := (*dr.app.Variables.RemotePlayerEmotes)[p.Pseudo]
+		if ok && datas.Emote != -1 && time.Since(datas.ChoiceTime) <= 5*time.Second {
+
+			dr.DrawImage(
+				vars.PLAYER_EMOTES_BUBBLE_TEXTURE,
+				float32(p.Position.X)+dr.app.Variables.Tileset_size,
+				float32(p.Position.Y)-0.1*dr.app.Variables.Tileset_size,
+				0, 0, 4, 4, dr.app.Variables.Zoom/4, 90,
+			)
+
+			dr.DrawImage(
+				vars.PLAYER_EMOTES_TEXTURE,
+				float32(p.Position.X)+1.07*dr.app.Variables.Tileset_size,
+				float32(p.Position.Y)-0.025*dr.app.Variables.Tileset_size,
+				float32(datas.Emote+1), 0, 1, 1,
+				dr.app.Variables.Zoom*0.8, 0,
+			)
+		}
+	}
 }
 
 func (dr *Drawer) DrawPseudos() {
@@ -109,4 +133,88 @@ func (dr *Drawer) GetPlayerTexture(p *vars.Player) (string, int, int) {
 	}
 
 	return texture_name, ind_x, ind_y
+}
+
+func (dr *Drawer) DrawPlayerEmotesPanel() {
+	emotes := dr.app.Variables.PanelsVariables.Emotes
+
+	if emotes.LastEmoteIndex >= 0 {
+		dr.DrawImage(
+			vars.PLAYER_EMOTES_BUBBLE_TEXTURE,
+			float32(dr.app.Variables.Player.Position.X)+dr.app.Variables.Tileset_size,
+			float32(dr.app.Variables.Player.Position.Y)-0.1*dr.app.Variables.Tileset_size,
+			0, 0, 4, 4, dr.app.Variables.Zoom/4, 90,
+		)
+
+		dr.DrawImage(
+			vars.PLAYER_EMOTES_TEXTURE,
+			float32(dr.app.Variables.Player.Position.X)+1.07*dr.app.Variables.Tileset_size,
+			float32(dr.app.Variables.Player.Position.Y)-0.025*dr.app.Variables.Tileset_size,
+			float32(emotes.LastEmoteIndex+1), 0, 1, 1,
+			dr.app.Variables.Zoom*0.8, 0,
+		)
+		return
+	}
+
+	dr.DrawImage(
+		vars.PLAYER_EMOTES_BUBBLE_TEXTURE,
+		float32(dr.app.Variables.Player.Position.X)+0.8*dr.app.Variables.Tileset_size,
+		float32(dr.app.Variables.Player.Position.Y)-0.1*dr.app.Variables.Tileset_size,
+		9, 6, 2, 2, dr.app.Variables.Zoom/4, 45,
+	)
+
+	if emotes.Open {
+		dr.DrawEmotePanel()
+		dr.DrawPlayerEmotes()
+	}
+}
+
+func (dr *Drawer) DrawEmotePanel() {
+	startX := float32(dr.app.Variables.Player.Position.X) + dr.app.Variables.Tileset_size
+	startY := float32(dr.app.Variables.Player.Position.Y) - 0.1*dr.app.Variables.Tileset_size
+	scale := dr.app.Variables.Zoom / 4
+
+	segmentWidth := 32.0 * scale
+
+	nbMiddleParts := 6
+
+	dr.DrawImage(
+		vars.PLAYER_EMOTES_BUBBLE_TEXTURE,
+		startX,
+		startY,
+		0, 3, 4, 1, scale, 90,
+	)
+
+	for i := 0; i < nbMiddleParts; i++ {
+		offsetX := float32(i+1) * segmentWidth
+
+		dr.DrawImage(
+			vars.PLAYER_EMOTES_BUBBLE_TEXTURE,
+			startX+offsetX-0.15*dr.app.Variables.Tileset_size,
+			startY-0.12*dr.app.Variables.Tileset_size,
+			0, 1, 4, 2, scale, 90,
+		)
+	}
+
+	dr.DrawImage(
+		vars.PLAYER_EMOTES_BUBBLE_TEXTURE,
+		startX+float32(nbMiddleParts+1)*segmentWidth-0.3*dr.app.Variables.Tileset_size,
+		startY,
+		0, 0, 4, 1, scale, 90,
+	)
+}
+
+func (dr *Drawer) DrawPlayerEmotes() {
+	startX := float32(dr.app.Variables.Player.Position.X) + dr.app.Variables.Tileset_size
+	startY := float32(dr.app.Variables.Player.Position.Y) - 0.1*dr.app.Variables.Tileset_size
+
+	for i := 0; i < 6; i++ {
+		dr.DrawImage(
+			vars.PLAYER_EMOTES_TEXTURE,
+			startX+(float32(i)/2+0.6)*dr.app.Variables.Tileset_size,
+			startY-0.12*dr.app.Variables.Tileset_size,
+			float32(i+1), 1, 1, 1,
+			dr.app.Variables.Zoom/2, 0,
+		)
+	}
 }

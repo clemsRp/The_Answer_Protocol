@@ -393,6 +393,18 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 				}
 			}
 
+		case lastCmdBase == pr.CmdGetPlayerEmotes && res.Msg == "OK":
+
+			var data []protocol.NotifyPlayerEmotesData
+			raw, err := json.Marshal(res.Datas)
+			if err == nil && json.Unmarshal(raw, &data) == nil {
+				for _, notif := range data {
+					c.ui.QueueUpdate(func() {
+						c.ui.UpdateRemotePlayerEmotes(notif.Pseudo, notif.Emote)
+					})
+				}
+			}
+
 		case lastCmdBase == pr.CmdGetItemPositions && res.Msg == "OK":
 
 			var data []protocol.NotifyItemPositionData

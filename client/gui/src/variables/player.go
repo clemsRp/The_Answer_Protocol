@@ -16,6 +16,11 @@ type Position struct {
 	Y float32
 }
 
+type PlayerEmote struct {
+	Emote      int
+	ChoiceTime time.Time
+}
+
 type Player struct {
 	Direction     *Direction
 	Position      *Position

@@ -1,57 +1,39 @@
 [
     {
         "rooms": {
-            "entrance": {
-                "name": "Overgrown Path",
-                "description": "An old trail choked with weeds. The air smells of fresh earth and cut grass.",
-                "exits": {
-                    "north": "north_bridge",
-                    "east": "village_square",
-                    "west": "abandoned_farm"
-                },
-                "items": ["rusty_hoe", "turnip_seed"],
-				"npcs": ["shepherd_hana"]
+            "ferme_charbonneau": {
+                "name": "La ferme des Légumes Charbonneau",
+                "description": "Une ferme, dirige par Thomas Charbonneau, où on peut trouver de savoureux et juteux légumes",
+                "exits": {},
+                "items": ["mais_sucre", "pioche"],
+				"npcs": ["thomas_charbonneau", "maelis"]
             },
-            "village_square": {
-				"name": "Village Square",
-                "description": "A peaceful square paved with moss-covered stones. An old fountain trickles softly at its center, and hens peck lazily between the cobbles.",
-                "exits": {
-					"west": "entrance",
-                    "north": "windmill",
-                    "south": "merchant_tent"
-                },
-                "items": ["crisp_apple"],
-				"npcs": ["angry_crow"]
+            "ferme_uzoloise": {
+				"name": "La ferme Royale",
+                "description": "La ferme royale de la principaute d'Uzols, où on peut trouver de la viande de qualité",
+                "exits": {},
+                "items": [],
+				"npcs": ["le_prince"]
             },
-            "abandoned_farm": {
-                "name": "Abandoned Farm",
-                "description": "A barren patch of land surrounded by broken fences. A menacing crow watches you from a fence post.",
-                "exits": {
-                    "north": "old_barn",
-                    "east": "entrance"
-                },
-                "items": ["leather_boots"],
-                "npcs": ["angry_crow"]
+            "fontaneilles": {
+                "name": "Capitale du roquefort",
+                "description": "Une ville qui sent étonnement fort le fromage",
+                "exits": {},
+                "items": [],
+                "npcs": ["gabinap"]
             },
-            "merchant_tent": {
-                "name": "Merchant's Tent",
-                "description": "A colorful canvas sheltering all sorts of tools and seeds. It smells of incense and old parchment.",
-                "exits": {
-                    "north": "village_square"
-                },
-                "items": ["gold_acorn"],
-                "npcs": ["merchant_milo"]
+            "verger_de_la_savane": {
+                "name": "Le verger de la Savane",
+                "description": "Une verger où on trouve les meilleurs fruits du Canada",
+                "exits": {},
+                "items": [],
+                "npcs": ["bernard"]
             },
-            "old_barn": {
-                "name": "Old Barn",
-                "description": "A weathered wooden barn with hay spilling from its loft. Chickens cluck softly somewhere inside.",
-                "exits": {
-                    "south": "abandoned_farm",
-                    "north": "forest_edge",
-                    "east": "north_bridge",
-                    "west": "chicken_coop"
-                },
-                "items": ["watering_can"],
+            "fromagerie": {
+                "name": "La fromagerie de St Julien",
+                "description": "La fromagerie où l'on fait la meilleure cancoillotte",
+                "exits": {},
+                "items": [],
                 "npcs": []
             },
             "chicken_coop": {
@@ -129,33 +111,30 @@
             }
         },
         "items": {
-            "turnip_seed": {
-                "name": "Turnip Seed",
-                "description": "A small, promising seed. Ideal for starting a crop.",
-                "obtainable": true,
-                "type": "ressource"
-            },
-            "crisp_apple": {
-                "name": "Crisp Apple",
-                "description": "A ripe red apple fallen from a nearby tree. Restores a bit of health.",
+            "mais_sucre": {
+                "name": "Maïs sucré",
+                "description": "Du maïs si sucre qu on dirait une glace",
                 "obtainable": true,
                 "type": "consumable",
-                "target_stat": "hp",
-                "amount": 10,
+				"target_stat": "hp",
+                "amount": 25,
                 "effect_type": "heal",
                 "charges": 1,
                 "duration": 1
             },
-            "leather_boots": {
-                "name": "Leather Boots",
-                "description": "Old farmer's boots. They give you more confidence and a slight shield.",
+            "pioche": {
+                "name": "Pioche",
+                "description": "Une pioche de la ferme Charbonneau qui sert a cultiver le bon maïs sucré",
                 "obtainable": true,
-                "type": "consumable",
-                "target_stat": "shield",
-                "amount": 5,
-                "effect_type": "buff",
-                "charges": 1,
-                "duration": 1
+                "type": "weapon",
+                "worth": 3,
+                "damage": 5
+            },
+            "graines": {
+                "name": "Graines",
+                "description": "Des graines de qualité",
+                "obtainable": true,
+                "type": "ressource"
             },
             "gold_acorn": {
                 "name": "Gold Acorn",
@@ -247,22 +226,29 @@
             }
         },
         "npcs": {
-            "farmer_fiona": {
-                "name": "Farmer Fiona",
-                "description": "An energetic young woman desperately looking for something to plant.",
+            "thomas_charbonneau": {
+                "name": "Thomas Charbonneau",
+                "description": "Le patron de la ferme des Légumes Charbonneau",
                 "dialogue": [
-                    "Oh, hello! Spring is here but I have nothing left to plant...",
-                    "If you find me a Turnip Seed, I'll reward you generously!"
+                    "Salut salut",
+					"Tabarouette",
+					"J'ai panier quelque chose de gros ...",
+					"Tabarouette, il nous reste encore du maïs sucré",
+					"Passez nous voir au 133 chemin du Vide à Sainte-Angèle-de-Monnoir"
                 ],
                 "role": "quest",
-                "quest_id": "spring_harvest",
+                "quest_id": "effraye_berry",
                 "hostile": false
             },
-            "angry_crow": {
-                "name": "Angry Crow",
-                "description": "A large, highly territorial black bird defending the abandoned field.",
+            "le_prince": {
+                "name": "Le Prince",
+                "description": "Le prince Uzolois, il est TRÈS fier de sa ferme",
                 "dialogue": [
-                    "*Caw!* (It charges at you, pecking wildly!)"
+                    "Approchez approchez voyons ...",
+					"Regardez moi comment elle est belle cette Salers",
+					"QUOIIII !!!",
+					"VOUS OSEZ DIRE QU'ELLE N'EN VAUT PAS LE COUT ???",
+					"Me dire ca a MOII ? Le PRINCEEEE !!!"
                 ],
                 "role": "enemy",
                 "quest_id": "",
@@ -275,61 +261,77 @@
                 },
                 "hostile": true
             },
-            "merchant_milo": {
-                "name": "Merchant Milo",
-                "description": "A smiling traveler, always ready to make a deal.",
+            "maelis": {
+                "name": "Maelis la Chauve souris",
+                "description": "Maelis raffole, du maïs, surtout s'il est sucré",
                 "dialogue": [
-                    "Welcome! Take a look at my wares, everything's fresh and guaranteed magic-free!"
-                ],
-                "role": "dialogue",
-                "quest_id": "scare_the_crow",
-                "hostile": false
+				    "*Skriik !* (Elle fond sur toi en battant frénétiquement des ailes !)",
+				    "*SKRIIIIIIIIK !!!*"
+				],
+                "role": "enemy",
+                "quest_id": "",
+                "stats": {
+                    "hp": 15,
+                    "max_hp": 15,
+                    "status": "healthy",
+                    "initiative": 110,
+                    "damage": 12
+                },
+                "hostile": true
             },
-            "miller_greta": {
-                "name": "Miller Greta",
-                "description": "A stout, flour-dusted woman tending the creaking windmill.",
+            "gabinap": {
+                "name": "HardcoreLevelingWarrior",
+                "description": "Un jeune palefrenier qui flex en calisthenie",
                 "dialogue": [
-                    "This old mill hasn't turned right since a gear went missing...",
-                    "Bring me spare parts and I'll keep the flour coming!"
+                    "298...",
+                    "299...",
+                    "300!!!",
+                    "DAMNNNN",
+                    "Tema le bibiii !!!",
+                    "Ushh ushh",
+                    "Allez viens que je te battes en pompes"
+                ],
+                "role": "enemy",
+                "quest_id": "",
+				"stats": {
+                    "hp": 25,
+                    "max_hp": 25,
+                    "status": "healthy",
+                    "initiative": 90,
+                    "damage": 15
+                },
+                "hostile": true
+            },
+            "bernard": {
+                "name": "Bernard",
+                "description": "Patron du Verger de la savane, il coopere avbec les Légumes Charbonneau",
+                "dialogue": [
+                    "Venez découvrir notre beau verger en autocueillette",
+					"Rendez vous au 8000 Chemin de la Savane à Saint-Hubert"
                 ],
                 "role": "dialogue",
                 "quest_id": "",
                 "hostile": false
             },
-            "shepherd_hana": {
-                "name": "Shepherd Hana",
-                "description": "A gentle coop-keeper who dotes on every hen by name.",
+            "maya": {
+                "name": "Maya l'abeille",
+                "description": "Maya adore butiner au verger de la Savane",
                 "dialogue": [
-                    "One of my hens laid the strangest golden egg this morning!",
-                    "Could you fetch it for me? I'm too short to reach the top nest."
+                    "Miam miam, je me regale ici",
+					"Seulement, il y a des moins en moins de fruit à butiner"
                 ],
                 "role": "quest",
-                "quest_id": "golden_egg_hunt",
+                "quest_id": "trouve_graines",
                 "hostile": false
             },
-            "feral_boar": {
-                "name": "Feral Boar",
-                "description": "A hulking, tusked boar that has been trampling crops near the forest edge.",
+            "bob": {
+                "name": "Bob le blob",
+                "description": "Un blob visqueux et collant. Il n'est pas très bavard",
                 "dialogue": [
-                    "*Snort!* (It stomps the ground and lowers its tusks!)"
-                ],
-                "role": "enemy",
-                "quest_id": "cull_the_boar",
-                "stats": {
-                    "hp": 25,
-                    "max_hp": 25,
-                    "status": "healthy",
-                    "initiative": 90,
-                    "damage": 18
-                },
-                "hostile": true
-            },
-            "fisherman_jed": {
-                "name": "Fisherman Jed",
-                "description": "A weathered old fisherman who hasn't left the dock in years, or so the rumor goes.",
-                "dialogue": [
-                    "Quiet waters today. Good for thinking, bad for fishing.",
-                    "Mind the crates, some of them bite back."
+					"...",
+					"blop",
+					"...",
+					"..."
                 ],
                 "role": "dialogue",
                 "quest_id": "",
@@ -337,17 +339,17 @@
             }
         },
         "quests": {
-            "spring_harvest": {
-                "description": "Find a Turnip Seed on the Overgrown Path and bring it to Fiona.",
-                "reward": "pitchfork",
+			"effraye_berry": {
+				"description": "Effraye Maelis la Chauve souris pour qu'il arrete de manger tout le maïs sucre",
+				"reward": "graines",
+				"status": "available",
+				"target_npc": "maelis"
+			},
+            "trouve_graines": {
+                "description": "Trouve des graines et rapporte les à Maya pour qu'elle puisse butiner de nouveaux le plus rapidemment possible",
+                "reward": "TODO",
                 "status": "available",
-                "target_item": "turnip_seed"
-            },
-            "scare_the_crow": {
-                "description": "Defeat the Angry Crow at the Abandoned Farm to secure the fields.",
-                "reward": "gold_acorn",
-                "status": "available",
-                "target_npc": "angry_crow"
+                "target_item": "graines"
             },
             "golden_egg_hunt": {
                 "description": "Find the Golden Egg in the Chicken Coop and bring it back to Shepherd Hana.",

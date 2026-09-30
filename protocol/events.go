@@ -28,6 +28,7 @@ const (
 	TypeGroupPromoteDeclined = "GROUP PROMOTE DECLINED"
 	TypeStats                = "STATS"
 	TypePlayerPosition       = "PLAYER_POSITION"
+	TypePlayerEmote          = "PLAYER_EMOTE"
 	TypeItemPosition         = "ITEM_POSITION"
 )
 

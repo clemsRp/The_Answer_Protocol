@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	pr "tap/protocol"
+	"time"
 )
 
 func (e *Engine) handleCmdConnect(id string, req []string) (string, any, error) {
@@ -43,6 +44,7 @@ func (e *Engine) playerQuits(player *Player) {
 	e.inform_all(player, fmt.Sprintf("EVT STATS players=%d", len(e.players)))
 	e.leave_group(player)
 	delete(e.posPlayerNotifs, player)
+	delete(e.playerEmoteNotifs, player.name)
 }
 
 func (e *Engine) handleCmdQuit(player *Player, req []string) (string, any, error) {
@@ -794,8 +796,6 @@ func (e *Engine) handleCmdNotifyItemPosition(player *Player, req []string) (stri
 		return "", nil, errors.New("invalid coordinate format")
 	}
 
-	fmt.Printf("\n\n\n\n\n%s\n\n\n\n\n", req[3])
-
 	broadcastData := pr.NotifyItemPositionData{
 		Name: req[3],
 		X:    float32(x),
@@ -813,6 +813,43 @@ func (e *Engine) handleCmdNotifyItemPosition(player *Player, req []string) (stri
 	e.posItemNotifs[req[3]] = broadcastData
 
 	return "OK", nil, nil
+}
+
+func (e *Engine) handleCmdNotifyPlayerEmote(player *Player, req []string) (string, any, error) {
+	if len(req) != 2 {
+		return "", nil, errors.New(pr.ErrInvalidCommand)
+	}
+	emote, err := strconv.Atoi(req[1])
+	if err != nil || emote < 0 || emote >= 6 {
+		return "", nil, errors.New("invalid emote type")
+	}
+
+	broadcastData := pr.NotifyPlayerEmotesData{Pseudo: player.name, Emote: emote}
+	eventMsg, err := convertObjectToJson("EVT PLAYER_EMOTE", broadcastData)
+	if err != nil {
+		return "", nil, errors.New(pr.ErrInternalServer)
+	}
+	e.inform_all(player, eventMsg)
+	e.playerEmoteNotifs[player.name] = playerEmote{data: broadcastData, at: time.Now()}
+
+	return "OK", nil, nil
+}
+
+func (e *Engine) handleCmdGetPlayerEmotes(player *Player, req []string) (string, any, error) {
+	if len(req) > 1 {
+		return "", nil, errors.New(pr.ErrInvalidCommand)
+	}
+	res := make([]pr.NotifyPlayerEmotesData, 0)
+	for name, n := range e.playerEmoteNotifs {
+		if time.Since(n.at) >= 5*time.Second {
+			delete(e.playerEmoteNotifs, name)
+			continue
+		}
+		if p, ok := e.players[name]; ok && p.name != player.name && time.Since(n.at) <= 5*time.Second {
+			res = append(res, n.data)
+		}
+	}
+	return "OK", res, nil
 }
 
 func (e *Engine) handleCmdGetPlayerPositions(player *Player, req []string) (string, any, error) {

@@ -3,6 +3,7 @@ package variables
 import (
 	"tap/client/state"
 	"tap/protocol"
+	"time"
 )
 
 type PanelVariables struct {
@@ -19,6 +20,7 @@ type PanelVariables struct {
 	Group   *GroupPanel
 	Inspect *InspectPanel
 	Talk    *TalkPanel
+	Emotes  *EmotesPanel
 }
 
 var (
@@ -69,6 +71,11 @@ func GetPanelsVariables() *PanelVariables {
 			LastTalk: "",
 			Finished: false,
 			Results:  &results,
+		},
+		Emotes: &EmotesPanel{
+			Open:           false,
+			LastEmoteIndex: -1,
+			LastEmoteTime:  time.Now(),
 		},
 	}
 }

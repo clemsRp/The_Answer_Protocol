@@ -38,6 +38,7 @@ type UIApp interface {
 	GetPseudo() string
 	SetPseudo(pseudo string)
 	UpdateRemotePlayerPosition(pseudo string, X float32, Y float32, DirX float32, DirY float32, emoteIndex int)
+	UpdateRemotePlayerEmotes(pseudo string, emote int)
 	UpdateItemPosition(pseudo string, X float32, Y float32)
 	AddRemotePlayer(pseudo string)
 	RemoveRemotePlayer(pseudo string)

@@ -327,6 +327,24 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 			c.ui.UpdateRemotePlayerPosition(posData.Name, posData.X, posData.Y, posData.DirX, posData.DirY, int(posData.EmoteIndex))
 		})
 
+	case strings.HasPrefix(trimmed, pr.TypePlayerEmote):
+		donneesJSON, err := json.Marshal(res.Datas)
+		if err != nil {
+			fmt.Println("Marshal Error:", err)
+			return
+		}
+
+		var posData pr.NotifyPlayerEmotesData
+		err = json.Unmarshal(donneesJSON, &posData)
+		if err != nil {
+			fmt.Println("Unmarshal Error:", err)
+			return
+		}
+
+		c.ui.QueueUpdate(func() {
+			c.ui.UpdateRemotePlayerEmotes(posData.Pseudo, posData.Emote)
+		})
+
 	case strings.HasPrefix(trimmed, pr.TypeItemPosition):
 		donneesJSON, err := json.Marshal(res.Datas)
 		if err != nil {

@@ -3,6 +3,8 @@ package ui
 import (
 	vars "tap/client/gui/src/variables"
 
+	"math"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -53,9 +55,11 @@ func (m *Manager) UpdateInteractions(view string) {
 
 	for _, item := range items {
 		// Check emote hover
-		item.hovered = rl.CheckCollisionPointRec(mouse, item.Rect())
+		hover := rl.CheckCollisionPointRec(mouse, item.Rect())
+		near := m.IsPlayerNear(item.Emote.X, item.Emote.Y)
+		item.hovered = hover && near
 
-		if item.hovered && down {
+		if hover && down {
 			item.Inspect(item.ID)
 		}
 
@@ -63,7 +67,7 @@ func (m *Manager) UpdateInteractions(view string) {
 
 		// Check buttons interactions
 		for _, b := range item.Buttons {
-			b.hovered = rl.CheckCollisionPointRec(mouse, b.Rect())
+			b.hovered = rl.CheckCollisionPointRec(mouse, b.Rect()) && near
 			b.pressed = b.hovered && down
 
 			if b.hovered {
@@ -85,4 +89,13 @@ func (m *Manager) UpdateInteractions(view string) {
 			}
 		}
 	}
+}
+
+func (m *Manager) IsPlayerNear(itemX, itemY float32) bool {
+	side_x := math.Pow(float64(itemX-m.PlayerPos.X), 2)
+	side_y := math.Pow(float64(itemY-m.PlayerPos.Y), 2)
+
+	dist := math.Sqrt(side_x + side_y)
+
+	return dist <= float64(2*m.Tile)
 }
