@@ -8,20 +8,19 @@ import (
 )
 
 const (
-	RoomEntrance      = "entrance"
-	RoomVillageSquare = "village_square"
-	RoomAbandonedFarm = "abandoned_farm"
-	RoomMerchantTent  = "merchant_tent"
-	RoomOldBarn       = "old_barn"
-	RoomChickenCoop   = "chicken_coop"
-	RoomNorthBridge   = "north_bridge"
-	RoomWindMill      = "windmill"
-	RoomForestEdge    = "forest_edge"
-	RoomRiverside     = "riverside"
-	RoomFishingDock   = "fishing_dock"
-	RoomOrchard       = "orchard"
-)
-const (
+	RoomFermeCharbonneau = "ferme_charbonneau"
+	RoomFermeUzoloise    = "ferme_uzoloise"
+	RoomFontaneilles     = "fontaneilles"
+	RoomVergerDeLaSavane = "verger_de_la_savane"
+	RoomFromagerie       = "fromagerie"
+	RoomPlaceDuVillage   = "place_du_village"
+	RoomForetMalicieuse  = "foret_malicieuse"
+	RoomCamping          = "camping"
+	RoomCascade          = "cascade"
+	RoomBarrage          = "barrage"
+	RoomLacDuBarrage     = "lac_du_barrage"
+	RoomMine             = "mine"
+
 	South = "south"
 	North = "north"
 	East  = "east"
@@ -30,10 +29,18 @@ const (
 
 var (
 	valid_maps = []string{
-		RoomEntrance,
-		RoomVillageSquare,
-		RoomAbandonedFarm,
-		RoomMerchantTent,
+		RoomFermeCharbonneau,
+		RoomFermeUzoloise,
+		RoomFontaneilles,
+		RoomVergerDeLaSavane,
+		RoomFromagerie,
+		RoomPlaceDuVillage,
+		RoomForetMalicieuse,
+		RoomCamping,
+		RoomCascade,
+		RoomBarrage,
+		RoomLacDuBarrage,
+		RoomMine,
 	}
 
 	exits = []string{

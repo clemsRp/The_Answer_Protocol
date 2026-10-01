@@ -1,10 +1,95 @@
 {
-    "activeFile": "Chest.tsx",
+    "activeFile": "test.tmx",
     "expandedProjectPaths": [
         "."
     ],
     "file.lastUsedOpenFilter": "All Files (*)",
     "fileStates": {
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/Basic_Furniture.tsx": {
+            "scaleInDock": 1
+        },
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/Basic_Grass_Biom_things.tsx": {
+            "scaleInDock": 1
+        },
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/Grass.tsx": {
+            "scaleInDock": 1
+        },
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/Paths.tsx": {
+            "scaleInDock": 1
+        },
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/Water.tsx": {
+            "scaleInDock": 1
+        },
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/Wood Bridge.tsx": {
+            "scaleInDock": 1
+        },
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/barrage.tmx": {
+            "scale": 1.4167,
+            "selectedLayer": 9,
+            "viewCenter": {
+                "x": 317.2866520787746,
+                "y": 118.93837792051954
+            }
+        },
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/camping.tmx": {
+            "scale": 1.7033203124999998,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 248.0449489737416,
+                "y": 144.13026029125103
+            }
+        },
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/collisions.tsx": {
+            "scaleInDock": 1
+        },
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/ferme_charbonneau.tmx": {
+            "scale": 1.7376,
+            "selectedLayer": 6,
+            "viewCenter": {
+                "x": 263.29419889502765,
+                "y": 105.02992633517498
+            }
+        },
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/ferme_uzoloise.tmx": {
+            "scale": 1.9166992187499998,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 255.38696693330618,
+                "y": 144.25841952412492
+            }
+        },
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/foret_malicieuse.tmx": {
+            "scale": 1.7033203124999998,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 255.9706455681688,
+                "y": 144.13026029125103
+            }
+        },
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/place_du_village.json": {
+            "scale": 1.91,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 255.23560209424087,
+                "y": 144.24083769633506
+            }
+        },
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/place_du_village.tmx": {
+            "scale": 1.7701171875,
+            "selectedLayer": 5,
+            "viewCenter": {
+                "x": 255.91525984773256,
+                "y": 143.775791680459
+            }
+        },
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/verger_de_la_savane.tmx": {
+            "scale": 1.7033203124999998,
+            "selectedLayer": 4,
+            "viewCenter": {
+                "x": 255.09001261323243,
+                "y": 144.13026029125103
+            }
+        },
         "Basic Charakter Actions.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 3
@@ -59,7 +144,7 @@
         },
         "Doors.tsx": {
             "dynamicWrapping": false,
-            "scaleInDock": 1,
+            "scaleInDock": 3.7844,
             "scaleInEditor": 1
         },
         "Egg item.tsx": {
@@ -111,7 +196,7 @@
             "scaleInEditor": 4
         },
         "Paths.tsx": {
-            "scaleInDock": 1,
+            "scaleInDock": 3.2042,
             "scaleInEditor": 1
         },
         "Premade dialog box  big.tsx": {
@@ -190,6 +275,14 @@
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
+        "camping.tmx": {
+            "scale": 1.7033203124999998,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 255.9706455681688,
+                "y": 144.13026029125103
+            }
+        },
         "collisions.tsx": {
             "dynamicWrapping": false,
             "scaleInDock": 4,
@@ -236,6 +329,14 @@
                 "y": 143.73467916366258
             }
         },
+        "place_du_village.tmx": {
+            "scale": 1.7701171875,
+            "selectedLayer": 3,
+            "viewCenter": {
+                "x": 255.91525984773253,
+                "y": 143.775791680459
+            }
+        },
         "rules.tmx": {
             "scale": 1.8366666666666667,
             "selectedLayer": 1,
@@ -243,6 +344,10 @@
                 "x": 240.10889292196003,
                 "y": 160.0725952813067
             }
+        },
+        "small_huts.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         },
         "teemo 8 directions.tsx": {
             "scaleInDock": 1,
@@ -252,16 +357,16 @@
             "scale": 2,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 256,
+                "x": 212.5,
                 "y": 143.75
             }
         },
         "test.tmx": {
-            "scale": 2,
-            "selectedLayer": 4,
+            "scale": 1.8211,
+            "selectedLayer": 2,
             "viewCenter": {
-                "x": 265,
-                "y": 179
+                "x": 264.12607764537916,
+                "y": 167.7557520180111
             }
         },
         "test.tsx": {
@@ -287,8 +392,8 @@
         }
     },
     "frame.defaultDuration": 200,
-    "last.exportedFilePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps",
-    "last.imagePath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/assets/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Icons/special icons",
+    "last.exportedFilePath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps",
+    "last.imagePath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/assets/Sprout Sorry pack/Early Access/Village pack/houses/small house",
     "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
@@ -317,18 +422,18 @@
     "project": "sprout-lands.tiled-project",
     "property.type": "bool",
     "recentFiles": [
-        "Water.tsx",
-        "test.tmx",
-        "Basic Charakter Actions.tsx",
-        "Basic Charakter Spritesheet.tsx",
-        "Egg_And_Nest.tsx",
-        "Free Chicken Sprites.tsx",
-        "rules.tmx",
-        "Free Cow Sprites.tsx",
-        "Free_Chicken_House.tsx",
-        "Sprite sheet for Basic Pack.tsx",
-        "dialog box medium.tsx",
-        "dialog box big.tsx"
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/foret_malicieuse.tmx",
+        "Doors.tsx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/verger_de_la_savane.tmx",
+        "small_huts.tsx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/camping.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/place_du_village.tmx",
+        "inventory_example_with_slots_2.tsx",
+        "Inventory_Light_Herat_Spritesheet.tsx",
+        "Chest.tsx",
+        "dialog box small.tsx",
+        "dialog box big.tsx",
+        "dialog box medium.tsx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

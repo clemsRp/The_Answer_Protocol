@@ -66,6 +66,7 @@ check:
 	@$(MAKE) re
 	@$(MAKE) lint
 	@$(MAKE) test
+	@$(MAKE) clean
 	@echo "All checks passed successfully."
 
 debug_project:

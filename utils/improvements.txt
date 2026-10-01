@@ -3,6 +3,9 @@ MANDATORY:
 	- Define items and npcs places/emotes
 	- Make a GREAT REVIEW of everything with and without AI
 	- Clean assets/tilesets
+	- Modify test using correct npcs/items/rooms/quests
 
 OPTIONAL:
-	- Add emotes next to players
+	- Add pseudo color choice
+	- Add automatic barriere
+	- Colisions update

@@ -99,7 +99,7 @@ func (e *Engine) createNewPlayerInstance(pseudo string, id string) (*Player, err
 
 	return &Player{
 		name:           pseudo,
-		room:           e.world.Rooms[RoomEntrance],
+		room:           e.world.Rooms[RoomPlaceDuVillage],
 		equippedWeapon: weapon_start,
 		stats: &CombatStats{
 			Hp:         100,

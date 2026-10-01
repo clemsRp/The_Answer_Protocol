@@ -342,7 +342,7 @@ func (cs *CombatSession) addNpcToCombat(npc *Npc) {
 
 func (e *Engine) end_combat(cs *CombatSession) {
 	if cs.State == StateDefeat {
-		msg := fmt.Sprintf("EVT COMBAT DEFEAT new_room=%s", RoomEntrance)
+		msg := fmt.Sprintf("EVT COMBAT DEFEAT new_room=%s", RoomPlaceDuVillage)
 		for _, p := range cs.Players {
 			e.inform_user(p, msg)
 		}
@@ -358,7 +358,7 @@ func (e *Engine) end_combat(cs *CombatSession) {
 		if cs.State == StateDefeat || player.stats.Hp <= 0 {
 			player.stats.Hp = player.stats.HpMax / 2
 			oldRoom := player.room
-			newRoom := e.world.Rooms[RoomEntrance]
+			newRoom := e.world.Rooms[RoomPlaceDuVillage]
 			if newRoom != nil && oldRoom != newRoom {
 				if oldRoom != nil {
 					e.inform_room(player, oldRoom, "EVT ROOM PRESENCE LEAVE "+player.name)

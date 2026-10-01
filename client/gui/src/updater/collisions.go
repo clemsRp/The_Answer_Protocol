@@ -109,6 +109,9 @@ var (
 			{Start: Pos{X: 0, Y: 0}, End: Pos{X: 16, Y: 8}},
 			{Start: Pos{X: 8, Y: 8}, End: Pos{X: 16, Y: 16}},
 		},
+		28: {
+			{Start: Pos{X: 5, Y: 5}, End: Pos{X: 11, Y: 11}},
+		},
 	}
 )
 

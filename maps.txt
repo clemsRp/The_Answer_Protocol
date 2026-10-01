@@ -1,9 +1,10 @@
-												[Blossom Orchard]
-                                                        │
-                [Forest Edge] ───── [Riverside Path] ───┴── [Fishing Dock]
+
+
+                [fontaneilles] ───── [fromagerie] ───┴─────── [lac]
                       │                     │                     │
-[Chicken Coop] ── [Old Barn] ────── [Wooden Bridge] ─────── [Windmill Yard]
+[ferme_FAITuzoloise] ── [verFAITger] ──────────── [forFAITet] ─────────── [barrFAITage]
                       │                     │                     │
-              [Abandoned Farm] ─── [Overgrown Path] ─────── [Village Square]
+              [ferme_chFAITarbonneau] ─── [place_dFAITu_village] ──── [cascade]
                                     (Entrance)                    │
-                                                          [Merchant's Tent]
+                                            |                   [campFAITing]
+                                      ??? [mine] ???

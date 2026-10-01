@@ -9,117 +9,94 @@ type AnimKey struct {
 	textureName string
 }
 
-type localIDS struct {
+type LocalIDS struct {
 	Step int
 	Id   int
 }
 
-var (
-	water1 = localIDS{Step: 300, Id: 0}
-	water2 = localIDS{Step: 300, Id: 1}
-	water3 = localIDS{Step: 300, Id: 2}
-	water4 = localIDS{Step: 300, Id: 3}
-
-	animation_convertor = map[AnimKey][]localIDS{
-		// Chickens
-		{0, "Free Chicken Sprites"}: []localIDS{
-			{Step: 2000, Id: 0},
-			{Step: 100, Id: 1},
-		},
-		{1, "Free Chicken Sprites"}: []localIDS{
-			{Step: 1000, Id: 0},
-			{Step: 100, Id: 1},
-			{Step: 1000, Id: 0},
-		},
-
-		// Cows
-		{0, "Free Cow Sprites"}: []localIDS{
-			{Step: 1500, Id: 0},
-			{Step: 100, Id: 2},
-			{Step: 1500, Id: 4},
-		},
-		{1, "Free Cow Sprites"}: []localIDS{
-			{Step: 1500, Id: 1},
-			{Step: 100, Id: 3},
-			{Step: 1500, Id: 5},
-		},
-		{6, "Free Cow Sprites"}: []localIDS{
-			{Step: 1500, Id: 6},
-			{Step: 100, Id: 8},
-			{Step: 1500, Id: 10},
-		},
-		{7, "Free Cow Sprites"}: []localIDS{
-			{Step: 1500, Id: 7},
-			{Step: 100, Id: 9},
-			{Step: 1500, Id: 11},
-		},
-
-		// Flowers
-		{24, "Basic Grass Biom things 1"}: []localIDS{
-			{Step: 750, Id: 24},
-			{Step: 750, Id: 25},
-		},
-		{25, "Basic Grass Biom things 1"}: []localIDS{
-			{Step: 750, Id: 25},
-			{Step: 750, Id: 24},
-		},
-		{33, "Basic Grass Biom things 1"}: []localIDS{
-			{Step: 750, Id: 33},
-			{Step: 750, Id: 34},
-		},
-		{34, "Basic Grass Biom things 1"}: []localIDS{
-			{Step: 750, Id: 34},
-			{Step: 750, Id: 33},
-		},
-
-		// Water
-		{0, "Water"}: []localIDS{
-			water1,
-			water2,
-			water3,
-			water4,
-		},
-		{1, "Water"}: []localIDS{
-			water2,
-			water3,
-			water4,
-			water1,
-		},
-		{2, "Water"}: []localIDS{
-			water3,
-			water4,
-			water1,
-			water2,
-		},
-		{3, "Water"}: []localIDS{
-			water4,
-			water1,
-			water2,
-			water3,
-		},
+func makeSequence(step, count int) []LocalIDS {
+	seq := make([]LocalIDS, count)
+	for i := 0; i < count; i++ {
+		seq[i] = LocalIDS{Step: step, Id: i}
 	}
-)
+	return seq
+}
+
+func makeRotatedSequence(step, count, offset int) []LocalIDS {
+	seq := make([]LocalIDS, count)
+	for i := 0; i < count; i++ {
+		seq[i] = LocalIDS{Step: step, Id: (i + offset) % count}
+	}
+	return seq
+}
+
+var animationConvertor = map[AnimKey][]LocalIDS{
+	// Chickens
+	{localID: 0, textureName: "Free Chicken Sprites"}: {
+		{Step: 2000, Id: 0},
+		{Step: 100, Id: 1},
+	},
+	{localID: 1, textureName: "Free Chicken Sprites"}: {
+		{Step: 1000, Id: 0},
+		{Step: 100, Id: 1},
+		{Step: 1000, Id: 0},
+	},
+
+	// Cows
+	{localID: 0, textureName: "Free Cow Sprites"}: {{Step: 1500, Id: 0}, {Step: 100, Id: 2}, {Step: 1500, Id: 4}},
+	{localID: 1, textureName: "Free Cow Sprites"}: {{Step: 1500, Id: 1}, {Step: 100, Id: 3}, {Step: 1500, Id: 5}},
+	{localID: 6, textureName: "Free Cow Sprites"}: {{Step: 1500, Id: 6}, {Step: 100, Id: 8}, {Step: 1500, Id: 10}},
+	{localID: 7, textureName: "Free Cow Sprites"}: {{Step: 1500, Id: 7}, {Step: 100, Id: 9}, {Step: 1500, Id: 11}},
+
+	// Flowers
+	{localID: 24, textureName: "Basic_Grass_Biom_things"}: {{Step: 750, Id: 24}, {Step: 750, Id: 25}},
+	{localID: 25, textureName: "Basic_Grass_Biom_things"}: {{Step: 750, Id: 25}, {Step: 750, Id: 24}},
+	{localID: 33, textureName: "Basic_Grass_Biom_things"}: {{Step: 750, Id: 33}, {Step: 750, Id: 34}},
+	{localID: 34, textureName: "Basic_Grass_Biom_things"}: {{Step: 750, Id: 34}, {Step: 750, Id: 33}},
+
+	// Water
+	{localID: 0, textureName: "Water"}: makeRotatedSequence(300, 4, 0),
+	{localID: 1, textureName: "Water"}: makeRotatedSequence(300, 4, 1),
+	{localID: 2, textureName: "Water"}: makeRotatedSequence(300, 4, 2),
+	{localID: 3, textureName: "Water"}: makeRotatedSequence(300, 4, 3),
+
+	// Fishes
+	{localID: 0, textureName: "big fish 2 swimming in cirkels"}: makeRotatedSequence(200, 15, 0), // Démarre à l'index 0
+	{localID: 4, textureName: "big fish 2 swimming in cirkels"}: makeRotatedSequence(200, 15, 4), // Démarre à l'index 4
+	{localID: 8, textureName: "big fish 2 swimming in cirkels"}: makeRotatedSequence(200, 15, 8), // Démarre à l'index 8
+}
 
 func (dr *Drawer) GetLocalID(localID int, textureName string) int {
+	if textureName == "WaterDark" {
+		textureName = "Water"
+
+	} else if textureName == "Basic Grass Biom things 1" {
+		textureName = "Basic_Grass_Biom_things"
+	}
+
 	animKey := AnimKey{localID: localID, textureName: textureName}
-	local_IDS, ok := animation_convertor[animKey]
+	frames, ok := animationConvertor[animKey]
 	if !ok {
 		return localID
 	}
 
-	animDuration := 0
-	for _, new_local_id := range local_IDS {
-		animDuration += new_local_id.Step
+	var animDuration int64
+	for _, frame := range frames {
+		animDuration += int64(frame.Step)
+	}
+
+	if animDuration == 0 {
+		return localID
 	}
 
 	elapsedMillis := time.Since(dr.app.Variables.StartTime).Milliseconds()
-	cur_time := elapsedMillis % int64(animDuration)
+	curTime := elapsedMillis % animDuration
 
-	total_anim_time := 0
-	for _, new_local_id := range local_IDS {
-		total_anim_time += int(new_local_id.Step)
-		if int64(total_anim_time) >= cur_time {
-			return new_local_id.Id
+	var totalAnimTime int64
+	for _, frame := range frames {
+		totalAnimTime += int64(frame.Step)
+		if totalAnimTime >= curTime {
+			return frame.Id
 		}
 	}
 

@@ -37,7 +37,7 @@ type Variables struct {
 func GetVariables() *Variables {
 	return &Variables{
 		Player:          GetPlayerVariables(),
-		Current_room:    "entrance",
+		Current_room:    "place_du_village",
 		Current_view:    "Connect",
 		PanelsVariables: GetPanelsVariables(),
 		Npcs:            make(map[string]*NpcDatas),
