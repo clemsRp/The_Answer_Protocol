@@ -1,9 +1,0 @@
-
-
-                [fromagerie] ───── [fontaneilles] ───┴─────── [lac]
-                      │                     │                     │
-[ferme_uzoloise] ── [verger] ──────────── [foret] ─────────── [barrage]
-                      │                     │                     │
-              [ferme_charbonneau] ─── [place_du_village] ──── [riviere]
-                                             |                    |
-                                          [jardin]            [camping]

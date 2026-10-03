@@ -91,6 +91,12 @@ var animationConvertor = map[AnimKey][]LocalIDS{
 	{localID: 27, textureName: "Boats"}: {{Step: 500, Id: 27}, {Step: 500, Id: 30}},
 	{localID: 28, textureName: "Boats"}: {{Step: 500, Id: 28}, {Step: 500, Id: 31}},
 	{localID: 29, textureName: "Boats"}: {{Step: 500, Id: 29}, {Step: 500, Id: 32}},
+
+	// Mails Boxs
+	{localID: 11, textureName: "Mailbox Animation Frames"}: {{Step: 500, Id: 11}, {Step: 500, Id: 44}},
+	{localID: 12, textureName: "Mailbox Animation Frames"}: {{Step: 500, Id: 12}, {Step: 500, Id: 45}},
+	{localID: 22, textureName: "Mailbox Animation Frames"}: {{Step: 500, Id: 22}, {Step: 500, Id: 55}},
+	{localID: 23, textureName: "Mailbox Animation Frames"}: {{Step: 500, Id: 23}, {Step: 500, Id: 56}},
 }
 
 func (dr *Drawer) GetLocalID(localID int, textureName string) int {

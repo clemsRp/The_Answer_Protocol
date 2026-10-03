@@ -617,10 +617,10 @@
             "scaleInEditor": 3.235
         }
     },
-    "frame.defaultDuration": 200,
+    "frame.defaultDuration": 500,
     "last.exportedFilePath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps",
     "last.externalTilesetPath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/tilesets",
-    "last.imagePath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/assets",
+    "last.imagePath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/assets/Sprout Lands - Sprites - premium pack/Tilesets/Building parts",
     "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
@@ -634,8 +634,8 @@
     "project": "sprout-lands.tiled-project",
     "property.type": "bool",
     "recentFiles": [
-        "street_workout.tsx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/street_workout_8x8_tiles_crisp.tsx",
+        "street_workout.tsx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/street_workout_8x8_tiles_33_percent_smaller.tsx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/street_workout_8x8_tiles.tsx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/street_workout.tsx",
