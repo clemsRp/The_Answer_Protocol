@@ -9,6 +9,7 @@
 - Clean `assets/` and tilesets
 - Make a **great review** of everything, with and without AI
 - Check Makefile relink
+- Adapte connections for multiple pcs
 
 ## OPTIONAL
 
