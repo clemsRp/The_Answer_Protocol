@@ -24,8 +24,9 @@
                 "name": "Capitale du roquefort",
                 "description": "Une ville qui sent étonnement fort le fromage",
                 "exits": {
-                    "south": "verger_de_la_savane",
-                    "east": "fromagerie"
+                    "west": "fromagerie",
+                    "south": "foret_malicieuse",
+                    "east": "lac_du_barrage"
                 },
                 "items": [],
                 "npcs": ["gabinap"]
@@ -35,7 +36,7 @@
                 "description": "Une verger où on trouve les meilleurs fruits du Canada",
                 "exits": {
                     "west": "ferme_uzoloise",
-                    "north": "fontaneilles",
+                    "north": "fromagerie",
                     "east": "foret_malicieuse",
                     "south": "ferme_charbonneau"
                 },
@@ -46,9 +47,8 @@
                 "name": "La fromagerie de St Julien",
                 "description": "La fromagerie où l'on fait la meilleure cancoillotte",
                 "exits": {
-                    "west": "fontaneilles",
-                    "south": "foret_malicieuse",
-                    "east": "lac_du_barrage"
+                    "south": "verger_de_la_savane",
+                    "east": "fontaneilles"
                 },
                 "items": ["cancoillotte"],
                 "npcs": []
@@ -59,8 +59,8 @@
                 "exits": {
                     "west": "ferme_charbonneau",
                     "north": "foret_malicieuse",
-                    "east": "cascade",
-                    "south": "mine"
+                    "east": "riviere",
+                    "south": "jardin"
                 },
                 "items": ["golden_egg"],
                 "npcs": []
@@ -69,7 +69,7 @@
                 "name": "Le lac de St Etienne de Cantales",
                 "description": "Un lac artificiel où l'on peut se ressourcer",
                 "exits": {
-                    "west": "fromagerie",
+                    "west": "fontaneilles",
                     "south": "barrage"
                 },
                 "items": [],
@@ -81,7 +81,7 @@
                 "exits": {
                     "west": "foret_malicieuse",
                     "north": "lac_du_barrage",
-                    "south": "cascade"
+                    "south": "riviere"
                 },
                 "items": [],
                 "npcs": []
@@ -91,7 +91,7 @@
                 "description": "Une foret un peu particuliaire, qui abrite des créatures étranges",
                 "exits": {
                     "west": "verger_de_la_savane",
-                    "north": "fromagerie",
+                    "north": "fontaneilles",
                     "east": "barrage",
                     "south": "place_du_village"
                 },
@@ -102,14 +102,14 @@
                 "name": "Le camping des 3 chenes",
                 "description": "Un paisible camping sans histoires où se repose les gens du troisieme age",
                 "exits": {
-                    "north": "cascade"
+                    "north": "riviere"
                 },
                 "items": [],
                 "npcs": []
             },
-            "cascade": {
-                "name": "La cascade",
-                "description": "Une cascade",
+            "riviere": {
+                "name": "La riviere",
+                "description": "Une riviere",
                 "exits": {
                     "west": "place_du_village",
                     "north": "barrage",
@@ -118,13 +118,13 @@
                 "items": [],
                 "npcs": ["salomon"]
             },
-            "mine": {
-                "name": "La mine",
-                "description": "Une mine qui regorge de pierres precieuses",
+            "jardin": {
+                "name": "La jardin",
+                "description": "Une jardin communautaire dont les habitants prennent grand soin",
                 "exits": {
                     "north": "place_du_village"
                 },
-                "items": ["pioche"],
+                "items": [],
                 "npcs": []
             }
         },

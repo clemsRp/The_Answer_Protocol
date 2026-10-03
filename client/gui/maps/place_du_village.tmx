@@ -7,8 +7,8 @@
  <tileset firstgid="142" source="../tilesets/Paths.tsx"/>
  <tileset firstgid="158" source="../tilesets/Basic_Furniture.tsx"/>
  <tileset firstgid="212" source="../tilesets/collisions.tsx"/>
- <tileset firstgid="244" source="Piknik blanket.tsx"/>
- <tileset firstgid="253" source="Piknik basket.tsx"/>
+ <tileset firstgid="244" source="../tilesets/Piknik blanket.tsx"/>
+ <tileset firstgid="253" source="../tilesets/Piknik basket.tsx"/>
  <layer id="1" name="Water" width="32" height="18">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

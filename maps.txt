@@ -1,10 +1,9 @@
 
 
-                [fontaneilles] ───── [fromagerie] ───┴─────── [lac]
+                [fromagerie] ───── [fontaneilles] ───┴─────── [lac]
                       │                     │                     │
-[ferme_FAITuzoloise] ── [verFAITger] ──────────── [forFAITet] ─────────── [barrFAITage]
+[ferme_uzoloise] ── [verger] ──────────── [foret] ─────────── [barrage]
                       │                     │                     │
-              [ferme_chFAITarbonneau] ─── [place_dFAITu_village] ──── [cascade]
-                                    (Entrance)                    │
-                                            |                   [campFAITing]
-                                      ??? [mine] ???
+              [ferme_charbonneau] ─── [place_du_village] ──── [riviere]
+                                             |                    |
+                                          [jardin]            [camping]

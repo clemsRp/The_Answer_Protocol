@@ -7,10 +7,10 @@
  <tileset firstgid="5" source="../tilesets/Wood Bridge.tsx"/>
  <tileset firstgid="20" source="../tilesets/Grass.tsx"/>
  <tileset firstgid="97" source="../tilesets/Basic_Grass_Biom_things.tsx"/>
- <tileset firstgid="142" source="ground_dirt_orange_dark.tsx"/>
+ <tileset firstgid="142" source="../tilesets/ground_dirt_orange_dark.tsx"/>
  <tileset firstgid="263" source="../tilesets/Fences.tsx"/>
  <tileset firstgid="279" source="../tilesets/Farming Plants v2 watered.tsx"/>
- <tileset firstgid="510" source="grey_brick_houses_with_doors_grass.tsx"/>
+ <tileset firstgid="510" source="../tilesets/grey_brick_houses_with_doors_grass.tsx"/>
  <tileset firstgid="600" source="../tilesets/Paths.tsx"/>
  <tileset firstgid="616" source="../tilesets/collisions.tsx"/>
  <layer id="1" name="Water" width="32" height="18">

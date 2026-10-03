@@ -24,8 +24,8 @@ func (app *App) initBaseVariables(screenWidth int) {
 func (app *App) initPlayerVariables() {
 	app.Variables.Player.Speed = int(0.12 * app.Variables.Tileset_size)
 	app.Variables.Player.LastTimeTyped = time.Now()
-	app.Variables.StartingPosX = float32(15.5 * app.Variables.Tileset_size)
-	app.Variables.StartingPosY = float32(8.5 * app.Variables.Tileset_size)
+	app.Variables.StartingPosX = float32(15 * app.Variables.Tileset_size)
+	app.Variables.StartingPosY = float32(9 * app.Variables.Tileset_size)
 	app.Variables.Player.Position = &vars.Position{
 		X: app.Variables.StartingPosX,
 		Y: app.Variables.StartingPosY,

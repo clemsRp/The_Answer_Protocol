@@ -230,7 +230,7 @@
         }, 
         {
          "firstgid":142,
-         "source":"ground_dirt_orange_dark.tsx"
+         "source":"..\/tilesets\/ground_dirt_orange_dark.tsx"
         }, 
         {
          "firstgid":263,
@@ -242,7 +242,7 @@
         }, 
         {
          "firstgid":510,
-         "source":"grey_brick_houses_with_doors_grass.tsx"
+         "source":"..\/tilesets\/grey_brick_houses_with_doors_grass.tsx"
         }, 
         {
          "firstgid":600,

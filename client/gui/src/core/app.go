@@ -61,22 +61,15 @@ func NewApp(actionsChan chan panel.Action) *App {
 	// Parse maps
 	var err error
 	maps_folder_path := "./client/gui/maps/"
-	app.Rooms, err = parser.ParseRooms(
-		[]string{
-			maps_folder_path + engine.RoomFermeCharbonneau,
-			maps_folder_path + engine.RoomFermeUzoloise,
-			// maps_folder_path + engine.RoomFontaneilles,
-			maps_folder_path + engine.RoomVergerDeLaSavane,
-			// maps_folder_path + engine.RoomFromagerie,
-			maps_folder_path + engine.RoomPlaceDuVillage,
-			maps_folder_path + engine.RoomForetMalicieuse,
-			maps_folder_path + engine.RoomCamping,
-			// maps_folder_path + engine.RoomCascade,
-			maps_folder_path + engine.RoomBarrage,
-			// maps_folder_path + engine.RoomLacDuBarrage,
-			// maps_folder_path + engine.RoomMine,
-		},
-	)
+
+	// TODO
+	// Get all maps
+	maps_paths := make([]string, 0)
+	for _, room := range engine.ValidMaps {
+		maps_paths = append(maps_paths, maps_folder_path+room)
+	}
+
+	app.Rooms, err = parser.ParseRooms(maps_paths)
 
 	// Handle error
 	if err != nil {

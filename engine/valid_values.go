@@ -16,10 +16,10 @@ const (
 	RoomPlaceDuVillage   = "place_du_village"
 	RoomForetMalicieuse  = "foret_malicieuse"
 	RoomCamping          = "camping"
-	RoomCascade          = "cascade"
+	RoomRiviere          = "riviere"
 	RoomBarrage          = "barrage"
 	RoomLacDuBarrage     = "lac_du_barrage"
-	RoomMine             = "mine"
+	RoomJardin           = "jardin"
 
 	South = "south"
 	North = "north"
@@ -28,7 +28,7 @@ const (
 )
 
 var (
-	valid_maps = []string{
+	ValidMaps = []string{
 		RoomFermeCharbonneau,
 		RoomFermeUzoloise,
 		RoomFontaneilles,
@@ -37,54 +37,54 @@ var (
 		RoomPlaceDuVillage,
 		RoomForetMalicieuse,
 		RoomCamping,
-		RoomCascade,
+		RoomRiviere,
 		RoomBarrage,
 		RoomLacDuBarrage,
-		RoomMine,
+		RoomJardin,
 	}
 
-	exits = []string{
+	Exits = []string{
 		North,
 		South,
 		East,
 		West,
 	}
 
-	directions = map[string]string{
+	Directions = map[string]string{
 		North: South,
 		South: North,
 		West:  East,
 		East:  West,
 	}
 
-	roles = []string{
+	Roles = []string{
 		"quest",
 		"dialogue",
 		"enemy",
 	}
 
-	npc_status = []string{
+	NpcStatus = []string{
 		"healthy",
 		"dead",
 	}
 
-	quest_status = []string{
+	QuestStatus = []string{
 		"available",
 		"progress",
 		"unavailable",
 	}
-	item_types = []string{
+	ItemTypes = []string{
 		"ressource",
 		"consumable",
 		"weapon",
 		"currency",
 	}
-	consumable_type_effects = []string{
+	ConsumableTypeEffects = []string{
 		"heal",
 		"buff",
 		"cure",
 	}
-	consumable_target_stats = []string{
+	ConsumableTargetStats = []string{
 		"hp",
 		"mana",
 		"max_hp",
@@ -106,14 +106,14 @@ func is_inside(elements []string, value string) bool {
 
 func registerCustomValidations(v *validator.Validate) error {
 	rules := map[string]validator.Func{
-		"valid_room_type":    inList(valid_maps),
-		"valid_exit":         inList(exits),
-		"valid_role":         inList(roles),
-		"valid_npc_status":   inList(npc_status),
-		"valid_quest_status": inList(quest_status),
-		"valid_item_type":    inList(item_types),
-		"valid_effect_type":  inList(consumable_type_effects),
-		"valid_target_stat":  inList(consumable_target_stats),
+		"valid_room_type":    inList(ValidMaps),
+		"valid_exit":         inList(Exits),
+		"valid_role":         inList(Roles),
+		"valid_npc_status":   inList(NpcStatus),
+		"valid_quest_status": inList(QuestStatus),
+		"valid_item_type":    inList(ItemTypes),
+		"valid_effect_type":  inList(ConsumableTypeEffects),
+		"valid_target_stat":  inList(ConsumableTargetStats),
 
 		"room_exists":  existsIn(func(m *Map) map[string]*Room { return m.Rooms }),
 		"item_exists":  existsIn(func(m *Map) map[string]*Item { return m.Items }),

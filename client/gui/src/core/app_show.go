@@ -12,8 +12,8 @@ func (app *App) ShowConnectPage() {
 
 func (app *App) ShowGamePage() {
 	app.Variables.Current_view = "Game"
-	app.Variables.Player.Position.X = float32(15.5 * app.Variables.Tileset_size)
-	app.Variables.Player.Position.Y = float32(8.5 * app.Variables.Tileset_size)
+	app.Variables.Player.Position.X = app.Variables.StartingPosX
+	app.Variables.Player.Position.Y = app.Variables.StartingPosY
 	newPosX := app.Variables.Player.Position.X
 	newPosY := app.Variables.Player.Position.Y
 	newDirX := app.Variables.Player.Direction.X

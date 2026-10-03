@@ -213,11 +213,11 @@
         }, 
         {
          "firstgid":244,
-         "source":"Piknik blanket.tsx"
+         "source":"..\/tilesets\/Piknik blanket.tsx"
         }, 
         {
          "firstgid":253,
-         "source":"Piknik basket.tsx"
+         "source":"..\/tilesets\/Piknik basket.tsx"
         }],
  "tilewidth":16,
  "type":"map",

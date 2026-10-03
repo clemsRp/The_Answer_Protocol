@@ -75,7 +75,7 @@ func Get_map(map_path string) (*Map, error) {
 func validateMapConsistency(m *Map) error {
 	for room_id, room := range m.Rooms {
 		for exit_dir, exit_room_id := range room.Exits {
-			opposite_dir, ok := directions[exit_dir]
+			opposite_dir, ok := Directions[exit_dir]
 			if !ok {
 				continue
 			}
