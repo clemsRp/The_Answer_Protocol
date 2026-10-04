@@ -6,12 +6,14 @@
 - Create all the maps **then** create `world.json`
 - Define item and NPC places/emotes
 - Modify tests to use the correct NPCs, items, rooms, and quests
-- Clean `assets/` and tilesets
 - Make a **great review** of everything, with and without AI
 - Adapte connections for multiple npcs, not a unique npc for the world
 
+- CLEAN
+
 ## OPTIONAL
 
+- See Quest description
 - Display the current room name/description
 - Add automatic barriers
 - Update collisions

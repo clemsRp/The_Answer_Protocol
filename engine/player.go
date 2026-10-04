@@ -84,7 +84,7 @@ func (p *Player) getInitiative() int {
 	return p.stats.Initiative
 }
 func (e *Engine) createNewPlayerInstance(pseudo string, id string) (*Player, error) {
-	base_item, exists := e.world.Items["rusty_hoe"]
+	base_item, exists := e.world.Items["branche_solide"]
 	if !exists {
 		return nil, errors.New(pr.ErrInternalServer)
 	}

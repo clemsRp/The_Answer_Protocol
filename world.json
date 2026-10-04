@@ -28,7 +28,7 @@
                     "south": "foret_malicieuse",
                     "east": "lac_du_barrage"
                 },
-                "items": [],
+                "items": ["flocons_d_avoine"],
                 "npcs": ["gabinap"]
             },
             "verger_de_la_savane": {
@@ -62,7 +62,7 @@
                     "east": "riviere",
                     "south": "jardin"
                 },
-                "items": ["golden_egg"],
+                "items": [],
                 "npcs": []
             },
             "lac_du_barrage": {
@@ -83,8 +83,8 @@
                     "north": "lac_du_barrage",
                     "south": "riviere"
                 },
-                "items": [],
-                "npcs": []
+                "items": ["engrenage"],
+                "npcs": ["roger"]
             },
             "foret_malicieuse": {
                 "name": "La foret malicieuse",
@@ -95,7 +95,7 @@
                     "east": "barrage",
                     "south": "place_du_village"
                 },
-                "items": [],
+                "items": ["branche_solide"],
                 "npcs": ["bob"]
             },
             "camping": {
@@ -115,11 +115,11 @@
                     "north": "barrage",
                     "south": "camping"
                 },
-                "items": [],
+                "items": ["canne_a_peche"],
                 "npcs": ["salomon"]
             },
             "jardin": {
-                "name": "La jardin",
+                "name": "Le jardin",
                 "description": "Une jardin communautaire dont les habitants prennent grand soin",
                 "exits": {
                     "north": "place_du_village"
@@ -165,45 +165,53 @@
                 "charges": 1,
                 "duration": 1
             },
-            "rusty_hoe": {
-                "name": "Rusty Hoe",
-                "description": "An old farming tool. Not great for tilling, but it can serve as a makeshift weapon.",
+            "flocons_d_avoine": {
+                "name": "Flocons d'avoine",
+                "description": "Pour le p'tit déj, c'est parfait",
                 "obtainable": true,
-                "type": "weapon",
-                "worth": 3,
-                "damage": 4
+                "type": "consumable",
+                "target_stat": "hp",
+                "amount": 15,
+                "effect_type": "heal",
+                "charges": 1,
+                "duration": 1
             },
-            "pitchfork": {
-                "name": "Farmer's Pitchfork",
-                "description": "A sturdy pitchfork with iron prongs. Perfect for fending off pests.",
+            "branche_solide": {
+                "name": "Une branche solide",
+                "description": "Une branche solide tombé d'un arbre. Un bouleau je crois ...",
                 "obtainable": true,
                 "type": "weapon",
                 "worth": 12,
                 "damage": 8
             },
-            "watering_can": {
-                "name": "Watering Can",
-                "description": "A dented tin watering can. Swung hard enough, it makes a decent improvised weapon.",
+            "engrenage": {
+                "name": "Engrenage en acier",
+                "description": "Un engrenage proche d'un barrage, je me demande à quoi ça peut bien servir ...",
+                "obtainable": true,
+                "type": "ressource"
+            },
+            "fricadelle": {
+                "name": "Fricadelle",
+                "description": "Un plat reconfortant, bien connu dans le nord",
+                "obtainable": true,
+                "type": "consumable",
+                "target_stat": "hp",
+                "amount": 15,
+                "effect_type": "heal",
+                "charges": 1,
+                "duration": 1
+            },
+            "canne_a_peche": {
+                "name": "Une canne a peche",
+                "description": "Parfaite pour passer le temps et se reposer, elle vous sera utile à la rivière ou au lac",
                 "obtainable": true,
                 "type": "weapon",
-                "worth": 5,
-                "damage": 3
+                "worth": 6,
+                "damage": 5
             },
-            "golden_egg": {
-                "name": "Golden Egg",
-                "description": "A suspiciously shiny egg laid by one of the coop's hens. Shepherd Hana would love to see this.",
-                "obtainable": true,
-                "type": "ressource"
-            },
-            "wheat_bundle": {
-                "name": "Wheat Bundle",
-                "description": "A neatly tied bundle of golden wheat stalks, ready for the mill.",
-                "obtainable": true,
-                "type": "ressource"
-            },
-            "bluemaelis_basket": {
-                "name": "Bluemaelis Basket",
-                "description": "A small woven basket filled with plump, freshly picked blueberries. Restores health.",
+            "marshmallow": {
+                "name": "Un paquet de marshmallow",
+                "description": "Un succulent paquet de marshmallow a déguster autour d'un feu de camps",
                 "obtainable": true,
                 "type": "consumable",
                 "target_stat": "hp",
@@ -368,6 +376,30 @@
                 "role": "dialogue",
                 "quest_id": "",
                 "hostile": false
+            },
+            "franck": {
+                "name": "Le patron de la fromagerie",
+                "description": "Il tient la boutique familiale depuis plus de 15 ans avec passion",
+                "dialogue": [
+                    "La cancoillotte... c'est pas du fromage.",
+                    "C'est une philosophie.",
+                    "Et quelqu'un vient de VOLER mon pot préféré.",
+                    "Je pense que c'est Bob le Blob qui l'a mangé."
+                ],
+                "role": "quest",
+                "quest_id": "bas_bob",
+                "hostile": false
+            },
+            "roger": {
+                "name": "Roger le technicien",
+                "description": "Un honnête travailleur du nord qui s'occupe du barrage",
+                "dialogue": [
+                    "Bin alors min garchon ...",
+                    "Approche donc tin, ai pô peur"
+                ],
+                "role": "dialogue",
+                "quest_id": "repare_barrage",
+                "hostile": false
             }
         },
         "quests": {
@@ -383,17 +415,17 @@
                 "status": "available",
                 "target_item": "graines"
             },
-            "golden_egg_hunt": {
-                "description": "Find the Golden Egg in the Chicken Coop and bring it back to Shepherd Hana.",
-                "reward": "watering_can",
+            "bas_bob": {
+                "description": "Ramene la, fameuse (et surtout crémeuse), cancoillotte, à Franck, en battant Bob.",
+                "reward": "cancoillotte",
                 "status": "available",
-                "target_item": "golden_egg"
+                "target_npc": "bob"
             },
-            "cull_the_boar": {
-                "description": "Defeat the Feral Boar terrorizing the Forest Edge to protect the nearby crops.",
-                "reward": "golden_shears",
+            "repare_barrage": {
+                "description": "Trouve l'engrenage manquant au barrage pour le réparer",
+                "reward": "fricadelle",
                 "status": "available",
-                "target_npc": "feral_boar"
+                "target_item": "engrenage"
             }
         }
     }

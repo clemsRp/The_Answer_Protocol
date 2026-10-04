@@ -43,6 +43,7 @@ type UIApp interface {
 	UpdateItemPosition(pseudo string, X float32, Y float32)
 	AddRemotePlayer(pseudo string)
 	RemoveRemotePlayer(pseudo string)
+	UpdateRoom()
 	Stop()
 }
 

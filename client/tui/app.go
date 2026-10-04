@@ -294,6 +294,8 @@ func (m *MyApp) ShowQuestCompletedPopup(questID, reward string) {
 	m.ShowPopupPage()
 }
 
+func (m *MyApp) UpdateRoom() {}
+
 func (m *MyApp) UpdateNavigation(room *protocol.LookCommandData) {
 	m.grid.RemoveItem(m.Navigation.Layout)
 
@@ -531,10 +533,10 @@ func (m *MyApp) UpdateRemotePlayerEmotes(pseudo string, emote int) {
 func (m *MyApp) UpdateItemPosition(pseudo string, X float32, Y float32) {
 }
 
-func (m *MyApp) AddRemotePlayer(pseudo string)    {}
-func (m *MyApp) RemoveRemotePlayer(pseudo string) {}
-func (m *MyApp) UpdateStatus(datas any)           {}
-func (m *MyApp) UpdateWho(nb_players int)         {}
+func (m *MyApp) AddRemotePlayer(pseudo string)           {}
+func (m *MyApp) RemoveRemotePlayer(pseudo string)        {}
+func (m *MyApp) UpdateStatus(datas any)                  {}
+func (m *MyApp) UpdateWho(nb_players int)                {}
 func (m *MyApp) OnTalkResponse(npcName, dialogue string) {}
 
 func (m *MyApp) GetPseudo() string {

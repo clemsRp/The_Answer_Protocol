@@ -38,17 +38,29 @@ build: deps exec/server exec/gui exec/tui
 	@echo "Build completed."
 
 # Execution
-server: exec/server
+# server: exec/server
+# 	@echo "Starting server..."
+# 	./exec/server
+
+# tui: exec/tui
+# 	@echo "Starting TUI client..."
+# 	./exec/tui
+
+# gui: exec/gui
+# 	@echo "Starting GUI client..."
+# 	./exec/gui
+
+server:
 	@echo "Starting server..."
-	./exec/server
+	go run ./cmd/server
 
-tui: exec/tui
+tui:
 	@echo "Starting TUI client..."
-	./exec/tui
+	go run ./cmd/client/tui
 
-gui: exec/gui
+gui:
 	@echo "Starting GUI client..."
-	./exec/gui
+	go run ./cmd/client/gui
 
 # Tests
 test:
@@ -94,5 +106,6 @@ clean_strict:
 	@$(MAKE) clean
 	@$(MAKE) clean_tsx
 	@$(MAKE) clean_img
+
 
 .PHONY: deps build server tui gui test format clean_tsx clean_img clean clean_strict re lint check

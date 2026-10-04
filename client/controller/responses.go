@@ -51,6 +51,7 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 
 	case lastCmdBase == pr.CmdMove:
 		c.ui.QueueUpdate(func() {
+			c.ui.UpdateRoom()
 			c.sendToNetwork(pr.CmdLook)
 			c.sendToNetwork(pr.CmdNotifyPlayerPosition)
 			c.sendToNetwork(pr.CmdGetPlayerPositions)
@@ -171,7 +172,7 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 		})
 
 		c.ui.QueueUpdate(func() {
-		    c.ui.OnTalkResponse(npcName, dialogue)
+			c.ui.OnTalkResponse(npcName, dialogue)
 		})
 
 		c.refreshUI()

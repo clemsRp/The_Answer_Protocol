@@ -20,6 +20,10 @@ func (app *App) UpdateNavigation(room *protocol.LookCommandData) {
 	app.Variables.Current_room = strings.SplitN(room.Id, "room.", 2)[1]
 }
 
+func (app *App) UpdateRoom() {
+	app.Variables.LastRoomChange = time.Now()
+}
+
 func (app *App) UpdateItems(roomItems, inventory []string) {
 	app.Variables.PanelsVariables.RoomItems = &roomItems
 	app.Variables.PanelsVariables.InventoryItems = &inventory

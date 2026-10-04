@@ -19,18 +19,11 @@ type ItemDatas struct {
 var (
 	// TODO Define all items
 	item_convertor = map[string]ItemDatas{
-		"turnip_seed": ItemDatas{
-			texture: vars.CHEST_TEXTURE,
-			indXs:   []float32{0.9, 3.9},
-			indYs:   []float32{1, 1},
-			ratioX:  1.2,
-			ratioY:  1,
-		},
-		"rusty_hoe": ItemDatas{
-			texture: vars.CHEST_TEXTURE,
-			indXs:   []float32{0.9, 3.9},
-			indYs:   []float32{1, 1},
-			ratioX:  1.2,
+		"mais_sucre": ItemDatas{
+			texture: vars.UI_SPRITE_TEXTURE,
+			indXs:   []float32{0},
+			indYs:   []float32{0},
+			ratioX:  1,
 			ratioY:  1,
 		},
 	}

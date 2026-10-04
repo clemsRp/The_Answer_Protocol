@@ -14,10 +14,10 @@ type Talk struct {
 }
 
 type TalkPanel struct {
-	Talking  *Talk
-	LastTalk string
-	Finished bool
-	Results  *[]string
-	Rect     rl.Rectangle
+	Talking      *Talk
+	LastTalk     string
+	Finished     bool
+	Results      *[]string
+	Rect         rl.Rectangle
 	FirstPhrases map[string]string
 }

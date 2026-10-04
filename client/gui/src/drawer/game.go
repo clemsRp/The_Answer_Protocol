@@ -2,6 +2,7 @@ package drawer
 
 import (
 	vars "tap/client/gui/src/variables"
+	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -59,6 +60,27 @@ func (dr *Drawer) DrawGame() {
 	dr.DrawInventoryEmotes()
 	dr.DrawInventoryButtons()
 	dr.DrawGameSelects()
+
+	panels := dr.app.Variables.PanelsVariables
+	datas := panels.Datas.Open
+	inspect := panels.Inspect.Open
+	group := panels.Group.Open
+	chat := panels.Chat.Open
+	nothing_open := !datas && !inspect && !group && !chat
+
+	in_time := time.Since(dr.app.Variables.LastRoomChange) <= 5*time.Second
+
+	rl.DrawRectangle(
+		int32(10*dr.app.Variables.Tileset_size),
+		int32(0),
+		int32(10*dr.app.Variables.Tileset_size),
+		int32(0.39*dr.app.Variables.Tileset_size),
+		rl.Black,
+	)
+
+	if dr.app.Variables.Current_view == "Game" && nothing_open && in_time {
+		dr.DrawRoomName()
+	}
 }
 
 func (dr *Drawer) DrawPlayerPanel() {
@@ -184,4 +206,54 @@ func (dr *Drawer) DrawInventory() {
 			dr.app.Variables.Zoom/3, 0,
 		)
 	}
+}
+
+func (dr *Drawer) DrawRoomName() {
+	cur_room := dr.app.Variables.PanelsVariables.Room.Name
+
+	center := rl.MeasureText(
+		cur_room,
+		int32(dr.app.Variables.FontSize),
+	) / 2
+
+	align := float32(center)/dr.app.Variables.Tileset_size + 1
+
+	// Draw frame
+	dr.DrawWoodFrameAt(
+		vars.Position{X: 15.5 - align, Y: 0},
+		vars.Position{X: 15.5 + align, Y: 1.5},
+		0.5, 1, false,
+	)
+
+	// Draw room name
+	rl.DrawText(
+		cur_room,
+		int32(15.5*dr.app.Variables.Tileset_size)-int32(center),
+		int32(0.75*dr.app.Variables.Tileset_size)-int32(dr.app.Variables.FontSize/2),
+		int32(dr.app.Variables.FontSize), dr.app.Colors["pseudo_text"],
+	)
+
+	cur_description := dr.app.Variables.PanelsVariables.Room.Description
+
+	center = rl.MeasureText(
+		cur_description,
+		int32(dr.app.Variables.FontSize),
+	) / 2
+
+	align = float32(center)/dr.app.Variables.Tileset_size + 1
+
+	// Draw frame
+	dr.DrawWoodFrameAt(
+		vars.Position{X: 15.5 - align, Y: 16},
+		vars.Position{X: 15.5 + align, Y: 17.5},
+		0.5, 1, false,
+	)
+
+	// Draw room name
+	rl.DrawText(
+		cur_description,
+		int32(15.5*dr.app.Variables.Tileset_size)-int32(center),
+		int32(16.75*dr.app.Variables.Tileset_size)-int32(dr.app.Variables.FontSize/2),
+		int32(dr.app.Variables.FontSize), dr.app.Colors["pseudo_text"],
+	)
 }

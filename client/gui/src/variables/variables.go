@@ -16,6 +16,7 @@ type Variables struct {
 	ItemPositions      *map[string]*Position
 	Collisions         [][]bool
 	Tileset_size       float32
+	LastRoomChange     time.Time
 
 	Current_room    string
 	Current_view    string

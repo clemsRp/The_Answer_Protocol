@@ -1,5 +1,5 @@
 {
-    "activeFile": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/gabiap.tsx",
+    "activeFile": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/fontaneilles.tmx",
     "expandedProjectPaths": [
         "."
     ],
@@ -64,7 +64,7 @@
             "selectedLayer": 7,
             "viewCenter": {
                 "x": 256.2041467304626,
-                "y": 144.17862838915474
+                "y": 160.51036682615631
             }
         },
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/barrage2.tmx": {
@@ -83,7 +83,7 @@
             "selectedLayer": 2,
             "viewCenter": {
                 "x": 268.5512367491166,
-                "y": 176.3572116929007
+                "y": 191.1339543848378
             }
         },
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/cascade.tmx": {
@@ -104,32 +104,32 @@
             "scale": 1.7376,
             "selectedLayer": 6,
             "viewCenter": {
-                "x": 265.30847145488036,
-                "y": 172.36418047882137
+                "x": 286.60220994475145,
+                "y": 146.46639042357273
             }
         },
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/ferme_uzoloise.tmx": {
             "scale": 1.9166992187499998,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 254.60437152901613,
-                "y": 46.69485912263721
+                "x": 254.6043715290162,
+                "y": 155.21475518418504
             }
         },
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/fontaneilles.tmx": {
-            "scale": 1.79052734375,
-            "selectedLayer": 3,
+            "scale": 1.5187,
+            "selectedLayer": 4,
             "viewCenter": {
-                "x": 267.51895282247074,
-                "y": 143.5331333515135
+                "x": 298.28142490287746,
+                "y": 132.67926516099297
             }
         },
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/foret_malicieuse.tmx": {
             "scale": 1.7033203124999998,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 255.97064556816878,
-                "y": 221.0388716890265
+                "x": 255.9706455681688,
+                "y": 146.47861483774798
             }
         },
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/foret_malicieuse2.tmx": {
@@ -142,10 +142,10 @@
         },
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/fromagerie.tmx": {
             "scale": 1.876,
-            "selectedLayer": 2,
+            "selectedLayer": 5,
             "viewCenter": {
                 "x": 234.0085287846482,
-                "y": 137.26012793176974
+                "y": 136.19402985074626
             }
         },
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/gabiap.tsx": {
@@ -162,8 +162,8 @@
             "scale": 1.79052734375,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 255.79056449413687,
-                "y": 89.63839650940824
+                "x": 255.7905644941369,
+                "y": 169.50313607853832
             }
         },
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/lac_du_barrage.tmx": {
@@ -171,7 +171,7 @@
             "selectedLayer": 1,
             "viewCenter": {
                 "x": 272.81105990783414,
-                "y": 192.01228878648237
+                "y": 133.02611367127497
             }
         },
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/place_du_village.json": {
@@ -186,16 +186,24 @@
             "scale": 1.7701171875,
             "selectedLayer": 5,
             "viewCenter": {
-                "x": 255.3503254992828,
-                "y": 187.8406708595388
+                "x": 255.35032549928283,
+                "y": 133.60697340836367
             }
         },
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/prev_barrage.tmx": {
             "scale": 1.6428,
             "selectedLayer": 9,
             "viewCenter": {
-                "x": 248.96518139761383,
+                "x": 248.96518139761378,
                 "y": 188.39785731677622
+            }
+        },
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/prev_foret_malicieuse.tmx": {
+            "scale": 2.0966796875,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 256.119236143456,
+                "y": 143.79878900791803
             }
         },
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/prev_riviere.tmx": {
@@ -203,15 +211,15 @@
             "selectedLayer": 0,
             "viewCenter": {
                 "x": 256.2041467304626,
-                "y": 144.17862838915474
+                "y": 95.18341307814994
             }
         },
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/riviere.tmx": {
             "scale": 1.37,
             "selectedLayer": 1,
             "viewCenter": {
-                "x": 268.6131386861314,
-                "y": 119.34306569343065
+                "x": 268.61313868613144,
+                "y": 111.31386861313865
             }
         },
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/riviere2.tmx": {
@@ -253,15 +261,20 @@
             "selectedLayer": 4,
             "viewCenter": {
                 "x": 298.8281160417383,
-                "y": 198.72950349730536
+                "y": 141.78190574475406
             }
         },
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/waterfall.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
+        "/home/clement/Téléchargements/16-Frame Caveman Sprite Sheet.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
         "Barn structures.tsx": {
-            "scaleInDock": 1
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         },
         "Basic Charakter Actions.tsx": {
             "scaleInDock": 1,
@@ -351,8 +364,13 @@
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
+        "Farming Plants items.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
         "Farming Plants v2 watered.tsx": {
-            "scaleInDock": 1
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         },
         "Fences.tsx": {
             "scaleInDock": 1,
@@ -399,20 +417,24 @@
             "scaleInEditor": 4
         },
         "Mailbox Animation Frames.tsx": {
-            "scaleInDock": 1
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         },
         "Paths.tsx": {
             "scaleInDock": 3.2042,
             "scaleInEditor": 1
         },
         "Piknik basket.tsx": {
-            "scaleInDock": 1
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         },
         "Piknik blanket.tsx": {
-            "scaleInDock": 1
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         },
         "Pine Tree Biome.tsx": {
-            "scaleInDock": 1
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         },
         "Premade dialog box  big.tsx": {
             "scaleInDock": 1,
@@ -470,10 +492,12 @@
             "scaleInEditor": 5.5
         },
         "Trees, stumps and bushes v2.tsx": {
-            "scaleInDock": 1
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         },
         "Water tray.tsx": {
-            "scaleInDock": 1
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         },
         "Water.tsx": {
             "scaleInDock": 8,
@@ -509,10 +533,12 @@
             "scaleInEditor": 1
         },
         "baby light cow animations sprites.tsx": {
-            "scaleInDock": 1
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         },
         "big fish 2 swimming in cirkels.tsx": {
-            "scaleInDock": 1
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         },
         "camping.tmx": {
             "scale": 1.7033203124999998,
@@ -668,7 +694,7 @@
     "frame.defaultDuration": 500,
     "last.exportedFilePath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps",
     "last.externalTilesetPath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/tilesets",
-    "last.imagePath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/assets",
+    "last.imagePath": "/home/clement/Téléchargements",
     "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
@@ -676,38 +702,23 @@
     "map.tileWidth": 16,
     "map.width": 32,
     "openFiles": [
-        "Water.tsx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/barrage.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/prev_riviere.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/verger_de_la_savane.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/camping.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/jardin.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/ferme_uzoloise.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/riviere.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/foret_malicieuse.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/place_du_village.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/fromagerie.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/lac_du_barrage.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/ferme_charbonneau.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/fontaneilles.tmx",
-        "gabinap.tsx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/gabiap.tsx"
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/fontaneilles.tmx"
     ],
     "project": "sprout-lands.tiled-project",
     "property.type": "bool",
     "recentFiles": [
-        "Water.tsx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/barrage.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/fontaneilles.tmx",
+        "/home/clement/Téléchargements/16-Frame Caveman Sprite Sheet.tsx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/prev_riviere.tmx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/verger_de_la_savane.tmx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/camping.tmx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/jardin.tmx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/ferme_uzoloise.tmx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/riviere.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/prev_foret_malicieuse.tmx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/foret_malicieuse.tmx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/place_du_village.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/fromagerie.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/lac_du_barrage.tmx"
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/fromagerie.tmx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

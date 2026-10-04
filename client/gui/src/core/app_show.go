@@ -4,6 +4,7 @@ import (
 	"fmt"
 	panel "tap/client/tui/panels"
 	"tap/protocol"
+	"time"
 )
 
 func (app *App) ShowConnectPage() {
@@ -30,6 +31,8 @@ func (app *App) ShowGamePage() {
 		app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdGetPlayerEmotes}
 		app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdGetItemPositions}
 	})
+
+	app.Variables.LastRoomChange = time.Now()
 }
 
 func (app *App) ShowCombatPage() {

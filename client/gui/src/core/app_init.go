@@ -89,8 +89,7 @@ func (app *App) AddItemPositions() {
 
 	// Set positions
 	// TODO Define all items
-	positions["turnip_seed"] = &vars.Position{X: 4, Y: 11}
-	positions["rusty_hoe"] = &vars.Position{X: 4, Y: 9}
+	positions["mais_sucre"] = &vars.Position{X: 24, Y: 12}
 
 	// Scale positions to map size
 	for _, pos := range positions {
