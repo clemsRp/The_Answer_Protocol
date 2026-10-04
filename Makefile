@@ -1,56 +1,64 @@
 
 MAKEFLAGS += --no-print-directory
-PROD := false
 
+# Cleaning
+MAPS_DIR = ./client/gui/maps
+TILESETS_DIR = ./client/gui/tilesets
+ASSETS_DIR = ./client/gui/assets
+
+# Source files
+COMMON_FILES := $(shell find engine protocol -type f -name '*.go' 2>/dev/null)
+SERVER_FILES := $(shell find client/controller client/network client/state -type f -name '*.go' 2>/dev/null)
+CLIENT_FILES := $(shell find engine protocol -type f -name '*.go' 2>/dev/null)
+GUI_FILES    := $(shell find client/gui cmd/client/gui -type f -name '*.go' 2>/dev/null) $(COMMON_FILES) $(CLIENT_FILES)
+TUI_FILES    := $(shell find client/tui cmd/client/tui -type f -name '*.go' 2>/dev/null) $(COMMON_FILES) $(CLIENT_FILES)
+
+# Build
 deps:
 	@echo "Downloading dependencies..."
 	@go mod download
 	@go mod tidy
 
-build: deps
-	@echo "Building binaries..."
+exec/server: $(SERVER_FILES)
 	@mkdir -p exec
+	@echo "Building server..."
 	@go build -o exec/server ./cmd/server
+
+exec/gui: $(GUI_FILES)
+	@mkdir -p exec
+	@echo "Building GUI client..."
 	@go build -o exec/gui ./cmd/client/gui
+
+exec/tui: $(TUI_FILES)
+	@mkdir -p exec
+	@echo "Building TUI client..."
 	@go build -o exec/tui ./cmd/client/tui
+
+build: deps exec/server exec/gui exec/tui
 	@echo "Build completed."
 
-server:
+# Execution
+server: exec/server
 	@echo "Starting server..."
-ifeq ($(PROD),true)
 	./exec/server
-else
-	go run ./cmd/server
-endif
 
-tui:
+tui: exec/tui
 	@echo "Starting TUI client..."
-ifeq ($(PROD),true)
 	./exec/tui
-else
-	go run ./cmd/client/tui
-endif
 
-gui:
+gui: exec/gui
 	@echo "Starting GUI client..."
-ifeq ($(PROD),true)
-	./exec/client/gui
-else
-	go run ./cmd/client/gui
-endif
+	./exec/gui
 
+# Tests
 test:
 	@echo "Running tests..."
 	@go test ./tests/network/... ./tests/scenarios/... ./tests/leaks/... -count=1
 
+# Manage project
 format:
 	@echo "Formatting code..."
 	@go fmt ./...
-
-clean:
-	@echo "Cleaning executables..."
-	@rm -rf exec
-	@echo "Executables removed."
 
 re:
 	@$(MAKE) clean
@@ -69,9 +77,22 @@ check:
 	@$(MAKE) clean
 	@echo "All checks passed successfully."
 
-debug_project:
-	@echo "Generating debug file..."
-	(tree -I 'node_modules|venv|.git|__pycache__' && echo -e "\n=== FILE CONTENTS ===\n" && find . -type f ! -path '*/.*' ! -path '*/node_modules/*' ! -path '*/venv/*' ! -name 'Makefile' ! -name '*.ans' ! -name '*.excalidraw' ! -name '*.html' ! -name '*.png' ! -name '*.jpg' ! -name '*.jpeg' ! -name '*.gif' ! -name '*.svg' ! -name '*.webp' -exec sh -c 'for f; do echo "\n--- FILE: $$f ---"; cat "$$f"; done' _ {} +) > project.txt
-	@echo "project.txt generated."
+# Clean
+clean_tsx:
+	@echo "Cleaning tilesets..."
+	@./clean_tsx.sh $(MAPS_DIR) $(TILESETS_DIR) ./
 
-.PHONY: deps build server tui gui test format clean re lint check debug_project
+clean_img:
+	@echo "Cleaning images..."
+	@./clean_img.sh $(MAPS_DIR) $(ASSETS_DIR)
+
+clean:
+	@echo "Cleaning executables..."
+	@rm -rf exec
+
+clean_strict:
+	@$(MAKE) clean
+	@$(MAKE) clean_tsx
+	@$(MAKE) clean_img
+
+.PHONY: deps build server tui gui test format clean_tsx clean_img clean clean_strict re lint check

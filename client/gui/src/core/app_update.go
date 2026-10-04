@@ -60,11 +60,6 @@ func (app *App) UpdateItemPosition(name string, x, y float32) {
 func (app *App) UpdateInteraction(roomNpcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string, quests []protocol.TrackedQuestData, completed_quests []string) {
 	npcs := app.GetNewRoomNpcs(roomNpcs)
 	app.Manager.SetViewInteractions("Npcs", npcs)
-
-	npc := app.Variables.PanelsVariables.Talk.LastTalk
-	if talk_res, ok := npcDialogues[npc]; ok {
-		app.SetTalkResult(npc, talk_res)
-	}
 }
 
 func (app *App) UpdateCombat(combatState state.CombatState) {

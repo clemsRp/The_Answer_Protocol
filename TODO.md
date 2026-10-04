@@ -8,8 +8,7 @@
 - Modify tests to use the correct NPCs, items, rooms, and quests
 - Clean `assets/` and tilesets
 - Make a **great review** of everything, with and without AI
-- Check Makefile relink
-- Adapte connections for multiple pcs
+- Adapte connections for multiple npcs, not a unique npc for the world
 
 ## OPTIONAL
 

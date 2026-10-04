@@ -41,7 +41,7 @@
                     "south": "ferme_charbonneau"
                 },
                 "items": [],
-                "npcs": ["bernard"]
+                "npcs": ["bernard", "maya"]
             },
             "fromagerie": {
                 "name": "La fromagerie de St Julien",
@@ -201,8 +201,8 @@
                 "obtainable": true,
                 "type": "ressource"
             },
-            "blueberry_basket": {
-                "name": "Blueberry Basket",
+            "bluemaelis_basket": {
+                "name": "Bluemaelis Basket",
                 "description": "A small woven basket filled with plump, freshly picked blueberries. Restores health.",
                 "obtainable": true,
                 "type": "consumable",
@@ -258,7 +258,7 @@
                     "Passez nous voir au 133 chemin du Vide à Sainte-Angèle-de-Monnoir"
                 ],
                 "role": "quest",
-                "quest_id": "effraye_berry",
+                "quest_id": "effraye_maelis",
                 "hostile": false
             },
             "le_prince": {
@@ -371,7 +371,7 @@
             }
         },
         "quests": {
-            "effraye_berry": {
+            "effraye_maelis": {
                 "description": "Effraye Maelis la Chauve souris pour qu'elle arrete de manger tout le maïs sucre",
                 "reward": "graines",
                 "status": "available",

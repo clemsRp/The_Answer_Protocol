@@ -170,6 +170,10 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 			p.NpcDialogues[npcName] = dialogue
 		})
 
+		c.ui.QueueUpdate(func() {
+		    c.ui.OnTalkResponse(npcName, dialogue)
+		})
+
 		c.refreshUI()
 
 	case (lastCmdBase == pr.CmdFlee || strings.HasPrefix(lastCmd, pr.CmdFlee) || strings.HasPrefix(lastCmd, pr.CmdChatCombatFlee)) && (res.Msg == pr.MsgOK || strings.HasPrefix(res.Msg, pr.MsgOK)):

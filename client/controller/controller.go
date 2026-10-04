@@ -30,6 +30,7 @@ type UIApp interface {
 	UpdateInspector(text string)
 	UpdateStatus(datas any)
 	UpdateWho(nb_players int)
+	OnTalkResponse(npcName, dialogue string)
 	AppendChat(scope, user, msg string)
 	AppendCombatChat(user, msg string)
 	AppendServerResponse(res protocol.ServerResponse)

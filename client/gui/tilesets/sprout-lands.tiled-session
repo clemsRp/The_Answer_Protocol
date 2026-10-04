@@ -1,5 +1,5 @@
 {
-    "activeFile": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/barrage.tmx",
+    "activeFile": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/gabiap.tsx",
     "expandedProjectPaths": [
         "."
     ],
@@ -61,7 +61,7 @@
         },
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/barrage.tmx": {
             "scale": 1.9593749999999999,
-            "selectedLayer": 0,
+            "selectedLayer": 7,
             "viewCenter": {
                 "x": 256.2041467304626,
                 "y": 144.17862838915474
@@ -82,7 +82,7 @@
             "scale": 1.5565,
             "selectedLayer": 2,
             "viewCenter": {
-                "x": 268.8724702858978,
+                "x": 268.5512367491166,
                 "y": 176.3572116929007
             }
         },
@@ -104,7 +104,7 @@
             "scale": 1.7376,
             "selectedLayer": 6,
             "viewCenter": {
-                "x": 265.59622467771635,
+                "x": 265.30847145488036,
                 "y": 172.36418047882137
             }
         },
@@ -112,7 +112,7 @@
             "scale": 1.9166992187499998,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 254.86523666377948,
+                "x": 254.60437152901613,
                 "y": 46.69485912263721
             }
         },
@@ -121,14 +121,14 @@
             "selectedLayer": 3,
             "viewCenter": {
                 "x": 267.51895282247074,
-                "y": 143.8123806926643
+                "y": 143.5331333515135
             }
         },
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/foret_malicieuse.tmx": {
             "scale": 1.7033203124999998,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 255.67710124985672,
+                "x": 255.97064556816878,
                 "y": 221.0388716890265
             }
         },
@@ -144,9 +144,13 @@
             "scale": 1.876,
             "selectedLayer": 2,
             "viewCenter": {
-                "x": 234.27505330490405,
+                "x": 234.0085287846482,
                 "y": 137.26012793176974
             }
+        },
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/gabiap.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 8.2154
         },
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/grey_brick_houses_with_doors_grass.tsx": {
             "scaleInDock": 1
@@ -158,7 +162,7 @@
             "scale": 1.79052734375,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 256.0698118352877,
+                "x": 255.79056449413687,
                 "y": 89.63839650940824
             }
         },
@@ -166,7 +170,7 @@
             "scale": 1.6275,
             "selectedLayer": 1,
             "viewCenter": {
-                "x": 273.1182795698925,
+                "x": 272.81105990783414,
                 "y": 192.01228878648237
             }
         },
@@ -182,7 +186,7 @@
             "scale": 1.7701171875,
             "selectedLayer": 5,
             "viewCenter": {
-                "x": 255.63279267350768,
+                "x": 255.3503254992828,
                 "y": 187.8406708595388
             }
         },
@@ -233,9 +237,11 @@
             "scaleInEditor": 5.49
         },
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/street_workout_8x8_tiles_33_percent_smaller.tsx": {
+            "scaleInDock": 1,
             "scaleInEditor": 1
         },
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/street_workout_8x8_tiles_crisp.tsx": {
+            "scaleInDock": 1,
             "scaleInEditor": 1
         },
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/street_workout_test2.tsx": {
@@ -246,7 +252,7 @@
             "scale": 1.7033203124999998,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 299.1216603600505,
+                "x": 298.8281160417383,
                 "y": 198.72950349730536
             }
         },
@@ -308,6 +314,9 @@
         "Boats.tsx": {
             "scaleInDock": 1
         },
+        "Bush_Tiles.tsx": {
+            "scaleInDock": 1
+        },
         "Cherry Blossom Biom.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
@@ -315,6 +324,12 @@
         "Chest.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 5.5
+        },
+        "Chicken_Baby_Red.tsx": {
+            "scaleInDock": 1
+        },
+        "Chikcen_Houses.tsx": {
+            "scaleInDock": 1
         },
         "Doors.tsx": {
             "dynamicWrapping": false,
@@ -367,6 +382,10 @@
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
+        "HardcoreLevelingWarrior.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 6.0529
+        },
         "Hills copy.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
@@ -378,6 +397,9 @@
         "Inventory_Light_Herat_Spritesheet.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 4
+        },
+        "Mailbox Animation Frames.tsx": {
+            "scaleInDock": 1
         },
         "Paths.tsx": {
             "scaleInDock": 3.2042,
@@ -416,6 +438,9 @@
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
+        "Stone_Path.tsx": {
+            "scaleInDock": 1
+        },
         "Teemo Basic emote animations sprite sheet.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
@@ -447,11 +472,17 @@
         "Trees, stumps and bushes v2.tsx": {
             "scaleInDock": 1
         },
+        "Water tray.tsx": {
+            "scaleInDock": 1
+        },
         "Water.tsx": {
             "scaleInDock": 8,
             "scaleInEditor": 8
         },
         "WaterDark.tsx": {
+            "scaleInDock": 1
+        },
+        "WaterLight.tsx": {
             "scaleInDock": 1
         },
         "Wood Bridge.tsx": {
@@ -466,6 +497,9 @@
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
+        "Wooden_Bridge_v2.tsx": {
+            "scaleInDock": 1
+        },
         "Wooden_House_Roof_Tilset.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
@@ -473,6 +507,9 @@
         "Wooden_House_Walls_Tilset.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
+        },
+        "baby light cow animations sprites.tsx": {
+            "scaleInDock": 1
         },
         "big fish 2 swimming in cirkels.tsx": {
             "scaleInDock": 1
@@ -513,6 +550,10 @@
         "free_character_spritesheet_by-cupnooble.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
+        },
+        "gabinap.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 5.3415
         },
         "grey_brick_houses_with_doors_grass.tsx": {
             "scaleInDock": 1
@@ -556,8 +597,15 @@
                 "y": 160.0725952813067
             }
         },
+        "small_House_light_with_door.tsx": {
+            "scaleInDock": 1
+        },
         "small_House_with_door_grass.tsx": {
             "scaleInDock": 1
+        },
+        "small_green_slime_animations.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 3.0479
         },
         "small_huts.tsx": {
             "scaleInDock": 1,
@@ -620,7 +668,7 @@
     "frame.defaultDuration": 500,
     "last.exportedFilePath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps",
     "last.externalTilesetPath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/tilesets",
-    "last.imagePath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/assets/Sprout Lands - Sprites - premium pack/Tilesets/Building parts",
+    "last.imagePath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/assets",
     "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
@@ -629,23 +677,37 @@
     "map.width": 32,
     "openFiles": [
         "Water.tsx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/barrage.tmx"
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/barrage.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/prev_riviere.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/verger_de_la_savane.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/camping.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/jardin.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/ferme_uzoloise.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/riviere.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/foret_malicieuse.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/place_du_village.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/fromagerie.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/lac_du_barrage.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/ferme_charbonneau.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/fontaneilles.tmx",
+        "gabinap.tsx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/gabiap.tsx"
     ],
     "project": "sprout-lands.tiled-project",
     "property.type": "bool",
     "recentFiles": [
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/street_workout_8x8_tiles_crisp.tsx",
-        "street_workout.tsx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/street_workout_8x8_tiles_33_percent_smaller.tsx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/street_workout_8x8_tiles.tsx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/street_workout.tsx",
-        "street_workout_test.tsx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/street_workout_test2.tsx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/riviere.tmx",
         "Water.tsx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/barrage.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/prev_riviere.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/verger_de_la_savane.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/camping.tmx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/jardin.tmx",
-        "Hills copy.tsx",
-        "waterfall.tsx"
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/ferme_uzoloise.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/riviere.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/foret_malicieuse.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/place_du_village.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/fromagerie.tmx",
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/lac_du_barrage.tmx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

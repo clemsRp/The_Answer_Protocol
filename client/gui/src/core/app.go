@@ -62,7 +62,6 @@ func NewApp(actionsChan chan panel.Action) *App {
 	var err error
 	maps_folder_path := "./client/gui/maps/"
 
-	// TODO
 	// Get all maps
 	maps_paths := make([]string, 0)
 	for _, room := range engine.ValidMaps {

@@ -7,18 +7,6 @@ import (
 	pr "tap/protocol"
 )
 
-type NpcDatas struct {
-	texture        string
-	ratioX, ratioY float32
-	indXs, indYs   []float32
-	pos            vars.Position
-}
-
-var (
-	// TODO Define all npcs
-	npc_convertor = map[string]NpcDatas{}
-)
-
 func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 	// Initialize the interactions array
 	npcs := make([]*ui.Interaction, 0)
@@ -32,6 +20,9 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 
 		pos_x := pos.X * app.Variables.Tileset_size
 		pos_y := pos.Y * app.Variables.Tileset_size
+
+		ratioX := frames[0].Frame.RatioX
+		ratioY := frames[0].Frame.RatioY
 
 		// Create the visual emote (sprite) for the npc
 		npc_emote := &ui.Emote{
@@ -49,8 +40,8 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 		npc_bubble := &ui.Button{
 			ID:       "npc_bubble",
 			Texture:  vars.UI_SPRITE_TEXTURE,
-			X:        pos_x + 0.8*app.Variables.Tileset_size,
-			Y:        pos_y + 0.2*app.Variables.Tileset_size,
+			X:        pos_x + (0.8*ratioX)*app.Variables.Tileset_size,
+			Y:        pos_y + (ratioY-1.3)*app.Variables.Tileset_size,
 			Rotation: 0,
 			Zoom:     app.Variables.Zoom / 2,
 			Normal:   ui.Frame{IndX: 28, IndY: 8, RatioX: 3, RatioY: 3},
@@ -63,8 +54,8 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 		npc_btn := &ui.Button{
 			ID:       "npc_btn",
 			Texture:  vars.UI_SPRITE_TEXTURE,
-			X:        pos_x + 1.15*app.Variables.Tileset_size,
-			Y:        pos_y + 0.55*app.Variables.Tileset_size,
+			X:        pos_x + (0.8*ratioX+0.35)*app.Variables.Tileset_size,
+			Y:        pos_y + (ratioY-0.95)*app.Variables.Tileset_size,
 			Rotation: 0,
 			Zoom:     app.Variables.Zoom * 2 / 5,
 			Normal:   ui.Frame{IndX: 40, IndY: 8, RatioX: 2, RatioY: 2},
@@ -74,9 +65,11 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 				app.Variables.PanelsVariables.Chat.Open = false
 				app.Variables.PanelsVariables.Group.Open = false
 				app.Variables.PanelsVariables.Inspect.Open = false
+
 				app.Variables.PanelsVariables.Talk.LastTalk = np
-				app.StartTalk(np)
-				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdTalk + " " + np}
+				if !app.StartTalk(np) {
+					app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdTalk + " " + np}
+				}
 
 				app.Variables.PanelsVariables.Inspect.LastInspect = "NPC"
 				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectNpc + " " + np}
@@ -112,13 +105,13 @@ func get_npc_datas(npc string, frame_duration int) (string, vars.Position, []*ui
 	var pos vars.Position
 
 	// Get datas depending on npc
-	if d, ok := npc_convertor[npc]; ok {
-		texture = d.texture
-		indXs = d.indXs
-		indYs = d.indYs
-		ratioX = d.ratioX
-		ratioY = d.ratioY
-		pos = d.pos
+	if d, ok := vars.NpcConvertor[npc]; ok {
+		texture = d.Texture
+		indXs = d.IndXs
+		indYs = d.IndYs
+		ratioX = d.RatioX
+		ratioY = d.RatioY
+		pos = d.Pos
 
 	} else {
 		texture = vars.NPC_TEXTURE

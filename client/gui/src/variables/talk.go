@@ -17,7 +17,7 @@ type TalkPanel struct {
 	Talking  *Talk
 	LastTalk string
 	Finished bool
-	NbLoop   int
 	Results  *[]string
 	Rect     rl.Rectangle
+	FirstPhrases map[string]string
 }
