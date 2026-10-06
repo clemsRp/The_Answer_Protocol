@@ -60,10 +60,10 @@ var (
 		},
 		"gabinap": {
 			Texture: "gabinap",
-			RatioX:  6,
-			RatioY:  10,
-			IndXs:   []float32{19, 29, 40, 50, 60, 71},
-			IndYs:   []float32{2, 2, 2, 2, 2, 2},
+			RatioX:  2.3,
+			RatioY:  5,
+			IndXs:   []float32{1.6, 5.5, 9.7},
+			IndYs:   []float32{0, 0, 0},
 			Pos:     Position{X: 13, Y: 7},
 		},
 	}

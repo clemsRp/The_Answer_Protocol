@@ -1,6 +1,7 @@
 package drawer
 
 import (
+	"strings"
 	vars "tap/client/gui/src/variables"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -295,22 +296,76 @@ func (dr *Drawer) DrawChatScrollBar(maxY float32) {
 }
 
 func (dr *Drawer) DrawScope() {
-	// Draw Frame
-	dr.DrawWoodFrameAt(
-		vars.Position{X: vars.CHAT_START_X + 2, Y: 0.5},
-		vars.Position{X: vars.CHAT_START_X + vars.CHAT_WIDTH - 2, Y: 2},
-		0.5, 2, false,
-	)
+	scopes := []string{"Global", "Room", "Group"}
+	current_scope := dr.app.Variables.PanelsVariables.Chat.CurrentScope
 
-	// Draw scope
-	scope := dr.app.Variables.PanelsVariables.Chat.CurrentScope
-	font_size := 3 * int32(dr.app.Variables.FontSize)
-	center_text := float32(rl.MeasureText(scope, font_size) / 2)
+	tile := dr.app.Variables.Tileset_size
 
-	rl.DrawText(
-		scope,
-		int32((vars.CHAT_START_X+vars.CHAT_WIDTH/2)*dr.app.Variables.Tileset_size-center_text),
-		int32(vars.CHAT_START_Y+font_size*13/22),
-		font_size, rl.NewColor(232, 207, 166, 255),
-	)
+	corner := 0.5 * tile
+	inset := 0.65 * corner
+	border := 0.35 * corner
+
+	inner_left := (float32(vars.CHAT_START_X) + 0.5) * tile
+	inner_bottom := (float32(vars.CHAT_START_Y+vars.CHAT_HEIGHT) - 0.5) * tile
+
+	type tab struct {
+		x, y, w, h float32
+		darkness   int
+		scope      string
+		color      rl.Color
+	}
+
+	var tabs []tab
+	x := inner_left
+
+	for index, bare_scope := range scopes {
+		t := tab{
+			w:     float32(vars.CHAT_TAB_WIDTH) * tile,
+			h:     float32(vars.CHAT_TAB_HEIGHT) * tile,
+			scope: bare_scope,
+			color: dr.app.Colors["pseudo_text"],
+		}
+
+		if strings.ToUpper(bare_scope) == current_scope {
+			t.h = float32(vars.CHAT_TAB_SELECTED_HEIGHT) * tile
+			t.darkness = 1
+			t.color = dr.app.Colors["panel_text"]
+		}
+
+		t.x = x + float32(index)/6*tile
+		t.y = inner_bottom - t.h
+		tabs = append(tabs, t)
+
+		x += t.w - border
+	}
+
+	for pass := 0; pass < 2; pass++ {
+		for _, t := range tabs {
+			if (pass == 0) == (t.darkness == 1) {
+				continue
+			}
+
+			// Draw Frame
+			dr.DrawWoodFramePx(
+				t.x-inset, t.y-inset,
+				t.w+2*inset, t.h+2*inset,
+				corner, t.darkness, false,
+			)
+
+			font := dr.app.Variables.FontSize
+			size := float32(rl.MeasureText(
+				t.scope,
+				int32(font),
+			) / 4)
+
+			// Draw Scope
+			rl.DrawText(
+				t.scope,
+				int32(t.x-inset+t.w/2-size),
+				int32(t.y-inset+(t.h+0.75*font)/2),
+				int32(font),
+				t.color,
+			)
+		}
+	}
 }

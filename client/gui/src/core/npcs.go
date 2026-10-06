@@ -25,8 +25,12 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 		ratioY := frames[0].Frame.RatioY
 
 		zoom := app.Variables.Zoom
+		offX := 0
+		offY := 0
 		if np == "gabinap" {
-			zoom /= 5
+			zoom /= 2
+			offX = int(app.Variables.Tileset_size)
+			offY = 3 * int(app.Variables.Tileset_size)
 		}
 
 		// Create the visual emote (sprite) for the npc
@@ -45,8 +49,8 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 		npc_bubble := &ui.Button{
 			ID:       "npc_bubble",
 			Texture:  vars.UI_SPRITE_TEXTURE,
-			X:        pos_x + (0.8*ratioX)*app.Variables.Tileset_size,
-			Y:        pos_y + (ratioY-1.3)*app.Variables.Tileset_size,
+			X:        pos_x + (0.8*ratioX)*app.Variables.Tileset_size - float32(offX),
+			Y:        pos_y + (ratioY-1.3)*app.Variables.Tileset_size - float32(offY),
 			Rotation: 0,
 			Zoom:     app.Variables.Zoom / 2,
 			Normal:   ui.Frame{IndX: 28, IndY: 8, RatioX: 3, RatioY: 3},
@@ -59,8 +63,8 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 		npc_btn := &ui.Button{
 			ID:       "npc_btn",
 			Texture:  vars.UI_SPRITE_TEXTURE,
-			X:        pos_x + (0.8*ratioX+0.35)*app.Variables.Tileset_size,
-			Y:        pos_y + (ratioY-0.95)*app.Variables.Tileset_size,
+			X:        pos_x + (0.8*ratioX+0.35)*app.Variables.Tileset_size - float32(offX),
+			Y:        pos_y + (ratioY-0.95)*app.Variables.Tileset_size - float32(offY),
 			Rotation: 0,
 			Zoom:     app.Variables.Zoom * 2 / 5,
 			Normal:   ui.Frame{IndX: 40, IndY: 8, RatioX: 2, RatioY: 2},

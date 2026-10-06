@@ -1,7 +1,6 @@
 package updater
 
 import (
-	"slices"
 	"tap/client/gui/src/ui"
 	vars "tap/client/gui/src/variables"
 	panel "tap/client/tui/panels"
@@ -164,46 +163,7 @@ func (up *Updater) buildChatButtons() {
 		OnClick: up.SendChat,
 	}
 
-	scopes := []string{"GLOBAL", "ROOM", "GROUP"}
-
-	scopeBtnPrevX := (vars.CHAT_START_X - 0.67) * up.app.Variables.Tileset_size
-	scopeBtnNextX := (vars.CHAT_START_X + vars.CHAT_WIDTH - 0.37) * up.app.Variables.Tileset_size
-	scopeBtnY := (vars.CHAT_START_Y + vars.CHAT_HEIGHT/2) * up.app.Variables.Tileset_size
-
-	previousScopeBtn := &ui.Button{
-		ID:      "previous_scope",
-		Texture: vars.UI_SPRITE_TEXTURE,
-		X:       scopeBtnPrevX,
-		Y:       scopeBtnY,
-		Zoom:    up.app.Variables.Zoom,
-		Normal:  ui.Frame{IndX: 17, IndY: 1, RatioX: 1, RatioY: 1},
-		Pressed: ui.Frame{IndX: 18, IndY: 1, RatioX: 1, RatioY: 1},
-		OnClick: func() {
-			cur_scope := up.app.Variables.PanelsVariables.Chat.CurrentScope
-			index := slices.Index(scopes, cur_scope)
-			up.app.Variables.PanelsVariables.Chat.CurrentScope = scopes[(index+1)%len(scopes)]
-		},
-	}
-
-	nextScopeBtn := &ui.Button{
-		ID:      "next_scope",
-		Texture: vars.UI_SPRITE_TEXTURE,
-		X:       scopeBtnNextX,
-		Y:       scopeBtnY,
-		Zoom:    up.app.Variables.Zoom,
-		Normal:  ui.Frame{IndX: 17, IndY: 0, RatioX: 1, RatioY: 1},
-		Pressed: ui.Frame{IndX: 18, IndY: 0, RatioX: 1, RatioY: 1},
-		OnClick: func() {
-			cur_scope := up.app.Variables.PanelsVariables.Chat.CurrentScope
-			index := slices.Index(scopes, cur_scope) - 1
-			if index < 0 {
-				index = len(scopes) - 1
-			}
-			up.app.Variables.PanelsVariables.Chat.CurrentScope = scopes[index]
-		},
-	}
-
-	up.app.Manager.SetViewButtons("Chat", []*ui.Button{sendchatBtn, previousScopeBtn, nextScopeBtn})
+	up.app.Manager.SetViewButtons("Chat", []*ui.Button{sendchatBtn})
 }
 
 func (up *Updater) buildGroupButtons() {

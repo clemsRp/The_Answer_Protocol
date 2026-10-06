@@ -100,7 +100,7 @@ var animationConvertor = map[AnimKey][]LocalIDS{
 }
 
 func (dr *Drawer) GetLocalID(localID int, textureName string) int {
-	if textureName == "WaterDark" {
+	if textureName == "WaterDark" || textureName == "WaterLight" {
 		textureName = "Water"
 
 	} else if textureName == "Basic Grass Biom things 1" {

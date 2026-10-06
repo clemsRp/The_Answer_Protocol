@@ -2,6 +2,7 @@ package updater
 
 import (
 	"fmt"
+	"strings"
 	vars "tap/client/gui/src/variables"
 	panel "tap/client/tui/panels"
 	"time"
@@ -99,5 +100,52 @@ func (up *Updater) UpdateChatScroll() {
 }
 
 func (up *Updater) UpdateScope() {
+	scopes := []string{"GLOBAL", "ROOM", "GROUP"}
+	current_scope := up.app.Variables.PanelsVariables.Chat.CurrentScope
 
+	tile := up.app.Variables.Tileset_size
+
+	corner := 0.5 * tile
+	border := 0.35 * corner
+
+	inner_left := (float32(vars.CHAT_START_X) + 0.5) * tile
+	inner_bottom := (float32(vars.CHAT_START_Y+vars.CHAT_HEIGHT) - 0.5) * tile
+
+	type tab struct {
+		x, y, w, h float32
+		scope      string
+	}
+
+	var tabs []tab
+	x := inner_left
+
+	for index, bare_scope := range scopes {
+		t := tab{
+			w:     float32(vars.CHAT_TAB_WIDTH) * tile,
+			h:     float32(vars.CHAT_TAB_HEIGHT) * tile,
+			scope: bare_scope,
+		}
+
+		if strings.ToUpper(bare_scope) == current_scope {
+			t.h = float32(vars.CHAT_TAB_SELECTED_HEIGHT) * tile
+		}
+
+		t.x = x + float32(index)/6*tile
+		t.y = inner_bottom - t.h
+		tabs = append(tabs, t)
+
+		x += t.w - border
+	}
+
+	for _, tab := range tabs {
+		mouse := rl.GetMousePosition()
+		clicked := rl.IsMouseButtonPressed(rl.MouseButtonLeft)
+		hover := rl.CheckCollisionPointRec(mouse, rl.NewRectangle(
+			tab.x, tab.y, tab.w, tab.h,
+		))
+
+		if clicked && hover {
+			up.app.Variables.PanelsVariables.Chat.CurrentScope = tab.scope
+		}
+	}
 }
