@@ -11,7 +11,7 @@ func TestServerGracefulShutdown_Idle(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 	baseline := runtime.NumGoroutine()
 
-	s, e := utils.SetupTestServerEngine(t, "../../world.json")
+	s, e := utils.SetupTestServerEngine(t, "../../world_test.json")
 
 	defer e.Stop()
 	defer s.Stop()

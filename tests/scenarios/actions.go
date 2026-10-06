@@ -128,10 +128,10 @@ var aliceMovesSouth = ScenariosCommandTest{
 // CHAT NORMAL SCENARIOS
 var aliceChatGlobal = ScenariosCommandTest{
 	Name:    "Alice global chat",
-	Command: "CHAT GLOBAL Hello World!",
+	Command: "CHAT GLOBAL Hello world_test!",
 	ExpectedReplies: []Reply{
 		{"OK", "alice"},
-		{"EVT GLOBAL CHAT alice Hello World!", "bob"},
+		{"EVT GLOBAL CHAT alice Hello world_test!", "bob"},
 	},
 	ExpectsJSON:      false,
 	TestOnConnection: "alice",
@@ -195,7 +195,7 @@ var aliceQuits = ScenariosCommandTest{
 
 var aliceTakesItem = ScenariosCommandTest{
 	Name:    "Alice takes an item in map",
-	Command: "TAKE rusty_hoe",
+	Command: "TAKE pioche",
 	ExpectedReplies: []Reply{
 		{"OK taken=", "alice"},
 	},
@@ -205,7 +205,7 @@ var aliceTakesItem = ScenariosCommandTest{
 
 var aliceDropsItem = ScenariosCommandTest{
 	Name:    "Alice drops an item in map",
-	Command: "DROP rusty_hoe",
+	Command: "DROP pioche",
 	ExpectedReplies: []Reply{
 		{"OK dropped=", "alice"},
 	},
@@ -225,7 +225,7 @@ var aliceChecksInventory = ScenariosCommandTest{
 
 var aliceTalksToNPC = ScenariosCommandTest{
 	Name:    "Alice talks to NPC in entrance",
-	Command: "TALK shepherd_hana",
+	Command: "TALK thomas_charbonneau",
 	ExpectedReplies: []Reply{
 		{"OK", "alice"},
 	},
@@ -236,7 +236,7 @@ var aliceTalksToNPC = ScenariosCommandTest{
 var aliceAttacksHostileNPC = ScenariosCommandTest{
 
 	Name:    "Attack non-hostile NPC in entrance",
-	Command: "ATTACK shepherd_hana",
+	Command: "ATTACK thomas_charbonneau",
 	ExpectedReplies: []Reply{
 		{protocol.ErrNpcNotHostile, "alice"},
 	},

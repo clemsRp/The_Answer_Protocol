@@ -8,7 +8,7 @@ import (
 )
 
 func TestClientDisconnection(t *testing.T) {
-	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+	s, _ := utils.SetupTestServerEngine(t, "../../world_test.json")
 	addr := s.GetAddress()
 
 	conn, err := net.DialTimeout("tcp", addr, 2*time.Second)
@@ -30,7 +30,7 @@ func TestClientDisconnection(t *testing.T) {
 }
 
 func TestHardResetDisconnection(t *testing.T) {
-	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+	s, _ := utils.SetupTestServerEngine(t, "../../world_test.json")
 	addr := s.GetAddress()
 
 	conn, err := net.DialTimeout("tcp", addr, 2*time.Second)

@@ -14,8 +14,8 @@ var TakeItemRaceCondition = ConcurrentScenario{
 	},
 
 	ConcurrentCmds: map[string]string{
-		"alice": "TAKE rusty_hoe",
-		"bob":   "TAKE rusty_hoe",
+		"alice": "TAKE pioche",
+		"bob":   "TAKE pioche",
 	},
 
 	ValidationFunc: func(t *testing.T, results map[string]string) {
