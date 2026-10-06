@@ -61,26 +61,7 @@ func (dr *Drawer) DrawGame() {
 	dr.DrawInventoryButtons()
 	dr.DrawGameSelects()
 
-	panels := dr.app.Variables.PanelsVariables
-	datas := panels.Datas.Open
-	inspect := panels.Inspect.Open
-	group := panels.Group.Open
-	chat := panels.Chat.Open
-	nothing_open := !datas && !inspect && !group && !chat
-
-	in_time := time.Since(dr.app.Variables.LastRoomChange) <= 5*time.Second
-
-	rl.DrawRectangle(
-		int32(10*dr.app.Variables.Tileset_size),
-		int32(0),
-		int32(10*dr.app.Variables.Tileset_size),
-		int32(0.39*dr.app.Variables.Tileset_size),
-		rl.Black,
-	)
-
-	if dr.app.Variables.Current_view == "Game" && nothing_open && in_time {
-		dr.DrawRoomName()
-	}
+	dr.HideBorder()
 }
 
 func (dr *Drawer) DrawPlayerPanel() {
@@ -256,4 +237,27 @@ func (dr *Drawer) DrawRoomName() {
 		int32(16.75*dr.app.Variables.Tileset_size)-int32(dr.app.Variables.FontSize/2),
 		int32(dr.app.Variables.FontSize), dr.app.Colors["pseudo_text"],
 	)
+}
+
+func (dr *Drawer) HideBorder() {
+	panels := dr.app.Variables.PanelsVariables
+	datas := panels.Datas.Open
+	inspect := panels.Inspect.Open
+	group := panels.Group.Open
+	chat := panels.Chat.Open
+	nothing_open := !datas && !inspect && !group && !chat
+
+	in_time := time.Since(dr.app.Variables.LastRoomChange) <= 5*time.Second
+
+	rl.DrawRectangle(
+		int32(10*dr.app.Variables.Tileset_size),
+		int32(0),
+		int32(10*dr.app.Variables.Tileset_size),
+		int32(0.39*dr.app.Variables.Tileset_size),
+		rl.Black,
+	)
+
+	if dr.app.Variables.Current_view == "Game" && nothing_open && in_time {
+		dr.DrawRoomName()
+	}
 }

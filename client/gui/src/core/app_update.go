@@ -2,7 +2,6 @@ package core
 
 import (
 	"encoding/json"
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -240,7 +239,6 @@ func (app *App) UpdateStatus(datas any) {
 	if err == nil {
 		var statusData pr.StatusCommandData
 		json.Unmarshal(bytes, &statusData)
-		fmt.Println(statusData.Hp, statusData.MaxHp)
 		app.Variables.Player.Hp = int(statusData.Hp)
 		app.Variables.Player.MaxHp = int(statusData.MaxHp)
 	}

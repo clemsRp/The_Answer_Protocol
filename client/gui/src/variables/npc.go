@@ -59,11 +59,11 @@ var (
 			Pos:     Position{X: 20, Y: 6},
 		},
 		"gabinap": {
-			Texture: "gabiap",
-			RatioX:  1,
-			RatioY:  2,
-			IndXs:   []float32{0, 1, 2, 3, 4, 5},
-			IndYs:   []float32{0, 0, 0, 0, 0, 0},
+			Texture: "gabinap",
+			RatioX:  6,
+			RatioY:  10,
+			IndXs:   []float32{19, 29, 40, 50, 60, 71},
+			IndYs:   []float32{2, 2, 2, 2, 2, 2},
 			Pos:     Position{X: 13, Y: 7},
 		},
 	}

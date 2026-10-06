@@ -27,9 +27,10 @@ const (
 
 // Items & Inventory errors
 const (
-	ErrItemNotFound       = "ERR 404 ITEM_NOT_FOUND"
-	ErrItemNotInInventory = "ERR 404 ITEM_NOT_IN_INVENTORY"
-	ErrItemNotUsable      = "ERR 414 ITEM_NOT_USABLE"
+	ErrItemNotFound        = "ERR 404 ITEM_NOT_FOUND"
+	ErrDefaultItemNotFound = "ERR 404 DEFAULT_ITEM_NOT_FOUND"
+	ErrItemNotInInventory  = "ERR 404 ITEM_NOT_IN_INVENTORY"
+	ErrItemNotUsable       = "ERR 414 ITEM_NOT_USABLE"
 )
 
 // NPCs & Quests

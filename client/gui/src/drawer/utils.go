@@ -2,6 +2,7 @@ package drawer
 
 import (
 	"math"
+	"strings"
 	"time"
 
 	vars "tap/client/gui/src/variables"
@@ -131,4 +132,45 @@ func (dr *Drawer) LimitString(text string, limit int) string {
 	}
 
 	return res
+}
+
+func (dr *Drawer) WrapText(text string, maxLineLen int) (string, int) {
+	if maxLineLen <= 0 {
+		return text, 1
+	}
+
+	// Split sentence
+	words := strings.Fields(text)
+	if len(words) == 0 {
+		return "", 0
+	}
+
+	var builder strings.Builder
+	nb_line := 1
+	currentLineLen := 0
+
+	for i, word := range words {
+		// Handle first word
+		if i == 0 {
+			builder.WriteString(word)
+			currentLineLen = len(word)
+			continue
+		}
+
+		// Add \n if needed
+		if currentLineLen+1+len(word) > maxLineLen {
+			builder.WriteString("\n")
+			builder.WriteString(word)
+			currentLineLen = len(word)
+			nb_line++
+
+		} else {
+			// Add word normally
+			builder.WriteString(" ")
+			builder.WriteString(word)
+			currentLineLen += 1 + len(word)
+		}
+	}
+
+	return builder.String(), nb_line
 }

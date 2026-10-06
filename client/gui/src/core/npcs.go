@@ -24,13 +24,18 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 		ratioX := frames[0].Frame.RatioX
 		ratioY := frames[0].Frame.RatioY
 
+		zoom := app.Variables.Zoom
+		if np == "gabinap" {
+			zoom /= 5
+		}
+
 		// Create the visual emote (sprite) for the npc
 		npc_emote := &ui.Emote{
 			ID:           "npc_" + np,
 			Texture:      text,
 			X:            pos_x,
 			Y:            pos_y,
-			Zoom:         app.Variables.Zoom,
+			Zoom:         zoom,
 			Rotation:     0,
 			AnimDuration: len(frames) * frame_duration,
 			Frames:       frames,

@@ -8,6 +8,8 @@ import (
 	"io"
 	"os"
 
+	pr "tap/protocol"
+
 	"github.com/go-playground/validator/v10"
 )
 
@@ -67,6 +69,12 @@ func Get_map(map_path string) (*Map, error) {
 
 	for id, quest := range world.Quests {
 		quest.Id = id
+	}
+
+	// Check default item exist
+	_, exists := world.Items[pr.DefaultItem]
+	if !exists {
+		return nil, errors.New(pr.ErrDefaultItemNotFound)
 	}
 
 	return world, nil

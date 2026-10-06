@@ -1,5 +1,9 @@
 package protocol
 
+var (
+	DefaultItem = "branche_solide"
+)
+
 // server to engine
 type ServerRequest struct {
 	Id  string

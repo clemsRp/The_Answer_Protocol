@@ -51,7 +51,7 @@
                     "east": "fontaneilles"
                 },
                 "items": ["cancoillotte"],
-                "npcs": []
+                "npcs": ["franck"]
             },
             "place_du_village": {
                 "name": "La place de l'An 2000",
@@ -378,7 +378,7 @@
                 "hostile": false
             },
             "franck": {
-                "name": "Le patron de la fromagerie",
+                "name": "Le patron Franck",
                 "description": "Il tient la boutique familiale depuis plus de 15 ans avec passion",
                 "dialogue": [
                     "La cancoillotte... c'est pas du fromage.",

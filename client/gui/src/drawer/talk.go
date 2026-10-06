@@ -23,8 +23,16 @@ func (dr *Drawer) DrawTalk() {
 	text := dr.getAnimatedTalkText()
 	dr.drawTalkContent(text, talk.Result, startX, startY, width, height)
 
-	dr.DrawTalkButtons()
-	dr.DrawTalkButtonTitle()
+	npc := dr.app.Variables.PanelsVariables.Talk.Talking.NpcID
+	datas, ok := dr.app.Variables.Npcs[npc]
+	if !ok {
+		return
+	}
+
+	if datas.Hostile || (!datas.RequestedQuest && datas.HasQuest) || (!datas.CompletedQuest && datas.RequestedQuest) {
+		dr.DrawTalkButtons()
+		dr.DrawTalkButtonTitle()
+	}
 }
 
 func (dr *Drawer) drawTalkFrame(startX, startY, width, height float32) {
@@ -102,6 +110,9 @@ func (dr *Drawer) DrawTalkButtonTitle() {
 
 	} else if !datas.CompletedQuest {
 		title = "Validate Quest"
+
+	} else {
+		return
 	}
 
 	// Calculate coordinates

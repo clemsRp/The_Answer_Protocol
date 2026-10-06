@@ -148,6 +148,7 @@ func (dr *Drawer) DrawQuestsDatas(datas *vars.DatasPanel, datas_start_x, datas_s
 func (dr *Drawer) DrawQuests(title string, quests []pr.TrackedQuestData, start_y int32, datas_start_x, tile, font float32, color rl.Color) {
 	indX := int32((datas_start_x + 0.7) * tile)
 
+	// Draw Title
 	rl.DrawText(
 		title,
 		indX,
@@ -156,13 +157,29 @@ func (dr *Drawer) DrawQuests(title string, quests []pr.TrackedQuestData, start_y
 		color,
 	)
 
-	for index, quest := range quests {
+	index := 0
+	for _, quest := range quests {
+		index++
+		// Draw Quest ID
 		rl.DrawText(
 			quest.Id,
-			indX+int32(tile),
-			start_y+(int32(index)+1)*int32(font),
+			indX+int32(0.33*tile),
+			start_y+int32(index)*int32(font),
 			int32(font), dr.app.Colors["group_text"],
 		)
+		index++
+
+		description, nb_line := dr.WrapText(quest.Description, 24)
+
+		// Draw Quest Description
+		rl.DrawText(
+			description,
+			indX+int32(0.66*tile),
+			start_y+int32(index)*int32(font),
+			int32(font), dr.app.Colors["pseudo_text"],
+		)
+
+		index += nb_line
 	}
 }
 

@@ -13,10 +13,7 @@
 
 ## OPTIONAL
 
-- See Quest description
-- Display the current room name/description
 - Add automatic barriers
 - Update collisions
-- Improve error messages
 - Adapt maps to the player's top-left panel
 - Modify the chat scope system using tabs

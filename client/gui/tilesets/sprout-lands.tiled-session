@@ -1,5 +1,5 @@
 {
-    "activeFile": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/fontaneilles.tmx",
+    "activeFile": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.tmx",
     "expandedProjectPaths": [
         "."
     ],
@@ -272,6 +272,14 @@
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.tmx": {
+            "scale": 2.3323242187499997,
+            "selectedLayer": 3,
+            "viewCenter": {
+                "x": 256.1822216639451,
+                "y": 144.06230373068712
+            }
+        },
         "Barn structures.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
@@ -419,6 +427,10 @@
         "Mailbox Animation Frames.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
+        },
+        "Muscular Pixel Sprite Sheet.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1.5
         },
         "Paths.tsx": {
             "scaleInDock": 3.2042,
@@ -692,9 +704,9 @@
         }
     },
     "frame.defaultDuration": 500,
-    "last.exportedFilePath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps",
+    "last.exportedFilePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps",
     "last.externalTilesetPath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/tilesets",
-    "last.imagePath": "/home/clement/Téléchargements",
+    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets",
     "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
@@ -702,11 +714,13 @@
     "map.tileWidth": 16,
     "map.width": 32,
     "openFiles": [
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/fontaneilles.tmx"
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.tmx"
     ],
     "project": "sprout-lands.tiled-project",
     "property.type": "bool",
     "recentFiles": [
+        "Muscular Pixel Sprite Sheet.tsx",
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.tmx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/fontaneilles.tmx",
         "/home/clement/Téléchargements/16-Frame Caveman Sprite Sheet.tsx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/prev_riviere.tmx",
@@ -716,9 +730,7 @@
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/ferme_uzoloise.tmx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/riviere.tmx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/prev_foret_malicieuse.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/foret_malicieuse.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/place_du_village.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/fromagerie.tmx"
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/foret_malicieuse.tmx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {
