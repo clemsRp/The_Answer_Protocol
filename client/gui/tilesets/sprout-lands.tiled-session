@@ -280,6 +280,12 @@
                 "y": 144.06230373068712
             }
         },
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/street_workout_8x8_tiles_33_percent_smaller.tsx": {
+            "scaleInDock": 1
+        },
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/street_workout_8x8_tiles_crisp.tsx": {
+            "scaleInDock": 1
+        },
         "Barn structures.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
@@ -591,7 +597,7 @@
         },
         "gabinap.tsx": {
             "scaleInDock": 1,
-            "scaleInEditor": 5.3415
+            "scaleInEditor": 3
         },
         "grey_brick_houses_with_doors_grass.tsx": {
             "scaleInDock": 1
