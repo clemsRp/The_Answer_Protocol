@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func SetupTestServerEngine(t *testing.T, world_path string) (*server.Server, *engine.Engine) {
+func SetupTestServerEngine(t *testing.T, world_test_path string) (*server.Server, *engine.Engine) {
 	t.Helper()
 	exchanger := pr.Exchanger{ServerInput: make(chan pr.ServerRequest, 100),
 		ServerOutput: make(chan pr.EngineResponse, 100),
@@ -19,16 +19,16 @@ func SetupTestServerEngine(t *testing.T, world_path string) (*server.Server, *en
 		LeaveChan:    make(chan string, 10)}
 
 	var err error
-	var world *engine.Map
-	if _, statErr := os.Stat(world_path); statErr != nil {
-		for _, alt := range []string{"../../world.json", "../world.json", "world.json"} {
+	var world_test *engine.Map
+	if _, statErr := os.Stat(world_test_path); statErr != nil {
+		for _, alt := range []string{"../../world_test.json", "../world_test.json", "world_test.json"} {
 			if _, altErr := os.Stat(alt); altErr == nil {
-				world_path = alt
+				world_test_path = alt
 				break
 			}
 		}
 	}
-	world, err = engine.Get_map(world_path)
+	world_test, err = engine.Get_map(world_test_path)
 	if err != nil {
 		t.Fatalf("ERROR parsing: %v", err.Error())
 	}
@@ -41,7 +41,7 @@ func SetupTestServerEngine(t *testing.T, world_path string) (*server.Server, *en
 	}
 
 	// Initialize and start engine
-	e := engine.NewEngine(world, exchanger)
+	e := engine.NewEngine(world_test, exchanger)
 	go e.Start()
 	time.Sleep(10 * time.Millisecond)
 	// Start the serveur

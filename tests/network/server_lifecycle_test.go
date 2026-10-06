@@ -8,7 +8,7 @@ import (
 )
 
 func TestServerGracefulShutdown_RefuseNewConnections(t *testing.T) {
-	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+	s, _ := utils.SetupTestServerEngine(t, "../../world_test.json")
 	addr := s.GetAddress()
 
 	conn, err := net.DialTimeout("tcp", addr, 1*time.Second)

@@ -10,7 +10,7 @@ import (
 )
 
 func TestAntiFloodProtection(t *testing.T) {
-	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+	s, _ := utils.SetupTestServerEngine(t, "../../world_test.json")
 	conn, reader := utils.ConnectAndGreet(t, s.GetAddress())
 	defer conn.Close()
 

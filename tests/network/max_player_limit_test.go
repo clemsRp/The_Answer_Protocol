@@ -9,7 +9,7 @@ import (
 )
 
 func TestMaxPlayersLimit(t *testing.T) {
-	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+	s, _ := utils.SetupTestServerEngine(t, "../../world_test.json")
 	addr := s.GetAddress()
 
 	const maxPlayers = 50

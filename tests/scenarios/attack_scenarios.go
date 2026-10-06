@@ -11,7 +11,7 @@ var attackNonHostileNPCScenario = []ScenariosCommandTest{
 	connectAlice,
 	{
 		Name:    "Attack NON hostile NPC",
-		Command: "ATTACK shepherd_hana",
+		Command: "ATTACK thomas_charbonneau",
 		ExpectedReplies: []Reply{
 			{protocol.ErrNpcNotHostile, "alice"},
 		},

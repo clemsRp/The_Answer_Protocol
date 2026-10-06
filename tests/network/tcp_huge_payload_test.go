@@ -11,7 +11,7 @@ import (
 
 // 1024 bytes per line maximum
 func TestProtectionAgainstHugePayloads(t *testing.T) {
-	s, _ := utils.SetupTestServerEngine(t, "../../world.json")
+	s, _ := utils.SetupTestServerEngine(t, "../../world_test.json")
 	conn, _ := utils.ConnectAndGreet(t, s.GetAddress())
 	defer conn.Close()
 

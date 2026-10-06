@@ -19,7 +19,7 @@ func TestZombieClientTimeout(t *testing.T) {
 		JoinChan:     make(chan string, 10),
 		LeaveChan:    make(chan string, 10)}
 
-	world, err := engine.Get_map("../../world.json")
+	world_test, err := engine.Get_map("../../world_test.json")
 	if err != nil {
 		t.Fatalf("ERROR parsing: %v", err)
 	}
@@ -29,7 +29,7 @@ func TestZombieClientTimeout(t *testing.T) {
 		t.Fatalf("Server couldn't be created %v", err)
 	}
 
-	e := engine.NewEngine(world, exchanger)
+	e := engine.NewEngine(world_test, exchanger)
 
 	s.IdleTimeout = 1 * time.Second
 
