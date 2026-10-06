@@ -101,6 +101,43 @@ func (dr *Drawer) DrawRealWoodFrame(startX, startY float32, frame_width, frame_h
 	}
 }
 
+func (dr *Drawer) DrawWoodFramePx(x, y, w, h, corner float32, darkness int, empty bool) {
+	texture := (*dr.app.Textures)[vars.UI_SPRITE_TEXTURE]
+
+	nx := max(2, int(math.Round(float64(w/corner))))
+	ny := max(2, int(math.Round(float64(h/corner))))
+	cw := w / float32(nx)
+	ch := h / float32(ny)
+
+	for i := 0; i < nx; i++ {
+		for j := 0; j < ny; j++ {
+			if empty && i != 0 && j != 0 && i != nx-1 && j != ny-1 {
+				continue
+			}
+
+			indX, indY := 1, 1
+			if i == 0 {
+				indX = 0
+			} else if i == nx-1 {
+				indX = 2
+			}
+			if j == 0 {
+				indY = 0
+			} else if j == ny-1 {
+				indY = 2
+			}
+
+			src := rl.NewRectangle(
+				float32((12+indX)*vars.FRAME_WIDTH),
+				float32((indY+darkness*3)*vars.FRAME_HEIGHT),
+				float32(vars.FRAME_WIDTH), float32(vars.FRAME_HEIGHT),
+			)
+			dst := rl.NewRectangle(x+cw*float32(i), y+ch*float32(j), cw+1, ch+1)
+			rl.DrawTexturePro(texture, src, dst, rl.NewVector2(0, 0), 0, rl.White)
+		}
+	}
+}
+
 func (dr *Drawer) DrawBorderedInput(x, y, width, height, border int32, border_color, input_color rl.Color) {
 	// Border
 	rl.DrawRectangle(x-border, y, width+(2*border), height, border_color)
