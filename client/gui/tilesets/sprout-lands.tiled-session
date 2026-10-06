@@ -725,6 +725,7 @@
     "project": "sprout-lands.tiled-project",
     "property.type": "bool",
     "recentFiles": [
+        "gabinap.tsx",
         "Muscular Pixel Sprite Sheet.tsx",
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.tmx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/fontaneilles.tmx",
@@ -735,8 +736,7 @@
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/jardin.tmx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/ferme_uzoloise.tmx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/riviere.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/prev_foret_malicieuse.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/foret_malicieuse.tmx"
+        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/prev_foret_malicieuse.tmx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {
