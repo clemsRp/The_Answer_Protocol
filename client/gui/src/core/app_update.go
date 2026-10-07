@@ -270,6 +270,10 @@ func (app *App) AppendCombatChat(user, msg string) {
 	app.AppendChat("COMBAT", user, msg)
 }
 
+func (app *App) SetConnectionError(message string) {
+	app.Variables.ConnectionError = message
+}
+
 func (app *App) UpdateDatas(text string)                          {}
 func (app *App) AppendServerResponse(res protocol.ServerResponse) {}
 func (app *App) AppendCliMessage(text string)                     {}
