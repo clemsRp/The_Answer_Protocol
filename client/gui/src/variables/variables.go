@@ -23,8 +23,10 @@ type Variables struct {
 	Current_view    string
 	PanelsVariables *PanelVariables
 
-	Npcs         map[string]*NpcDatas
-	NpcConvertor map[string]string
+	Npcs          map[string]*NpcDatas
+	Items         map[string]*ItemDatas
+	NpcConvertor  map[string]string
+	ItemConvertor map[string]string
 
 	Zoom         float32
 	FontSize     float32

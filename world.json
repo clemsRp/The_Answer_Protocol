@@ -12,16 +12,16 @@
                 "npcs": ["thomas_charbonneau", "maelis"]
             },
             "ferme_uzoloise": {
-                "name": "La ferme Royale",
+                "name": "La ferme Uzoloise",
                 "description": "La ferme royale de la principaute d'Uzols, où on peut trouver de la viande de qualité",
                 "exits": {
                     "east": "verger_de_la_savane"
                 },
-                "items": [],
+                "items": ["pioche"],
                 "npcs": ["le_prince"]
             },
             "fontaneilles": {
-                "name": "Capitale du roquefort",
+                "name": "Fontaneilles",
                 "description": "Une ville qui sent étonnement fort le fromage",
                 "exits": {
                     "west": "fromagerie",
@@ -29,7 +29,7 @@
                     "east": "lac_du_barrage"
                 },
                 "items": ["flocons_d_avoine"],
-                "npcs": []
+                "npcs": ["gabinap"]
             },
             "verger_de_la_savane": {
                 "name": "Le verger de la Savane",
@@ -50,7 +50,7 @@
                     "south": "verger_de_la_savane",
                     "east": "fontaneilles"
                 },
-                "items": ["cancoillotte"],
+                "items": [],
                 "npcs": ["franck"]
             },
             "place_du_village": {
@@ -63,7 +63,7 @@
                     "south": "jardin"
                 },
                 "items": [],
-                "npcs": ["gabinap"]
+                "npcs": []
             },
             "lac_du_barrage": {
                 "name": "Le lac de St Etienne de Cantales",
@@ -83,7 +83,7 @@
                     "north": "lac_du_barrage",
                     "south": "riviere"
                 },
-                "items": ["engrenage"],
+                "items": ["acier"],
                 "npcs": ["roger"]
             },
             "foret_malicieuse": {
@@ -104,7 +104,7 @@
                 "exits": {
                     "north": "riviere"
                 },
-                "items": [],
+                "items": ["marshmallow"],
                 "npcs": []
             },
             "riviere": {
@@ -184,9 +184,9 @@
                 "worth": 12,
                 "damage": 8
             },
-            "engrenage": {
-                "name": "Engrenage en acier",
-                "description": "Un engrenage proche d'un barrage, je me demande à quoi ça peut bien servir ...",
+            "acier": {
+                "name": "Barre d'acier",
+                "description": "De l'acier proche d'un barrage, je me demande à quoi ça peut bien servir ...",
                 "obtainable": true,
                 "type": "ressource"
             },
@@ -219,39 +219,6 @@
                 "effect_type": "heal",
                 "charges": 1,
                 "duration": 1
-            },
-            "old_fishing_rod": {
-                "name": "Old Fishing Rod",
-                "description": "A worn bamboo fishing rod. The hook end is surprisingly sharp when swung.",
-                "obtainable": true,
-                "type": "weapon",
-                "worth": 6,
-                "damage": 5
-            },
-            "wool_scarf": {
-                "name": "Wool Scarf",
-                "description": "A thick, hand-knit scarf. Wrapping it around you offers a bit of protection from the cold and from claws.",
-                "obtainable": true,
-                "type": "consumable",
-                "target_stat": "shield",
-                "amount": 8,
-                "effect_type": "buff",
-                "charges": 1,
-                "duration": 2
-            },
-            "windmill_gear": {
-                "name": "Windmill Gear",
-                "description": "A heavy wooden cog fallen from the windmill's mechanism. Miller Greta might want it back.",
-                "obtainable": true,
-                "type": "ressource"
-            },
-            "golden_shears": {
-                "name": "Golden Shears",
-                "description": "Ornate shears with a gilded edge, awarded to those brave enough to drive off the forest boar.",
-                "obtainable": true,
-                "type": "weapon",
-                "worth": 10,
-                "damage": 6
             }
         },
         "npcs": {
@@ -423,10 +390,10 @@
                 "target_npc": "bob"
             },
             "repare_barrage": {
-                "description": "Trouve l'engrenage manquant au barrage pour le réparer",
+                "description": "Trouve l'acier manquant au barrage pour le réparer",
                 "reward": "fricadelle",
                 "status": "available",
-                "target_item": "engrenage"
+                "target_item": "acier"
             }
         }
     }

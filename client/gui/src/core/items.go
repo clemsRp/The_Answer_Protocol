@@ -10,40 +10,27 @@ import (
 	pr "tap/protocol"
 )
 
-type ItemDatas struct {
-	texture        string
-	ratioX, ratioY float32
-	indXs, indYs   []float32
-}
-
-var (
-	// TODO Define all items
-	item_convertor = map[string]ItemDatas{
-		"mais_sucre": ItemDatas{
-			texture: vars.UI_SPRITE_TEXTURE,
-			indXs:   []float32{0},
-			indYs:   []float32{0},
-			ratioX:  1,
-			ratioY:  1,
-		},
-	}
-)
-
 func (app *App) GetNewRoomItems(roomItems []string) []*ui.Interaction {
-	// Initialize the interactions array
 	items := make([]*ui.Interaction, 0)
 
 	for _, it := range roomItems {
-		// Set default placement and animation constants
 		frame_duration := 500
 
-		// Retrieve texture and frames for the current item
 		text, frames := get_item_datas(it, frame_duration)
 
 		var pos *vars.Position
 		var ok bool
 		if pos, ok = (*app.Variables.ItemPositions)[it]; !ok {
-			continue
+			if itemDef, exists := vars.ItemConvertor[it]; exists {
+				p := &vars.Position{
+					X: itemDef.Pos.X,
+					Y: itemDef.Pos.Y,
+				}
+				(*app.Variables.ItemPositions)[it] = p
+				pos = p
+			} else {
+				continue
+			}
 		}
 
 		// Create the visual emote (sprite) for the item
@@ -181,6 +168,13 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 				}
 
 				// Update position
+				if _, exist := (*app.Variables.ItemPositions)[it]; !exist {
+					(*app.Variables.ItemPositions)[it] = &vars.Position{
+						X: app.Variables.Player.Position.X,
+						Y: app.Variables.Player.Position.Y,
+					}
+				}
+
 				(*app.Variables.ItemPositions)[it].X = newPosX
 				(*app.Variables.ItemPositions)[it].Y = newPosY
 				payload := fmt.Sprintf("%s %f %f %s", protocol.CmdNotifyItemPosition, newPosX, newPosY, it)
@@ -325,12 +319,12 @@ func get_item_datas(item string, frame_duration int) (string, []*ui.EmoteFrame) 
 	var indXs, indYs []float32
 
 	// Get datas depending on item
-	if d, ok := item_convertor[item]; ok {
-		texture = d.texture
-		indXs = d.indXs
-		indYs = d.indYs
-		ratioX = d.ratioX
-		ratioY = d.ratioY
+	if d, ok := vars.ItemConvertor[item]; ok {
+		texture = d.Texture
+		indXs = d.IndXs
+		indYs = d.IndYs
+		ratioX = d.RatioX
+		ratioY = d.RatioY
 
 	} else {
 		texture = vars.UI_SPRITE_TEXTURE

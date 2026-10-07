@@ -99,10 +99,19 @@ func (app *App) ParseNpcNames(filepath string) {
 
 	if len(world) > 0 {
 		app.WorldItems = world[0].Items
+
+		// Init NpcConvertor
 		app.Variables.NpcConvertor = make(map[string]string)
 		for npc_id, npc := range world[0].Npcs {
 			app.Variables.NpcConvertor[npc.Name] = npc_id
 			app.Variables.NpcConvertor[npc_id] = npc.Name
+		}
+
+		// Init ItemConvertor
+		app.Variables.ItemConvertor = make(map[string]string)
+		for item_id, item := range world[0].Items {
+			app.Variables.ItemConvertor[item.Name] = item_id
+			app.Variables.ItemConvertor[item_id] = item.Name
 		}
 	}
 }

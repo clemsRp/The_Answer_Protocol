@@ -250,9 +250,9 @@ func (dr *Drawer) HideBorder() {
 	in_time := time.Since(dr.app.Variables.LastRoomChange) <= 5*time.Second
 
 	rl.DrawRectangle(
-		int32(10*dr.app.Variables.Tileset_size),
+		int32(6*dr.app.Variables.Tileset_size),
 		int32(0),
-		int32(10*dr.app.Variables.Tileset_size),
+		int32(18*dr.app.Variables.Tileset_size),
 		int32(0.39*dr.app.Variables.Tileset_size),
 		rl.Black,
 	)

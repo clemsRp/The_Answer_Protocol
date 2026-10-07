@@ -88,8 +88,9 @@ func (app *App) AddItemPositions() {
 	positions := make(map[string]*vars.Position)
 
 	// Set positions
-	// TODO Define all items
-	positions["mais_sucre"] = &vars.Position{X: 24, Y: 12}
+	for it_name, it_datas := range vars.ItemConvertor {
+		positions[it_name] = &vars.Position{X: it_datas.Pos.X, Y: it_datas.Pos.Y}
+	}
 
 	// Scale positions to map size
 	for _, pos := range positions {

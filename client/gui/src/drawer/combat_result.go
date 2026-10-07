@@ -94,7 +94,12 @@ func (dr *Drawer) DrawResultDatas(res *vars.CombatResultPanel, tile, font float3
 			textList = []text{}
 
 		} else {
-			rewards := strings.Join(res.Rewards, ", ")
+			true_rewards := make([]string, 0)
+			for _, r := range res.Rewards {
+				true_rewards = append(true_rewards, dr.app.Variables.ItemConvertor[r])
+			}
+
+			rewards := strings.Join(true_rewards, ", ")
 
 			textList = []text{
 				{
@@ -107,7 +112,7 @@ func (dr *Drawer) DrawResultDatas(res *vars.CombatResultPanel, tile, font float3
 				},
 			}
 		}
-		option = "YOU earned it !"
+		option = "You deserve it !"
 	}
 
 	// Draw case text

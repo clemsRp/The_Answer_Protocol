@@ -118,13 +118,13 @@ var (
 func (up *Updater) canMove(room *parser.Map, x, y float32, tile_size int) bool {
 	x_off := vars.FRAME_WIDTH * up.app.Variables.Zoom
 	y_off := vars.FRAME_HEIGHT * up.app.Variables.Zoom
-	marge := 2
+	marge := 4
 	bottom_part := vars.FRAME_HEIGHT * 4 / 5
 
 	up_left := Pos{X: x + float32(marge), Y: y + float32(marge+bottom_part)}
 	up_right := Pos{X: x + x_off - float32(marge), Y: y + float32(marge+bottom_part)}
-	down_left := Pos{X: x + float32(marge), Y: y + y_off - float32(marge)}
-	down_right := Pos{X: x + x_off - float32(marge), Y: y + y_off - float32(marge)}
+	down_left := Pos{X: x + float32(marge), Y: y + y_off - float32(marge) + 2}
+	down_right := Pos{X: x + x_off - float32(marge), Y: y + y_off - float32(marge) + 2}
 
 	edges := [][2]Pos{
 		{up_left, up_right},

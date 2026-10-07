@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -53,6 +54,7 @@ type FullTurnResponse struct {
 	PlayerAction ActionLog   `json:"player_action"`
 	NpcReactions []ActionLog `json:"npc_reactions"`
 	CombatState  CombatState `json:"combat_state"`
+	ItemsReward  []string    `json:"items_reward,omitempty"`
 }
 
 func (e *Engine) getValidTarget(player *Player, targetName string) (*Npc, error) {
@@ -188,6 +190,9 @@ func (cs *CombatSession) processCombatTurn(attacker Fighter, target Fighter) (st
 	if cs.checkIfNpcsAreDead() {
 		cs.State = StateVictory
 		cs.TurnResponse.CombatState = cs.State
+		if len(cs.Npcs) > 0 {
+			cs.TurnResponse.ItemsReward = cs.Npcs[0].ItemsReward
+		}
 	}
 	player_turn_result := &CombatTurnResult{AttackerHp: attacker.getHp(), TargetHp: target.getHp(), Damage: inflicted_damage, Status: cs.State}
 	cs.TurnResponse.PlayerAction = ActionLog{
@@ -237,6 +242,9 @@ func (cs *CombatSession) processNpcsTurn() {
 		if cs.checkIfNpcsAreDead() {
 			cs.State = StateVictory
 			cs.TurnResponse.CombatState = cs.State
+			if len(cs.Npcs) > 0 {
+				cs.TurnResponse.ItemsReward = cs.Npcs[0].ItemsReward
+			}
 		}
 		cs.nextTurn()
 		cs.TurnResponse.CombatState = cs.State
@@ -346,9 +354,34 @@ func (e *Engine) end_combat(cs *CombatSession) {
 		for _, p := range cs.Players {
 			e.inform_user(p, msg)
 		}
+
 	} else if cs.State == StateVictory {
 		for _, p := range cs.Players {
-			e.inform_user(p, "EVT COMBAT VICTORY")
+			// Cast datas
+			type evtData struct {
+				ItemsReward []string `json:"items_reward,omitempty"`
+			}
+			data := evtData{
+				ItemsReward: cs.Npcs[0].ItemsReward,
+			}
+			bytes, err := json.Marshal(data)
+			result := ""
+			if err == nil {
+				result = string(bytes)
+			}
+
+			e.inform_user(p, "EVT COMBAT VICTORY "+result)
+
+			// Add items to inventory
+			is_leader := p.group == "" || e.groups[p.group].leader.name == p.name
+
+			if is_leader {
+				for _, itemObject := range e.world.Items {
+					if slices.Contains(cs.Npcs[0].ItemsReward, itemObject.Id) {
+						p.inventory = append(p.inventory, itemObject)
+					}
+				}
+			}
 		}
 	}
 

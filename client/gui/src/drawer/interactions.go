@@ -1,6 +1,10 @@
 package drawer
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	vars "tap/client/gui/src/variables"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
 func (dr *Drawer) DrawGameInteractions() {
 	// Draw items
@@ -44,17 +48,14 @@ func (dr *Drawer) DrawGameInteractions() {
 			npc_name, int32(dr.app.Variables.FontSize),
 		) / 2
 
-		signX := 1
-		signY := -1
-		if npc.Emote.Frames[0].Frame.RatioX >= 2 {
-			signX = 2
-		}
-		if npc.Emote.Frames[0].Frame.RatioY >= 2 {
-			signY = 0
+		ratioX := float32(1)
+		if npc.Emote != nil && len(npc.Emote.Frames) > 0 {
+			ratioX = npc.Emote.Frames[0].Frame.RatioX
 		}
 
-		x := npc.Emote.X + 0.5*dr.app.Variables.Tileset_size*float32(signX) - float32(center)
-		y := npc.Emote.Y + dr.app.Variables.FontSize*float32(signY)
+		spriteWidth := float32(vars.FRAME_WIDTH) * npc.Emote.Zoom * ratioX
+		x := npc.Emote.X + (spriteWidth / 2) - float32(center)
+		y := npc.Emote.Y - float32(dr.app.Variables.FontSize)
 
 		// Draw npc name
 		rl.DrawText(
