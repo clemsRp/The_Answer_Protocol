@@ -54,16 +54,37 @@ func (dr *Drawer) ComputeFightersPanelGeometry() fightersPanelGeometry {
 }
 
 func (dr *Drawer) DrawCombatFightersZone() {
-	dr.DrawCombatFrame(vars.COMBAT_START_X, vars.COMBAT_START_Y, vars.COMBAT_LEFT_END_X, vars.COMBAT_FIGHTERS_END_Y)
+	dr.DrawCombatFrame(
+		vars.COMBAT_START_X,
+		vars.COMBAT_START_Y,
+		vars.COMBAT_LEFT_END_X,
+		vars.COMBAT_FIGHTERS_END_Y,
+	)
 
 	geo := dr.ComputeFightersPanelGeometry()
 	state := dr.app.Variables.PanelsVariables.CombatState
 
 	oppBaseY := geo.panelStartY + geo.tile
-	teamBaseY := geo.panelStartY + geo.panelHeight - (float32(geo.frameSize)+4.5)*geo.tile
+	teamBaseY := geo.panelStartY + geo.panelHeight -
+		(float32(geo.frameSize)+4.5)*geo.tile
 
 	dr.DrawOpponentFrames(state.Opponents, oppBaseY, geo)
-	dr.DrawTeamFrames(state.Team, teamBaseY, geo)
+
+	activeTeam := make(map[string]pr.CombatPersonData)
+
+	for name, player := range state.Team {
+		if !player.InCombat {
+			continue
+		}
+
+		if player.CombatId != state.CombatId {
+			continue
+		}
+
+		activeTeam[name] = player
+	}
+
+	dr.DrawTeamFrames(activeTeam, teamBaseY, geo)
 	dr.DrawCombatInteractions(geo)
 }
 
@@ -85,6 +106,7 @@ func (dr *Drawer) DrawOpponentFrames(opponents map[string]pr.CombatPersonData, b
 
 func (dr *Drawer) DrawTeamFrames(team map[string]pr.CombatPersonData, baseY float32, geo fightersPanelGeometry) {
 	caseWidth := geo.panelWidth / float32(len(team))
+
 	for index, key := range sortedKeys(team) {
 		dr.DrawFighterFrame(team[key].Name, index, caseWidth, baseY-0.15*geo.tile, geo)
 	}

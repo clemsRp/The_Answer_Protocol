@@ -44,6 +44,7 @@ type CombatChat struct {
 
 type CombatState struct {
 	InCombat         bool
+	CombatId         string
 	Chats            []CombatChat
 	LastCombatChat   string
 	Opponents        map[string]protocol.CombatPersonData

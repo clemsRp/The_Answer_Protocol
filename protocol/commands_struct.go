@@ -28,9 +28,12 @@ type CombatPersonData struct {
 	Hp        int      `json:"hp"`
 	MaxHp     int      `json:"max_hp"`
 	Inventory []string `json:"inventory"`
+	InCombat  bool     `json:"in_combat"`
+	CombatId  string   `json:"combat_id"`
 }
 
 type CombatStatsCommandData struct {
+	CombatId    string                      `json:"combat_id"`
 	Leader      string                      `json:"leader"`
 	CurrentTurn string                      `json:"current_turn"`
 	Team        map[string]CombatPersonData `json:"team"`

@@ -33,6 +33,8 @@ func (e *Engine) get_combat_stats(player *Player) (string, any, error) {
 			Hp:        p.stats.Hp,
 			MaxHp:     p.stats.HpMax,
 			Inventory: inventory,
+			InCombat:  p.inCombat,
+			CombatId:  p.stats.CombatId,
 		}
 	}
 
@@ -51,6 +53,7 @@ func (e *Engine) get_combat_stats(player *Player) (string, any, error) {
 	}
 
 	res := pr.CombatStatsCommandData{
+		CombatId:    cs.Id,
 		Leader:      leaderName,
 		CurrentTurn: currentTurnName,
 		Team:        team,
