@@ -25,6 +25,8 @@ type Variables struct {
 	Npcs         map[string]*NpcDatas
 	NpcConvertor map[string]string
 
+	ConnectionError string
+
 	Zoom         float32
 	FontSize     float32
 	StartTime    time.Time

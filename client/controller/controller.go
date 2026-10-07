@@ -36,6 +36,7 @@ type UIApp interface {
 	AppendServerResponse(res protocol.ServerResponse)
 	AppendCliMessage(text string)
 	AppendCliResponse(res protocol.ServerResponse)
+	SetConnectionError(message string)
 	GetPseudo() string
 	SetPseudo(pseudo string)
 	UpdateRemotePlayerPosition(pseudo string, X float32, Y float32, DirX float32, DirY float32, emoteIndex int)

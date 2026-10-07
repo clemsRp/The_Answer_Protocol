@@ -19,6 +19,12 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 	}
 
 	if strings.HasPrefix(res.Msg, pr.MsgErr) {
+		if lastCmdBase == pr.CmdConnect {
+			c.ui.QueueUpdate(func() {
+				c.ui.SetConnectionError(res.Msg)
+				c.ui.ShowConnectPage()
+			})
+		}
 		return
 	}
 
@@ -32,6 +38,7 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 			c.ui.SetPseudo(pseudo)
 		}
 		c.ui.QueueUpdate(func() {
+			c.ui.SetConnectionError("")
 			c.ui.ShowGamePage()
 		})
 		c.sendToNetwork(pr.CmdLook)

@@ -80,31 +80,42 @@ func (dr *Drawer) DrawConnectView() {
 	// Draw input
 	posX = 13.5 * dr.app.Variables.Tileset_size
 	posY = 6 * dr.app.Variables.Tileset_size
-	dialogue := (*dr.app.Textures)[vars.MSG_BUBBLE_TEXTURE]
-	dr.DrawImage(
-		vars.MSG_BUBBLE_TEXTURE,
-		posX, posY,
-		0, 0,
-		float32(dialogue.Width)/float32(vars.FRAME_WIDTH),
-		float32(dialogue.Height)/float32(vars.FRAME_HEIGHT),
-		logo_zoom*1.5, 0,
-	)
 
-	rl.DrawText(
-		"ENTER PSEUDO",
-		int32(posX+dr.app.Variables.Tileset_size*0.5),
-		int32(posY+dr.app.Variables.Tileset_size*0.3),
-		int32(dr.app.Variables.FontSize), dr.app.Colors["panel_text"],
-	)
+	tile := dr.app.Variables.Tileset_size
 
-	input_start := int32(posX + dr.app.Variables.Tileset_size)
-	input_width := 22.5*dr.app.Variables.Tileset_size - float32(input_start)
+	input_start := int32(posX + tile)
+	input_width := 22.5*tile - float32(input_start)
 	input_height := 2 * dr.app.Variables.FontSize
 	border := input_height * 0.1
 
+	rl.DrawText(
+		"ENTER PSEUDO",
+		int32(posX+tile*0.5),
+		int32(posY+tile*0.3),
+		int32(dr.app.Variables.FontSize),
+		dr.app.Colors["panel_text"],
+	)
+
+	// Message d'erreur entre le titre et l'input
+	if errorMessage := dr.app.Variables.ConnectionError; errorMessage != "" {
+		errorFontSize := int32(float32(dr.app.Variables.FontSize) * 0.55)
+
+		errorX := float32(input_start)
+
+		errorY := posY + tile*0.9
+
+		rl.DrawText(
+			errorMessage,
+			int32(errorX),
+			int32(errorY),
+			errorFontSize,
+			rl.Red,
+		)
+	}
+
 	// Bordered input
-	baseX := int32(posX + dr.app.Variables.Tileset_size)
-	baseY := int32(posY + 1.5*dr.app.Variables.Tileset_size)
+	baseX := input_start
+	baseY := int32(posY + 1.5*tile)
 
 	dr.DrawBorderedInput(
 		baseX,
@@ -112,15 +123,17 @@ func (dr *Drawer) DrawConnectView() {
 		int32(input_width),
 		int32(input_height),
 		int32(border),
-		rl.Black, rl.White,
+		rl.Black,
+		rl.White,
 	)
 
 	// Display pseudo
 	rl.DrawText(
 		dr.app.Variables.Player.Pseudo,
-		int32(posX+1.25*dr.app.Variables.Tileset_size),
-		int32(posY+1.75*dr.app.Variables.Tileset_size),
-		int32(dr.app.Variables.FontSize), rl.Black,
+		int32(posX+1.25*tile),
+		int32(posY+1.75*tile),
+		int32(dr.app.Variables.FontSize),
+		rl.Black,
 	)
 
 	// Draw cursor

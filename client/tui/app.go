@@ -538,7 +538,7 @@ func (m *MyApp) RemoveRemotePlayer(pseudo string)        {}
 func (m *MyApp) UpdateStatus(datas any)                  {}
 func (m *MyApp) UpdateWho(nb_players int)                {}
 func (m *MyApp) OnTalkResponse(npcName, dialogue string) {}
-
+func (m *MyApp) SetConnectionError(message string)       {}
 func (m *MyApp) GetPseudo() string {
 	return m.pseudo
 }
