@@ -7,7 +7,6 @@
  <tileset firstgid="5" source="../tilesets/Wood Bridge.tsx"/>
  <tileset firstgid="20" source="../tilesets/Grass.tsx"/>
  <tileset firstgid="97" source="../tilesets/collisions.tsx"/>
- <tileset firstgid="129" source="../tilesets/street_workout.tsx"/>
  <tileset firstgid="188" source="../tilesets/Chikcen_Houses.tsx"/>
  <tileset firstgid="452" source="../tilesets/Tilled Dirt.tsx"/>
  <tileset firstgid="516" source="../tilesets/Basic_Grass_Biom_things.tsx"/>

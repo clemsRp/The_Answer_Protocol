@@ -65,7 +65,7 @@ func (s *Server) handleClient(conn net.Conn) {
 func (s *Server) readClientInput(cli *Client) {
 	input := bufio.NewScanner(cli.conn)
 	input.Buffer(make([]byte, 0, MaxPayloadSize), MaxPayloadSize)
-	limiter := NewRateLimiter(MaxTokens, 50*time.Millisecond)
+	limiter := NewRateLimiter(MaxTokens, 35*time.Millisecond)
 
 	for {
 		cli.conn.SetReadDeadline(time.Now().Add(s.IdleTimeout))

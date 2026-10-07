@@ -156,7 +156,12 @@ func (dr *Drawer) DrawFighterPseudo(item *ui.Interaction, cleanID string, shift,
 		y += 0.1 * geo.tile
 	}
 
-	rl.DrawText(pseudo, int32(x), int32(y), fontSize, dr.app.Colors["pseudo_text"])
+	color := dr.app.Colors["pseudo_text"]
+	if dr.GetFighterLive(item) == 0 {
+		color = rl.Red
+	}
+
+	rl.DrawText(pseudo, int32(x), int32(y), fontSize, color)
 }
 
 func (dr *Drawer) DrawFighterLive(item *ui.Interaction, cleanID string, shift, turnZoom float32, geo fightersPanelGeometry) {

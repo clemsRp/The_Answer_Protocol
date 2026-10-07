@@ -15,12 +15,13 @@ type PanelVariables struct {
 	GroupState  *state.GroupState
 	CombatState *state.CombatState
 
-	Chat    *ChatPanel
-	Datas   *DatasPanel
-	Group   *GroupPanel
-	Inspect *InspectPanel
-	Talk    *TalkPanel
-	Emotes  *EmotesPanel
+	Chat         *ChatPanel
+	Datas        *DatasPanel
+	Group        *GroupPanel
+	CombatResult *CombatResultPanel
+	Inspect      *InspectPanel
+	Talk         *TalkPanel
+	Emotes       *EmotesPanel
 }
 
 var (
@@ -62,6 +63,7 @@ func GetPanelsVariables() *PanelVariables {
 			ScrollActive:    false,
 			LastFrameScroll: false,
 		},
+		CombatResult: &CombatResultPanel{},
 		Inspect: &InspectPanel{
 			Open:        false,
 			LastInspect: "ROOM",

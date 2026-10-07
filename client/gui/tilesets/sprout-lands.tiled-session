@@ -276,8 +276,8 @@
             "scale": 2.3323242187499997,
             "selectedLayer": 3,
             "viewCenter": {
-                "x": 256.1822216639451,
-                "y": 144.06230373068712
+                "x": 353.51002805342716,
+                "y": 203.65950676213208
             }
         },
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/street_workout_8x8_tiles_33_percent_smaller.tsx": {
@@ -712,7 +712,7 @@
     "frame.defaultDuration": 500,
     "last.exportedFilePath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps",
     "last.externalTilesetPath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/tilesets",
-    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets",
+    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Lands - UI Pack - Basic pack/Sprite sheets",
     "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
@@ -725,9 +725,9 @@
     "project": "sprout-lands.tiled-project",
     "property.type": "bool",
     "recentFiles": [
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.tmx",
         "gabinap.tsx",
         "Muscular Pixel Sprite Sheet.tsx",
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.tmx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/fontaneilles.tmx",
         "/home/clement/Téléchargements/16-Frame Caveman Sprite Sheet.tsx",
         "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/prev_riviere.tmx",

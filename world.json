@@ -29,7 +29,7 @@
                     "east": "lac_du_barrage"
                 },
                 "items": ["flocons_d_avoine"],
-                "npcs": ["gabinap"]
+                "npcs": []
             },
             "verger_de_la_savane": {
                 "name": "Le verger de la Savane",
@@ -63,7 +63,7 @@
                     "south": "jardin"
                 },
                 "items": [],
-                "npcs": []
+                "npcs": ["gabinap"]
             },
             "lac_du_barrage": {
                 "name": "Le lac de St Etienne de Cantales",
@@ -329,7 +329,8 @@
                     "initiative": 90,
                     "damage": 15
                 },
-                "hostile": true
+                "hostile": true,
+				"items_reward": ["cancoillotte"]
             },
             "bernard": {
                 "name": "Bernard",

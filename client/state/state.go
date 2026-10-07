@@ -73,14 +73,11 @@ func New() *GameState {
 	}
 }
 
-// Read executes a function under a read lock.
 func (gs *GameState) Read(fn func(state *GameState)) {
 	gs.mu.RLock()
 	defer gs.mu.RUnlock()
 	fn(gs)
 }
-
-// Snapshot getters
 
 func (gs *GameState) GetPlayerSnapshot() Player {
 	gs.mu.RLock()

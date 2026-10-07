@@ -11,6 +11,7 @@ import (
 	"sync"
 	"tap/protocol"
 	pr "tap/protocol"
+	"time"
 )
 
 type Client struct {
@@ -62,14 +63,35 @@ func (c *Client) Stop() {
 	c.wg.Wait()
 }
 
+const sendInterval = 40 * time.Millisecond
+
+func isExempt(cmd string) bool {
+	return strings.HasPrefix(cmd, pr.CmdNotifyPlayerPosition) ||
+		strings.HasPrefix(cmd, pr.CmdGetPlayerPositions) ||
+		strings.HasPrefix(cmd, pr.CmdNotifyItemPosition) ||
+		strings.HasPrefix(cmd, pr.CmdGetItemPositions)
+}
+
 func (c *Client) handleInput() {
 	defer c.wg.Done()
+	var last time.Time
 	for {
 		select {
 		case input := <-c.inputs:
-			if c.conn != nil {
-				fmt.Fprint(c.conn, input+"\n")
+			if c.conn == nil {
+				continue
 			}
+			if !isExempt(input) {
+				if wait := sendInterval - time.Since(last); wait > 0 {
+					select {
+					case <-time.After(wait):
+					case <-c.ctx.Done():
+						return
+					}
+				}
+				last = time.Now()
+			}
+			fmt.Fprint(c.conn, input+"\n")
 		case <-c.ctx.Done():
 			return
 		}
