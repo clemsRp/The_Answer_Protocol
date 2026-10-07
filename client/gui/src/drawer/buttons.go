@@ -1,5 +1,11 @@
 package drawer
 
+import (
+	"tap/client/gui/src/ui"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
 func (dr *Drawer) DrawConnectButtons() {
 	for _, b := range dr.app.Manager.Buttons("Connect") {
 		frame := b.CurrentFrame()
@@ -17,14 +23,21 @@ func (dr *Drawer) DrawConnectButtons() {
 func (dr *Drawer) DrawGameButtons() {
 	for _, b := range dr.app.Manager.Buttons("Game") {
 		frame := b.CurrentFrame()
+
 		dr.DrawImage(
 			b.Texture,
-			b.X, b.Y,
-			frame.IndX, frame.IndY,
-			frame.RatioX, frame.RatioY,
+			b.X,
+			b.Y,
+			frame.IndX,
+			frame.IndY,
+			frame.RatioX,
+			frame.RatioY,
 			b.Zoom,
 			b.Rotation,
 		)
+
+		dr.DrawPanelNotifications(b)
+
 	}
 }
 
@@ -138,4 +151,50 @@ func (dr *Drawer) DrawDatasButtons() {
 			b.Rotation,
 		)
 	}
+}
+
+func (dr *Drawer) DrawPanelNotifications(button *ui.Button) {
+	group := dr.app.Variables.PanelsVariables.Group
+	chat := dr.app.Variables.PanelsVariables.Chat
+
+	var showNotification bool
+
+	switch button.ID {
+	case "open_chat":
+		showNotification = !chat.Open && chat.Unread
+
+	case "open_group":
+		showNotification =
+			!group.Open &&
+				((!group.InGroup && len(group.Invitations) > 0) ||
+					group.Promote)
+	}
+
+	if !showNotification {
+		return
+	}
+
+	rect := button.Rect()
+
+	radius := 0.10 * dr.app.Variables.Tileset_size
+
+	x := rect.X + rect.Width - radius
+	y := rect.Y + radius
+
+	rl.DrawCircle(
+		int32(x),
+		int32(y),
+		radius,
+		rl.Red,
+	)
+}
+
+func (dr *Drawer) drawNotificationBubble(x, y, zoom float32) {
+	rl.DrawCircle(
+		int32(x),
+		int32(y),
+		0.10*dr.app.Variables.Tileset_size,
+		rl.Red,
+	)
+
 }

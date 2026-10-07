@@ -245,8 +245,8 @@ func (app *App) UpdateStatus(datas any) {
 }
 
 func (app *App) AppendChat(scope, user, msg string) {
-	scope_up := strings.ToUpper(scope)
-	chats := app.Variables.PanelsVariables.Chat.ScopeChats
+	scopeUp := strings.ToUpper(scope)
+	chat := app.Variables.PanelsVariables.Chat
 
 	emote_index := app.Variables.Player.EmoteIndex
 	if user != app.Variables.Player.Pseudo {
@@ -263,7 +263,14 @@ func (app *App) AppendChat(scope, user, msg string) {
 		EmoteIndex: emote_index,
 	}
 
-	chats[scope_up] = append(chats[scope_up], new_chat)
+	chat.ScopeChats[scopeUp] = append(
+		chat.ScopeChats[scopeUp],
+		new_chat,
+	)
+	if !chat.Open {
+		chat.Unread = true
+		chat.UnreadByScope[scopeUp]++
+	}
 }
 
 func (app *App) AppendCombatChat(user, msg string) {
