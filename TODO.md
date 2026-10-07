@@ -14,3 +14,4 @@
 - Add automatic barriers
 - Update collisions
 - Adapt maps to the player's top-left panel
+- Add dead emote next to dead mates in combat
