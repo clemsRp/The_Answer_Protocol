@@ -13,6 +13,11 @@ func (app *App) ShowConnectPage() {
 
 func (app *App) ShowGamePage() {
 	app.Variables.Current_view = "Game"
+	app.Variables.PanelsVariables.Chat.CurrentScope = "GLOBAL"
+	app.Variables.PanelsVariables.Chat.Open = false
+	app.Variables.PanelsVariables.Inspect.Open = false
+	app.Variables.PanelsVariables.Datas.Open = false
+	app.Variables.PanelsVariables.Group.Open = false
 	app.Variables.Player.Position.X = app.Variables.StartingPosX
 	app.Variables.Player.Position.Y = app.Variables.StartingPosY
 	newPosX := app.Variables.Player.Position.X
@@ -30,6 +35,9 @@ func (app *App) ShowGamePage() {
 		app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdGetPlayerPositions}
 		app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdGetPlayerEmotes}
 		app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdGetItemPositions}
+
+		app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdInspectSelf}
+		app.Variables.PanelsVariables.Inspect.LastInspect = "SELF"
 	})
 
 	app.Variables.LastRoomChange = time.Now()
@@ -50,9 +58,7 @@ func (app *App) ShowCombatResultPopup(result string, rewards []string) {
 			Type:    panel.ActionSendServer,
 			Payload: protocol.CmdInspectSelf,
 		}
-		app.Variables.PanelsVariables.Inspect.Open = true
 	})
-	app.Variables.PanelsVariables.Inspect.LastInspect = "SELF"
 	app.Variables.PanelsVariables.Chat.CurrentScope = "GLOBAL"
 	app.Variables.PanelsVariables.Chat.Open = false
 	app.ShowGamePage()

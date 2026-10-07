@@ -64,7 +64,7 @@ var (
 			RatioY:  5,
 			IndXs:   []float32{1.6, 5.5, 9.7},
 			IndYs:   []float32{0, 0, 0},
-			Pos:     Position{X: 13, Y: 7},
+			Pos:     Position{X: 21, Y: 6},
 		},
 	}
 )

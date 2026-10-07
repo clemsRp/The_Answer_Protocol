@@ -97,5 +97,5 @@ func (m *Manager) IsPlayerNear(itemX, itemY float32) bool {
 
 	dist := math.Sqrt(side_x + side_y)
 
-	return dist <= float64(2*m.Tile)
+	return dist <= float64(4*m.Tile)
 }
