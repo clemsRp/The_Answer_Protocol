@@ -264,6 +264,20 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 				})
 				c.sendToNetwork(pr.CmdLook)
 			} else {
+				c.gameState.UpdateCombatState(func(cs *state.CombatState) {
+					delete(cs.Team, leftUser)
+
+					if cs.CurrentTurn == leftUser {
+						cs.CurrentTurn = ""
+					}
+				})
+
+				combatSnap := c.gameState.GetCombatSnapshot()
+
+				c.ui.QueueUpdate(func() {
+					c.ui.UpdateCombat(combatSnap)
+				})
+
 				c.sendToNetwork(pr.CmdCombatStats)
 			}
 		} else if strings.HasPrefix(trimmed, pr.CategoryCombat+" FIGHT_STARTED") || strings.HasPrefix(trimmed, pr.CategoryCombat+" UPDATE") {

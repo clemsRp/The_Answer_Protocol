@@ -4,6 +4,7 @@ import (
 	"slices"
 	"tap/client/gui/src/ui"
 	vars "tap/client/gui/src/variables"
+	pr "tap/protocol"
 )
 
 func (app *App) IsPlayerTurn() bool {
@@ -17,17 +18,32 @@ func (app *App) RebuildCombatInteractions() {
 		return
 	}
 
+	opponents := cs.Opponents
+
+	activeTeam := make(map[string]pr.CombatPersonData)
+	for name, player := range cs.Team {
+		if !player.InCombat {
+			continue
+		}
+
+		if player.CombatId != cs.CombatId {
+			continue
+		}
+
+		activeTeam[name] = player
+	}
+
+	team := activeTeam
+
 	tile := app.Variables.Tileset_size
 	zoom := app.Variables.Zoom
+
 	frame_size := float32(4)
 
 	panel_start_x := float32(vars.COMBAT_START_X) * tile
 	panel_start_y := float32(vars.COMBAT_START_Y) * tile
 	panel_width := float32(vars.COMBAT_LEFT_END_X-vars.COMBAT_START_X) * tile
 	panel_height := float32(vars.COMBAT_END_Y-vars.COMBAT_START_Y) * tile
-
-	opponents := cs.Opponents
-	team := cs.Team
 
 	interactions := make([]*ui.Interaction, 0)
 

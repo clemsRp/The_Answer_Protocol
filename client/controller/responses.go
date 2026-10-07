@@ -73,6 +73,7 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 		raw, err := json.Marshal(res.Datas)
 		if err == nil && json.Unmarshal(raw, &combatData) == nil {
 			c.gameState.UpdateCombatState(func(cs *state.CombatState) {
+				cs.CombatId = combatData.CombatId
 				cs.InCombat = true
 				cs.CurrentTurn = combatData.CurrentTurn
 				cs.Leader = combatData.Leader
