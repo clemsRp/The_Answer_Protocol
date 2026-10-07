@@ -127,7 +127,14 @@ func (up *Updater) buildGameButtons() {
 		Normal:  ui.Frame{IndX: 40, IndY: 8, RatioX: 2, RatioY: 2},
 		Pressed: ui.Frame{IndX: 42, IndY: 8, RatioX: 2, RatioY: 2},
 		OnClick: func() {
-			up.app.Variables.PanelsVariables.Chat.Open = !up.app.Variables.PanelsVariables.Chat.Open
+			chat := up.app.Variables.PanelsVariables.Chat
+
+			chat.Open = !chat.Open
+
+			if chat.Open {
+				chat.Unread = false
+				chat.UnreadByScope = make(map[string]int)
+			}
 		},
 	}
 

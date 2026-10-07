@@ -20,6 +20,8 @@ type ChatPanel struct {
 	LastMsgText     string
 	LastMsgScope    string
 	ScopeChats      map[string][]Chat
+	Unread          bool
+	UnreadByScope   map[string]int
 	LastNbChats     int
 	Rect            rl.Rectangle
 	ScrollRect      rl.Rectangle

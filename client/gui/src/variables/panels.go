@@ -40,6 +40,7 @@ func GetPanelsVariables() *PanelVariables {
 			Open:            false,
 			CurrentScope:    "GLOBAL",
 			ScopeChats:      make(map[string][]Chat),
+			UnreadByScope:   make(map[string]int),
 			LastNbChats:     0,
 			ScrollActive:    false,
 			LastFrameScroll: false,
