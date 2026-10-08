@@ -25,6 +25,14 @@ var (
 			IndYs:   []float32{1},
 			Pos:     Position{X: 9, Y: 7},
 		},
+		"carotte_salee": {
+			Texture: "All items",
+			RatioX:  1,
+			RatioY:  1,
+			IndXs:   []float32{1},
+			IndYs:   []float32{2},
+			Pos:     Position{X: -10, Y: -10},
+		},
 		"flocons_d_avoine": {
 			Texture: "All items",
 			RatioX:  1,

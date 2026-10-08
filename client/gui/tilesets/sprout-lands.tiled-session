@@ -276,15 +276,15 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 255.98727697430544,
-                "y": 144.02465086228318
+                "x": 256.24173748819635,
+                "y": 72.26678594503255
             }
         },
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/camping.tmx": {
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 255.98727697430544,
+                "x": 256.24173748819635,
                 "y": 144.02465086228318
             }
         },
@@ -292,7 +292,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 255.98727697430544,
+                "x": 256.24173748819635,
                 "y": 144.02465086228318
             }
         },
@@ -300,7 +300,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 255.98727697430544,
+                "x": 256.24173748819635,
                 "y": 144.02465086228318
             }
         },
@@ -316,7 +316,7 @@
             "scale": 1.5,
             "selectedLayer": 3,
             "viewCenter": {
-                "x": 271.3333333333333,
+                "x": 271,
                 "y": 136
             }
         },
@@ -324,7 +324,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 255.98727697430544,
+                "x": 256.24173748819635,
                 "y": 144.02465086228318
             }
         },
@@ -332,7 +332,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 255.98727697430544,
+                "x": 256.24173748819635,
                 "y": 144.02465086228318
             }
         },
@@ -340,7 +340,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 218.32712091844343,
+                "x": 256.24173748819635,
                 "y": 144.02465086228318
             }
         },
@@ -348,7 +348,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 255.98727697430544,
+                "x": 256.24173748819635,
                 "y": 144.02465086228318
             }
         },
@@ -356,7 +356,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 255.98727697430544,
+                "x": 256.24173748819635,
                 "y": 144.02465086228318
             }
         },
@@ -364,7 +364,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 255.98727697430544,
+                "x": 256.24173748819635,
                 "y": 144.02465086228318
             }
         },
@@ -372,7 +372,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 255.98727697430544,
+                "x": 256.24173748819635,
                 "y": 144.02465086228318
             }
         },
@@ -380,7 +380,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 255.98727697430544,
+                "x": 256.24173748819635,
                 "y": 144.02465086228318
             }
         },
@@ -388,7 +388,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 255.98727697430544,
+                "x": 256.24173748819635,
                 "y": 144.02465086228318
             }
         },
@@ -845,7 +845,7 @@
     "frame.defaultDuration": 500,
     "last.exportedFilePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps",
     "last.externalTilesetPath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/tilesets",
-    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Dialouge UI",
+    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Lands - Sprites - premium pack/Objects/Items",
     "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",

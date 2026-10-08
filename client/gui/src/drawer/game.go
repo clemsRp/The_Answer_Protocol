@@ -68,24 +68,27 @@ func (dr *Drawer) DrawPlayerPanel() {
 	dr.drawPlayerInfoBox()
 	dr.drawPlayerLives()
 
-	// Draw chat
-	if dr.app.Variables.PanelsVariables.Chat.Open {
-		dr.DrawChat()
-	}
+	// Draw panels
+	if dr.app.Variables.Current_view == "Game" {
+		// Draw chat
+		if dr.app.Variables.PanelsVariables.Chat.Open {
+			dr.DrawChat()
+		}
 
-	// Draw group
-	if dr.app.Variables.PanelsVariables.Group.Open {
-		dr.DrawGroupPanel()
-	}
+		// Draw group
+		if dr.app.Variables.PanelsVariables.Group.Open {
+			dr.DrawGroupPanel()
+		}
 
-	// Draw inspect
-	if dr.app.Variables.PanelsVariables.Inspect.Open {
-		dr.DrawInspectPanel()
-	}
+		// Draw inspect
+		if dr.app.Variables.PanelsVariables.Inspect.Open {
+			dr.DrawInspectPanel()
+		}
 
-	// Draw datas
-	if dr.app.Variables.PanelsVariables.Datas.Open {
-		dr.DrawDatasPanel()
+		// Draw datas
+		if dr.app.Variables.PanelsVariables.Datas.Open {
+			dr.DrawDatasPanel()
+		}
 	}
 
 	dr.DrawInventory()

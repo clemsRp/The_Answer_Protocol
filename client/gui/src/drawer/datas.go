@@ -135,17 +135,15 @@ func (dr *Drawer) DrawQuestsDatas(datas *vars.DatasPanel, datas_start_x, datas_s
 	indY := int32((datas_start_y + 5) * float32(tile))
 
 	if len(actives) != 0 {
-		dr.DrawQuests("Actives", actives, indY, datas_start_x, tile, font, rl.Green)
-		indY += int32(len(actives)+2) * int32(font)
+		indY += dr.DrawQuests("Actives", actives, indY, datas_start_x, tile, font, rl.Green)
 	}
 
 	if len(finished) != 0 {
-		dr.DrawQuests("Finished", finished, indY, datas_start_x, tile, font, rl.Red)
-		indY += int32(len(finished)) * int32(font)
+		indY += dr.DrawQuests("Finished", finished, indY, datas_start_x, tile, font, rl.Red)
 	}
 }
 
-func (dr *Drawer) DrawQuests(title string, quests []pr.TrackedQuestData, start_y int32, datas_start_x, tile, font float32, color rl.Color) {
+func (dr *Drawer) DrawQuests(title string, quests []pr.TrackedQuestData, start_y int32, datas_start_x, tile, font float32, color rl.Color) int32 {
 	indX := int32((datas_start_x + 0.7) * tile)
 
 	// Draw Title
@@ -181,6 +179,8 @@ func (dr *Drawer) DrawQuests(title string, quests []pr.TrackedQuestData, start_y
 
 		index += nb_line
 	}
+
+	return int32(index+1) * int32(font)
 }
 
 func get_active_quests(all_quests []pr.TrackedQuestData) []pr.TrackedQuestData {
