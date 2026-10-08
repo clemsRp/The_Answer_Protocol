@@ -349,8 +349,7 @@
                     "initiative": 90,
                     "damage": 15
                 },
-                "hostile": true,
-				"items_reward": ["cancoillotte"]
+                "hostile": true
             },
             "salomon": {
                 "name": "Salomon le saumon",
