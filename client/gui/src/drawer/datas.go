@@ -187,7 +187,7 @@ func get_active_quests(all_quests []pr.TrackedQuestData) []pr.TrackedQuestData {
 	active_quests := make([]pr.TrackedQuestData, 0)
 
 	for _, quest := range all_quests {
-		if quest.Status == "active" {
+		if quest.Status == "progress" {
 			active_quests = append(active_quests, quest)
 		}
 	}
@@ -199,7 +199,7 @@ func get_finished_quests(all_quests []pr.TrackedQuestData) []pr.TrackedQuestData
 	finished_quests := make([]pr.TrackedQuestData, 0)
 
 	for _, quest := range all_quests {
-		if quest.Status != "active" {
+		if quest.Status != "progress" {
 			finished_quests = append(finished_quests, quest)
 		}
 	}

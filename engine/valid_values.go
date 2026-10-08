@@ -70,8 +70,6 @@ var (
 
 	QuestStatus = []string{
 		"available",
-		"progress",
-		"unavailable",
 	}
 	ItemTypes = []string{
 		"ressource",

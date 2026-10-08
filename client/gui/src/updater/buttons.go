@@ -288,7 +288,7 @@ func (up *Updater) buildTalkButtons() {
 			} else if !datas.CompletedQuest && datas.RequestedQuest {
 				up.actionsChan <- panel.Action{
 					Type:    panel.ActionSendServer,
-					Payload: pr.CmdCompleteQuest + " " + npc,
+					Payload: pr.CmdCompleteQuest + " " + datas.QuestID,
 				}
 			}
 		},

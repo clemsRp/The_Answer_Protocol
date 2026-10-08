@@ -376,6 +376,7 @@ func (e *Engine) handleCmdQuest(player *Player, req []string) (string, any, erro
 		npc_datas := e.world.Npcs[room_npc]
 		if matchNpc(room_npc, npc_datas, target) {
 			if npc_datas == nil || npc_datas.QuestId == "" || e.world.Quests[npc_datas.QuestId] == nil {
+
 				return "", "", errors.New(pr.ErrNoQuestAvailable)
 			}
 
@@ -389,7 +390,7 @@ func (e *Engine) handleCmdQuest(player *Player, req []string) (string, any, erro
 			}
 
 			playerQuest := quest.Clone()
-			playerQuest.Status = "active"
+			playerQuest.Status = "progress"
 			playerQuest.Progress = "0/1"
 			player.quests = append(player.quests, playerQuest)
 
@@ -440,7 +441,7 @@ func (e *Engine) handleCmdCompleteQuest(player *Player, req []string) (string, a
 		}
 	}
 
-	if playerQuest == nil || playerQuest.Status != "active" {
+	if playerQuest == nil || playerQuest.Status != "progress" {
 		return "", "", errors.New(pr.ErrNoQuestAvailable)
 	}
 
@@ -467,7 +468,7 @@ func (e *Engine) handleCmdCompleteQuest(player *Player, req []string) (string, a
 		return "", "", errors.New("ERR 406 QUEST_NOT_COMPLETED")
 	}
 
-	playerQuest.Status = "completed"
+	playerQuest.Status = "unavailable"
 	playerQuest.Progress = "1/1"
 
 	if playerQuest.Reward != "" {
