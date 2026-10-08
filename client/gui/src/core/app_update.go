@@ -60,6 +60,33 @@ func (app *App) UpdateItemPosition(name string, x, y float32) {
 	}
 }
 
+func (app *App) UpdateNpcPosition(name string, x, y float32) {
+	if npc, exists := (*app.Variables.NpcPositions)[name]; exists {
+		(*npc).X = x
+		(*npc).Y = y
+	} else {
+		(*app.Variables.NpcPositions)[name] = &vars.Position{X: x, Y: y}
+	}
+
+	for _, npc := range app.Manager.Interactions("Npcs") {
+		if npc.Emote.ID == "npc_"+name {
+			npc.Emote.X = x
+			npc.Emote.Y = y
+
+			ratioX := npc.Emote.Frames[0].Frame.RatioX
+			ratioY := npc.Emote.Frames[0].Frame.RatioY
+			zoomScale := app.Variables.Zoom / app.Variables.Zoom
+			effectiveHeight := ratioY * zoomScale
+
+			npc.Buttons[0].X = x + (0.8*ratioX*zoomScale)*app.Variables.Tileset_size
+			npc.Buttons[0].Y = y + (effectiveHeight-1.3)*app.Variables.Tileset_size
+			npc.Buttons[1].X = x + (0.8*ratioX*zoomScale+0.35)*app.Variables.Tileset_size
+			npc.Buttons[1].Y = y + (effectiveHeight-0.95)*app.Variables.Tileset_size
+			break
+		}
+	}
+}
+
 func (app *App) UpdateInteraction(roomNpcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string, quests []protocol.TrackedQuestData, completed_quests []string) {
 	npcs := app.GetNewRoomNpcs(roomNpcs)
 	app.Manager.SetViewInteractions("Npcs", npcs)

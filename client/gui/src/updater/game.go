@@ -49,7 +49,7 @@ func (up *Updater) UpdateGameView() {
 	}
 
 	items := *up.app.Variables.PanelsVariables.InventoryItems
-	if rl.IsKeyPressed(rl.KeyD) && len(items) > 0 {
+	if rl.IsKeyPressed(rl.KeyE) && len(items) > 0 {
 		item := items[len(items)-1]
 		up.app.DropItem(item)
 	}

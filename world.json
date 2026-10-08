@@ -140,6 +140,17 @@
                 "charges": 1,
                 "duration": 1
             },
+			"carotte_salee": {
+                "name": "Carotte salée",
+                "description": "Une carotte si salée qu'on dirait des cacahuètes",
+                "obtainable": true,
+                "type": "consumable",
+                "target_stat": "hp",
+                "amount": 25,
+                "effect_type": "heal",
+                "charges": 1,
+                "duration": 1
+            },
             "pioche": {
                 "name": "Pioche",
                 "description": "Une pioche de la ferme Charbonneau qui sert a cultiver le bon maïs sucré",
@@ -212,7 +223,7 @@
             "marshmallow": {
                 "name": "Un paquet de marshmallow",
                 "description": "Un succulent paquet de marshmallow a déguster autour d'un feu de camps",
-                "obtainable": true,
+                "obtainbranche_solideable": true,
                 "type": "consumable",
                 "target_stat": "hp",
                 "amount": 15,
@@ -379,7 +390,7 @@
             },
             "trouve_graines": {
                 "description": "Trouve des graines et rapporte les à Maya pour qu'elle puisse butiner de nouveaux le plus rapidemment possible",
-                "reward": "TODO",
+                "reward": "carotte_salee",
                 "status": "available",
                 "target_item": "graines"
             },

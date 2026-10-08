@@ -14,6 +14,7 @@ type Variables struct {
 	RemotePlayers        *map[string]*Player
 	RemotePlayerEmotes   *map[string]*PlayerEmote
 	ItemPositions        *map[string]*Position
+	NpcPositions         *map[string]*Position
 	Collisions           [][]bool
 	Tileset_size         float32
 	LastRoomChange       time.Time

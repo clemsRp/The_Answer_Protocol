@@ -75,7 +75,7 @@ func (m *Manager) UpdateInteractions(view string) {
 				if clicked && b.OnClick != nil {
 					b.OnClick()
 				}
-			} else if near && rl.IsKeyPressed(rl.KeyE) {
+			} else if near && rl.IsKeyPressed(rl.KeyT) {
 				b.OnClick()
 			}
 		}

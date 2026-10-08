@@ -79,6 +79,7 @@ func NewApp(actionsChan chan panel.Action) *App {
 
 	app.AddMissingVariables(screenWidth)
 	app.AddItemPositions()
+	app.AddNpcPositions()
 
 	return app
 }

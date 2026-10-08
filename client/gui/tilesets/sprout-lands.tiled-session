@@ -304,6 +304,14 @@
                 "y": 144.02465086228318
             }
         },
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.json": {
+            "scale": 1.8010416666666664,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 256.2406015037594,
+                "y": 221.53846153846155
+            }
+        },
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.tmx": {
             "scale": 1.5,
             "selectedLayer": 3,
@@ -332,7 +340,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 256.24173748819635,
+                "x": 218.5815814323344,
                 "y": 144.02465086228318
             }
         },
@@ -837,7 +845,7 @@
     "frame.defaultDuration": 500,
     "last.exportedFilePath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps",
     "last.externalTilesetPath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/tilesets",
-    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Npcs",
+    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Sorry pack/Early Access/Plant update 2/frog",
     "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
@@ -872,6 +880,7 @@
     "project": "sprout-lands.tiled-project",
     "property.type": "bool",
     "recentFiles": [
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.json",
         "franck.tsx",
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.tmx",
         "Pine Tree Biome.tsx",
@@ -882,8 +891,7 @@
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/barrage.tmx",
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/camping.tmx",
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/ferme_charbonneau.tmx",
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/ferme_uzoloise.tmx",
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/foret_malicieuse.tmx"
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/ferme_uzoloise.tmx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

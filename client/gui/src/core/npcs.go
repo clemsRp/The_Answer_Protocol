@@ -23,10 +23,25 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 		frame_duration := 100
 
 		// Retrieve texture and frames for the current npc
-		text, pos, frames := get_npc_datas(np, frame_duration)
+		text, frames := get_npc_datas(np, frame_duration)
 
-		pos_x := pos.X * app.Variables.Tileset_size
-		pos_y := pos.Y * app.Variables.Tileset_size
+		var pos *vars.Position
+		var ok bool
+		if pos, ok = (*app.Variables.NpcPositions)[np]; !ok {
+			if npcDef, exists := vars.NpcConvertor[np]; exists {
+				p := &vars.Position{
+					X: npcDef.Pos.X * app.Variables.Tileset_size,
+					Y: npcDef.Pos.Y * app.Variables.Tileset_size,
+				}
+				(*app.Variables.NpcPositions)[np] = p
+				pos = p
+			} else {
+				continue
+			}
+		}
+
+		pos_x := pos.X
+		pos_y := pos.Y
 
 		ratioX := frames[0].Frame.RatioX
 		ratioY := frames[0].Frame.RatioY
@@ -60,7 +75,7 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 			OnClick:  func() {},
 		}
 
-		// Create the interactive button to pick up the npc
+		// Create the interactive button to talk/inspect the npc
 		npc_btn := &ui.Button{
 			ID:       "npc_btn",
 			Texture:  vars.UI_SPRITE_TEXTURE,
@@ -105,14 +120,25 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 	return npcs
 }
 
-func get_npc_datas(npc string, frame_duration int) (string, vars.Position, []*ui.EmoteFrame) {
+func (app *App) isTileOccupiedByNpc(x, y float32) bool {
+	if app.Variables.NpcPositions == nil {
+		return false
+	}
+	for _, pos := range *app.Variables.NpcPositions {
+		if pos.X == x && pos.Y == y {
+			return true
+		}
+	}
+	return false
+}
+
+func get_npc_datas(npc string, frame_duration int) (string, []*ui.EmoteFrame) {
 	frames := make([]*ui.EmoteFrame, 0)
 
 	// Define needed datas
 	var texture string
 	var ratioX, ratioY float32
 	var indXs, indYs []float32
-	var pos vars.Position
 
 	// Get datas depending on npc
 	if d, ok := vars.NpcConvertor[npc]; ok {
@@ -121,15 +147,13 @@ func get_npc_datas(npc string, frame_duration int) (string, vars.Position, []*ui
 		indYs = d.IndYs
 		ratioX = d.RatioX
 		ratioY = d.RatioY
-		pos = d.Pos
 
 	} else {
 		texture = vars.NPC_TEXTURE
-		indXs = []float32{0, 1, 2, 3, 4, 5, 6, 7}
-		indYs = []float32{0, 0, 0, 0, 0, 0, 0, 0}
+		indXs = []float32{4, 5, 6, 7, 0, 1, 2, 3}
+		indYs = []float32{0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5}
 		ratioX = 1
-		ratioY = 2
-		pos = vars.Position{X: 6, Y: 8}
+		ratioY = 1.5
 	}
 
 	// Create emote frames
@@ -142,5 +166,5 @@ func get_npc_datas(npc string, frame_duration int) (string, vars.Position, []*ui
 		frames = append(frames, frame)
 	}
 
-	return texture, pos, frames
+	return texture, frames
 }

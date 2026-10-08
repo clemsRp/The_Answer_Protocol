@@ -21,7 +21,7 @@ var (
 			Texture: "bat_animations",
 			RatioX:  2,
 			RatioY:  2,
-			IndXs:   []float32{0, 2, 4, 6, 8},
+			IndXs:   []float32{4, 6, 8, 0, 2},
 			IndYs:   []float32{0, 0, 0, 0, 0},
 			Pos:     Position{X: 13, Y: 13},
 		},

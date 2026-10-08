@@ -100,3 +100,27 @@ func (app *App) AddItemPositions() {
 
 	app.Variables.ItemPositions = &positions
 }
+
+func (app *App) AddNpcPositions() {
+	positions := make(map[string]*vars.Position)
+
+	// Set positions
+	for npc_name, npc_datas := range vars.NpcConvertor {
+		positions[npc_name] = &vars.Position{X: npc_datas.Pos.X, Y: npc_datas.Pos.Y}
+	}
+
+	positions["thomas_charbonneau"] = &vars.Position{X: 11, Y: 5}
+	positions["gabinap"] = &vars.Position{X: 21, Y: 6}
+	positions["bernard"] = &vars.Position{X: 8, Y: 12}
+	positions["franck"] = &vars.Position{X: 10, Y: 5}
+	positions["roger"] = &vars.Position{X: 4, Y: 5}
+	positions["salomon"] = &vars.Position{X: 28, Y: 12}
+
+	// Scale positions to map size
+	for _, pos := range positions {
+		(*pos).X *= app.Variables.Tileset_size
+		(*pos).Y *= app.Variables.Tileset_size
+	}
+
+	app.Variables.NpcPositions = &positions
+}

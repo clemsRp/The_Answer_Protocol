@@ -49,13 +49,18 @@ func (app *App) RebuildCombatInteractions() {
 			emoteIndex = 0
 		}
 
+		multi := float32(1)
+		if pseudo == "le_prince" {
+			multi = 2
+		}
+
 		baseEmote := emotesConnect[emoteIndex]
 		return &ui.Emote{
 			ID:           "combat_" + pseudo,
 			Texture:      baseEmote.Texture,
 			X:            x,
 			Y:            y,
-			Zoom:         zoom * 0.75,
+			Zoom:         zoom * 0.75 * multi,
 			AnimDuration: baseEmote.AnimDuration,
 			Frames:       baseEmote.Frames,
 		}
@@ -83,7 +88,7 @@ func (app *App) RebuildCombatInteractions() {
 			fighterName := name
 			interactions = append(interactions, &ui.Interaction{
 				ID:    "npc-" + fighterName,
-				Name:  fighterName,
+				Name:  "opp_" + fighterName,
 				Emote: getEmoteForFighter(fighterName, emoteX, emoteY),
 				Inspect: func(target string) {
 					if app.Variables.PanelsVariables.CombatState != nil {
@@ -116,7 +121,7 @@ func (app *App) RebuildCombatInteractions() {
 			fighterName := name
 			interactions = append(interactions, &ui.Interaction{
 				ID:    "player-" + fighterName,
-				Name:  fighterName,
+				Name:  "team_" + fighterName,
 				Emote: getEmoteForFighter(fighterName, emoteX, emoteY),
 				Inspect: func(target string) {
 					if app.Variables.PanelsVariables.CombatState != nil {
