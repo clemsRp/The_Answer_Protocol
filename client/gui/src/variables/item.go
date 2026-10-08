@@ -39,7 +39,7 @@ var (
 			RatioY:  1,
 			IndXs:   []float32{0},
 			IndYs:   []float32{0},
-			Pos:     Position{X: 9, Y: 12},
+			Pos:     Position{X: -10, Y: -10},
 		},
 		"acier": {
 			Texture: "dungeon_items",
@@ -74,7 +74,7 @@ var (
 			Pos:     Position{X: -10, Y: -10},
 		},
 		"graines": {
-			Texture: "fishing_rod",
+			Texture: "All items",
 			RatioX:  1,
 			RatioY:  1,
 			IndXs:   []float32{0},

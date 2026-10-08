@@ -349,7 +349,8 @@
                     "initiative": 90,
                     "damage": 15
                 },
-                "hostile": true
+                "hostile": true,
+				"items_reward": ["cancoillotte"]
             },
             "salomon": {
                 "name": "Salomon le saumon",
@@ -400,11 +401,11 @@
                 "status": "available",
                 "target_item": "graines"
             },
-            "bas_bob": {
+			"bas_bob": {
                 "description": "Ramene la, fameuse (et surtout crémeuse), cancoillotte, à Franck, en battant Bob.",
-                "reward": "cancoillotte",
+                "reward": "flocons_d_avoine",
                 "status": "available",
-                "target_npc": "bob"
+                "target_item": "cancoillotte"
             },
             "repare_barrage": {
                 "description": "Trouve l'acier manquant au barrage pour le réparer",
