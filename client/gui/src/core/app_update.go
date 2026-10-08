@@ -111,7 +111,7 @@ func (app *App) syncNpcQuest(datas *vars.NpcDatas) {
 	for _, q := range *app.Variables.PanelsVariables.Quests {
 		if q.Id == datas.QuestID {
 			datas.RequestedQuest = true
-			datas.CompletedQuest = q.Status == "completed"
+			datas.CompletedQuest = q.Status == "unavailable"
 			return
 		}
 	}
