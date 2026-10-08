@@ -1,5 +1,5 @@
 {
-    "activeFile": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.tmx",
+    "activeFile": "gabinap.tsx",
     "expandedProjectPaths": [
         "."
     ],
@@ -308,8 +308,8 @@
             "scale": 1.5,
             "selectedLayer": 3,
             "viewCenter": {
-                "x": 237.66666666666663,
-                "y": 132.66666666666669
+                "x": 271.3333333333333,
+                "y": 136.33333333333331
             }
         },
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/foret_malicieuse.tmx": {
@@ -397,6 +397,10 @@
                 "x": 256.24173748819635,
                 "y": 144.02465086228318
             }
+        },
+        "All items.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 3
         },
         "Barn structures.tsx": {
             "scaleInDock": 1,
@@ -492,7 +496,7 @@
         },
         "Farming Plants items.tsx": {
             "scaleInDock": 1,
-            "scaleInEditor": 1
+            "scaleInEditor": 5.5
         },
         "Farming Plants v2 watered.tsx": {
             "scaleInDock": 1,
@@ -703,19 +707,24 @@
         "dungeon_walls_decor_gates.tsx": {
             "scaleInDock": 1
         },
+        "franck.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 4
+        },
         "free_character_spritesheet_by-cupnooble.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
         "gabinap.tsx": {
             "scaleInDock": 1,
-            "scaleInEditor": 11
+            "scaleInEditor": 1
         },
         "grey_brick_houses_with_doors_grass.tsx": {
             "scaleInDock": 1
         },
         "ground_dirt_orange_dark.tsx": {
-            "scaleInDock": 1
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         },
         "inventory_example_with_slots_2.tsx": {
             "scaleInDock": 1,
@@ -752,6 +761,10 @@
                 "x": 240.10889292196003,
                 "y": 160.0725952813067
             }
+        },
+        "salomon.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         },
         "small_House_light_with_door.tsx": {
             "scaleInDock": 1
@@ -832,23 +845,45 @@
     "map.tileWidth": 16,
     "map.width": 32,
     "openFiles": [
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.tmx"
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.tmx",
+        "Pine Tree Biome.tsx",
+        "ground_dirt_orange_dark.tsx",
+        "Farming Plants v2 watered.tsx",
+        "Farming Plants items.tsx",
+        "Basic_Furniture.tsx",
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/barrage.tmx",
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/camping.tmx",
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/ferme_charbonneau.tmx",
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/ferme_uzoloise.tmx",
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/foret_malicieuse.tmx",
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fromagerie.tmx",
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/jardin.tmx",
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/lac_du_barrage.tmx",
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/place_du_village.tmx",
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/prev_barrage.tmx",
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/prev_foret_malicieuse.tmx",
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/prev_riviere.tmx",
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/riviere.tmx",
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/verger_de_la_savane.tmx",
+        "All items.tsx",
+        "salomon.tsx",
+        "gabinap.tsx"
     ],
     "project": "sprout-lands.tiled-project",
     "property.type": "bool",
     "recentFiles": [
+        "franck.tsx",
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.tmx",
-        "gabinap.tsx",
-        "Muscular Pixel Sprite Sheet.tsx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/fontaneilles.tmx",
-        "/home/clement/Téléchargements/16-Frame Caveman Sprite Sheet.tsx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/prev_riviere.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/verger_de_la_savane.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/camping.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/jardin.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/ferme_uzoloise.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/riviere.tmx",
-        "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps/prev_foret_malicieuse.tmx"
+        "Pine Tree Biome.tsx",
+        "ground_dirt_orange_dark.tsx",
+        "Farming Plants v2 watered.tsx",
+        "Farming Plants items.tsx",
+        "Basic_Furniture.tsx",
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/barrage.tmx",
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/camping.tmx",
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/ferme_charbonneau.tmx",
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/ferme_uzoloise.tmx",
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/foret_malicieuse.tmx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

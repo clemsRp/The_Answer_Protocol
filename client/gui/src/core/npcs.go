@@ -8,26 +8,13 @@ import (
 )
 
 type ZoomDatas struct {
-	Zoom int
-	OffX int
-	OffY int
+	Zoom          int
+	OffX          int
+	OffY          int
+	FrameDuration *int
 }
 
 func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
-	// Define Npcs adjustments
-	zoom_convertor := map[string]ZoomDatas{
-		"gabinap": {
-			Zoom: 7,
-			OffX: 0,
-			OffY: 0,
-		},
-		"salomon": {
-			Zoom: 7,
-			OffX: 0,
-			OffY: 0,
-		},
-	}
-
 	// Initialize the interactions array
 	npcs := make([]*ui.Interaction, 0)
 
@@ -44,26 +31,16 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 		ratioX := frames[0].Frame.RatioX
 		ratioY := frames[0].Frame.RatioY
 
-		zoom := app.Variables.Zoom
-		offX := 0
-		offY := 0
-
-		if datas, ok := zoom_convertor[np]; ok {
-			zoom /= float32(datas.Zoom)
-			offX = datas.OffX * int(app.Variables.Tileset_size)
-			offY = datas.OffY * int(app.Variables.Tileset_size)
-		}
-
-		zoomScale := zoom / app.Variables.Zoom
+		zoomScale := app.Variables.Zoom / app.Variables.Zoom
 		effectiveHeight := ratioY * zoomScale
 
 		// Create the visual emote (sprite) for the npc
 		npc_emote := &ui.Emote{
 			ID:           "npc_" + np,
 			Texture:      text,
-			X:            pos_x + float32(offX),
-			Y:            pos_y + float32(offY),
-			Zoom:         zoom,
+			X:            pos_x,
+			Y:            pos_y,
+			Zoom:         app.Variables.Zoom,
 			Rotation:     0,
 			AnimDuration: len(frames) * frame_duration,
 			Frames:       frames,
@@ -73,8 +50,8 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 		npc_bubble := &ui.Button{
 			ID:       "npc_bubble",
 			Texture:  vars.UI_SPRITE_TEXTURE,
-			X:        pos_x + (0.8*ratioX*zoomScale)*app.Variables.Tileset_size + float32(offX),
-			Y:        pos_y + (effectiveHeight-1.3)*app.Variables.Tileset_size + float32(offY),
+			X:        pos_x + (0.8*ratioX*zoomScale)*app.Variables.Tileset_size,
+			Y:        pos_y + (effectiveHeight-1.3)*app.Variables.Tileset_size,
 			Rotation: 0,
 			Zoom:     app.Variables.Zoom / 2,
 			Normal:   ui.Frame{IndX: 28, IndY: 8, RatioX: 3, RatioY: 3},
@@ -87,8 +64,8 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 		npc_btn := &ui.Button{
 			ID:       "npc_btn",
 			Texture:  vars.UI_SPRITE_TEXTURE,
-			X:        pos_x + (0.8*ratioX*zoomScale+0.35)*app.Variables.Tileset_size + float32(offX),
-			Y:        pos_y + (effectiveHeight-0.95)*app.Variables.Tileset_size + float32(offY),
+			X:        pos_x + (0.8*ratioX*zoomScale+0.35)*app.Variables.Tileset_size,
+			Y:        pos_y + (effectiveHeight-0.95)*app.Variables.Tileset_size,
 			Rotation: 0,
 			Zoom:     app.Variables.Zoom * 2 / 5,
 			Normal:   ui.Frame{IndX: 40, IndY: 8, RatioX: 2, RatioY: 2},

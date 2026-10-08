@@ -59,7 +59,7 @@ func (app *App) GetNewRoomItems(roomItems []string) []*ui.Interaction {
 			OnClick:  func() {},
 		}
 
-		// Create the interactive button to pick up the item
+		// Create the interactive button to pick the item
 		item_btn := &ui.Button{
 			ID:       "item_btn",
 			Texture:  vars.UI_SPRITE_TEXTURE,
@@ -124,8 +124,8 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 		item_emote := &ui.Emote{
 			ID:           it,
 			Texture:      text,
-			X:            start_x + app.Variables.Tileset_size*(float32(ind)+0.115),
-			Y:            0.45*app.Variables.Tileset_size + start_y,
+			X:            start_x + app.Variables.Tileset_size*(float32(ind)+0.2),
+			Y:            0.47*app.Variables.Tileset_size + start_y,
 			Zoom:         app.Variables.Zoom / 1.5,
 			Rotation:     0,
 			AnimDuration: 2 * frame_duration,
@@ -149,39 +149,7 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 			Hover:    ui.Frame{IndX: 52, IndY: 10, RatioX: 2, RatioY: 2},
 			Pressed:  ui.Frame{IndX: 54, IndY: 10, RatioX: 2, RatioY: 2},
 			OnClick: func() {
-				// Get offset datas
-				dirX := app.Variables.Player.Direction.X
-				dirY := app.Variables.Player.Direction.Y
-				if dirX == 0 && dirY == 0 {
-					dirY = 1
-				}
-
-				tileset_size := app.Variables.Tileset_size
-
-				// Find closest free tile around the player
-				newPosX, newPosY, found := app.FindNearestFreeTile(
-					app.Variables.Player.Position.X+dirX*tileset_size,
-					app.Variables.Player.Position.Y+dirY*tileset_size,
-				)
-				if !found {
-					return
-				}
-
-				// Update position
-				if _, exist := (*app.Variables.ItemPositions)[it]; !exist {
-					(*app.Variables.ItemPositions)[it] = &vars.Position{
-						X: app.Variables.Player.Position.X,
-						Y: app.Variables.Player.Position.Y,
-					}
-				}
-
-				(*app.Variables.ItemPositions)[it].X = newPosX
-				(*app.Variables.ItemPositions)[it].Y = newPosY
-				payload := fmt.Sprintf("%s %f %f %s", protocol.CmdNotifyItemPosition, newPosX, newPosY, it)
-
-				// Send notifs
-				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdDrop + " " + it}
-				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: payload}
+				app.DropItem(it)
 			},
 		}
 
@@ -237,6 +205,42 @@ func (app *App) GetNewCombatInventory(inventory []string) []*ui.Button {
 	}
 
 	return use_buttons
+}
+
+func (app *App) DropItem(item string) {
+	// Get offset datas
+	dirX := app.Variables.Player.Direction.X
+	dirY := app.Variables.Player.Direction.Y
+	if dirX == 0 && dirY == 0 {
+		dirY = 1
+	}
+
+	tileset_size := app.Variables.Tileset_size
+
+	// Find closest free tile around the player
+	newPosX, newPosY, found := app.FindNearestFreeTile(
+		app.Variables.Player.Position.X+dirX*tileset_size,
+		app.Variables.Player.Position.Y+dirY*tileset_size,
+	)
+	if !found {
+		return
+	}
+
+	// Update position
+	if _, exist := (*app.Variables.ItemPositions)[item]; !exist {
+		(*app.Variables.ItemPositions)[item] = &vars.Position{
+			X: app.Variables.Player.Position.X,
+			Y: app.Variables.Player.Position.Y,
+		}
+	}
+
+	(*app.Variables.ItemPositions)[item].X = newPosX
+	(*app.Variables.ItemPositions)[item].Y = newPosY
+	payload := fmt.Sprintf("%s %f %f %s", protocol.CmdNotifyItemPosition, newPosX, newPosY, item)
+
+	// Send notifs
+	app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdDrop + " " + item}
+	app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: payload}
 }
 
 func (app *App) FindNearestFreeTile(startX, startY float32) (float32, float32, bool) {

@@ -1,5 +1,9 @@
 package updater
 
+import (
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
 func (up *Updater) UpdateGameView() {
 	// Skip update if Talking
 	if up.app.Variables.PanelsVariables.Talk.Talking != nil {
@@ -44,6 +48,11 @@ func (up *Updater) UpdateGameView() {
 		up.UpdateChat()
 	}
 
+	items := *up.app.Variables.PanelsVariables.InventoryItems
+	if rl.IsKeyPressed(rl.KeyD) && len(items) > 0 {
+		item := items[len(items)-1]
+		up.app.DropItem(item)
+	}
 	up.app.Manager.Update("Inventory")
 
 	if up.app.Variables.PanelsVariables.Group.Open {
