@@ -12,7 +12,7 @@ import (
 )
 
 func TestTUINormalDisconnection(t *testing.T) {
-	s, e := utils.SetupTestServerEngine(t, "../../world_test.json")
+	s, e := utils.SetupTestServerEngine(t)
 
 	conn, err := net.Dial("tcp", s.GetAddress())
 	if err != nil {

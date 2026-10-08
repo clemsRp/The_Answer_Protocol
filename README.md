@@ -117,16 +117,37 @@ TAP implements and extends the **RFC 42TAP** specification:
 The game world is configured via `world.json` and structured as an interconnected room graph:
 
 ```
-TODO
+                      [fromagerie] <---> [fontaneilles] <---> [lac_du_barrage]
+                           ^                  ^                      ^
+                           |                  |                      |
+    [ferme_uzoloise] <-> [verger_de_la_savane] <-> [foret_malicieuse] <-> [barrage]
+                           ^                  ^                      ^
+                           |                  |                      |
+                     [ferme_charbonneau] <-> [place_du_village] <-----> [riviere]
+                                              ^                      ^
+                                              |                      |
+                                          [jardin]               [camping]
 ```
 
 ### Key Areas & NPCs
 - **Overgrown Path (Entrance)**: Starting area; home to `shepherd_hana`.
-TODO
+- **La ferme des Légumes Charbonneau (`ferme_charbonneau`)**: Home to `thomas_charbonneau` and `maelis`.
+- **La ferme Uzoloise (`ferme_uzoloise`)**: Royal farm of Uzols; home to `le_prince`.
+- **Fontaneilles (`fontaneilles`)**: Cheese-scented town; home to `gabinap` (`HardcoreLevelingWarrior`).
+- **Le verger de la Savane (`verger_de_la_savane`)**: Fruit orchard; home to `bernard` and `maya`.
+- **La fromagerie de St Julien (`fromagerie`)**: Cancoillotte shop managed by `franck`.
+- **La place de l'An 2000 (`place_du_village`)**: Central village square connecting key regions.
+- **Le lac de St Etienne de Cantales (`lac_du_barrage`)**: Artificial lake connecting Fontaneilles and the dam.
+- **Le barrage de St Etienne de Cantales (`barrage`)**: Hydroelectric dam maintained by `roger`.
+- **La forêt malicieuse (`foret_malicieuse`)**: Forest housing creatures like `bob` (Bob le blob).
+- **Le camping des 3 chênes (`camping`)**: Peaceful campsite south of the river.
+- **La rivière (`riviere`)**: River location home to `salomon`.
+- **Le jardin (`jardin`)**: Community garden south of the village square.
 
 ### Item Distribution
-- **Tools**: `rusty_hoe`, `watering_can`.
-TODO
+- **Tools / Weapons**: `rusty_hoe`, `watering_can`, `pioche`, `branche_solide`, `canne_a_peche`.
+- **Consumables**: `mais_sucre`, `carotte_salee`, `cancoillotte`, `flocons_d_avoine`, `fricadelle`, `marshmallow`.
+- **Resources**: `graines`, `acier`.
 
 ---
 

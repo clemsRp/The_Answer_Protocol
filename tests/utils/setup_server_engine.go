@@ -3,7 +3,6 @@ package utils
 import (
 	"io"
 	"log"
-	"os"
 	"tap/engine"
 	pr "tap/protocol"
 	"tap/server"
@@ -11,7 +10,9 @@ import (
 	"time"
 )
 
-func SetupTestServerEngine(t *testing.T, world_test_path string) (*server.Server, *engine.Engine) {
+var WorldFilePath = "../world.json"
+
+func SetupTestServerEngine(t *testing.T) (*server.Server, *engine.Engine) {
 	t.Helper()
 	exchanger := pr.Exchanger{ServerInput: make(chan pr.ServerRequest, 100),
 		ServerOutput: make(chan pr.EngineResponse, 100),
@@ -20,15 +21,7 @@ func SetupTestServerEngine(t *testing.T, world_test_path string) (*server.Server
 
 	var err error
 	var world_test *engine.Map
-	if _, statErr := os.Stat(world_test_path); statErr != nil {
-		for _, alt := range []string{"../../world_test.json", "../world_test.json", "world_test.json"} {
-			if _, altErr := os.Stat(alt); altErr == nil {
-				world_test_path = alt
-				break
-			}
-		}
-	}
-	world_test, err = engine.Get_map(world_test_path)
+	world_test, err = engine.Get_map(WorldFilePath)
 	if err != nil {
 		t.Fatalf("ERROR parsing: %v", err.Error())
 	}
@@ -44,7 +37,7 @@ func SetupTestServerEngine(t *testing.T, world_test_path string) (*server.Server
 	e := engine.NewEngine(world_test, exchanger)
 	go e.Start()
 	time.Sleep(10 * time.Millisecond)
-	// Start the serveur
+	// Start the server
 	go s.Start()
 	time.Sleep(10 * time.Millisecond)
 

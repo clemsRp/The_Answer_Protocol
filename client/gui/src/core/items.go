@@ -297,7 +297,6 @@ func (app *App) FindNearestFreeTile(startX, startY float32) (float32, float32, b
 	return startX, startY, false
 }
 
-// Check if an item is already placed on the given tile
 func (app *App) isTileOccupiedByItem(x, y float32) bool {
 	for _, pos := range *app.Variables.ItemPositions {
 		if pos.X == x && pos.Y == y {

@@ -38,29 +38,17 @@ build: deps exec/server exec/gui exec/tui
 	@echo "Build completed."
 
 # Execution
-# server: exec/server
-# 	@echo "Starting server..."
-# 	./exec/server
-
-# tui: exec/tui
-# 	@echo "Starting TUI client..."
-# 	./exec/tui
-
-# gui: exec/gui
-# 	@echo "Starting GUI client..."
-# 	./exec/gui
-
-server:
+server: exec/server
 	@echo "Starting server..."
-	go run ./cmd/server
+	./exec/server
 
-tui:
+tui: exec/tui
 	@echo "Starting TUI client..."
-	go run ./cmd/client/tui
+	./exec/tui
 
-gui:
+gui: exec/gui
 	@echo "Starting GUI client..."
-	go run ./cmd/client/gui
+	./exec/gui
 
 # Tests
 test:

@@ -8,7 +8,7 @@ import (
 )
 
 func TestEmptyAndWhitespaceCommands(t *testing.T) {
-	s, _ := utils.SetupTestServerEngine(t, "../../world_test.json")
+	s, _ := utils.SetupTestServerEngine(t)
 	conn, reader := utils.ConnectAndGreet(t, s.GetAddress())
 	defer conn.Close()
 

@@ -9,9 +9,9 @@ import (
 	"time"
 )
 
-// 1024 bytes per line maximum
 func TestProtectionAgainstHugePayloads(t *testing.T) {
-	s, _ := utils.SetupTestServerEngine(t, "../../world_test.json")
+	// 1024 bytes per line maximum
+	s, _ := utils.SetupTestServerEngine(t)
 	conn, _ := utils.ConnectAndGreet(t, s.GetAddress())
 	defer conn.Close()
 

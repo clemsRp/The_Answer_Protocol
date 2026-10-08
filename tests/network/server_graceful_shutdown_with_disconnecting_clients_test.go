@@ -12,7 +12,7 @@ func TestServerGracefulShutdown_WithDisconnectingClients(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 	baseline := runtime.NumGoroutine()
 
-	s, e := utils.SetupTestServerEngine(t, "../../world_test.json")
+	s, e := utils.SetupTestServerEngine(t)
 
 	defer e.Stop()
 	defer s.Stop()
