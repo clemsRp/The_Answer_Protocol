@@ -400,7 +400,7 @@ func (e *Engine) handleCmdQuest(player *Player, req []string) (string, any, erro
 				Id:          questId,
 				Reward:      quest.Reward,
 				Description: quest.Description,
-				Status:      "active",
+				Status:      "available",
 			}
 			return "OK", res, nil
 		}
@@ -473,7 +473,7 @@ func (e *Engine) handleCmdCompleteQuest(player *Player, req []string) (string, a
 
 	if playerQuest.Reward != "" {
 		if item, exists := e.world.Items[playerQuest.Reward]; exists {
-			player.inventory = append(player.inventory, item.Clone())
+			player.inventory = append(player.inventory, item)
 		}
 	}
 
@@ -515,7 +515,7 @@ func (e *Engine) removeItemFromWorld(itemId string) {
 
 func (e *Engine) refreshQuestProgress(player *Player) {
 	for _, q := range player.quests {
-		if q.Status != "active" {
+		if q.Status != "available" {
 			continue
 		}
 
