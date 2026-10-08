@@ -10,20 +10,24 @@ type Size struct {
 }
 
 type Variables struct {
-	Player             *Player
-	RemotePlayers      *map[string]*Player
-	RemotePlayerEmotes *map[string]*PlayerEmote
-	ItemPositions      *map[string]*Position
-	Collisions         [][]bool
-	Tileset_size       float32
-	LastRoomChange     time.Time
+	Player               *Player
+	RemotePlayers        *map[string]*Player
+	RemotePlayerEmotes   *map[string]*PlayerEmote
+	ItemPositions        *map[string]*Position
+	NpcPositions         *map[string]*Position
+	Collisions           [][]bool
+	Tileset_size         float32
+	LastRoomChange       time.Time
+	LastCombatResultTime time.Time
 
 	Current_room    string
 	Current_view    string
 	PanelsVariables *PanelVariables
 
-	Npcs         map[string]*NpcDatas
-	NpcConvertor map[string]string
+	Npcs          map[string]*NpcDatas
+	Items         map[string]*ItemDatas
+	NpcConvertor  map[string]string
+	ItemConvertor map[string]string
 
 	ConnectionError string
 

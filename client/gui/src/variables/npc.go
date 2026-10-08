@@ -16,21 +16,12 @@ type Npc struct {
 }
 
 var (
-	// TODO Define all npcs
 	NpcConvertor = map[string]Npc{
-		"thomas_charbonneau": {
-			Texture: "free_character_spritesheet_by-cupnooble",
-			RatioX:  1,
-			RatioY:  2,
-			IndXs:   []float32{0, 1, 2, 3, 4, 5, 6, 7},
-			IndYs:   []float32{0, 0, 0, 0, 0, 0, 0, 0},
-			Pos:     Position{X: 12, Y: 6},
-		},
 		"maelis": {
 			Texture: "bat_animations",
 			RatioX:  2,
 			RatioY:  2,
-			IndXs:   []float32{0, 2, 4, 6, 8},
+			IndXs:   []float32{4, 6, 8, 0, 2},
 			IndYs:   []float32{0, 0, 0, 0, 0},
 			Pos:     Position{X: 13, Y: 13},
 		},
@@ -57,14 +48,6 @@ var (
 			IndXs:   []float32{0, 1, 2, 0, 1, 2, 0},
 			IndYs:   []float32{0, 0, 0, 1, 1, 1, 2},
 			Pos:     Position{X: 20, Y: 6},
-		},
-		"gabinap": {
-			Texture: "gabinap",
-			RatioX:  2.3,
-			RatioY:  5,
-			IndXs:   []float32{1.6, 5.5, 9.7},
-			IndYs:   []float32{0, 0, 0},
-			Pos:     Position{X: 13, Y: 7},
 		},
 	}
 )

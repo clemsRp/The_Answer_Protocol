@@ -235,14 +235,10 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 			rewards := make([]string, 0)
 			if res.Datas != nil {
 				var evtData struct {
-					XpReward    int      `json:"xp_reward,omitempty"`
 					ItemsReward []string `json:"items_reward,omitempty"`
 				}
 				raw, err := json.Marshal(res.Datas)
 				if err == nil && json.Unmarshal(raw, &evtData) == nil {
-					if evtData.XpReward > 0 {
-						rewards = append(rewards, fmt.Sprintf("%d XP", evtData.XpReward))
-					}
 					rewards = append(rewards, evtData.ItemsReward...)
 				}
 			}
@@ -252,6 +248,7 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 				c.ui.ShowCombatResultPopup(capturedResult, capturedRewards)
 			})
 			c.sendToNetwork(pr.CmdLook)
+			c.sendToNetwork(pr.CmdInventory)
 		} else if strings.HasPrefix(trimmed, pr.CategoryCombat+" ALLY_LEAVE_COMBAT") {
 			leftUser := strings.TrimSpace(strings.TrimPrefix(trimmed, pr.CategoryCombat+" ALLY_LEAVE_COMBAT"))
 			playerSnap := c.gameState.GetPlayerSnapshot()

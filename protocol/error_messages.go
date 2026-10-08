@@ -13,7 +13,7 @@ const (
 )
 
 // 400 codes are GAME LOGIC ERRORS
-// Group errors 401, 402
+// Group errors
 const (
 	ErrInvalidCommand    = "ERR 400 INVALID_COMMAND"
 	ErrNotInGroup        = "ERR 401 NOT_IN_GROUP"
@@ -56,5 +56,3 @@ const (
 	ErrSpam             = "ERR 902 CONNECTION_CLOSED_DUE_TO_SPAM"
 	ErrServerFull       = "ERR 901 SERVER_FULL"
 )
-
-// MORE errors (NOT IN RFC protocol) 500+ codes

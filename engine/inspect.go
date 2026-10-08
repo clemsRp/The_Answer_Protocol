@@ -28,7 +28,6 @@ func buildInspectNpcData(n *Npc) pr.InspectNPCData {
 		QuestId:     n.QuestId,
 		Hostile:     n.Hostile,
 		InCombat:    n.InCombat,
-		XpReward:    n.XpReward,
 	}
 
 	if n.Stats != nil {
@@ -38,7 +37,7 @@ func buildInspectNpcData(n *Npc) pr.InspectNPCData {
 	}
 
 	for _, reward := range n.ItemsReward {
-		data.ItemsReward = append(data.ItemsReward, reward.Id)
+		data.ItemsReward = append(data.ItemsReward, reward)
 	}
 
 	return data

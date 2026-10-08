@@ -10,7 +10,7 @@ import (
 )
 
 func TestServerSendsGreeting(t *testing.T) {
-	s, _ := utils.SetupTestServerEngine(t, "../../world_test.json")
+	s, _ := utils.SetupTestServerEngine(t)
 
 	clientConn, err := net.DialTimeout("tcp", s.GetAddress(), 2*time.Second)
 	if err != nil {

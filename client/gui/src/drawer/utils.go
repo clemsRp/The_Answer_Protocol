@@ -31,6 +31,25 @@ func (dr *Drawer) DrawImage(texture_name string, posX, posY, indX, indY, ratioX,
 	rl.DrawTexturePro(texture, sourceRec, destRec, origin, rotation, rl.White)
 }
 
+func (dr *Drawer) DrawBlurredGame() {
+	rl.BeginTextureMode(dr.gameTexture)
+	dr.DrawGameView()
+	rl.EndTextureMode()
+
+	rl.BeginShaderMode(dr.blurShader)
+	rl.DrawTextureRec(
+		dr.gameTexture.Texture,
+		rl.NewRectangle(
+			0, 0,
+			float32(dr.gameTexture.Texture.Width),
+			-float32(dr.gameTexture.Texture.Height),
+		),
+		rl.NewVector2(0, 0),
+		rl.White,
+	)
+	rl.EndShaderMode()
+}
+
 func (dr *Drawer) DrawWoodFrameAt(visualStart vars.Position, visualEnd vars.Position, zoom float32, darkness int, empty bool) {
 	e := float32(zoom)
 

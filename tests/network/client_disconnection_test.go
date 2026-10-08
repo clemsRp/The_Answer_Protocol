@@ -8,7 +8,7 @@ import (
 )
 
 func TestClientDisconnection(t *testing.T) {
-	s, _ := utils.SetupTestServerEngine(t, "../../world_test.json")
+	s, _ := utils.SetupTestServerEngine(t)
 	addr := s.GetAddress()
 
 	conn, err := net.DialTimeout("tcp", addr, 2*time.Second)
@@ -30,7 +30,7 @@ func TestClientDisconnection(t *testing.T) {
 }
 
 func TestHardResetDisconnection(t *testing.T) {
-	s, _ := utils.SetupTestServerEngine(t, "../../world_test.json")
+	s, _ := utils.SetupTestServerEngine(t)
 	addr := s.GetAddress()
 
 	conn, err := net.DialTimeout("tcp", addr, 2*time.Second)
@@ -43,8 +43,7 @@ func TestHardResetDisconnection(t *testing.T) {
 		t.Fatal("Failed to cast to TCPConn")
 	}
 
-	// SetLinger(0) forces the OS to throw the remaining buffer
-	// and sends  TCP RST immediatly when Close().
+	// Handle buffer
 	tcpConn.SetLinger(0)
 	tcpConn.Close()
 

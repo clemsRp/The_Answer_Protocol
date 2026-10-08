@@ -9,7 +9,7 @@ import (
 )
 
 func RunScenario(t *testing.T, scenarioEntry ScenarioEntry) {
-	s, _ := utils.SetupTestServerEngine(t, "../world_test.json")
+	s, _ := utils.SetupTestServerEngine(t)
 	connections := make(map[string]net.Conn)
 	readers := make(map[string]*bufio.Reader)
 

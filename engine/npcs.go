@@ -14,8 +14,7 @@ type Npc struct {
 	Stats       *CombatStats `json:"stats,omitempty" validate:"required_if=Hostile true"`
 	Hostile     bool         `json:"hostile"`
 	InCombat    bool         `json:"omitempty"`
-	XpReward    int          `json:"xp_reward,omitempty"`
-	ItemsReward []*Item      `json:"items_reward,omitempty"`
+	ItemsReward []string     `json:"items_reward,omitempty"`
 	Fighter     `validate:"-"`
 }
 

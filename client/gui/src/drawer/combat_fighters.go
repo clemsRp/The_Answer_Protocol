@@ -6,6 +6,7 @@ import (
 	"tap/client/gui/src/ui"
 	vars "tap/client/gui/src/variables"
 	pr "tap/protocol"
+	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -133,6 +134,8 @@ func (dr *Drawer) DrawCombatInteractions(geo fightersPanelGeometry) {
 			continue
 		}
 
+		is_ennemy := strings.Contains(item.Name, "opp_")
+
 		cleanID := strings.TrimPrefix(item.Name, "opp_")
 		cleanID = strings.TrimPrefix(cleanID, "team_")
 
@@ -145,21 +148,86 @@ func (dr *Drawer) DrawCombatInteractions(geo fightersPanelGeometry) {
 
 		shift := (geo.baseFrameSize*turnZoom - geo.baseFrameSize) / 2
 
-		dr.DrawFighterEmote(item, shift, zoomAlign, turnZoom, geo)
+		dr.DrawFighterEmote(item, cleanID, shift, zoomAlign, turnZoom, geo, is_ennemy)
 		dr.DrawFighterPseudo(item, cleanID, shift, turnZoom, geo)
 		dr.DrawFighterLive(item, cleanID, shift, turnZoom, geo)
 	}
 }
 
-func (dr *Drawer) DrawFighterEmote(item *ui.Interaction, shift, zoomAlign, turnZoom float32, geo fightersPanelGeometry) {
-	frame := item.Emote.CurrentFrame(dr.app.Variables.StartTime)
+func (dr *Drawer) DrawFighterEmote(item *ui.Interaction, cleanID string, shift, zoomAlign, turnZoom float32, geo fightersPanelGeometry, is_ennemy bool) {
+	var texture string
+	var indX, indY, ratioX, ratioY float32
+	var maxTargetDim float32
 
-	dr.DrawImage(item.Emote.Texture,
-		item.Emote.X-0.1*geo.tile-shift+zoomAlign,
-		item.Emote.Y-0.1*geo.tile-shift+zoomAlign,
-		frame.IndX, frame.IndY,
-		frame.RatioX, frame.RatioY,
-		item.Emote.Zoom/1.5*turnZoom,
+	offset_y := float32(0)
+
+	millis := time.Since(dr.app.Variables.StartTime).Milliseconds()
+
+	if is_ennemy {
+		if emote, ok := vars.NpcConvertor[cleanID]; ok {
+			texture = emote.Texture
+			ratioX = emote.RatioX
+			ratioY = emote.RatioY
+			indX = emote.IndXs[0]
+			indY = emote.IndYs[0]
+			if len(emote.IndXs) > 0 {
+				frameIdx := int(millis/100) % len(emote.IndXs)
+				indX = emote.IndXs[frameIdx]
+				if frameIdx < len(emote.IndYs) {
+					indY = emote.IndYs[frameIdx]
+				}
+			}
+			maxTargetDim = 1.1 * geo.tile * turnZoom
+		} else {
+			texture = vars.NPC_TEXTURE
+			ratioX = 1
+			ratioY = 2
+			offset_y = 0.1 * geo.tile
+			frameIdx := int(millis/100) % 8
+			indX = float32(frameIdx)
+			indY = 0
+			maxTargetDim = 1.2 * geo.tile * turnZoom
+		}
+	} else {
+		frame := item.Emote.CurrentFrame(dr.app.Variables.StartTime)
+		texture = item.Emote.Texture
+		indX = frame.IndX
+		indY = frame.IndY
+		ratioX = frame.RatioX
+		ratioY = frame.RatioY
+		maxTargetDim = 1.0 * geo.tile * turnZoom
+	}
+
+	frameX := item.Emote.X - 0.35*geo.tile
+	frameY := item.Emote.Y - 0.35*geo.tile
+
+	centerX := frameX - shift + geo.tile*turnZoom
+	centerY := frameY - shift + geo.tile*turnZoom
+
+	maxRatio := ratioX
+	if ratioY > maxRatio {
+		maxRatio = ratioY
+	}
+
+	scaleFactor := maxTargetDim / (geo.tile * turnZoom * maxRatio)
+
+	zoomDraw := dr.app.Variables.Zoom * turnZoom * scaleFactor
+	spriteW := geo.tile * turnZoom * scaleFactor * ratioX
+	spriteH := geo.tile * turnZoom * scaleFactor * ratioY
+
+	multi_y := float32(0.5)
+	if cleanID == geo.curTurn {
+		multi_y = 0.63
+	}
+
+	posX := centerX - (spriteW+geo.tile*0.55)/2
+	posY := centerY - (spriteH+geo.tile*multi_y)/2
+
+	dr.DrawImage(texture,
+		posX, posY-float32(offset_y),
+		indX, indY,
+		ratioX, ratioY,
+		zoomDraw,
 		item.Emote.Rotation,
 	)
 }
@@ -178,7 +246,12 @@ func (dr *Drawer) DrawFighterPseudo(item *ui.Interaction, cleanID string, shift,
 		y += 0.1 * geo.tile
 	}
 
-	rl.DrawText(pseudo, int32(x), int32(y), fontSize, dr.app.Colors["pseudo_text"])
+	color := dr.app.Colors["pseudo_text"]
+	if dr.GetFighterLive(item) == 0 {
+		color = rl.Red
+	}
+
+	rl.DrawText(pseudo, int32(x), int32(y), fontSize, color)
 }
 
 func (dr *Drawer) DrawFighterLive(item *ui.Interaction, cleanID string, shift, turnZoom float32, geo fightersPanelGeometry) {

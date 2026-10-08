@@ -10,7 +10,7 @@ import (
 )
 
 func TestUnknownCommandBehavior(t *testing.T) {
-	s, _ := utils.SetupTestServerEngine(t, "../../world_test.json")
+	s, _ := utils.SetupTestServerEngine(t)
 	addr := s.GetAddress()
 
 	conn, err := net.DialTimeout("tcp", addr, 2*time.Second)

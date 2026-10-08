@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	vars "tap/client/gui/src/variables"
 	panel "tap/client/tui/panels"
 	"tap/protocol"
 	"time"
@@ -13,8 +14,17 @@ func (app *App) ShowConnectPage() {
 
 func (app *App) ShowGamePage() {
 	app.Variables.Current_view = "Game"
-	app.Variables.Player.Position.X = app.Variables.StartingPosX
-	app.Variables.Player.Position.Y = app.Variables.StartingPosY
+	app.Variables.PanelsVariables.Chat.CurrentScope = "GLOBAL"
+	app.Variables.PanelsVariables.Chat.Open = false
+	app.Variables.PanelsVariables.Inspect.Open = false
+	app.Variables.PanelsVariables.Datas.Open = false
+	app.Variables.PanelsVariables.Group.Open = false
+
+	if true {
+		app.Variables.Player.Position.X = app.Variables.StartingPosX
+		app.Variables.Player.Position.Y = app.Variables.StartingPosY
+	}
+
 	newPosX := app.Variables.Player.Position.X
 	newPosY := app.Variables.Player.Position.Y
 	newDirX := app.Variables.Player.Direction.X
@@ -30,6 +40,9 @@ func (app *App) ShowGamePage() {
 		app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdGetPlayerPositions}
 		app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdGetPlayerEmotes}
 		app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdGetItemPositions}
+
+		app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdInspectSelf}
+		app.Variables.PanelsVariables.Inspect.LastInspect = "SELF"
 	})
 
 	app.Variables.LastRoomChange = time.Now()
@@ -45,17 +58,23 @@ func (app *App) ShowCombatPage() {
 }
 
 func (app *App) ShowCombatResultPopup(result string, rewards []string) {
+	app.Variables.PanelsVariables.CombatResult = &vars.CombatResultPanel{
+		LastTime: time.Now(),
+		Result:   result,
+		Rewards:  rewards,
+	}
+
 	app.QueueUpdate(func() {
 		app.ActionsChan <- panel.Action{
 			Type:    panel.ActionSendServer,
 			Payload: protocol.CmdInspectSelf,
 		}
-		app.Variables.PanelsVariables.Inspect.Open = true
+		app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: protocol.CmdInspectSelf}
+		app.Variables.PanelsVariables.Inspect.LastInspect = "SELF"
 	})
-	app.Variables.PanelsVariables.Inspect.LastInspect = "SELF"
 	app.Variables.PanelsVariables.Chat.CurrentScope = "GLOBAL"
 	app.Variables.PanelsVariables.Chat.Open = false
-	app.ShowGamePage()
+	app.Variables.Current_view = "CombatResult"
 }
 
 func (app *App) ShowQuestCompletedPopup(questID, reward string) {

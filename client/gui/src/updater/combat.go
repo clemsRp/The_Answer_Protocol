@@ -6,6 +6,7 @@ import (
 	vars "tap/client/gui/src/variables"
 	panel "tap/client/tui/panels"
 	pr "tap/protocol"
+	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -145,6 +146,8 @@ func (up *Updater) buildCombatActionsButtons() {
 	btnAttackY := (float32(vars.COMBAT_ACTIONS_START_Y) + 0.8) * tile
 	btnFleeY := (float32(vars.COMBAT_ACTIONS_START_Y) + 3.2) * tile
 
+	var lastAttack time.Time
+
 	attackBtn := &ui.Button{
 		ID:      "combat_attack",
 		Texture: vars.UI_SPRITE_TEXTURE,
@@ -154,6 +157,11 @@ func (up *Updater) buildCombatActionsButtons() {
 		Normal:  ui.Frame{IndX: 10, IndY: 11, RatioX: 6, RatioY: 2},
 		Pressed: ui.Frame{IndX: 16, IndY: 11, RatioX: 6, RatioY: 2},
 		OnClick: func() {
+			if time.Since(lastAttack) < 400*time.Millisecond {
+				return
+			}
+			lastAttack = time.Now()
+
 			cs := up.app.Variables.PanelsVariables.CombatState
 			target := ""
 			if cs != nil {
