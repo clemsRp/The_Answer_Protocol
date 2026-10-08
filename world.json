@@ -223,7 +223,7 @@
             "marshmallow": {
                 "name": "Un paquet de marshmallow",
                 "description": "Un succulent paquet de marshmallow a déguster autour d'un feu de camps",
-                "obtainbranche_solideable": true,
+                "obtainable": true,
                 "type": "consumable",
                 "target_stat": "hp",
                 "amount": 15,
@@ -341,9 +341,16 @@
                     "...",
                     "..."
                 ],
-                "role": "dialogue",
+                "role": "enemy",
                 "quest_id": "",
-                "hostile": false
+                "stats": {
+                    "hp": 25,
+                    "max_hp": 25,
+                    "status": "healthy",
+                    "initiative": 90,
+                    "damage": 15
+                },
+                "hostile": true
             },
             "salomon": {
                 "name": "Salomon le saumon",

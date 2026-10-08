@@ -115,7 +115,7 @@ var (
 	}
 )
 
-func (up *Updater) canMove(room *parser.Map, x, y float32, tile_size int) bool {
+func (up *Updater) CanMove(room *parser.Map, x, y float32, tile_size int) bool {
 	x_off := vars.FRAME_WIDTH * up.app.Variables.Zoom
 	y_off := vars.FRAME_HEIGHT * up.app.Variables.Zoom
 	marge := 4

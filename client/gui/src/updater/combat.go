@@ -166,9 +166,19 @@ func (up *Updater) buildCombatActionsButtons() {
 			target := ""
 			if cs != nil {
 				target = cs.SelectedPerson
+				if len(target) > 4 && (target[:4] == "npc-" || target[:7] == "player-") {
+					if idx := len("npc-"); target[:4] == "npc-" {
+						target = target[idx:]
+					} else {
+						target = target[len("player-"):]
+					}
+				}
 				if target == "" && len(cs.Opponents) > 0 {
 					for k := range cs.Opponents {
 						target = k
+						if len(target) > 4 && target[:4] == "npc-" {
+							target = target[4:]
+						}
 						break
 					}
 				}

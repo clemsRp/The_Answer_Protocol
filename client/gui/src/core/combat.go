@@ -108,7 +108,7 @@ func (app *App) RebuildCombatInteractions() {
 				Emote: getEmoteForFighter(fighterName, emoteX, emoteY),
 				Inspect: func(target string) {
 					if app.Variables.PanelsVariables.CombatState != nil {
-						app.Variables.PanelsVariables.CombatState.SelectedPerson = target
+						app.Variables.PanelsVariables.CombatState.SelectedPerson = fighterName
 					}
 				},
 			})
@@ -141,7 +141,7 @@ func (app *App) RebuildCombatInteractions() {
 				Emote: getEmoteForFighter(fighterName, emoteX, emoteY),
 				Inspect: func(target string) {
 					if app.Variables.PanelsVariables.CombatState != nil {
-						app.Variables.PanelsVariables.CombatState.SelectedPerson = target
+						app.Variables.PanelsVariables.CombatState.SelectedPerson = fighterName
 					}
 				},
 			})

@@ -178,8 +178,8 @@ func (dr *Drawer) DrawPanelNotifications(button *ui.Button) {
 
 	radius := 0.10 * dr.app.Variables.Tileset_size
 
-	x := rect.X + rect.Width - radius
-	y := rect.Y + radius
+	x := rect.X + rect.Width - 1.75*radius
+	y := rect.Y + 1.75*radius
 
 	rl.DrawCircle(
 		int32(x),
@@ -187,14 +187,4 @@ func (dr *Drawer) DrawPanelNotifications(button *ui.Button) {
 		radius,
 		rl.Red,
 	)
-}
-
-func (dr *Drawer) drawNotificationBubble(x, y, zoom float32) {
-	rl.DrawCircle(
-		int32(x),
-		int32(y),
-		0.10*dr.app.Variables.Tileset_size,
-		rl.Red,
-	)
-
 }

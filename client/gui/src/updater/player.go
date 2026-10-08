@@ -33,18 +33,18 @@ func (up *Updater) UpdatePlayer() {
 	dir_y := 0
 
 	var dx, dy float32
-	if rl.IsKeyDown(rl.KeyDown) {
+	if rl.IsKeyDown(rl.KeyDown) || rl.IsKeyDown(rl.KeyS) {
 		dir_y = 1
 		dy += speed
-	} else if rl.IsKeyDown(rl.KeyUp) {
+	} else if rl.IsKeyDown(rl.KeyUp) || rl.IsKeyDown(rl.KeyW) {
 		dir_y = -1
 		dy -= speed
 	}
 
-	if rl.IsKeyDown(rl.KeyRight) {
+	if rl.IsKeyDown(rl.KeyRight) || rl.IsKeyDown(rl.KeyD) {
 		dir_x = 1
 		dx += speed
-	} else if rl.IsKeyDown(rl.KeyLeft) {
+	} else if rl.IsKeyDown(rl.KeyLeft) || rl.IsKeyDown(rl.KeyA) {
 		dir_x = -1
 		dx -= speed
 	}
@@ -60,12 +60,12 @@ func (up *Updater) UpdatePlayer() {
 	}
 
 	newX := up.app.Variables.Player.Position.X + dx
-	if up.canMove(current_room, newX, up.app.Variables.Player.Position.Y, int(tile_size)) {
+	if up.CanMove(current_room, newX, up.app.Variables.Player.Position.Y, int(tile_size)) {
 		up.app.Variables.Player.Position.X = newX
 	}
 
 	newY := up.app.Variables.Player.Position.Y + dy
-	if up.canMove(current_room, up.app.Variables.Player.Position.X, newY, int(tile_size)) {
+	if up.CanMove(current_room, up.app.Variables.Player.Position.X, newY, int(tile_size)) {
 		up.app.Variables.Player.Position.Y = newY
 	}
 

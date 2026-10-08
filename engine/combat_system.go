@@ -58,24 +58,45 @@ type FullTurnResponse struct {
 }
 
 func (e *Engine) getValidTarget(player *Player, targetName string) (*Npc, error) {
+	targetName = strings.TrimSpace(targetName)
+	targetName = strings.TrimPrefix(targetName, "npc-")
+	targetName = strings.TrimPrefix(targetName, "player-")
+
 	// If player is IN combat, verify target within active combat fighters
 	if player.inCombat {
 		cs, exists := e.activeCombats[player.stats.CombatId]
 		if !exists {
 			return nil, errors.New(pr.ErrInternalServer)
 		}
-		for _, fighter := range cs.Fighters {
-			if p, ok := fighter.(*Player); ok {
-				if strings.EqualFold(p.name, targetName) {
-					return nil, errors.New(pr.ErrNoAllyAttack)
-				}
-			}
-			if npc, ok := fighter.(*Npc); ok {
-				if strings.EqualFold(npc.Id, targetName) || strings.EqualFold(npc.Name, targetName) {
+
+		if targetName == "" {
+			for _, npc := range cs.Npcs {
+				if !npc.isDead() {
 					return npc, nil
 				}
 			}
 		}
+
+		for _, npc := range cs.Npcs {
+			if !npc.isDead() && (strings.EqualFold(npc.Id, targetName) || strings.EqualFold(npc.Name, targetName)) {
+				return npc, nil
+			}
+		}
+
+		for _, fighter := range cs.Fighters {
+			if npc, ok := fighter.(*Npc); ok {
+				if !npc.isDead() && (strings.EqualFold(npc.Id, targetName) || strings.EqualFold(npc.Name, targetName)) {
+					return npc, nil
+				}
+			}
+		}
+
+		for _, p := range cs.Players {
+			if strings.EqualFold(p.name, targetName) {
+				return nil, errors.New(pr.ErrNoAllyAttack)
+			}
+		}
+
 		return nil, errors.New(pr.ErrNpcNotFound)
 	}
 
@@ -161,6 +182,13 @@ func (e *Engine) initiateCombat(player *Player, npc_copy *Npc) (*CombatSession, 
 		CombatState:  cs.State,
 	}
 	cs.TurnResponse = response
+
+	if _, isPlayer := firstFighter.(*Player); isPlayer {
+		msg := fmt.Sprintf("%s %s %s %s", pr.MsgEvt, pr.CategoryCombat, pr.TypeAllyTurn, firstFighter.getName())
+		cs.Engine.inform_combat_players(cs, nil, msg)
+		return cs, "OK", response
+	}
+
 	cs.processNpcsTurn()
 
 	if cs.State == StateOngoing && cs.isFighterTurn(player) {

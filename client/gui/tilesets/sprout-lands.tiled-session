@@ -276,7 +276,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 256.24173748819635,
+                "x": 255.98727697430544,
                 "y": 144.02465086228318
             }
         },
@@ -284,7 +284,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 256.24173748819635,
+                "x": 255.98727697430544,
                 "y": 144.02465086228318
             }
         },
@@ -292,7 +292,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 256.24173748819635,
+                "x": 255.98727697430544,
                 "y": 144.02465086228318
             }
         },
@@ -300,7 +300,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 256.24173748819635,
+                "x": 255.98727697430544,
                 "y": 144.02465086228318
             }
         },
@@ -317,14 +317,14 @@
             "selectedLayer": 3,
             "viewCenter": {
                 "x": 271.3333333333333,
-                "y": 136.33333333333331
+                "y": 136
             }
         },
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/foret_malicieuse.tmx": {
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 256.24173748819635,
+                "x": 255.98727697430544,
                 "y": 144.02465086228318
             }
         },
@@ -332,7 +332,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 256.24173748819635,
+                "x": 255.98727697430544,
                 "y": 144.02465086228318
             }
         },
@@ -340,7 +340,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 218.5815814323344,
+                "x": 218.32712091844343,
                 "y": 144.02465086228318
             }
         },
@@ -348,7 +348,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 256.24173748819635,
+                "x": 255.98727697430544,
                 "y": 144.02465086228318
             }
         },
@@ -356,7 +356,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 256.24173748819635,
+                "x": 255.98727697430544,
                 "y": 144.02465086228318
             }
         },
@@ -364,7 +364,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 256.24173748819635,
+                "x": 255.98727697430544,
                 "y": 144.02465086228318
             }
         },
@@ -372,7 +372,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 256.24173748819635,
+                "x": 255.98727697430544,
                 "y": 144.02465086228318
             }
         },
@@ -380,7 +380,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 256.24173748819635,
+                "x": 255.98727697430544,
                 "y": 144.02465086228318
             }
         },
@@ -388,7 +388,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 256.24173748819635,
+                "x": 255.98727697430544,
                 "y": 144.02465086228318
             }
         },
@@ -402,7 +402,7 @@
             "scale": 1.96494140625,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 256.24173748819635,
+                "x": 255.98727697430544,
                 "y": 144.02465086228318
             }
         },
@@ -843,9 +843,9 @@
         }
     },
     "frame.defaultDuration": 500,
-    "last.exportedFilePath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/maps",
+    "last.exportedFilePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps",
     "last.externalTilesetPath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/tilesets",
-    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Sorry pack/Early Access/Plant update 2/frog",
+    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Dialouge UI",
     "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
@@ -880,6 +880,7 @@
     "project": "sprout-lands.tiled-project",
     "property.type": "bool",
     "recentFiles": [
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/place_du_village.tmx",
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.json",
         "franck.tsx",
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.tmx",
@@ -890,8 +891,7 @@
         "Basic_Furniture.tsx",
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/barrage.tmx",
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/camping.tmx",
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/ferme_charbonneau.tmx",
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/ferme_uzoloise.tmx"
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/ferme_charbonneau.tmx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

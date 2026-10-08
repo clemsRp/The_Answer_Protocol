@@ -14,7 +14,7 @@ GUI_FILES    := $(shell find client/gui cmd/client/gui -type f -name '*.go' 2>/d
 TUI_FILES    := $(shell find client/tui cmd/client/tui -type f -name '*.go' 2>/dev/null) $(COMMON_FILES) $(CLIENT_FILES)
 
 # Build
-deps:
+dependencies:
 	@echo "Downloading dependencies..."
 	@go mod download
 	@go mod tidy
@@ -34,21 +34,33 @@ exec/tui: $(TUI_FILES)
 	@echo "Building TUI client..."
 	@go build -o exec/tui ./cmd/client/tui
 
-build: deps exec/server exec/gui exec/tui
+build: install exec/server exec/gui exec/tui
 	@echo "Build completed."
 
 # Execution
-server: exec/server
+run-server: exec/server
 	@echo "Starting server..."
 	./exec/server
 
-tui: exec/tui
+run-client: exec/tui
 	@echo "Starting TUI client..."
 	./exec/tui
 
-gui: exec/gui
+run-client-gui: exec/gui
 	@echo "Starting GUI client..."
 	./exec/gui
+
+# run-server:
+# 	@echo "Starting server..."
+# 	go run ./cmd/server/main.go
+
+# run-client:
+# 	@echo "Starting TUI client..."
+# 	go run ./cmd/client/tui/main.go
+
+# run-client-gui:
+# 	@echo "Starting GUI client..."
+# 	go run ./cmd/client/gui/main.go
 
 # Tests
 test:
@@ -96,4 +108,4 @@ clean_strict:
 	@$(MAKE) clean_img
 
 
-.PHONY: deps build server tui gui test format clean_tsx clean_img clean clean_strict re lint check
+.PHONY: install build  run-server run-client run-client-gui test format clean_tsx clean_img clean clean_strict re lint check

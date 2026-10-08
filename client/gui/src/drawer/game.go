@@ -48,7 +48,7 @@ func (dr *Drawer) DrawGame() {
 	)
 
 	for _, layer := range dr.app.Rooms[dr.app.Variables.Current_room].Layers {
-		if layer.Name == "InFrontOfPlayer" {
+		if layer.Name == "InFrontOfPlayer" && layer.Visible {
 			dr.DrawLayer(layer, dr.app.Rooms[dr.app.Variables.Current_room].Tilesets)
 		}
 	}

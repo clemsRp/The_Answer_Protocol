@@ -31,7 +31,10 @@ func NewApp(actionsChan chan panel.Action) *App {
 func (app *App) Update() {
 	// Handle quit
 	if rl.IsKeyPressed(rl.KeyEscape) {
-		app.Running = false
+		app.Variables.PanelsVariables.Datas.Open = false
+		app.Variables.PanelsVariables.Inspect.Open = false
+		app.Variables.PanelsVariables.Group.Open = false
+		app.Variables.PanelsVariables.Chat.Open = false
 	}
 
 	app.Updater.UpdateMouse()
@@ -47,6 +50,8 @@ func (app *App) Update() {
 	} else if app.Variables.Current_view == "CombatResult" {
 		app.Updater.UpdateCombatResultView()
 	}
+
+	app.CheckPlayerMovement()
 }
 
 func (app *App) Draw() {
@@ -82,4 +87,28 @@ func (app *App) Start() {
 
 	app.Textures.UnloadTextures()
 	rl.CloseWindow()
+}
+
+func (app *App) CheckPlayerMovement() {
+	current_room := app.Rooms[app.Variables.Current_room]
+	if current_room == nil || len(current_room.Collisions) == 0 || len(current_room.Collisions[0]) == 0 {
+		return
+	}
+
+	curX := app.Variables.Player.Position.X
+	curY := app.Variables.Player.Position.Y
+	tile := app.Variables.Tileset_size
+
+	inside := curX >= 2*tile && curX <= 29*tile && curY >= 2*tile && curY <= 15*tile
+
+	if !app.Updater.CanMove(current_room, curX, curY, int(tile)) && inside {
+		newX, newY, found := app.FindNearestFreeTile(
+			app.Variables.Player.Position.X,
+			app.Variables.Player.Position.Y,
+		)
+		if found {
+			app.Variables.Player.Position.X = newX
+			app.Variables.Player.Position.Y = newY
+		}
+	}
 }

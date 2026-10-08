@@ -88,6 +88,13 @@ func (dr *Drawer) DrawConnectView() {
 	input_height := 2 * dr.app.Variables.FontSize
 	border := input_height * 0.1
 
+	dr.DrawImage(
+		vars.MSG_BUBBLE_TEXTURE,
+		float32(posX),
+		float32(posY-0.125*tile),
+		0, 0, 11, 3, dr.app.Variables.Zoom*2/5, 0,
+	)
+
 	rl.DrawText(
 		"ENTER PSEUDO",
 		int32(posX+tile*0.5),
