@@ -302,8 +302,8 @@ func (m *MyApp) UpdateNavigation(room *protocol.LookCommandData) {
 	roomName := ""
 	opts := make(map[string]string)
 	if room != nil {
-		roomName = room.Name
-		exits := room.Exits
+		roomName = room.Room.Name
+		exits := room.Room.Exits
 		if exits.North != "" {
 			opts["north"] = exits.North
 		}

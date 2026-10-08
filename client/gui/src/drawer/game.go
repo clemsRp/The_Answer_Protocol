@@ -190,7 +190,7 @@ func (dr *Drawer) DrawInventory() {
 }
 
 func (dr *Drawer) DrawRoomName() {
-	cur_room := dr.app.Variables.PanelsVariables.Room.Name
+	cur_room := dr.app.Variables.PanelsVariables.Room.Room.Name
 
 	center := rl.MeasureText(
 		cur_room,
@@ -214,7 +214,7 @@ func (dr *Drawer) DrawRoomName() {
 		int32(dr.app.Variables.FontSize), dr.app.Colors["pseudo_text"],
 	)
 
-	cur_description := dr.app.Variables.PanelsVariables.Room.Description
+	cur_description := dr.app.Variables.PanelsVariables.Room.Room.Description
 
 	center = rl.MeasureText(
 		cur_description,

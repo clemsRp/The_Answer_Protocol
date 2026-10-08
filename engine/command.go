@@ -124,13 +124,15 @@ func (e *Engine) handleCmdLook(player *Player, req []string) (string, any, error
 		}
 	}
 	res := pr.LookCommandData{
-		Id:          "room." + player.room.Id,
-		Name:        player.room.Name,
-		Description: player.room.Description,
-		Exits:       exits,
-		Players:     players,
-		Items:       player.room.Items,
-		Npcs:        npcs,
+		Room: pr.RoomDatas{
+			Id:          "room." + player.room.Id,
+			Name:        player.room.Name,
+			Description: player.room.Description,
+			Exits:       exits,
+		},
+		Players: players,
+		Items:   player.room.Items,
+		Npcs:    npcs,
 	}
 
 	return "OK", res, nil

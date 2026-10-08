@@ -16,7 +16,7 @@ import (
 
 func (app *App) UpdateNavigation(room *protocol.LookCommandData) {
 	app.Variables.PanelsVariables.Room = room
-	app.Variables.Current_room = strings.SplitN(room.Id, "room.", 2)[1]
+	app.Variables.Current_room = strings.SplitN(room.Room.Id, "room.", 2)[1]
 }
 
 func (app *App) UpdateRoom() {

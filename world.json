@@ -307,8 +307,7 @@
                     "initiative": 90,
                     "damage": 15
                 },
-                "hostile": true,
-				"items_reward": ["cancoillotte"]
+                "hostile": true
             },
             "bernard": {
                 "name": "Bernard",
@@ -350,7 +349,8 @@
                     "initiative": 90,
                     "damage": 15
                 },
-                "hostile": true
+                "hostile": true,
+				"items_reward": ["cancoillotte"]
             },
             "salomon": {
                 "name": "Salomon le saumon",

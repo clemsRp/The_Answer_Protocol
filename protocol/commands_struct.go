@@ -7,14 +7,18 @@ type ExitsData struct {
 	South string `json:"south,omitempty"`
 }
 
-type LookCommandData struct {
+type RoomDatas struct {
 	Id          string    `json:"id"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	Exits       ExitsData `json:"exits"`
-	Players     []string  `json:"players"`
-	Items       []string  `json:"items"`
-	Npcs        []string  `json:"npcs"`
+}
+
+type LookCommandData struct {
+	Room    RoomDatas `json:"room"`
+	Players []string  `json:"players"`
+	Items   []string  `json:"items"`
+	Npcs    []string  `json:"npcs"`
 }
 
 type StatusCommandData struct {

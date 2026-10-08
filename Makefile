@@ -14,53 +14,26 @@ GUI_FILES    := $(shell find client/gui cmd/client/gui -type f -name '*.go' 2>/d
 TUI_FILES    := $(shell find client/tui cmd/client/tui -type f -name '*.go' 2>/dev/null) $(COMMON_FILES) $(CLIENT_FILES)
 
 # Build
-dependencies:
+install:
 	@echo "Downloading dependencies..."
 	@go mod download
 	@go mod tidy
-
-exec/server: $(SERVER_FILES)
-	@mkdir -p exec
-	@echo "Building server..."
-	@go build -o exec/server ./cmd/server
-
-exec/gui: $(GUI_FILES)
-	@mkdir -p exec
-	@echo "Building GUI client..."
-	@go build -o exec/gui ./cmd/client/gui
-
-exec/tui: $(TUI_FILES)
-	@mkdir -p exec
-	@echo "Building TUI client..."
-	@go build -o exec/tui ./cmd/client/tui
 
 build: install exec/server exec/gui exec/tui
 	@echo "Build completed."
 
 # Execution
-run-server: exec/server
+run-server:
 	@echo "Starting server..."
-	./exec/server
+	go run ./cmd/server/main.go
 
-run-client: exec/tui
+run-client:
 	@echo "Starting TUI client..."
-	./exec/tui
+	go run ./cmd/client/tui/main.go
 
-run-client-gui: exec/gui
+run-client-gui:
 	@echo "Starting GUI client..."
-	./exec/gui
-
-# run-server:
-# 	@echo "Starting server..."
-# 	go run ./cmd/server/main.go
-
-# run-client:
-# 	@echo "Starting TUI client..."
-# 	go run ./cmd/client/tui/main.go
-
-# run-client-gui:
-# 	@echo "Starting GUI client..."
-# 	go run ./cmd/client/gui/main.go
+	go run ./cmd/client/gui/main.go
 
 # Tests
 test:
