@@ -30,7 +30,7 @@ func newClient(conn net.Conn, ch chan pr.ServerResponse) *Client {
 		conn: conn,
 		ch:   ch,
 		id:   uuid.New().String(),
-		ip:   conn.LocalAddr().String(),
+		ip:   conn.RemoteAddr().String(),
 	}
 }
 

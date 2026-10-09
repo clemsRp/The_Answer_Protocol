@@ -23,7 +23,7 @@ var (
 			RatioY:  1.5,
 			IndXs:   []float32{4, 5, 6, 7, 0, 1, 2, 3},
 			IndYs:   []float32{0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5},
-			Pos:     Position{X: 18, Y: 8},
+			Pos:     Position{X: 17, Y: 7},
 		},
 		"maelis": {
 			Texture: "bat_animations",

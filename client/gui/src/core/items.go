@@ -155,6 +155,7 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 							Type:    panel.ActionSendServer,
 							Payload: pr.CmdUseItem + " " + it,
 						}
+						app.Variables.Player.EquipedItems = append(app.Variables.Player.EquipedItems, it)
 					})
 				},
 			}
@@ -222,6 +223,7 @@ func (app *App) GetNewCombatInventory(inventory []string) []*ui.Button {
 					Type:    panel.ActionSendServer,
 					Payload: fmt.Sprintf("%s %s", pr.CmdUseItem, itemName),
 				}
+				app.Variables.Player.EquipedItems = append(app.Variables.Player.EquipedItems, it)
 			},
 		}
 		use_buttons = append(use_buttons, item_btn)

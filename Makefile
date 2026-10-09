@@ -63,22 +63,9 @@ check:
 	@echo "All checks passed successfully."
 
 # Clean
-clean_tsx:
-	@echo "Cleaning tilesets..."
-	@./clean_tsx.sh $(MAPS_DIR) $(TILESETS_DIR) ./
-
-clean_img:
-	@echo "Cleaning images..."
-	@./clean_img.sh $(MAPS_DIR) $(ASSETS_DIR)
-
 clean:
 	@echo "Cleaning executables..."
 	@rm -rf exec
-
-clean_strict:
-	@$(MAKE) clean
-	@$(MAKE) clean_tsx
-	@$(MAKE) clean_img
 
 
 .PHONY: install build  run-server run-client run-client-gui test format clean_tsx clean_img clean clean_strict re lint check

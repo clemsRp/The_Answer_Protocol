@@ -31,6 +31,7 @@ type Player struct {
 	LastTimeTyped time.Time
 	MaxHp         int
 	Hp            int
+	EquipedItems  []string
 }
 
 func (p *Player) Rect() rl.Rectangle {
@@ -45,8 +46,9 @@ func GetPlayerVariables() *Player {
 			X: 0,
 			Y: 1,
 		},
-		EmoteIndex: 2,
-		MaxHp:      100,
-		Hp:         100,
+		EmoteIndex:   2,
+		MaxHp:        100,
+		Hp:           100,
+		EquipedItems: make([]string, 0),
 	}
 }

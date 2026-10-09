@@ -62,6 +62,44 @@ func (dr *Drawer) DrawCombatActionsZone() {
 	}
 
 	tile := dr.app.Variables.Tileset_size
+	itemStep := tile / 2
+	itemCount := float32(len(dr.app.Variables.Player.EquipedItems))
+
+	start_x := (splitX+vars.COMBAT_START_X)/2*tile/2 - (itemCount/2)*itemStep
+	start_y := float32(vars.COMBAT_ACTIONS_START_Y+vars.COMBAT_END_Y) / 1.5 * tile
+
+	for _, b := range dr.app.Manager.Buttons("CombatActions") {
+		if b.ID != "combat_flee" {
+			continue
+		}
+		btnW := float32(vars.FRAME_WIDTH) * b.Zoom * b.Normal.RatioX
+		btnH := float32(vars.FRAME_HEIGHT) * b.Zoom * b.Normal.RatioY
+
+		centerX := b.X + btnW/2
+		start_x = centerX - (itemCount*itemStep)/2
+		start_y = b.Y + btnH + tile/4
+		break
+	}
+
+	index := 0
+	for _, item := range dr.app.Variables.Player.EquipedItems {
+		datas, ok := vars.ItemConvertor[item]
+		if !ok {
+			continue
+		}
+
+		dr.DrawImage(
+			datas.Texture,
+			start_x+float32(index)*itemStep,
+			start_y,
+			datas.IndXs[0], datas.IndYs[0],
+			datas.RatioX, datas.RatioY,
+			dr.app.Variables.Zoom/2, 0,
+		)
+
+		index++
+	}
+
 	rightStartX := (splitX + 0.4) * tile
 	startY := (vars.COMBAT_ACTIONS_START_Y + 0.5) * tile
 	lineHeight := 1.15 * font

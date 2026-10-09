@@ -144,7 +144,7 @@ func (up *Updater) buildCombatActionsButtons() {
 	btnX := leftCenterX - btnWidth/2
 
 	btnAttackY := (float32(vars.COMBAT_ACTIONS_START_Y) + 0.8) * tile
-	btnFleeY := (float32(vars.COMBAT_ACTIONS_START_Y) + 3.2) * tile
+	btnFleeY := (float32(vars.COMBAT_ACTIONS_START_Y) + 2.8) * tile
 
 	var lastAttack time.Time
 
