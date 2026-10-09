@@ -1,4 +1,3 @@
-
 MAKEFLAGS += --no-print-directory
 
 # Cleaning
@@ -8,7 +7,7 @@ ASSETS_DIR = ./client/gui/assets
 
 # Source files
 COMMON_FILES := $(shell find engine protocol -type f -name '*.go' 2>/dev/null)
-SERVER_FILES := $(shell find client/controller client/network client/state -type f -name '*.go' 2>/dev/null)
+SERVER_FILES := $(shell find client/controller client/network client/state server -type f -name '*.go' 2>/dev/null)
 CLIENT_FILES := $(shell find engine protocol -type f -name '*.go' 2>/dev/null)
 GUI_FILES    := $(shell find client/gui cmd/client/gui -type f -name '*.go' 2>/dev/null) $(COMMON_FILES) $(CLIENT_FILES)
 TUI_FILES    := $(shell find client/tui cmd/client/tui -type f -name '*.go' 2>/dev/null) $(COMMON_FILES) $(CLIENT_FILES)
@@ -19,21 +18,36 @@ install:
 	@go mod download
 	@go mod tidy
 
+exec/server: $(SERVER_FILES)
+	@mkdir -p exec
+	@echo "Building server..."
+	@go build -o exec/server ./cmd/server
+
+exec/gui: $(GUI_FILES)
+	@mkdir -p exec/client/gui
+	@echo "Building GUI client..."
+	@go build -o exec/gui ./cmd/client/gui
+
+exec/tui: $(TUI_FILES)
+	@mkdir -p exec/client/tui
+	@echo "Building TUI client..."
+	@go build -o exec/tui ./cmd/client/tui
+
 build: install exec/server exec/gui exec/tui
 	@echo "Build completed."
 
 # Execution
-run-server:
+run-server: exec/server
 	@echo "Starting server..."
-	go run ./cmd/server/main.go
+	./exec/server
 
-run-client:
+run-client: exec/tui
 	@echo "Starting TUI client..."
-	go run ./cmd/client/tui/main.go
+	./exec/tui
 
-run-client-gui:
+run-client-gui: exec/gui
 	@echo "Starting GUI client..."
-	go run ./cmd/client/gui/main.go
+	./exec/gui
 
 # Tests
 test:
@@ -68,4 +82,4 @@ clean:
 	@rm -rf exec
 
 
-.PHONY: install build  run-server run-client run-client-gui test format clean_tsx clean_img clean clean_strict re lint check
+.PHONY: install build run-server run-client run-client-gui test format clean clean_strict re lint check
