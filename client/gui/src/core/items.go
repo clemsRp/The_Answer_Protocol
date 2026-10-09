@@ -137,9 +137,33 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 			},
 		}
 
+		// Create the use button for the inventory item
+		if app.IsItemUsable(it) {
+			item_use_btn := &ui.Button{
+				ID:       "item_use_btn",
+				Texture:  vars.UI_SPRITE_TEXTURE,
+				X:        start_x + app.Variables.Tileset_size*float32(ind),
+				Y:        0.2*app.Variables.Tileset_size + start_y,
+				Rotation: 0,
+				Zoom:     app.Variables.Zoom / 5,
+				Normal:   ui.Frame{IndX: 52, IndY: 8, RatioX: 2, RatioY: 2},
+				Hover:    ui.Frame{IndX: 52, IndY: 8, RatioX: 2, RatioY: 2},
+				Pressed:  ui.Frame{IndX: 54, IndY: 8, RatioX: 2, RatioY: 2},
+				OnClick: func() {
+					app.QueueUpdate(func() {
+						app.ActionsChan <- panel.Action{
+							Type:    panel.ActionSendServer,
+							Payload: pr.CmdUseItem + " " + it,
+						}
+					})
+				},
+			}
+			invent_buttons = append(invent_buttons, item_use_btn)
+		}
+
 		// Create the drop button for the inventory item
-		item_btn := &ui.Button{
-			ID:       "item_btn",
+		item_drop_btn := &ui.Button{
+			ID:       "item_drop_btn",
 			Texture:  vars.UI_SPRITE_TEXTURE,
 			X:        start_x + app.Variables.Tileset_size*(float32(ind)+0.645),
 			Y:        0.2*app.Variables.Tileset_size + start_y,
@@ -153,7 +177,7 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 			},
 		}
 
-		invent_buttons = append(invent_buttons, item_btn)
+		invent_buttons = append(invent_buttons, item_drop_btn)
 		invent_emotes = append(invent_emotes, item_emote)
 	}
 

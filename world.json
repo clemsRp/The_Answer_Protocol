@@ -226,7 +226,7 @@
                 "obtainable": true,
                 "type": "consumable",
                 "target_stat": "hp",
-                "amount": 15,
+                "amount": 45,
                 "effect_type": "heal",
                 "charges": 1,
                 "duration": 1

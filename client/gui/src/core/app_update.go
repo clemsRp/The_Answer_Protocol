@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"tap/client/state"
+	panel "tap/client/tui/panels"
 	"tap/protocol"
 	pr "tap/protocol"
 	"time"
@@ -36,6 +37,11 @@ func (app *App) UpdateItems(roomItems, inventory []string) {
 
 	combat_use_buttons := app.GetNewCombatInventory(inventory)
 	app.Manager.SetViewButtons("CombatInventory", combat_use_buttons)
+
+	app.ActionsChan <- panel.Action{
+		Type:    panel.ActionSendServer,
+		Payload: pr.CmdInspectSelf,
+	}
 }
 
 func (app *App) UpdateItemPosition(name string, x, y, tileX, tileY float32) {
