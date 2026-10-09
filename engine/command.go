@@ -793,16 +793,18 @@ func (e *Engine) handleCmdUse(player *Player, req []string) (string, any, error)
 }
 
 func (e *Engine) handleCmdNotifyPlayerPosition(player *Player, req []string) (string, any, error) {
-	if len(req) < 6 {
+	if len(req) < 8 {
 		return "", nil, errors.New(pr.ErrInvalidCommand)
 	}
 	x, errX := strconv.ParseFloat(req[1], 32)
 	y, errY := strconv.ParseFloat(req[2], 32)
-	dirX, errDirX := strconv.ParseFloat(req[3], 32)
-	dirY, errDirY := strconv.ParseFloat(req[4], 32)
-	emoteIndex, errEmoteIndex := strconv.ParseInt(req[5], 10, 32)
+	tile_x, errTileX := strconv.ParseFloat(req[3], 32)
+	tile_y, errTileY := strconv.ParseFloat(req[4], 32)
+	dirX, errDirX := strconv.ParseFloat(req[5], 32)
+	dirY, errDirY := strconv.ParseFloat(req[6], 32)
+	emoteIndex, errEmoteIndex := strconv.ParseInt(req[7], 10, 32)
 
-	if errX != nil || errY != nil || errDirX != nil || errDirY != nil || errEmoteIndex != nil {
+	if errX != nil || errY != nil || errTileX != nil || errTileY != nil || errDirX != nil || errDirY != nil || errEmoteIndex != nil {
 		return "", nil, errors.New("invalid coordinate format")
 	}
 
@@ -815,6 +817,8 @@ func (e *Engine) handleCmdNotifyPlayerPosition(player *Player, req []string) (st
 		Name:       player.name,
 		X:          player.Position.X,
 		Y:          player.Position.Y,
+		TileX:      float32(tile_x),
+		TileY:      float32(tile_y),
 		DirX:       player.Direction.X,
 		DirY:       player.Direction.Y,
 		EmoteIndex: float32(emoteIndex),

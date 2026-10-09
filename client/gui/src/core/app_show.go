@@ -13,6 +13,7 @@ func (app *App) ShowConnectPage() {
 }
 
 func (app *App) ShowGamePage() {
+	app.EndTalk()
 	app.Variables.Current_view = "Game"
 	app.Variables.PanelsVariables.Chat.CurrentScope = "GLOBAL"
 	app.Variables.PanelsVariables.Chat.Open = false
@@ -20,17 +21,20 @@ func (app *App) ShowGamePage() {
 	app.Variables.PanelsVariables.Datas.Open = false
 	app.Variables.PanelsVariables.Group.Open = false
 
-	if true {
-		app.Variables.Player.Position.X = app.Variables.StartingPosX
-		app.Variables.Player.Position.Y = app.Variables.StartingPosY
-	}
+	app.Variables.Player.Position.X = app.Variables.StartingPosX
+	app.Variables.Player.Position.Y = app.Variables.StartingPosY
 
 	newPosX := app.Variables.Player.Position.X
 	newPosY := app.Variables.Player.Position.Y
+
+	newTileX := newPosX / app.Variables.Tileset_size
+	newTileY := newPosY / app.Variables.Tileset_size
+
 	newDirX := app.Variables.Player.Direction.X
 	newDirY := app.Variables.Player.Direction.Y
 	emoteIndex := app.Variables.Player.EmoteIndex
-	payload := fmt.Sprintf("%s %f %f %f %f %d", protocol.CmdNotifyPlayerPosition, newPosX, newPosY, newDirX, newDirY, emoteIndex)
+
+	payload := fmt.Sprintf("%s %f %f %f %f %f %f %d", protocol.CmdNotifyPlayerPosition, newPosX, newPosY, newTileX, newTileY, newDirX, newDirY, emoteIndex)
 
 	app.QueueUpdate(func() {
 		app.ActionsChan <- panel.Action{

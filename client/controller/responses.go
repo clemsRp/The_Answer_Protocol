@@ -401,7 +401,7 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 			if err == nil && json.Unmarshal(raw, &data) == nil {
 				for _, notif := range data {
 					c.ui.QueueUpdate(func() {
-						c.ui.UpdateRemotePlayerPosition(notif.Name, notif.X, notif.Y, notif.DirX, notif.DirY, int(notif.EmoteIndex))
+						c.ui.UpdateRemotePlayerPosition(notif.Name, notif.X, notif.Y, notif.TileX, notif.TileY, notif.DirX, notif.DirY, int(notif.EmoteIndex))
 					})
 				}
 			}

@@ -526,7 +526,7 @@ func (m *MyApp) AppendCliResponse(res pr.ServerResponse) {
 		m.CommandLine.AppendResponse(res)
 	}
 }
-func (m *MyApp) UpdateRemotePlayerPosition(pseudo string, X float32, Y float32, DirX float32, DirY float32, emoteIndex int) {
+func (m *MyApp) UpdateRemotePlayerPosition(pseudo string, X, Y, TileX, TileY, DirX float32, DirY float32, emoteIndex int) {
 }
 func (m *MyApp) UpdateRemotePlayerEmotes(pseudo string, emote int) {
 }

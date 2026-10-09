@@ -99,7 +99,7 @@ func (app *App) CheckPlayerMovement() {
 	curY := app.Variables.Player.Position.Y
 	tile := app.Variables.Tileset_size
 
-	inside := curX >= 2*tile && curX <= 29*tile && curY >= 2*tile && curY <= 15*tile
+	inside := curX >= 2*tile && curX <= 29*tile && curY >= tile && curY <= 15*tile
 
 	if !app.Updater.CanMove(current_room, curX, curY, int(tile)) && inside {
 		newX, newY, found := app.FindNearestFreeTile(

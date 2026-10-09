@@ -236,7 +236,11 @@ func (app *App) DropItem(item string) {
 
 	(*app.Variables.ItemPositions)[item].X = newPosX
 	(*app.Variables.ItemPositions)[item].Y = newPosY
-	payload := fmt.Sprintf("%s %f %f %s", protocol.CmdNotifyItemPosition, newPosX, newPosY, item)
+
+	newTileX := newPosX / app.Variables.Tileset_size
+	newTileY := newPosY / app.Variables.Tileset_size
+
+	payload := fmt.Sprintf("%s %f %f %f %f %s", protocol.CmdNotifyItemPosition, newPosX, newPosY, newTileX, newTileY, item)
 
 	// Send notifs
 	app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdDrop + " " + item}

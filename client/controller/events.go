@@ -335,7 +335,7 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 		}
 
 		c.ui.QueueUpdate(func() {
-			c.ui.UpdateRemotePlayerPosition(posData.Name, posData.X, posData.Y, posData.DirX, posData.DirY, int(posData.EmoteIndex))
+			c.ui.UpdateRemotePlayerPosition(posData.Name, posData.X, posData.Y, posData.TileX, posData.TileY, posData.DirX, posData.DirY, int(posData.EmoteIndex))
 		})
 
 	case strings.HasPrefix(trimmed, pr.TypePlayerEmote):

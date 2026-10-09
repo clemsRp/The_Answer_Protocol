@@ -25,6 +25,10 @@ func (up *Updater) UpdatePlayer() {
 
 	oldX := up.app.Variables.Player.Position.X
 	oldY := up.app.Variables.Player.Position.Y
+
+	oldTileX := oldX / up.app.Variables.Tileset_size
+	oldTileY := oldY / up.app.Variables.Tileset_size
+
 	oldDirX := up.app.Variables.Player.Direction.X
 	oldDirY := up.app.Variables.Player.Direction.Y
 	speed := float32(up.app.Variables.Player.Speed)
@@ -33,18 +37,18 @@ func (up *Updater) UpdatePlayer() {
 	dir_y := 0
 
 	var dx, dy float32
-	if rl.IsKeyDown(rl.KeyDown) || rl.IsKeyDown(rl.KeyS) {
+	if rl.IsKeyDown(rl.KeyDown) {
 		dir_y = 1
 		dy += speed
-	} else if rl.IsKeyDown(rl.KeyUp) || rl.IsKeyDown(rl.KeyW) {
+	} else if rl.IsKeyDown(rl.KeyUp) {
 		dir_y = -1
 		dy -= speed
 	}
 
-	if rl.IsKeyDown(rl.KeyRight) || rl.IsKeyDown(rl.KeyD) {
+	if rl.IsKeyDown(rl.KeyRight) {
 		dir_x = 1
 		dx += speed
-	} else if rl.IsKeyDown(rl.KeyLeft) || rl.IsKeyDown(rl.KeyA) {
+	} else if rl.IsKeyDown(rl.KeyLeft) {
 		dir_x = -1
 		dx -= speed
 	}
@@ -52,7 +56,7 @@ func (up *Updater) UpdatePlayer() {
 	up.app.Variables.Player.Direction = &vars.Direction{X: float32(dir_x), Y: float32(dir_y)}
 
 	if dx == 0 && dy == 0 {
-		up.SendNotif(oldX, oldY, oldDirX, oldDirY, false)
+		up.SendNotif(oldX, oldY, oldTileX, oldTileY, oldDirX, oldDirY, false)
 
 	} else if dir_x != 0 && dir_y != 0 {
 		dx *= float32(math.Sqrt(0.5))
@@ -70,7 +74,7 @@ func (up *Updater) UpdatePlayer() {
 	}
 
 	up.UpdateMove()
-	up.SendNotif(oldX, oldY, oldDirX, oldDirY, false)
+	up.SendNotif(oldX, oldY, oldTileX, oldTileY, oldDirX, oldDirY, false)
 
 	up.UpdatePlayersInspect()
 	up.UpdatePlayerEmotes()
@@ -134,15 +138,19 @@ func (up *Updater) UpdateMove() {
 	}
 }
 
-func (up *Updater) SendNotif(oldX, oldY, oldDirX, oldDirY float32, first_notif bool) {
+func (up *Updater) SendNotif(oldX, oldY, oldTileX, oldTileY, oldDirX, oldDirY float32, first_notif bool) {
 	newPosX := up.app.Variables.Player.Position.X
 	newPosY := up.app.Variables.Player.Position.Y
+
+	newTileX := newPosX / up.app.Variables.Tileset_size
+	newTileY := newPosY / up.app.Variables.Tileset_size
+
 	newDirX := up.app.Variables.Player.Direction.X
 	newDirY := up.app.Variables.Player.Direction.Y
 	emoteIndex := up.app.Variables.Player.EmoteIndex
 
-	if oldX != newPosX || oldY != newPosY || oldDirX != newDirX || oldDirY != newDirY || first_notif {
-		payload := fmt.Sprintf("%s %f %f %f %f %d", pr.CmdNotifyPlayerPosition, newPosX, newPosY, newDirX, newDirY, emoteIndex)
+	if oldX != newPosX || oldY != newPosY || oldTileX != newTileX || oldTileY != newTileY || oldDirX != newDirX || oldDirY != newDirY || first_notif {
+		payload := fmt.Sprintf("%s %f %f %f %f %f %f %d", pr.CmdNotifyPlayerPosition, newPosX, newPosY, newTileX, newTileY, newDirX, newDirY, emoteIndex)
 
 		up.actionsChan <- panel.Action{
 			Type:    panel.ActionSendServer,
