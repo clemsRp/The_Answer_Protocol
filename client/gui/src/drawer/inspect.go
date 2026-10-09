@@ -56,7 +56,7 @@ func (dr *Drawer) DrawInspectPanel() {
 		dr.app.Variables.PanelsVariables.Inspect.Datas,
 		int32((inspect_start_x+0.7)*tile),
 		int32((inspect_start_y+1)*tile)+int32(2*dr.app.Variables.FontSize),
-		int32(0.85*dr.app.Variables.FontSize),
+		int32(0.7*dr.app.Variables.FontSize),
 		dr.app.Colors["pseudo_text"],
 	)
 }

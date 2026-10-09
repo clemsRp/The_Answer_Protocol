@@ -47,16 +47,60 @@ func (e *Engine) playerQuits(player *Player) {
 	delete(e.playerEmoteNotifs, player.name)
 }
 
+func (e *Engine) dropPlayerInventory(player *Player) {
+	if player == nil || len(player.inventory) == 0 {
+		return
+	}
+
+	playerPos, hasPos := e.posPlayerNotifs[player]
+
+	offsets := [][2]float32{
+		{0, 32},
+		{32, 0},
+		{-32, 0},
+		{0, -32},
+		{32, 32},
+		{-32, 32},
+		{32, -32},
+		{-32, -32},
+	}
+
+	for i, obj := range player.inventory {
+		player.room.Items = append(player.room.Items, obj.Id)
+
+		if hasPos {
+			var ox, oy float32
+			if i < len(offsets) {
+				ox = offsets[i][0]
+				oy = offsets[i][1]
+			} else {
+				ox = float32((i%4)-2) * 32.0
+				oy = float32((i/4)+1) * 32.0
+			}
+
+			broadcastData := pr.NotifyItemPositionData{
+				Name: obj.Id,
+				X:    playerPos.X + ox,
+				Y:    playerPos.Y + oy,
+			}
+			e.posItemNotifs[obj.Id] = broadcastData
+
+			if eventMsg, err := convertObjectToJson("EVT ITEM_POSITION", broadcastData); err == nil {
+				e.inform_room(player, player.room, eventMsg)
+			}
+		}
+
+		e.inform_room(player, player.room, "EVT ITEM DROPPED "+obj.Id)
+	}
+	player.inventory = make([]*Item, 0)
+}
+
 func (e *Engine) handleCmdQuit(player *Player, req []string) (string, any, error) {
 	if len(req) != 1 {
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
-	for _, obj := range player.inventory {
-		player.room.Items = append(player.room.Items, obj.Id)
-		e.inform_room(player, player.room, "EVT ITEM DROPPED "+obj.Id)
-	}
-	player.inventory = make([]*Item, 0)
+	e.dropPlayerInventory(player)
 
 	e.playerQuits(player)
 	return "OK bye", "", nil
@@ -321,6 +365,7 @@ func (e *Engine) handleCmdTake(player *Player, req []string) (string, any, error
 			player.room.Items = append(player.room.Items[:obj_index], player.room.Items[obj_index+1:]...)
 			e.inform_room(player, player.room, "EVT ITEM TOOK "+item_name)
 			e.refreshQuestProgress(player)
+			delete(e.posItemNotifs, item_name)
 			return "OK taken=" + item_name, "", nil
 		}
 	}

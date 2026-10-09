@@ -88,6 +88,7 @@ func (e *Engine) handlePlayerLeave(id string) {
 
 	if pseudo != "" {
 		if player, exists := e.players[pseudo]; exists {
+			e.dropPlayerInventory(player)
 			e.playerQuits(player)
 			delete(e.players, pseudo)
 		}
