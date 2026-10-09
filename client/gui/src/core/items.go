@@ -186,7 +186,7 @@ func (app *App) GetNewCombatInventory(inventory []string) []*ui.Button {
 		item_btn := &ui.Button{
 			ID:       "combat_use_" + itemName + "_" + strconv.Itoa(ind),
 			Texture:  vars.UI_SPRITE_TEXTURE,
-			X:        start_x + app.Variables.Tileset_size*(float32(usableIndex)+0.645),
+			X:        start_x + app.Variables.Tileset_size*(float32(ind)+0.645),
 			Y:        0.2*app.Variables.Tileset_size + start_y,
 			Rotation: 0,
 			Zoom:     app.Variables.Zoom / 5,
