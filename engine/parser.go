@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 
 	pr "tap/protocol"
 
@@ -21,12 +20,8 @@ func init() {
 	}
 }
 
-func Get_map(map_path string) (*Map, error) {
+func Get_map(file []byte) (*Map, error) {
 	// Get map file content
-	file, err := os.ReadFile(map_path)
-	if err != nil {
-		return nil, errors.New("Invalid file path: Permission denied or File doesn't exist")
-	}
 
 	var worlds []Map
 
@@ -122,9 +117,6 @@ func checkDuplicates(data []byte) error {
 		err := decodeAndCheck(d)
 		if err == io.EOF {
 			break
-		}
-		if err != nil {
-			return err
 		}
 	}
 	return nil

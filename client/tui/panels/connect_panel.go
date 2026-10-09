@@ -1,9 +1,8 @@
 package panel
 
 import (
-	"fmt"
+	"bytes"
 	"io"
-	"os"
 	"strings"
 	pr "tap/protocol"
 	"unicode"
@@ -80,18 +79,12 @@ func NewConnectComponent(m_pseudo *string, actionsChan chan<- Action) tview.Prim
 	return input
 }
 
-func NewImageComponent(img_path string) *tview.TextView {
+func NewImageComponent(img_data []byte) *tview.TextView {
 	imgView := tview.NewTextView().
 		SetDynamicColors(true).
 		SetWordWrap(false)
 
-	file, err := os.Open(img_path)
-	if err != nil {
-		fmt.Fprintf(imgView, "Error loading image: %v", err)
-		return imgView
-	}
-	defer file.Close()
-
-	_, _ = io.Copy(tview.ANSIWriter(imgView), file)
+	reader := bytes.NewReader(img_data)
+	_, _ = io.Copy(tview.ANSIWriter(imgView), reader)
 	return imgView
 }

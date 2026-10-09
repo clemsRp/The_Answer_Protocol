@@ -207,6 +207,7 @@ Server logs utilize Go's structured `log/slog` library:
    make build
    ```
    *Binaries are compiled to the `exec/` directory (`exec/server`, `exec/tui`, `exec/gui`).*
+   *Note: All graphical assets and configuration files are now embedded within the binaries using `//go:embed`. You can safely distribute and run the executables standalone without sending the `assets`, `maps`, or `world.json` files!*
 
 3. **Running the Server**:
    ```bash

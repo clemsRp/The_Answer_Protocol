@@ -1,8 +1,8 @@
 package parser
 
 import (
+	"embed"
 	"encoding/json"
-	"os"
 	"strings"
 )
 
@@ -45,8 +45,8 @@ type Tileset struct {
 	Source   string `json:"source"`
 }
 
-func LoadMap(filePath string) (*Map, error) {
-	fileData, err := os.ReadFile(filePath)
+func LoadMap(assetsFS embed.FS, filePath string) (*Map, error) {
+	fileData, err := assetsFS.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}

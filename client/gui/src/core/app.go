@@ -3,8 +3,9 @@ package core
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
+	"tap"
+	"tap/client/gui"
 	"tap/client/gui/src/parser"
 	"tap/client/gui/src/ui"
 	vars "tap/client/gui/src/variables"
@@ -45,7 +46,7 @@ func NewApp(actionsChan chan panel.Action) *App {
 
 	// Init App
 	app := &App{
-		Textures:     parser.LoadTextures(),
+		Textures:     parser.LoadTextures(gui.GuiAssets),
 		Variables:    vars.GetVariables(),
 		Colors:       vars.GetColors(),
 		Manager:      ui.NewManager(),
@@ -56,11 +57,11 @@ func NewApp(actionsChan chan panel.Action) *App {
 		Running:      true,
 	}
 
-	app.ParseNpcNames("./world.json")
+	app.ParseNpcNames(tap.WorldData)
 
 	// Parse maps
 	var err error
-	maps_folder_path := "./client/gui/maps/"
+	maps_folder_path := "maps/"
 
 	// Get all maps
 	maps_paths := make([]string, 0)
@@ -68,7 +69,7 @@ func NewApp(actionsChan chan panel.Action) *App {
 		maps_paths = append(maps_paths, maps_folder_path+room)
 	}
 
-	app.Rooms, err = parser.ParseRooms(maps_paths)
+	app.Rooms, err = parser.ParseRooms(gui.GuiAssets, maps_paths)
 
 	// Handle error
 	if err != nil {
@@ -84,14 +85,7 @@ func NewApp(actionsChan chan panel.Action) *App {
 	return app
 }
 
-func (app *App) ParseNpcNames(filepath string) {
-	// Parse json file
-	data, err := os.ReadFile(filepath)
-	if err != nil {
-		fmt.Printf("Error reading file: %v\n", err)
-		return
-	}
-
+func (app *App) ParseNpcNames(data []byte) {
 	var world []engine.Map
 	if err := json.Unmarshal(data, &world); err != nil {
 		fmt.Printf("JSON parsing error: %v\n", err)
@@ -119,7 +113,7 @@ func (app *App) ParseNpcNames(filepath string) {
 
 func (app *App) IsItemUsable(itemName string) bool {
 	if app.WorldItems == nil {
-		app.ParseNpcNames("./world.json")
+		app.ParseNpcNames(tap.WorldData)
 	}
 
 	cleanName := strings.TrimSpace(itemName)
@@ -144,7 +138,7 @@ func (app *App) IsItemUsable(itemName string) bool {
 
 func (app *App) IsItemWeapon(itemName string) bool {
 	if app.WorldItems == nil {
-		app.ParseNpcNames("./world.json")
+		app.ParseNpcNames(tap.WorldData)
 	}
 
 	cleanName := strings.TrimSpace(itemName)

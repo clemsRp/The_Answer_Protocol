@@ -1,6 +1,7 @@
 package network
 
 import (
+	"os"
 	"runtime"
 	"tap/engine"
 	pr "tap/protocol"
@@ -19,7 +20,11 @@ func TestZombieClientTimeout(t *testing.T) {
 		JoinChan:     make(chan string, 10),
 		LeaveChan:    make(chan string, 10)}
 
-	world_test, err := engine.Get_map(utils.WorldFilePath)
+	file, err := os.ReadFile(utils.WorldFilePath)
+	if err != nil {
+		t.Fatalf("ERROR reading test world.json: %v", err)
+	}
+	world_test, err := engine.Get_map(file)
 	if err != nil {
 		t.Fatalf("ERROR parsing: %v", err)
 	}

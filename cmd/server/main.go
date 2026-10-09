@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"tap"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -39,7 +40,7 @@ func main() {
 		LeaveChan:    make(chan string, 10)}
 
 	// Get the world map
-	world, err = engine.Get_map("world.json")
+	world, err = engine.Get_map(tap.WorldData)
 	if err != nil {
 		fmt.Println("ERROR", err.Error())
 		return

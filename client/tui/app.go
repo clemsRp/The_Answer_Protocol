@@ -147,8 +147,10 @@ func (m *MyApp) setupGrid() {
 
 func (m *MyApp) InitConnect() {
 	input := panel.NewConnectComponent(&m.pseudo, m.actionsChan)
-	logoView := panel.NewImageComponent("client/tui/assets/logo.ans")
-	homeView := panel.NewImageComponent("client/tui/assets/home.ans")
+	logo_data, _ := TuiAssets.ReadFile("assets/logo.ans")
+	home_data, _ := TuiAssets.ReadFile("assets/home.ans")
+	logoView := panel.NewImageComponent(logo_data)
+	homeView := panel.NewImageComponent(home_data)
 
 	m.connect.AddItem(logoView, 0, 0, 1, 5, 0, 0, false)
 	m.connect.AddItem(homeView, 2, 0, 2, 5, 0, 0, false)

@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"embed"
 	"fmt"
 	"io/fs"
 	"path/filepath"
@@ -11,10 +12,10 @@ import (
 
 type Textures map[string]rl.Texture2D
 
-func LoadTextures() *Textures {
+func LoadTextures(assetsFS embed.FS) *Textures {
 	textures := make(Textures)
 
-	err := filepath.WalkDir("client/gui/assets", func(path string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(assetsFS, "assets", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -26,7 +27,14 @@ func LoadTextures() *Textures {
 				baseName := filepath.Base(path)
 				textureName := strings.TrimSuffix(baseName, filepath.Ext(baseName))
 
-				textures[textureName] = rl.LoadTexture(path)
+				data, err := assetsFS.ReadFile(path)
+				if err != nil {
+					return err
+				}
+
+				img := rl.LoadImageFromMemory(ext, data, int32(len(data)))
+				textures[textureName] = rl.LoadTextureFromImage(img)
+				rl.UnloadImage(img)
 			}
 		}
 		return nil

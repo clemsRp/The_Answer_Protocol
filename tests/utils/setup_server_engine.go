@@ -3,6 +3,7 @@ package utils
 import (
 	"io"
 	"log"
+	"os"
 	"tap/engine"
 	pr "tap/protocol"
 	"tap/server"
@@ -21,7 +22,11 @@ func SetupTestServerEngine(t *testing.T) (*server.Server, *engine.Engine) {
 
 	var err error
 	var world_test *engine.Map
-	world_test, err = engine.Get_map(WorldFilePath)
+	file, err := os.ReadFile(WorldFilePath)
+	if err != nil {
+		t.Fatalf("ERROR reading test world.json: %v", err)
+	}
+	world_test, err = engine.Get_map(file)
 	if err != nil {
 		t.Fatalf("ERROR parsing: %v", err.Error())
 	}

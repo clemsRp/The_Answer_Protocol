@@ -60,7 +60,7 @@ All assets were find on itch.io. It's the **Sprout Lands** packages:
 
 All maps were manuelly made on the Tiled app using those assets.
 
-Assets are loaded during startup and cached in memory:
-- **Tilesets & Maps (`client/gui/tilesets/` & `client/gui/maps/`)**: Tile textures and JSON map layouts defining room geometries.
-- **Sprite Sheets (`client/gui/assets/`)**: Character movement frames, NPC artwork, item icons, and action button textures.
+Assets are loaded during startup and are now embedded directly in the binary using `//go:embed`. This means you can distribute the standalone executable without the asset folders!
+- **Tilesets & Maps**: Embedded map JSONs and tile textures defining room geometries.
+- **Sprite Sheets**: Embedded character movement frames, NPC artwork, item icons, and action button textures.
 - **Fonts & Shaders (`drawer/shader/`)**: Custom TrueType fonts and optional post-processing GLSL shaders for visual effects.
