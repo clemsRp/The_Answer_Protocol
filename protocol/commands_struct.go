@@ -133,7 +133,9 @@ type NotifyPlayerEmotesData struct {
 }
 
 type NotifyItemPositionData struct {
-	Name string  `json:"name"`
-	X    float32 `json:"x"`
-	Y    float32 `json:"y"`
+	Name  string  `json:"name"`
+	X     float32 `json:"x"`
+	Y     float32 `json:"y"`
+	TileX float32 `json:"tile_x"`
+	TileY float32 `json:"tile_y"`
 }

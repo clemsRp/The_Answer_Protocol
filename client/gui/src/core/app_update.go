@@ -38,7 +38,17 @@ func (app *App) UpdateItems(roomItems, inventory []string) {
 	app.Manager.SetViewButtons("CombatInventory", combat_use_buttons)
 }
 
-func (app *App) UpdateItemPosition(name string, x, y float32) {
+func (app *App) UpdateItemPosition(name string, x, y, tileX, tileY float32) {
+	potentialTileX := x / app.Variables.Tileset_size
+	potentialTileY := y / app.Variables.Tileset_size
+
+	if potentialTileX != tileX {
+		x = tileX * app.Variables.Tileset_size
+	}
+	if potentialTileY != tileY {
+		y = tileY * app.Variables.Tileset_size
+	}
+
 	if item, exists := (*app.Variables.ItemPositions)[name]; exists {
 		(*item).X = x
 		(*item).Y = y

@@ -425,7 +425,7 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 			if err == nil && json.Unmarshal(raw, &data) == nil {
 				for _, notif := range data {
 					c.ui.QueueUpdate(func() {
-						c.ui.UpdateItemPosition(notif.Name, notif.X, notif.Y)
+						c.ui.UpdateItemPosition(notif.Name, notif.X, notif.Y, notif.TileX, notif.TileY)
 					})
 				}
 			}

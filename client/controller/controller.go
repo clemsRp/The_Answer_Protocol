@@ -41,7 +41,7 @@ type UIApp interface {
 	SetPseudo(pseudo string)
 	UpdateRemotePlayerPosition(pseudo string, X float32, Y float32, TileX float32, TileY float32, DirX float32, DirY float32, emoteIndex int)
 	UpdateRemotePlayerEmotes(pseudo string, emote int)
-	UpdateItemPosition(pseudo string, X float32, Y float32)
+	UpdateItemPosition(pseudo string, X, Y, TileX, tileY float32)
 	AddRemotePlayer(pseudo string)
 	RemoveRemotePlayer(pseudo string)
 	UpdateRoom()

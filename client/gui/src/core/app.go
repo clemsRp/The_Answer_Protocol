@@ -37,11 +37,11 @@ func NewApp(actionsChan chan panel.Action) *App {
 	rl.HideCursor()
 	rl.SetExitKey(0)
 
-	monitor := rl.GetCurrentMonitor()
-	screenWidth := rl.GetMonitorWidth(monitor)
-	screenHeight := rl.GetMonitorHeight(monitor)
-	// screenWidth := 800
-	// screenHeight := 500
+	// monitor := rl.GetCurrentMonitor()
+	// screenWidth := rl.GetMonitorWidth(monitor)
+	// screenHeight := rl.GetMonitorHeight(monitor)
+	screenWidth := 800
+	screenHeight := 500
 
 	rl.SetWindowSize(screenWidth, screenHeight)
 

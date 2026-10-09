@@ -838,20 +838,25 @@ func (e *Engine) handleCmdNotifyPlayerPosition(player *Player, req []string) (st
 }
 
 func (e *Engine) handleCmdNotifyItemPosition(player *Player, req []string) (string, any, error) {
-	if len(req) < 4 {
+	if len(req) < 6 {
 		return "", nil, errors.New(pr.ErrInvalidCommand)
 	}
 	x, errX := strconv.ParseFloat(req[1], 32)
 	y, errY := strconv.ParseFloat(req[2], 32)
 
-	if errX != nil || errY != nil {
+	tile_x, errTileX := strconv.ParseFloat(req[3], 32)
+	tile_y, errTileY := strconv.ParseFloat(req[4], 32)
+
+	if errX != nil || errY != nil || errTileX != nil || errTileY != nil {
 		return "", nil, errors.New("invalid coordinate format")
 	}
 
 	broadcastData := pr.NotifyItemPositionData{
-		Name: req[3],
-		X:    float32(x),
-		Y:    float32(y),
+		Name:  req[5],
+		X:     float32(x),
+		Y:     float32(y),
+		TileX: float32(tile_x),
+		TileY: float32(tile_y),
 	}
 	room, exists := e.world.Rooms[player.room.Id]
 	if !exists {

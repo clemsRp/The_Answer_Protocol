@@ -371,7 +371,7 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 		}
 
 		c.ui.QueueUpdate(func() {
-			c.ui.UpdateItemPosition(posData.Name, posData.X, posData.Y)
+			c.ui.UpdateItemPosition(posData.Name, posData.X, posData.Y, posData.TileX, posData.TileY)
 		})
 
 	}

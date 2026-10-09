@@ -530,7 +530,7 @@ func (m *MyApp) UpdateRemotePlayerPosition(pseudo string, X, Y, TileX, TileY, Di
 }
 func (m *MyApp) UpdateRemotePlayerEmotes(pseudo string, emote int) {
 }
-func (m *MyApp) UpdateItemPosition(pseudo string, X float32, Y float32) {
+func (m *MyApp) UpdateItemPosition(pseudo string, X, Y, TileX, TileY float32) {
 }
 
 func (m *MyApp) AddRemotePlayer(pseudo string)           {}
