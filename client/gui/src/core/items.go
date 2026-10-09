@@ -23,8 +23,8 @@ func (app *App) GetNewRoomItems(roomItems []string) []*ui.Interaction {
 		if pos, ok = (*app.Variables.ItemPositions)[it]; !ok {
 			if itemDef, exists := vars.ItemConvertor[it]; exists {
 				p := &vars.Position{
-					X: itemDef.Pos.X,
-					Y: itemDef.Pos.Y,
+					X: itemDef.Pos.X * app.Variables.Tileset_size,
+					Y: itemDef.Pos.Y * app.Variables.Tileset_size,
 				}
 				(*app.Variables.ItemPositions)[it] = p
 				pos = p
@@ -132,7 +132,7 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 			Frames:       frames,
 			Inspect: func(item string) {
 				app.Variables.PanelsVariables.Inspect.LastInspect = "ITEM"
-				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectItem + " " + item}
+				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectInventoryItem + " " + item}
 				app.Variables.PanelsVariables.Inspect.Open = true
 			},
 		}
