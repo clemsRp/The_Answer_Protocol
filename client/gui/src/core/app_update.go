@@ -56,7 +56,7 @@ func (app *App) UpdateItemPosition(name string, x, y, tileX, tileY float32) {
 		(*app.Variables.ItemPositions)[name] = &vars.Position{X: x, Y: y}
 	}
 
-	for _, item := range app.Manager.Interactions("Game") {
+	for _, item := range app.Manager.Interactions("Items") {
 		if item.Emote.ID == "item_"+name {
 			item.Emote.X = x
 			item.Emote.Y = y

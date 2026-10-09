@@ -79,9 +79,11 @@ func (e *Engine) dropPlayerInventory(player *Player) {
 			}
 
 			broadcastData := pr.NotifyItemPositionData{
-				Name: obj.Id,
-				X:    playerPos.X + ox,
-				Y:    playerPos.Y + oy,
+				Name:  obj.Id,
+				X:     playerPos.X + ox,
+				Y:     playerPos.Y + oy,
+				TileX: playerPos.TileX + (ox / 32.0),
+				TileY: playerPos.TileY + (oy / 32.0),
 			}
 			e.posItemNotifs[obj.Id] = broadcastData
 
