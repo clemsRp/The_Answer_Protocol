@@ -63,7 +63,7 @@
                     "south": "jardin"
                 },
                 "items": [],
-                "npcs": []
+                "npcs": ["guide"]
             },
             "lac_du_barrage": {
                 "name": "Le lac de St Etienne de Cantales",
@@ -233,6 +233,24 @@
             }
         },
         "npcs": {
+            "guide": {
+                "name": "Guide du Village",
+                "description": "Un sage villageois qui accueille les nouveaux arrivants et leur explique les règles du monde.",
+                "dialogue": [
+                    "Bienvenue dans Grow Harvest, aventurier !",
+                    "Pour te déplacer, utilise les flèches du clavier.",
+                    "Tu trouveras des objets au sol",
+                    "clique sur l'icône au-dessus d'eux pour les ramasser dans ton inventaire.",
+                    "En bas de ton écran, ton inventaire te permet d'inspecter tes objets ou de les lâcher avec le bouton '-'.",
+                    "Parle aux habitants en te placant a cote d'eux et en cliquant sur la bulle de discussion pour obtenir des quêtes.",
+                    "Tu peux inspecter leur statut en cliquant sur eux et le fermer en appuyant sur ESC",
+                    "Attention aux créatures hostiles : le combat est au tour par tour, équipe-toi bien avant de t'aventurer dans la forêt !",
+                    "En haut de ton écran, ouvre les panneaux pour discuter dans le chat, former un groupe ou voir tes statistiques."
+                ],
+                "role": "dialogue",
+                "quest_id": "",
+                "hostile": false
+            },
             "thomas_charbonneau": {
                 "name": "Thomas Charbonneau",
                 "description": "Le patron de la ferme des Légumes Charbonneau",

@@ -17,6 +17,14 @@ type Npc struct {
 
 var (
 	NpcConvertor = map[string]Npc{
+		"guide": {
+			Texture: NPC_TEXTURE,
+			RatioX:  1,
+			RatioY:  1.5,
+			IndXs:   []float32{4, 5, 6, 7, 0, 1, 2, 3},
+			IndYs:   []float32{0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5},
+			Pos:     Position{X: 18, Y: 8},
+		},
 		"maelis": {
 			Texture: "bat_animations",
 			RatioX:  2,

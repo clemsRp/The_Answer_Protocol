@@ -867,7 +867,7 @@ func (e *Engine) handleCmdNotifyItemPosition(player *Player, req []string) (stri
 		return "", nil, errors.New(pr.ErrInternalServer)
 	}
 	e.inform_room(player, room, eventMsg)
-	e.posItemNotifs[req[3]] = broadcastData
+	e.posItemNotifs[req[5]] = broadcastData
 
 	return "OK", nil, nil
 }

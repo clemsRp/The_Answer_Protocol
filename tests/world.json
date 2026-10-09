@@ -63,7 +63,7 @@
                     "south": "jardin"
                 },
                 "items": ["pioche", "canne_a_peche"],
-                "npcs": ["thomas_charbonneau"]
+                "npcs": ["thomas_charbonneau", "guide"]
             },
             "lac_du_barrage": {
                 "name": "Le lac de St Etienne de Cantales",
@@ -215,7 +215,7 @@
                 "obtainable": true,
                 "type": "consumable",
                 "target_stat": "hp",
-                "amount": 15,
+                "amount": 30,
                 "effect_type": "heal",
                 "charges": 1,
                 "duration": 1
@@ -255,6 +255,22 @@
             }
         },
         "npcs": {
+            "guide": {
+                "name": "Guide du Village",
+                "description": "Un sage villageois qui accueille les nouveaux arrivants et leur explique les règles du monde.",
+                "dialogue": [
+                    "Bienvenue dans The Answer Protocol, aventurier !",
+                    "Pour te déplacer, utilise les flèches du clavier. Franchir les bords de l'écran te fera changer de région.",
+                    "Tu trouveras des objets au sol : clique sur l'icône au-dessus d'eux pour les ramasser dans ton inventaire.",
+                    "En bas de ton écran, ton inventaire te permet d'inspecter tes objets ou de les lâcher avec le bouton rouge.",
+                    "Parle aux habitants pour obtenir des quêtes. Tu peux inspecter leur statut en cliquant sur leur bulle.",
+                    "Attention aux créatures hostiles : le combat est au tour par tour, équipe-toi bien avant de t'aventurer dans la forêt !",
+                    "En haut de ton écran, ouvre les panneaux pour discuter dans le chat, former un groupe ou voir tes statistiques."
+                ],
+                "role": "dialogue",
+                "quest_id": "",
+                "hostile": false
+            },
             "thomas_charbonneau": {
                 "name": "Thomas Charbonneau",
                 "description": "Le patron de la ferme des Légumes Charbonneau",

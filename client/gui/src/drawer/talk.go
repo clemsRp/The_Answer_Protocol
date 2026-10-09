@@ -71,6 +71,7 @@ func (dr *Drawer) drawTalkContent(text, result string, startX, startY, width, he
 	tileSize := float32(dr.app.Variables.Tileset_size)
 	fontSize := dr.app.Variables.FontSize
 	textColor := dr.app.Colors["pseudo_text"]
+	text, _ = dr.WrapText(text, 85)
 
 	rl.DrawText(
 		text,
