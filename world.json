@@ -51,7 +51,7 @@
                     "east": "fontaneilles"
                 },
                 "items": [],
-                "npcs": []
+                "npcs": ["franck"]
             },
             "place_du_village": {
                 "name": "La place de l'An 2000",
@@ -63,7 +63,7 @@
                     "south": "jardin"
                 },
                 "items": [],
-                "npcs": ["franck"]
+                "npcs": []
             },
             "lac_du_barrage": {
                 "name": "Le lac de St Etienne de Cantales",

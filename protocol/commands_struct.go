@@ -120,6 +120,8 @@ type NotifyPlayerPositionData struct {
 	Name       string  `json:"pseudo"`
 	X          float32 `json:"x"`
 	Y          float32 `json:"y"`
+	TileX      float32 `json:"tile_x"`
+	TileY      float32 `json:"tile_y"`
 	DirX       float32 `json:"dir_x"`
 	DirY       float32 `json:"dir_y"`
 	EmoteIndex float32 `json:"emote_index"`

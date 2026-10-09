@@ -39,7 +39,7 @@ type UIApp interface {
 	SetConnectionError(message string)
 	GetPseudo() string
 	SetPseudo(pseudo string)
-	UpdateRemotePlayerPosition(pseudo string, X float32, Y float32, DirX float32, DirY float32, emoteIndex int)
+	UpdateRemotePlayerPosition(pseudo string, X float32, Y float32, TileX float32, TileY float32, DirX float32, DirY float32, emoteIndex int)
 	UpdateRemotePlayerEmotes(pseudo string, emote int)
 	UpdateItemPosition(pseudo string, X float32, Y float32)
 	AddRemotePlayer(pseudo string)

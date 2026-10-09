@@ -19,9 +19,19 @@ func (app *App) UpdateWho(nb_players int) {
 	app.Variables.PanelsVariables.Datas.NbServerPlayers = nb_players
 }
 
-func (app *App) UpdateRemotePlayerPosition(pseudo string, x, y, dirX, dirY float32, emoteIndex int) {
+func (app *App) UpdateRemotePlayerPosition(pseudo string, x, y, tile_x, tile_y, dirX, dirY float32, emoteIndex int) {
 	if pseudo == app.Variables.Player.Pseudo {
 		return
+	}
+
+	potential_tile_x := x / app.Variables.Tileset_size
+	potential_tile_y := y / app.Variables.Tileset_size
+
+	if potential_tile_x != tile_x {
+		x = tile_x * app.Variables.Tileset_size
+	}
+	if potential_tile_y != tile_y {
+		y = tile_y * app.Variables.Tileset_size
 	}
 
 	if remotePlayer, exists := (*app.Variables.RemotePlayers)[pseudo]; exists {
@@ -60,15 +70,21 @@ func (app *App) UpdateRemotePlayerEmotes(pseudo string, emote int) {
 }
 
 func (app *App) AddRemotePlayer(pseudo string) {
+	x := app.Variables.StartingPosX
+	y := app.Variables.StartingPosY
+
+	tileX := x / app.Variables.Tileset_size
+	tileY := y / app.Variables.Tileset_size
+
 	if _, exists := (*app.Variables.RemotePlayers)[pseudo]; !exists {
 		(*app.Variables.RemotePlayers)[pseudo] = &vars.Player{
 			Pseudo:    pseudo,
-			Position:  &vars.Position{X: app.Variables.StartingPosX, Y: app.Variables.StartingPosY},
+			Position:  &vars.Position{X: x, Y: y},
 			Direction: &vars.Direction{X: 0, Y: 1},
 			Zoom:      app.Variables.Zoom,
 		}
 	}
-	app.UpdateRemotePlayerPosition(pseudo, app.Variables.StartingPosX, app.Variables.StartingPosY, 0, 1, 0)
+	app.UpdateRemotePlayerPosition(pseudo, x, y, tileX, tileY, 0, 1, 0)
 }
 
 func (app *App) RemoveRemotePlayer(pseudo string) {
