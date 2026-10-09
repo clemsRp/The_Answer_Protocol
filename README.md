@@ -9,11 +9,11 @@ A multiplayer retro text and graphical adventure game (MUD/RPG) built in **Go**.
 ## Sub-Component Documentation
 
 For in-depth documentation on individual modules, please consult the dedicated README files:
-- [Server Documentation](./server/README.md)
-- [Engine Documentation](./engine/README.md)
-- [Client Controller Documentation](./client/controller/README.md)
-- [TUI Client Documentation](./client/tui/README.md)
-- [GUI Client Documentation](./client/gui/README.md)
+- [Server](./server/README.md)
+- [Engine](./engine/README.md)
+- [Client Logic](./client/controller/README.md)
+- [TUI Client](./client/tui/README.md)
+- [GUI Client](./client/gui/README.md)
 
 ---
 
@@ -88,7 +88,7 @@ TAP implements and extends the **RFC 42TAP** specification:
 
 ### Combat Actions
 - `ATTACK [target]`: Deals damage equal to attacker's base damage stat to target NPC or fighter.
-- `FLEE`: Attempts to escape the active combat. If all players flee, the combat session is cancelled.
+- `FLEE`: Attempts to escape the active combat. If all players flee, the combat session is cancelled. Note that players who successfully flee do not receive any combat rewards, even if their group wins the battle.
 - `COMBAT STATS`: Queries live turn order, team HP, opponent HP, and active turn holder.
 
 ### Damage Formula & Turn Limits
@@ -170,7 +170,7 @@ Server logs utilize Go's structured `log/slog` library:
 
 ### Events & Abuse Detection
 - **Monitored Events**: Connection state (`CLIENT_CONNECTED`, `CLIENT_DISCONNECTED`), authentication, command executions, engine panics.
-- **Abuse Prevention**: Token Bucket rate-limiting tracks rapid incoming commands per socket. Excessive command volume triggers `WARN_SPAM` (`ERR 902`) warnings and forces immediate socket disconnect for continuous flooders.
+- **Abuse Prevention**: Token Bucket rate-limiting tracks rapid incoming commands per socket. Excessive command volume triggers `WARN_SPAM` (`ERR 902`) warnings and forces immediate socket disconnect for continuous flooders. The server also correctly closes underlying TCP connections immediately upon client `QUIT`.
 
 ---
 
@@ -199,7 +199,7 @@ Server logs utilize Go's structured `log/slog` library:
 
 1. **Download Dependencies**:
    ```bash
-   make deps
+   make install
    ```
 
 2. **Build All Binaries**:
@@ -210,17 +210,17 @@ Server logs utilize Go's structured `log/slog` library:
 
 3. **Running the Server**:
    ```bash
-   make server
+   make run-server
    ```
 
 4. **Running Clients**:
    - **TUI Client**:
      ```bash
-     make tui
+     make run-client
      ```
    - **GUI Client**:
      ```bash
-     make gui
+     make run-client-gui
      ```
 
 5. **Clean Build Artifacts**:

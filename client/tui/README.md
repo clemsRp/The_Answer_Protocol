@@ -1,4 +1,4 @@
-# TUI Documentation
+# TUI Client
 
 The Terminal User Interface (TUI) component provides a terminal-based interface for The Answer Protocol (TAP). It is written in Go and uses the `github.com/rivo/tview` framework along with `github.com/gdamore/tcell/v2` for low-level terminal event handling and cell drawing.
 
@@ -27,7 +27,7 @@ Modal prompt displayed on launch. Collects server address, port, and player pseu
 Renders compass exit indicators (North, South, East, West). Indicates available directions based on current room data and allows quick movement via directional keyboard shortcuts or button clicks.
 
 ### Room View & Interaction Panel (`interaction_panel.go`)
-Displays room title, detailed description, visible items on the ground, present NPCs, and active players in the same location. Allows selecting NPCs to initiate conversation or selecting ground items to pick up.
+Displays room title, detailed description, visible items on the ground, present NPCs, and active players in the same location. Allows selecting NPCs to initiate conversation or selecting ground items to pick up. NPC dialogue responses are dynamically displayed underneath their respective names in gray.
 
 ### Combat Panel (`combat_panel.go`)
 Dedicated dashboard active during combat sessions:
@@ -40,7 +40,7 @@ Dedicated dashboard active during combat sessions:
 Lists player active and completed quests. Displays quest titles, descriptions, target NPCs to defeat, required items to collect, and expected rewards.
 
 ### Items & Inventory Panel (`items_panel.go`)
-Renders player inventory. Supports item inspection, equipping, dropping items into the current room, and consuming usable items.
+Renders player inventory. Supports item inspection, equipping (automatically filtering for weapon-type items), dropping items into the current room, and consuming usable items.
 
 ### Group Panel (`group_panel.go`)
 Displays party information:

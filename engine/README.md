@@ -1,4 +1,4 @@
-# Engine Component Documentation
+# Engine
 
 The **Engine** component is the central authority managing game state, world navigation, turn-based combat, quest validation, inventory, and player grouping for *The Answer Protocol* (TAP).
 
@@ -24,7 +24,7 @@ The Engine uses a single-threaded broadcaster event-loop model to eliminate race
 - Initiates combat sessions (`CombatSession`) when a player attacks a hostile NPC or when allies in the same room participate.
 - Calculates turn order by sorting fighters' initiative attributes (`sortTurnsOrderByInitiative`).
 - Executes combat turns (attacks, defend stance, flee attempts) and processes turn timeout callbacks via system channels.
-- Resolves victory (rewards & quest updates) or defeat (respawning at entrance with 50% max HP).
+- Resolves victory (rewards & quest updates; players who fled receive no rewards) or defeat (respawning at entrance with 50% max HP).
 
 ### 3. Quest Engine (`handle_commands.go`)
 - Tracks active player quests and objectives (NPC target defeat or item possession).

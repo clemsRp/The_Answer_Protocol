@@ -274,34 +274,34 @@
         },
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/barrage.tmx": {
             "scale": 1.96494140625,
-            "selectedLayer": 0,
+            "selectedLayer": 7,
             "viewCenter": {
-                "x": 255.98727697430547,
-                "y": 72.5212464589235
+                "x": 255.73281646041454,
+                "y": 133.33730927886285
             }
         },
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/camping.tmx": {
             "scale": 1.96494140625,
-            "selectedLayer": 0,
+            "selectedLayer": 4,
             "viewCenter": {
-                "x": 255.98727697430547,
-                "y": 143.77019034839225
+                "x": 255.73281646041454,
+                "y": 143.5157298345013
             }
         },
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/ferme_charbonneau.tmx": {
             "scale": 1.96494140625,
-            "selectedLayer": 0,
+            "selectedLayer": 6,
             "viewCenter": {
-                "x": 255.98727697430547,
-                "y": 143.77019034839225
+                "x": 255.73281646041454,
+                "y": 143.5157298345013
             }
         },
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/ferme_uzoloise.tmx": {
             "scale": 1.96494140625,
-            "selectedLayer": 0,
+            "selectedLayer": 4,
             "viewCenter": {
-                "x": 255.98727697430547,
-                "y": 143.77019034839225
+                "x": 255.73281646041454,
+                "y": 214.76467372396996
             }
         },
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.json": {
@@ -313,11 +313,11 @@
             }
         },
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.tmx": {
-            "scale": 1.5,
-            "selectedLayer": 3,
+            "scale": 4,
+            "selectedLayer": 6,
             "viewCenter": {
-                "x": 271.3333333333333,
-                "y": 154.33333333333331
+                "x": 464.875,
+                "y": 121
             }
         },
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/foret_malicieuse.tmx": {
@@ -325,71 +325,71 @@
             "selectedLayer": 4,
             "viewCenter": {
                 "x": 256.24173748819635,
-                "y": 215.27359475175192
+                "y": 72.77570697281448
             }
         },
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fromagerie.tmx": {
             "scale": 1.96494140625,
-            "selectedLayer": 0,
+            "selectedLayer": 5,
             "viewCenter": {
-                "x": 255.98727697430547,
-                "y": 143.77019034839225
+                "x": 255.73281646041454,
+                "y": 214.76467372396996
             }
         },
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/jardin.tmx": {
             "scale": 1.96494140625,
-            "selectedLayer": 0,
+            "selectedLayer": 4,
             "viewCenter": {
-                "x": 255.98727697430547,
-                "y": 143.77019034839225
+                "x": 255.73281646041454,
+                "y": 143.5157298345013
             }
         },
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/lac_du_barrage.tmx": {
             "scale": 1.96494140625,
-            "selectedLayer": 0,
+            "selectedLayer": 5,
             "viewCenter": {
-                "x": 255.98727697430547,
-                "y": 143.77019034839225
+                "x": 255.73281646041454,
+                "y": 143.5157298345013
             }
         },
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/place_du_village.tmx": {
             "scale": 1.96494140625,
-            "selectedLayer": 0,
+            "selectedLayer": 5,
             "viewCenter": {
-                "x": 255.98727697430547,
-                "y": 143.77019034839225
+                "x": 255.73281646041454,
+                "y": 143.5157298345013
             }
         },
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/prev_barrage.tmx": {
             "scale": 1.96494140625,
-            "selectedLayer": 0,
+            "selectedLayer": 9,
             "viewCenter": {
-                "x": 255.98727697430547,
-                "y": 143.77019034839225
+                "x": 255.73281646041454,
+                "y": 143.5157298345013
             }
         },
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/prev_foret_malicieuse.tmx": {
             "scale": 1.96494140625,
-            "selectedLayer": 0,
+            "selectedLayer": 4,
             "viewCenter": {
-                "x": 255.98727697430547,
-                "y": 143.77019034839225
+                "x": 255.73281646041454,
+                "y": 143.5157298345013
             }
         },
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/prev_riviere.tmx": {
             "scale": 1.96494140625,
-            "selectedLayer": 0,
+            "selectedLayer": 3,
             "viewCenter": {
-                "x": 255.98727697430547,
-                "y": 143.77019034839225
+                "x": 255.73281646041454,
+                "y": 143.5157298345013
             }
         },
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/riviere.tmx": {
             "scale": 1.96494140625,
-            "selectedLayer": 0,
+            "selectedLayer": 3,
             "viewCenter": {
-                "x": 255.98727697430547,
-                "y": 143.77019034839225
+                "x": 255.73281646041454,
+                "y": 143.5157298345013
             }
         },
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/street_workout_8x8_tiles_33_percent_smaller.tsx": {
@@ -407,10 +407,12 @@
             }
         },
         "All items.tsx": {
+            "dynamicWrapping": false,
             "scaleInDock": 1,
             "scaleInEditor": 3
         },
         "Barn structures.tsx": {
+            "dynamicWrapping": true,
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
@@ -439,10 +441,12 @@
             "scaleInEditor": 8
         },
         "Basic_Furniture.tsx": {
+            "dynamicWrapping": false,
             "scaleInDock": 1,
             "scaleInEditor": 4
         },
         "Basic_Grass_Biom_things.tsx": {
+            "dynamicWrapping": false,
             "scaleInDock": 1,
             "scaleInEditor": 4
         },
@@ -463,6 +467,7 @@
             "scaleInEditor": 1
         },
         "Boats.tsx": {
+            "dynamicWrapping": false,
             "scaleInDock": 1
         },
         "Bush_Tiles.tsx": {
@@ -479,6 +484,7 @@
             "scaleInEditor": 5.5
         },
         "Chicken_Baby_Red.tsx": {
+            "dynamicWrapping": false,
             "scaleInDock": 1
         },
         "Chikcen_Houses.tsx": {
@@ -519,6 +525,7 @@
             "scaleInEditor": 1
         },
         "Free Chicken Sprites.tsx": {
+            "dynamicWrapping": true,
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
@@ -528,6 +535,7 @@
             "scaleInEditor": 3
         },
         "Free_Chicken_House.tsx": {
+            "dynamicWrapping": false,
             "scaleInDock": 1,
             "scaleInEditor": 4
         },
@@ -575,6 +583,7 @@
             "scaleInEditor": 1
         },
         "Piknik basket.tsx": {
+            "dynamicWrapping": true,
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
@@ -651,20 +660,25 @@
             "scaleInEditor": 1
         },
         "Water tray.tsx": {
+            "dynamicWrapping": true,
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
         "Water.tsx": {
+            "dynamicWrapping": false,
             "scaleInDock": 8,
             "scaleInEditor": 8
         },
         "WaterDark.tsx": {
+            "dynamicWrapping": false,
             "scaleInDock": 1
         },
         "WaterLight.tsx": {
+            "dynamicWrapping": false,
             "scaleInDock": 1
         },
         "Wood Bridge.tsx": {
+            "dynamicWrapping": true,
             "scaleInDock": 4,
             "scaleInEditor": 1
         },
@@ -677,6 +691,7 @@
             "scaleInEditor": 1
         },
         "Wooden_Bridge_v2.tsx": {
+            "dynamicWrapping": false,
             "scaleInDock": 1
         },
         "Wooden_House_Roof_Tilset.tsx": {
@@ -688,10 +703,12 @@
             "scaleInEditor": 1
         },
         "baby light cow animations sprites.tsx": {
+            "dynamicWrapping": true,
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
         "big fish 2 swimming in cirkels.tsx": {
+            "dynamicWrapping": true,
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
@@ -789,6 +806,7 @@
             "scaleInEditor": 1
         },
         "small_House_light_with_door.tsx": {
+            "dynamicWrapping": false,
             "scaleInDock": 1
         },
         "small_House_with_door_grass.tsx": {
@@ -859,7 +877,7 @@
     "frame.defaultDuration": 500,
     "last.exportedFilePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps",
     "last.externalTilesetPath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/tilesets",
-    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Lands - Sprites - premium pack/Objects/Items",
+    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Lands - Sprites - Basic pack/Objects",
     "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",

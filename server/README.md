@@ -1,4 +1,4 @@
-# Server Component Documentation
+# Server
 
 The **Server** component manages TCP connection lifecycles, network I/O, client rate-limiting, and structured logging for *The Answer Protocol* (TAP). It acts as a lightweight network gateway between connected TCP clients and the underlying core game Engine.
 

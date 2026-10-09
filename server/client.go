@@ -88,10 +88,10 @@ func (s *Server) handleSpam(cli *Client) bool {
 	cli.spamWarning++
 	if cli.spamWarning < 5 {
 		cli.ch <- pr.ServerResponse{Msg: pr.WarnSpam}
-		slog.Warn("Command spam", "result", pr.WarnSpam)
+		slog.Warn("Command spam", "name", s.clients[cli.id], "result", pr.WarnSpam)
 		return false
 	}
-	slog.Error("Command spam", "result", pr.ErrSpam)
+	slog.Error("Command spam", "name", s.clients[cli.id], "result", pr.ErrSpam)
 	cli.ch <- pr.ServerResponse{Msg: pr.ErrSpam}
 	return true
 }
@@ -111,6 +111,10 @@ func (s *Server) clientWriter(cli *Client, responses <-chan pr.ServerResponse, d
 			}
 			output := formatResponse(res)
 			if _, err := cli.conn.Write([]byte(output)); err != nil {
+				return
+			}
+			if res.Msg == "OK bye" {
+				cli.conn.Close()
 				return
 			}
 		}

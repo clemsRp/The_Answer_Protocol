@@ -1,4 +1,4 @@
-# GUI Documentation
+# GUI Client
 
 The Graphical User Interface (GUI) component provides a 2D visual visual client for The Answer Protocol (TAP). It is developed in Go using Raylib bindings via `github.com/gen2brain/raylib-go/raylib`.
 
@@ -28,7 +28,7 @@ The main draw loop in `drawer/draw.go` executes render passes in a strict sequen
    - Displays player names, health bars, and active status indicators above avatars.
 4. **Collision & Trigger Layer**: Evaluates room exit portals and interactive entity collision boxes (`updater/collisions.go`).
 5. **HUD & User Interface Overlay**:
-   - **Game HUD (`drawer/game.go`)**: Displays room titles, player health/mana bars, mini-map indicators, and quick action bars.
+   - **Game HUD (`drawer/game.go`)**: Displays room titles, player health represented by dynamic heart icons, mini-map indicators, and quick action bars.
    - **Chat Window (`drawer/chat.go`)**: Renders scrollable chat overlays with channel selection tabs (Global, Room, Group, Combat).
    - **Group Panel (`drawer/group.go`)**: Party member list and management overlay.
    - **NPC Dialogue Menu (`drawer/talk.go`)**: Dialogue box with selectable conversation options.

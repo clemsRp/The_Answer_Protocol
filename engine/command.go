@@ -17,7 +17,7 @@ func (e *Engine) handleCmdConnect(id string, req []string) (string, any, error) 
 
 	// check if session is already connected
 	if e.sessions[id] != "" {
-		return "", "", errors.New(pr.ErrNameInUse)
+		return "", "", errors.New(pr.ErrAlreadyConnected)
 	}
 	pseudo := req[1]
 	if _, exists := e.players[pseudo]; exists {

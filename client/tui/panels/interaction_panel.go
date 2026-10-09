@@ -45,7 +45,7 @@ func NewInteractionComponent(
 
 	src := NewChoiceListComponent(app, popupGrid, "Interactions", options, onOpenPopup, onClosePopup, false)
 
-	attachNpcDialogues(src.List, npcs, npcDialogues, panel_width)
+	attachNpcDialogues(src, npcs, npcDialogues, panel_width)
 
 	return src
 }
@@ -85,12 +85,12 @@ func wrapDialogue(text string, width int) []string {
 	return lines
 }
 
-func attachNpcDialogues(list *tview.List, npcs []string, npcDialogues map[string]string, panel_width int) {
-	if list == nil || len(npcDialogues) == 0 {
+func attachNpcDialogues(src *ChoiceListComponent, npcs []string, npcDialogues map[string]string, panel_width int) {
+	if src == nil || src.List == nil || len(npcDialogues) == 0 {
 		return
 	}
 
-	list.SetSecondaryTextColor(AppTheme.TextSecondary)
+	src.List.SetSecondaryTextColor(AppTheme.TextSecondary)
 
 	wrapWidth := dialogueWrapWidth(panel_width)
 	indent := strings.Repeat(" ", len(npcDialoguePrefix))
@@ -101,7 +101,7 @@ func attachNpcDialogues(list *tview.List, npcs []string, npcDialogues map[string
 			continue
 		}
 
-		idx, ok := findNpcItemIndex(list, npc)
+		idx, ok := findNpcItemIndex(src.List, npc)
 		if !ok {
 			continue
 		}
@@ -111,11 +111,20 @@ func attachNpcDialogues(list *tview.List, npcs []string, npcDialogues map[string
 			continue
 		}
 
-		mainText, _ := list.GetItemText(idx)
-		list.SetItemText(idx, mainText, npcDialoguePrefix+lines[0])
+		mainText, _ := src.List.GetItemText(idx)
+		src.List.SetItemText(idx, mainText, "[gray]"+npcDialoguePrefix+lines[0])
 
 		for j := 1; j < len(lines); j++ {
-			list.InsertItem(idx+j, "", indent+lines[j], 0, nil)
+			src.List.InsertItem(idx+j, "", "[gray]"+indent+lines[j], 0, nil)
+		}
+
+		insertedCount := len(lines) - 1
+		if insertedCount > 0 {
+			for eIdx := range src.Entries {
+				if src.Entries[eIdx].listIdx > idx {
+					src.Entries[eIdx].listIdx += insertedCount
+				}
+			}
 		}
 	}
 }
@@ -123,7 +132,11 @@ func attachNpcDialogues(list *tview.List, npcs []string, npcDialogues map[string
 func findNpcItemIndex(list *tview.List, npc string) (int, bool) {
 	for i := 0; i < list.GetItemCount(); i++ {
 		mainText, _ := list.GetItemText(i)
-		if strings.TrimSpace(mainText) == npc {
+		clean := strings.TrimSpace(mainText)
+		clean = strings.TrimPrefix(clean, "●")
+		clean = strings.TrimPrefix(clean, "○")
+		clean = strings.TrimSpace(clean)
+		if clean == npc {
 			return i, true
 		}
 	}

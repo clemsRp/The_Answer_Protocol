@@ -7,7 +7,7 @@ ASSETS_DIR = ./client/gui/assets
 
 # Source files
 COMMON_FILES := $(shell find engine protocol -type f -name '*.go' 2>/dev/null)
-SERVER_FILES := $(shell find client/controller client/network client/state server -type f -name '*.go' 2>/dev/null)
+SERVER_FILES := $(shell find client/controller client/network client/state server engine -type f -name '*.go' 2>/dev/null)
 CLIENT_FILES := $(shell find engine protocol -type f -name '*.go' 2>/dev/null)
 GUI_FILES    := $(shell find client/gui cmd/client/gui -type f -name '*.go' 2>/dev/null) $(COMMON_FILES) $(CLIENT_FILES)
 TUI_FILES    := $(shell find client/tui cmd/client/tui -type f -name '*.go' 2>/dev/null) $(COMMON_FILES) $(CLIENT_FILES)

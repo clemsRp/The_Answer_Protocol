@@ -59,7 +59,7 @@ func (m *Manager) UpdateInteractions(view string) {
 		near := m.IsPlayerNear(item.Emote.X, item.Emote.Y)
 		item.hovered = hover && near
 
-		if hover && down {
+		if hover && clicked {
 			item.Inspect(item.ID)
 		}
 

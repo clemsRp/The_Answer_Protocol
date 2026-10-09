@@ -69,13 +69,13 @@ func (m *Manager) UpdateEmotes(view string) {
 	}
 
 	mouse := rl.GetMousePosition()
-	down := rl.IsMouseButtonDown(rl.MouseButtonLeft)
+	clicked := rl.IsMouseButtonPressed(rl.MouseButtonLeft)
 
 	for _, emote := range emotes {
 		// Check emote hover
 		hovered := rl.CheckCollisionPointRec(mouse, emote.Rect())
 
-		if hovered && down && emote.Inspect != nil {
+		if hovered && clicked && emote.Inspect != nil {
 			emote.Inspect(emote.ID)
 		}
 	}

@@ -290,7 +290,7 @@ func (cs *CombatSession) sortTurnsOrderByInitiative() {
 
 func (cs *CombatSession) checkIfPlayersAreDead() bool {
 	for _, player := range cs.Players {
-		if !player.isDead() {
+		if player.inCombat && !player.isDead() {
 			return false
 		}
 	}
@@ -380,11 +380,17 @@ func (e *Engine) end_combat(cs *CombatSession) {
 	if cs.State == StateDefeat {
 		msg := fmt.Sprintf("EVT COMBAT DEFEAT new_room=%s", RoomPlaceDuVillage)
 		for _, p := range cs.Players {
+			if !p.inCombat {
+				continue
+			}
 			e.inform_user(p, msg)
 		}
 
 	} else if cs.State == StateVictory {
 		for _, p := range cs.Players {
+			if !p.inCombat {
+				continue
+			}
 			// Cast datas
 			type evtData struct {
 				ItemsReward []string `json:"items_reward,omitempty"`
@@ -414,6 +420,9 @@ func (e *Engine) end_combat(cs *CombatSession) {
 	}
 
 	for _, player := range cs.Players {
+		if !player.inCombat {
+			continue
+		}
 		player.stats.CombatId = ""
 		player.inCombat = false
 		if cs.State == StateDefeat || player.stats.Hp <= 0 {

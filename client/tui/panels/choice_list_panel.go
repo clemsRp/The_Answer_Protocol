@@ -17,8 +17,9 @@ type AllowedOptions interface {
 }
 
 type ChoiceListComponent struct {
-	Layout *tview.Flex
-	List   *tview.List
+	Layout  *tview.Flex
+	List    *tview.List
+	Entries []entryItem
 }
 
 var (
@@ -32,6 +33,7 @@ type entryItem struct {
 	locName  string
 	areBtns  bool
 	action   func()
+	listIdx  int
 }
 
 func NewChoiceListComponent[T AllowedOptions](
@@ -96,6 +98,7 @@ func NewChoiceListComponent[T AllowedOptions](
 		}
 	}
 
+	listIdx := 0
 	for idx, entry := range entries {
 		if entry.isHeader {
 			src.List.AddItem("[yellow:#000000]- "+entry.locName+":", "", 0, nil)
@@ -104,16 +107,19 @@ func NewChoiceListComponent[T AllowedOptions](
 			mText, sText := formatItem(entry.locName, entry.areBtns, isSelected)
 			src.List.AddItem(mText, sText, 0, entry.action)
 		}
+		entries[idx].listIdx = listIdx
+		listIdx++
 	}
+	src.Entries = entries
 
 	src.List.SetChangedFunc(func(i int, mainText, secondaryText string, shortcut rune) {
-		for idx, entry := range entries {
+		for _, entry := range src.Entries {
 			if entry.isHeader {
 				continue
 			}
-			isSelected := (idx == i)
+			isSelected := (entry.listIdx == i)
 			mText, sText := formatItem(entry.locName, entry.areBtns, isSelected)
-			src.List.SetItemText(idx, mText, sText)
+			src.List.SetItemText(entry.listIdx, mText, sText)
 		}
 	})
 

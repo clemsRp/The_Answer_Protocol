@@ -43,7 +43,7 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 		})
 		c.sendToNetwork(pr.CmdLook)
 		c.sendToNetwork(pr.CmdQuests)
-		c.sendToNetwork(pr.CmdNotifyPlayerPosition)
+
 		c.sendToNetwork(pr.CmdGetPlayerPositions)
 
 	case lastCmdBase == pr.CmdLook && res.Datas != nil:
@@ -60,7 +60,7 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 		c.ui.QueueUpdate(func() {
 			c.ui.UpdateRoom()
 			c.sendToNetwork(pr.CmdLook)
-			c.sendToNetwork(pr.CmdNotifyPlayerPosition)
+
 			c.sendToNetwork(pr.CmdGetPlayerPositions)
 			c.sendToNetwork(pr.CmdGetItemPositions)
 		})

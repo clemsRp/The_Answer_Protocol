@@ -100,11 +100,11 @@ func (dr *Drawer) drawPlayerInfoBox() {
 	box_type := " big"
 	box_width := float32(19)
 
-	// Draw box/frame
-	if len(pseudo) <= vars.PSEUDO_MAX_CHAR/3 {
+	tier := dr.app.GetPseudoBoxTier(pseudo)
+	if tier == 1 {
 		box_type = "small"
 		box_width = 11
-	} else if len(pseudo) <= vars.PSEUDO_MAX_CHAR*2/3 {
+	} else if tier == 2 {
 		box_type = "medium"
 		box_width = 15
 	}
@@ -129,26 +129,32 @@ func (dr *Drawer) drawPlayerInfoBox() {
 
 func (dr *Drawer) drawPlayerLives() {
 	// Draw lives
-	live := float64(dr.app.Variables.Player.Hp) / float64(dr.app.Variables.Player.MaxHp)
+	hp := dr.app.Variables.Player.Hp
+	maxHp := dr.app.Variables.Player.MaxHp
+
+	half_hearts := 0
+	if maxHp > 0 {
+		half_hearts = (hp*10 + maxHp - 1) / maxHp
+	}
+	if half_hearts > 10 {
+		half_hearts = 10
+	}
+	if half_hearts < 0 {
+		half_hearts = 0
+	}
 
 	for nb_live := 0; nb_live < 5; nb_live++ {
 		indX := 0
 		indY := 3
 		ratio := 2
 
-		heart_start := 0.2 * float64(nb_live)
-		heart_half := heart_start + 0.1
-		heart_full := heart_start + 0.2
-
-		if live < heart_full {
-			indX += 2
-		}
-		if live < heart_half {
-			indX += 2
-		}
-
-		if live < 0.1 && nb_live == 0 {
+		heart_threshold := 2 * nb_live
+		if half_hearts <= heart_threshold {
+			indX = 4
+		} else if half_hearts == heart_threshold+1 {
 			indX = 2
+		} else {
+			indX = 0
 		}
 
 		// Draw heart
@@ -166,9 +172,10 @@ func (dr *Drawer) DrawInventory() {
 	pseudo := dr.app.Variables.Player.Pseudo
 	start_x := float32(19)
 
-	if len(pseudo) <= vars.PSEUDO_MAX_CHAR/3 {
+	tier := dr.app.GetPseudoBoxTier(pseudo)
+	if tier == 1 {
 		start_x = 11
-	} else if len(pseudo) <= vars.PSEUDO_MAX_CHAR*2/3 {
+	} else if tier == 2 {
 		start_x = 15
 	}
 	start_x += 2

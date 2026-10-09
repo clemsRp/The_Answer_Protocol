@@ -1,4 +1,4 @@
-# Controller Documentation
+# Controller
 
 The **Client Controller** forms the intermediate logic and state synchronization layer of *The Answer Protocol* (TAP) client architecture. It decouples network socket communication from user interface frontends (both TUI and GUI).
 

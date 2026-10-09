@@ -101,10 +101,10 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 	pseudo := app.Variables.Player.Pseudo
 	start_x := float32(19)
 
-	// Adjust starting X position dynamically based on the player's pseudo length
-	if len(pseudo) <= vars.PSEUDO_MAX_CHAR/3 {
+	tier := app.GetPseudoBoxTier(pseudo)
+	if tier == 1 {
 		start_x = 11
-	} else if len(pseudo) <= vars.PSEUDO_MAX_CHAR*2/3 {
+	} else if tier == 2 {
 		start_x = 15
 	}
 
@@ -155,7 +155,9 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 							Type:    panel.ActionSendServer,
 							Payload: pr.CmdUseItem + " " + it,
 						}
-						app.Variables.Player.EquipedItems = append(app.Variables.Player.EquipedItems, it)
+						if app.IsItemWeapon(it) {
+							app.Variables.Player.EquipedItems = append(app.Variables.Player.EquipedItems, it)
+						}
 					})
 				},
 			}
@@ -191,9 +193,10 @@ func (app *App) GetNewCombatInventory(inventory []string) []*ui.Button {
 	pseudo := app.Variables.Player.Pseudo
 	start_x := float32(19)
 
-	if len(pseudo) <= vars.PSEUDO_MAX_CHAR/3 {
+	tier := app.GetPseudoBoxTier(pseudo)
+	if tier == 1 {
 		start_x = 11
-	} else if len(pseudo) <= vars.PSEUDO_MAX_CHAR*2/3 {
+	} else if tier == 2 {
 		start_x = 15
 	}
 
@@ -223,7 +226,9 @@ func (app *App) GetNewCombatInventory(inventory []string) []*ui.Button {
 					Type:    panel.ActionSendServer,
 					Payload: fmt.Sprintf("%s %s", pr.CmdUseItem, itemName),
 				}
-				app.Variables.Player.EquipedItems = append(app.Variables.Player.EquipedItems, it)
+				if app.IsItemWeapon(it) {
+					app.Variables.Player.EquipedItems = append(app.Variables.Player.EquipedItems, it)
+				}
 			},
 		}
 		use_buttons = append(use_buttons, item_btn)

@@ -142,6 +142,31 @@ func (app *App) IsItemUsable(itemName string) bool {
 	return true
 }
 
+func (app *App) IsItemWeapon(itemName string) bool {
+	if app.WorldItems == nil {
+		app.ParseNpcNames("./world.json")
+	}
+
+	cleanName := strings.TrimSpace(itemName)
+	lowerName := strings.ToLower(cleanName)
+	snakeName := strings.ReplaceAll(lowerName, " ", "_")
+
+	if app.WorldItems != nil {
+		for k, item := range app.WorldItems {
+			if item == nil {
+				continue
+			}
+			itemK := strings.ToLower(k)
+			itemN := strings.ToLower(item.Name)
+			if itemK == lowerName || itemK == snakeName || itemN == lowerName {
+				return item.Type == "weapon"
+			}
+		}
+	}
+
+	return false
+}
+
 func (app *App) GroupContentStartY() float32 {
 	tile := app.Variables.Tileset_size
 	font := app.Variables.FontSize
@@ -168,4 +193,24 @@ func (app *App) DrainQueue() {
 			return
 		}
 	}
+}
+
+func (app *App) GetPseudoBoxTier(pseudo string) int {
+	fontSize := int32(app.Variables.FontSize)
+	textWidth := rl.MeasureText(pseudo, fontSize)
+	maxWidth := rl.MeasureText(strings.Repeat("A", vars.PSEUDO_MAX_CHAR), fontSize)
+
+	if textWidth <= maxWidth/3 {
+		return 1
+	} else if textWidth <= maxWidth*2/3 {
+		return 2
+	}
+	return 3
+}
+
+func (app *App) IsPseudoValid(pseudo string) bool {
+	fontSize := int32(app.Variables.FontSize)
+	textWidth := rl.MeasureText(pseudo, fontSize)
+	maxWidth := rl.MeasureText(strings.Repeat("A", vars.PSEUDO_MAX_CHAR), fontSize)
+	return textWidth < maxWidth
 }

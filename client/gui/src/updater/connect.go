@@ -1,7 +1,7 @@
 package updater
 
 import (
-	vars "tap/client/gui/src/variables"
+
 	panel "tap/client/tui/panels"
 	pr "tap/protocol"
 	"time"
@@ -46,7 +46,7 @@ func (up *Updater) UpdatePseudo() {
 
 	for char > 0 {
 		up.app.Variables.Player.LastTimeTyped = time.Now()
-		if char >= 32 && len(pseudo) < vars.PSEUDO_MAX_CHAR {
+		if char >= 32 && up.app.IsPseudoValid(pseudo+string(char)) {
 			pseudo += string(char)
 		}
 

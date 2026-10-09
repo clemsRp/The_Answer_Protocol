@@ -18,6 +18,7 @@ const (
 	ErrInvalidCommand    = "ERR 400 INVALID_COMMAND"
 	ErrNotInGroup        = "ERR 401 NOT_IN_GROUP"
 	ErrAlreadyInGroup    = "ERR 402 ALREADY_IN_GROUP"
+	ErrAlreadyConnected  = "ERR 402 ALREADY_CONNECTED"
 	ErrNotInvitedToGroup = "ERR 403 NOT_INVITED_TO_GROUP"
 	ErrUnknownUser       = "ERR 410 UNKNOWN_USER"
 	ErrNoPermission      = "ERR 411 NO_PERMISSION"

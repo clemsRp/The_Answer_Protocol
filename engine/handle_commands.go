@@ -105,15 +105,16 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
 		res, datas, err = "", nil, errors.New(pr.ErrInvalidCommand)
 	}
 
+	name := e.sessions[request.Id]
 	if err != nil {
 		res = err.Error()
-		slog.Error("Server response", "response", res, "command", request.Msg)
+		slog.Error("Server response", "name", name, "response", res, "command", request.Msg)
 
 	} else if datas != "" {
-		slog.Info("Server response", "response", res, "datas", datas, "command", request.Msg)
+		slog.Info("Server response", "name", name, "response", res, "datas", datas, "command", request.Msg)
 
 	} else {
-		slog.Info("Server response", "response", res, "command", request.Msg)
+		slog.Info("Server response", "name", name, "response", res, "command", request.Msg)
 	}
 
 	return res, datas, err
