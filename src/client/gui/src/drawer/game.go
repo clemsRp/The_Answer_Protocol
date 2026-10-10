@@ -53,6 +53,10 @@ func (dr *Drawer) DrawGame() {
 		}
 	}
 
+	if dr.app.Variables.PanelsVariables.MiniMapOpen {
+		dr.DrawMiniMap()
+	}
+
 	dr.DrawPlayerPanel()
 
 	dr.DrawGameEmotes()
@@ -270,4 +274,33 @@ func (dr *Drawer) HideBorder() {
 	if dr.app.Variables.Current_view == "Game" && nothing_open && in_time {
 		dr.DrawRoomName()
 	}
+}
+
+func (dr *Drawer) DrawMiniMap() {
+	frame_width := float32(6)
+	frame_height := float32(4.5)
+
+	// Draw Frame
+	dr.DrawWoodFrameAt(
+		vars.Position{X: 31 - frame_width, Y: 1},
+		vars.Position{X: 31, Y: 1 + frame_height},
+		1, 0, false,
+	)
+
+	// Draw mini map
+	posX := float32(31.5-frame_width) * dr.app.Variables.Tileset_size
+	posY := 1.75 * dr.app.Variables.Tileset_size
+	zoom := float32(0.25)
+
+	texture := (*dr.app.Textures)[vars.MINI_MAP_TEXTURE]
+
+	sourceRec := rl.NewRectangle(0, 0, float32(texture.Width), float32(texture.Height))
+
+	destW := float32(texture.Width) * zoom
+	destH := float32(texture.Height) * zoom
+
+	destRec := rl.NewRectangle(posX+(destW/2), posY+(destH/2), destW, destH)
+	origin := rl.NewVector2(destW/2, destH/2)
+
+	rl.DrawTexturePro(texture, sourceRec, destRec, origin, 0, rl.White)
 }

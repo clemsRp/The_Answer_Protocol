@@ -1,5 +1,5 @@
 {
-    "activeFile": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/foret_malicieuse.tmx",
+    "activeFile": "Sprite sheet for Basic Pack.tsx",
     "expandedProjectPaths": [
         "."
     ],
@@ -877,7 +877,7 @@
     "frame.defaultDuration": 500,
     "last.exportedFilePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps",
     "last.externalTilesetPath": "/home/clement/Documents/42/The_Answer_Protocol/client/gui/tilesets",
-    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/assets/Sprout Lands - Sprites - Basic pack/Objects",
+    "last.imagePath": "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/src/client/gui/assets/Sprout Lands - UI Pack - Basic pack/Sprite sheets",
     "map.height": 18,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
@@ -885,40 +885,26 @@
     "map.tileWidth": 16,
     "map.width": 32,
     "openFiles": [
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.tmx",
         "ground_dirt_orange_dark.tsx",
         "Basic_Furniture.tsx",
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/barrage.tmx",
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/camping.tmx",
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/ferme_charbonneau.tmx",
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/ferme_uzoloise.tmx",
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/foret_malicieuse.tmx",
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fromagerie.tmx",
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/jardin.tmx",
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/lac_du_barrage.tmx",
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/place_du_village.tmx",
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/prev_barrage.tmx",
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/prev_foret_malicieuse.tmx",
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/prev_riviere.tmx",
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/riviere.tmx",
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/verger_de_la_savane.tmx",
-        "All items.tsx"
+        "All items.tsx",
+        "Sprite sheet for Basic Pack.tsx"
     ],
     "project": "sprout-lands.tiled-project",
     "property.type": "bool",
     "recentFiles": [
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.tmx",
         "ground_dirt_orange_dark.tsx",
         "Basic_Furniture.tsx",
+        "All items.tsx",
+        "Sprite sheet for Basic Pack.tsx",
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/fontaneilles.tmx",
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/barrage.tmx",
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/camping.tmx",
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/ferme_charbonneau.tmx",
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/ferme_uzoloise.tmx",
-        "All items.tsx",
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/verger_de_la_savane.tmx",
         "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/riviere.tmx",
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/prev_riviere.tmx",
-        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/prev_foret_malicieuse.tmx"
+        "/home/crappo/Documents/M5/The_Answer_Protocol/pre-v1/client/gui/maps/prev_riviere.tmx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

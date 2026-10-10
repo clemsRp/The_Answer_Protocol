@@ -22,6 +22,8 @@ type PanelVariables struct {
 	Inspect      *InspectPanel
 	Talk         *TalkPanel
 	Emotes       *EmotesPanel
+
+	MiniMapOpen bool
 }
 
 var (
@@ -30,6 +32,7 @@ var (
 
 func GetPanelsVariables() *PanelVariables {
 	return &PanelVariables{
+		MiniMapOpen:    true,
 		Room:           &protocol.LookCommandData{},
 		RoomItems:      &[]string{},
 		InventoryItems: &[]string{},

@@ -21,6 +21,7 @@ const (
 	CHEST_TEXTURE      = "Chest"
 	HEART_TEXTURE      = "Inventory_Light_Herat_Spritesheet"
 	INVENTORY_TEXTURE  = "inventory_example_with_slots_2"
+	MINI_MAP_TEXTURE   = "mini_map"
 
 	CHAT_WIDTH   = 10
 	CHAT_HEIGHT  = 14

@@ -138,10 +138,23 @@ func (up *Updater) buildGameButtons() {
 		},
 	}
 
+	mapBtn := &ui.Button{
+		ID:      "map",
+		Texture: vars.UI_SPRITE_TEXTURE,
+		X:       5 * up.app.Variables.Tileset_size,
+		Y:       3 * up.app.Variables.Tileset_size,
+		Zoom:    up.app.Variables.Zoom * 0.5,
+		Normal:  ui.Frame{IndX: 44, IndY: 6, RatioX: 2, RatioY: 2},
+		Pressed: ui.Frame{IndX: 46, IndY: 6, RatioX: 2, RatioY: 2},
+		OnClick: func() {
+			up.app.Variables.PanelsVariables.MiniMapOpen = !up.app.Variables.PanelsVariables.MiniMapOpen
+		},
+	}
+
 	quitBtn := &ui.Button{
 		ID:      "quit",
 		Texture: vars.UI_SPRITE_TEXTURE,
-		X:       5 * up.app.Variables.Tileset_size,
+		X:       6 * up.app.Variables.Tileset_size,
 		Y:       3 * up.app.Variables.Tileset_size,
 		Zoom:    up.app.Variables.Zoom * 0.5,
 		Normal:  ui.Frame{IndX: 48, IndY: 10, RatioX: 2, RatioY: 2},
@@ -155,7 +168,7 @@ func (up *Updater) buildGameButtons() {
 		},
 	}
 
-	up.app.Manager.SetViewButtons("Game", []*ui.Button{datasBtn, groupBtn, inspectorBtn, chatBtn, quitBtn})
+	up.app.Manager.SetViewButtons("Game", []*ui.Button{datasBtn, groupBtn, inspectorBtn, chatBtn, mapBtn, quitBtn})
 }
 
 func (up *Updater) buildChatButtons() {

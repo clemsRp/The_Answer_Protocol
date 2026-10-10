@@ -117,16 +117,16 @@ TAP implements and extends the **RFC 42TAP** specification:
 The game world is configured via `src/world.json` and structured as an interconnected room graph:
 
 ```
-                      [fromagerie] <---> [fontaneilles] <---> [lac_du_barrage]
-                           ^                  ^                      ^
-                           |                  |                      |
-    [ferme_uzoloise] <-> [verger_de_la_savane] <-> [foret_malicieuse] <-> [barrage]
-                           ^                  ^                      ^
-                           |                  |                      |
-                     [ferme_charbonneau] <-> [place_du_village] <-----> [riviere]
-                                              ^                      ^
-                                              |                      |
-                                          [jardin]               [camping]
+                            [fromagerie] <-------> [fontaneilles] <-> [lac_du_barrage]
+                     		      ^                       ^                 ^
+                     		      |                       |                 |
+   [ferme_uzoloise] <-> [verger_de_la_savane] <-> [foret_malicieuse] <-> [barrage]
+                                  ^                       ^                 ^
+                                  |                       |                 |
+                         [ferme_charbonneau] <-> [place_du_village] <-> [riviere]
+                                                          ^                 ^
+                                                          |                 |
+                                                       [jardin]          [camping]
 ```
 
 ### Key Areas & NPCs
