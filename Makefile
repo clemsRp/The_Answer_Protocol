@@ -67,22 +67,27 @@ build: install $(EXEC_DIR)/server $(EXEC_DIR)/gui $(EXEC_DIR)/tui
 	@echo "Build completed."
 
 # Execution
+ARGS ?=
+
 run-server: $(EXEC_DIR)/server
 	@echo "Starting server..."
-	@./$(EXEC_DIR)/server
+	@./$(EXEC_DIR)/server $(ARGS)
 
 run-client: $(EXEC_DIR)/tui
 	@echo "Starting TUI client..."
-	@./$(EXEC_DIR)/tui
+	@./$(EXEC_DIR)/tui $(ARGS)
 
 run-client-gui: $(EXEC_DIR)/gui
 	@echo "Starting GUI client..."
-	@./$(EXEC_DIR)/gui
+	@./$(EXEC_DIR)/gui $(ARGS)
 
 # Tests
 test:
 	@echo "Running tests..."
-	@go test ./tests/network/... ./tests/scenarios/... ./tests/leaks/... -count=1
+	@go test $(TESTS_DIR)/network/... \
+			 $(TESTS_DIR)/scenarios/... \
+			 $(TESTS_DIR)/leaks/... \
+			 -count=1
 
 # Manage project
 format:

@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"runtime/pprof"
 	"tap/src/client/tui"
-	"tap/tests/utils"
+	"tap/src/tests/utils"
 	"testing"
 	"time"
 )

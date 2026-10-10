@@ -8,7 +8,7 @@ var usernameAlreadyUsedScenario = []ScenariosCommandTest{
 		Name:    "Invalid connection: Name already used",
 		Command: "CONNECT alice",
 		ExpectedReplies: []Reply{
-			{protocol.ErrNameInUse, "alice"},
+			{protocol.ErrAlreadyConnected, "alice"},
 		},
 		ExpectsJSON:      false,
 		TestOnConnection: "alice",

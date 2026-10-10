@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"strings"
 	pr "tap/src/protocol"
-	"tap/tests/utils"
+	"tap/src/tests/utils"
 	"testing"
 	"time"
 )

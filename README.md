@@ -9,11 +9,11 @@ A multiplayer retro text and graphical adventure game (MUD/RPG) built in **Go**.
 ## Sub-Component Documentation
 
 For in-depth documentation on individual modules, please consult the dedicated README files:
-- [Server](./server/README.md)
-- [Engine](./engine/README.md)
-- [Client Logic](./client/controller/README.md)
-- [TUI Client](./client/tui/README.md)
-- [GUI Client](./client/gui/README.md)
+- [Server](./src/server/README.md)
+- [Engine](./src/engine/README.md)
+- [Client Logic](./src/client/controller/README.md)
+- [TUI Client](./src/client/tui/README.md)
+- [GUI Client](./src/client/gui/README.md)
 
 ---
 
@@ -22,8 +22,8 @@ For in-depth documentation on individual modules, please consult the dedicated R
 **The Answer Protocol (TAP)** brings retro text-adventure mechanics into a modern multiplayer architecture. Players connect to a persistent server hosting a shared fantasy world where they can:
 - Explore interconnected rooms and regions.
 - Interact and converse with non-player characters (NPCs).
-- Accept, track, and complete multi-stage quests.
-- Manage inventories, trade, and use items.
+- Accept, track, and complete quests.
+- Manage inventories and use items.
 - Form adventuring parties with other real-time players.
 - Engage in initiative-driven, turn-based combat against hostile creatures.
 
@@ -47,17 +47,17 @@ Clients use a decoupled Controller pattern (`client/controller`):
 ### System Architecture Diagram
 
 ```
-						┌──────────────┐
-						│  GUI Client  │
-						│  (Raylib)    │──┐
-						└──────────────┘  │
-						                  │   ┌────────────────┐      TCP       ┌──────────────┐    Go ch.    ┌──────────────┐
-						                  ├──>│   Controller   │<──────────────>│    Server    │<────────────>│    Engine    │
-						                  │   │ (Client Logic) │   Connection   │ (TCP server) │              │ (Game Logic) │
-						┌──────────────┐  │   └────────────────┘                └──────────────┘              └──────────────┘
-						│  TUI Client  │──┘
-						│  (Tview)     │
-						└──────────────┘
+┌──────────────┐
+│  GUI Client  │
+│  (Raylib)    │──┐
+└──────────────┘  │
+                  │   ┌────────────────┐      TCP       ┌──────────────┐    Go ch.    ┌──────────────┐
+                  ├──>│   Controller   │<──────────────>│    Server    │<────────────>│    Engine    │
+                  │   │ (Client Logic) │   Connection   │ (TCP server) │              │ (Game Logic) │
+┌──────────────┐  │   └────────────────┘                └──────────────┘              └──────────────┘
+│  TUI Client  │──┘
+│  (Tview)     │
+└──────────────┘
 ```
 
 ---
@@ -130,7 +130,6 @@ The game world is configured via `world.json` and structured as an interconnecte
 ```
 
 ### Key Areas & NPCs
-- **Overgrown Path (Entrance)**: Starting area; home to `shepherd_hana`.
 - **La ferme des Légumes Charbonneau (`ferme_charbonneau`)**: Home to `thomas_charbonneau` and `maelis`.
 - **La ferme Uzoloise (`ferme_uzoloise`)**: Royal farm of Uzols; home to `le_prince`.
 - **Fontaneilles (`fontaneilles`)**: Cheese-scented town; home to `gabinap` (`HardcoreLevelingWarrior`).
@@ -145,7 +144,7 @@ The game world is configured via `world.json` and structured as an interconnecte
 - **Le jardin (`jardin`)**: Community garden south of the village square.
 
 ### Item Distribution
-- **Tools / Weapons**: `rusty_hoe`, `watering_can`, `pioche`, `branche_solide`, `canne_a_peche`.
+- **Tools / Weapons**: `pioche`, `branche_solide`, `canne_a_peche`.
 - **Consumables**: `mais_sucre`, `carotte_salee`, `cancoillotte`, `flocons_d_avoine`, `fricadelle`, `marshmallow`.
 - **Resources**: `graines`, `acier`.
 
@@ -177,15 +176,10 @@ Server logs utilize Go's structured `log/slog` library:
 ## Group Contributions
 
 - **`crappo` (Clément Rappo)**:
-  - Core Engine architecture and event loop implementation.
-  - Turn-based combat engine, initiative order, damage formulas, and turn timeouts.
-  - Quest validation system and world state handlers.
-  - Terminal UI (TUI) layout, combat panels, and Client Controller state manager.
+# TODO
+
 - **`aluslu` (Ali Uslu)**:
-  - Server networking architecture, TCP listener, client session tracking, and socket I/O.
-  - Token-bucket rate limiter and anti-flood protection.
-  - RFC 42TAP protocol command parsing and error handling.
-  - Network resilience and scenario integration test suites.
+# TODO
 
 ---
 
@@ -207,7 +201,7 @@ Server logs utilize Go's structured `log/slog` library:
    make build
    ```
    *Binaries are compiled to the `exec/` directory (`exec/server`, `exec/tui`, `exec/gui`).*
-   *Note: All graphical assets and configuration files are now embedded within the binaries using `//go:embed`. You can safely distribute and run the executables standalone without sending the `assets`, `maps`, or `world.json` files!*
+   *Note: All graphical assets and configuration files are embedded within the binaries using `//go:embed`. You can safely distribute and run the executables standalone without sending the `assets`, `maps`, or `world.json` files!*
 
 3. **Running the Server**:
    ```bash

@@ -5,7 +5,7 @@ import (
 	"net"
 	"strings"
 	"tap/src/server"
-	"tap/tests/utils"
+	"tap/src/tests/utils"
 	"testing"
 	"time"
 )

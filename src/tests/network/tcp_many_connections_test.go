@@ -3,7 +3,7 @@ package network
 import (
 	"net"
 	"sync"
-	"tap/tests/utils"
+	"tap/src/tests/utils"
 	"testing"
 	"time"
 )

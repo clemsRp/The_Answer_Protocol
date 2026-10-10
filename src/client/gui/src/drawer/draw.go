@@ -1,11 +1,16 @@
 package drawer
 
 import (
+	"embed"
+	"fmt"
 	"tap/src/client/gui/src/core"
 	vars "tap/src/client/gui/src/variables"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
+
+//go:embed shader/*.fs
+var shadersFS embed.FS
 
 type Drawer struct {
 	app *core.App
@@ -32,12 +37,22 @@ var (
 )
 
 func NewDrawer(app *core.App) *Drawer {
+	blurBytes, errBlur := shadersFS.ReadFile("shader/blur.fs")
+	if errBlur != nil {
+		fmt.Println("Warning: Failed to load blur shader from embed:", errBlur)
+	}
+	
+	darkenBytes, errDarken := shadersFS.ReadFile("shader/darken.fs")
+	if errDarken != nil {
+		fmt.Println("Warning: Failed to load darken shader from embed:", errDarken)
+	}
+
 	dr := &Drawer{
 		app:                 app,
 		gameTexture:         rl.LoadRenderTexture(int32(app.ScreenWidth), int32(app.ScreenHeight)),
 		combatResultTexture: rl.LoadRenderTexture(int32(app.ScreenWidth), int32(app.ScreenHeight)),
-		blurShader:          rl.LoadShader("", "./client/gui/src/drawer/shader/blur.fs"),
-		darkenShader:        rl.LoadShader("", "./client/gui/src/drawer/shader/darken.fs"),
+		blurShader:          rl.LoadShaderFromMemory("", string(blurBytes)),
+		darkenShader:        rl.LoadShaderFromMemory("", string(darkenBytes)),
 	}
 
 	rl.SetShaderValue(

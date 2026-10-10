@@ -6,7 +6,7 @@ import (
 	"net"
 	"strings"
 	"sync"
-	"tap/tests/utils"
+	"tap/src/tests/utils"
 	"testing"
 	"time"
 )

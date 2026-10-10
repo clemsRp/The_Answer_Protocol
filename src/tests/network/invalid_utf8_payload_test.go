@@ -1,7 +1,7 @@
 package network
 
 import (
-	"tap/tests/utils"
+	"tap/src/tests/utils"
 	"testing"
 	"time"
 )

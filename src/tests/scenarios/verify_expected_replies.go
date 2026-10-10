@@ -3,7 +3,7 @@ package scenarios
 import (
 	"bufio"
 	"net"
-	"tap/tests/utils"
+	"tap/src/tests/utils"
 	"testing"
 	"time"
 )

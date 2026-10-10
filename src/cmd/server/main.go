@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"tap/src"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
+	tap "tap/src"
+	"tap/src/cmd"
 	"tap/src/engine"
 	pr "tap/src/protocol"
 	"tap/src/server"
@@ -46,9 +47,16 @@ func main() {
 		return
 	}
 
+	// Get args
+	_, port, conn_err := cmd.GetConnection(false)
+	if conn_err != nil {
+		fmt.Println("Error: ", conn_err.Error())
+		return
+	}
+
 	// Initialize server
 	var s *server.Server
-	s, err = server.NewServer(":8080", exchanger)
+	s, err = server.NewServer(":"+port, exchanger)
 	if err != nil {
 		fmt.Println("Server couldn't start:", err)
 		return

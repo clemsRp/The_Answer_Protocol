@@ -6,3 +6,4 @@ import (
 
 //go:embed maps assets
 var GuiAssets embed.FS
+

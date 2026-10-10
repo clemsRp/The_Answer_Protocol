@@ -2,7 +2,7 @@ package network
 
 import (
 	"runtime"
-	"tap/tests/utils"
+	"tap/src/tests/utils"
 	"testing"
 	"time"
 )
