@@ -1,0 +1,64 @@
+package engine
+
+import (
+	"errors"
+
+	pr "tap/src/protocol"
+)
+
+func (e *Engine) get_combat_stats(player *Player) (string, any, error) {
+	cs, exists := e.activeCombats[player.stats.CombatId]
+	if !exists {
+		return "", "", errors.New(pr.ErrInternalServer)
+	}
+
+	leaderName := player.name
+	if group, ok := e.groups[player.group]; ok {
+		leaderName = group.leader.name
+	}
+
+	currentTurnName := ""
+	if cs.CurrentTurn >= 0 && cs.CurrentTurn < len(cs.Fighters) {
+		currentTurnName = cs.Fighters[cs.CurrentTurn].getName()
+	}
+
+	team := make(map[string]pr.CombatPersonData)
+	for _, p := range cs.Players {
+		inventory := make([]string, 0, len(p.inventory))
+		for _, item := range p.inventory {
+			inventory = append(inventory, item.Id)
+		}
+		team[p.name] = pr.CombatPersonData{
+			Name:      p.name,
+			Hp:        p.stats.Hp,
+			MaxHp:     p.stats.HpMax,
+			Inventory: inventory,
+			InCombat:  p.inCombat,
+			CombatId:  p.stats.CombatId,
+		}
+	}
+
+	opponents := make(map[string]pr.CombatPersonData)
+	for _, npc := range cs.Npcs {
+		inventory := make([]string, 0, len(npc.ItemsReward))
+		for _, item := range npc.ItemsReward {
+			inventory = append(inventory, item)
+		}
+		opponents[npc.Id] = pr.CombatPersonData{
+			Name:      npc.Name,
+			Hp:        npc.Stats.Hp,
+			MaxHp:     npc.Stats.HpMax,
+			Inventory: inventory,
+		}
+	}
+
+	res := pr.CombatStatsCommandData{
+		CombatId:    cs.Id,
+		Leader:      leaderName,
+		CurrentTurn: currentTurnName,
+		Team:        team,
+		Opponents:   opponents,
+	}
+
+	return "OK", res, nil
+}

@@ -1,0 +1,43 @@
+package protocol
+
+const (
+	CategoryRoom   = "ROOM"
+	CategoryGlobal = "GLOBAL"
+	CategoryGroup  = "GROUP"
+	CategoryStats  = "STATS"
+	CategoryCombat = "COMBAT"
+	CategoryItem   = "ITEM"
+)
+
+const (
+	TypePresenceEnter        = "PRESENCE ENTER"
+	TypePresenceLeave        = "PRESENCE LEAVE"
+	TypeChat                 = "CHAT"
+	TypeInvite               = "INVITE"
+	TypeJoin                 = "JOIN"
+	TypeKick                 = "KICK"
+	TypeLeave                = "LEAVE"
+	TypePlayers              = "PLAYERS"
+	TypeAllyTurn             = "ALLY_TURN"
+	TypeItemDropped          = "ITEM DROPPED"
+	TypeItemTook             = "ITEM TOOK"
+	TypeItemRemoved          = "ITEM REMOVED"
+	TypeQuestCompleted       = "QUEST COMPLETED"
+	TypeGroupPromote         = "GROUP PROMOTE"
+	TypeGroupPromoteAccepted = "GROUP PROMOTE ACCEPTED"
+	TypeGroupPromoteDeclined = "GROUP PROMOTE DECLINED"
+	TypeStats                = "STATS"
+	TypePlayerPosition       = "PLAYER_POSITION"
+	TypePlayerEmote          = "PLAYER_EMOTE"
+	TypeItemPosition         = "ITEM_POSITION"
+)
+
+const (
+	PrefixEvtNewLeader = "EVT new_leader="
+)
+
+type ServerEvent struct {
+	Category string
+	Type     string
+	Data     string
+}

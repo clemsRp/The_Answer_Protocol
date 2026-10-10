@@ -1,16 +1,46 @@
+
 MAKEFLAGS += --no-print-directory
 
-# Cleaning
-MAPS_DIR = ./client/gui/maps
-TILESETS_DIR = ./client/gui/tilesets
-ASSETS_DIR = ./client/gui/assets
+# Directories
+ROOT_DIR := .
+SRC_DIR := $(ROOT_DIR)/src
+EXEC_DIR := $(ROOT_DIR)/exec
+
+# Main packages
+# Server/Common
+SERVER_DIR := $(SRC_DIR)/server
+ENGINE_DIR := $(SRC_DIR)/engine
+PROTOCOL_DIR := $(SRC_DIR)/protocol
+
+# Client
+CLIENT_DIR := $(SRC_DIR)/client
+GUI_DIR := $(CLIENT_DIR)/gui
+TUI_DIR := $(CLIENT_DIR)/tui
+
+NETWORK_DIR := $(CLIENT_DIR)/network
+CONTROLLER_DIR := $(CLIENT_DIR)/controller
+STATE_DIR := $(CLIENT_DIR)/state
+
+CMD_DIR := $(SRC_DIR)/cmd
+TESTS_DIR := $(SRC_DIR)/tests
+
+# Entrypoints
+CMD_DIR := $(SRC_DIR)/cmd
+GUI_CMD_DIR := $(CMD_DIR)/client/gui
+TUI_CMD_DIR := $(CMD_DIR)/client/tui
+SERVER_CMD_DIR := $(CMD_DIR)/server
+
+# Utils
+MAPS_DIR := $(GUI_DIR)/maps
+TILESETS_DIR := $(GUI_DIR)/tilesets
+ASSETS_DIR := $(GUI_DIR)/assets
 
 # Source files
-COMMON_FILES := $(shell find engine protocol -type f -name '*.go' 2>/dev/null)
-SERVER_FILES := $(shell find client/controller client/network client/state server engine -type f -name '*.go' 2>/dev/null)
-CLIENT_FILES := $(shell find engine protocol -type f -name '*.go' 2>/dev/null)
-GUI_FILES    := $(shell find client/gui cmd/client/gui -type f -name '*.go' 2>/dev/null) $(COMMON_FILES) $(CLIENT_FILES)
-TUI_FILES    := $(shell find client/tui cmd/client/tui -type f -name '*.go' 2>/dev/null) $(COMMON_FILES) $(CLIENT_FILES)
+COMMON_FILES := $(shell find $(ENGINE_DIR) $(PROTOCOL_DIR) -type f -name '*.go' 2>/dev/null)
+SERVER_FILES := $(shell find $(SERVER_DIR) $(SERVER_CMD_DIR) -type f -name '*.go' 2>/dev/null) $(COMMON_FILES)
+CLIENT_FILES := $(shell find $(NETWORK_DIR) $(CONTROLLER_DIR) $(STATE_DIR) -type f -name '*.go' 2>/dev/null)
+GUI_FILES := $(shell find $(GUI_DIR) $(GUI_CMD_DIR) -type f -name '*.go' 2>/dev/null) $(COMMON_FILES) $(CLIENT_FILES)
+TUI_FILES := $(shell find $(TUI_DIR) $(TUI_CMD_DIR) -type f -name '*.go' 2>/dev/null) $(COMMON_FILES) $(CLIENT_FILES)
 
 # Build
 install:
@@ -18,36 +48,36 @@ install:
 	@go mod download
 	@go mod tidy
 
-exec/server: $(SERVER_FILES)
-	@mkdir -p exec
+$(EXEC_DIR)/server: $(SERVER_FILES) go.mod go.sum
+	@mkdir -p $(EXEC_DIR)
 	@echo "Building server..."
-	@go build -o exec/server ./cmd/server
+	@go build -o $@ $(SERVER_CMD_DIR)
 
-exec/gui: $(GUI_FILES)
-	@mkdir -p exec/client/gui
+$(EXEC_DIR)/gui: $(GUI_FILES) go.mod go.sum
+	@mkdir -p $(EXEC_DIR)
 	@echo "Building GUI client..."
-	@go build -o exec/gui ./cmd/client/gui
+	@go build -o $@ $(GUI_CMD_DIR)
 
-exec/tui: $(TUI_FILES)
-	@mkdir -p exec/client/tui
+$(EXEC_DIR)/tui: $(TUI_FILES) go.mod go.sum
+	@mkdir -p $(EXEC_DIR)
 	@echo "Building TUI client..."
-	@go build -o exec/tui ./cmd/client/tui
+	@go build -o $@ $(TUI_CMD_DIR)
 
-build: install exec/server exec/gui exec/tui
+build: install $(EXEC_DIR)/server $(EXEC_DIR)/gui $(EXEC_DIR)/tui
 	@echo "Build completed."
 
 # Execution
-run-server: exec/server
+run-server: $(EXEC_DIR)/server
 	@echo "Starting server..."
-	./exec/server
+	@./$(EXEC_DIR)/server
 
-run-client: exec/tui
+run-client: $(EXEC_DIR)/tui
 	@echo "Starting TUI client..."
-	./exec/tui
+	@./$(EXEC_DIR)/tui
 
-run-client-gui: exec/gui
+run-client-gui: $(EXEC_DIR)/gui
 	@echo "Starting GUI client..."
-	./exec/gui
+	@./$(EXEC_DIR)/gui
 
 # Tests
 test:
@@ -65,7 +95,6 @@ re:
 
 lint:
 	@echo "Linting code..."
-	@go fmt ./...
 	@go vet ./...
 
 check:
@@ -79,7 +108,7 @@ check:
 # Clean
 clean:
 	@echo "Cleaning executables..."
-	@rm -rf exec
+	@rm -rf $(EXEC_DIR)
 
 
-.PHONY: install build run-server run-client run-client-gui test format clean clean_strict re lint check
+.PHONY: install build run-server run-client run-client-gui test format clean re lint check

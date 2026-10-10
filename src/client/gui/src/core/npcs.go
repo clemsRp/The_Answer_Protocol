@@ -1,0 +1,170 @@
+package core
+
+import (
+	"tap/src/client/gui/src/ui"
+	vars "tap/src/client/gui/src/variables"
+	panel "tap/src/client/tui/panels"
+	pr "tap/src/protocol"
+)
+
+type ZoomDatas struct {
+	Zoom          int
+	OffX          int
+	OffY          int
+	FrameDuration *int
+}
+
+func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
+	// Initialize the interactions array
+	npcs := make([]*ui.Interaction, 0)
+
+	for _, np := range roomNpcs {
+		// Set default placement and animation constants
+		frame_duration := 100
+
+		// Retrieve texture and frames for the current npc
+		text, frames := get_npc_datas(np, frame_duration)
+
+		var pos *vars.Position
+		var ok bool
+		if pos, ok = (*app.Variables.NpcPositions)[np]; !ok {
+			if npcDef, exists := vars.NpcConvertor[np]; exists {
+				p := &vars.Position{
+					X: npcDef.Pos.X * app.Variables.Tileset_size,
+					Y: npcDef.Pos.Y * app.Variables.Tileset_size,
+				}
+				(*app.Variables.NpcPositions)[np] = p
+				pos = p
+			} else {
+				continue
+			}
+		}
+
+		pos_x := pos.X
+		pos_y := pos.Y
+
+		ratioX := frames[0].Frame.RatioX
+		ratioY := frames[0].Frame.RatioY
+
+		zoomScale := app.Variables.Zoom / app.Variables.Zoom
+		effectiveHeight := ratioY * zoomScale
+
+		// Create the visual emote (sprite) for the npc
+		npc_emote := &ui.Emote{
+			ID:           "npc_" + np,
+			Texture:      text,
+			X:            pos_x,
+			Y:            pos_y,
+			Zoom:         app.Variables.Zoom,
+			Rotation:     0,
+			AnimDuration: len(frames) * frame_duration,
+			Frames:       frames,
+		}
+
+		// Create the background bubble for the interaction
+		npc_bubble := &ui.Button{
+			ID:       "npc_bubble",
+			Texture:  vars.UI_SPRITE_TEXTURE,
+			X:        pos_x + (0.8*ratioX*zoomScale)*app.Variables.Tileset_size,
+			Y:        pos_y + (effectiveHeight-1.3)*app.Variables.Tileset_size,
+			Rotation: 0,
+			Zoom:     app.Variables.Zoom / 2,
+			Normal:   ui.Frame{IndX: 28, IndY: 8, RatioX: 3, RatioY: 3},
+			Pressed:  ui.Frame{IndX: 28, IndY: 8, RatioX: 3, RatioY: 3},
+			Hover:    ui.Frame{IndX: 28, IndY: 8, RatioX: 3, RatioY: 3},
+			OnClick:  func() {},
+		}
+
+		// Create the interactive button to talk/inspect the npc
+		npc_btn := &ui.Button{
+			ID:       "npc_btn",
+			Texture:  vars.UI_SPRITE_TEXTURE,
+			X:        pos_x + (0.8*ratioX*zoomScale+0.35)*app.Variables.Tileset_size,
+			Y:        pos_y + (effectiveHeight-0.95)*app.Variables.Tileset_size,
+			Rotation: 0,
+			Zoom:     app.Variables.Zoom * 2 / 5,
+			Normal:   ui.Frame{IndX: 40, IndY: 8, RatioX: 2, RatioY: 2},
+			Hover:    ui.Frame{IndX: 40, IndY: 8, RatioX: 2, RatioY: 2},
+			Pressed:  ui.Frame{IndX: 42, IndY: 8, RatioX: 2, RatioY: 2},
+			OnClick: func() {
+				app.Variables.PanelsVariables.Chat.Open = false
+				app.Variables.PanelsVariables.Group.Open = false
+				app.Variables.PanelsVariables.Inspect.Open = false
+
+				app.Variables.PanelsVariables.Talk.LastTalk = np
+				if !app.StartTalk(np) {
+					app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdTalk + " " + np}
+				}
+
+				app.Variables.PanelsVariables.Inspect.LastInspect = "NPC"
+				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectNpc + " " + np}
+				app.Variables.PanelsVariables.Inspect.Open = true
+			},
+		}
+
+		// Group the emote and buttons into a single interaction entity
+		npc := &ui.Interaction{
+			ID:      np,
+			Emote:   npc_emote,
+			Buttons: []*ui.Button{npc_bubble, npc_btn},
+			Inspect: func(npc_name string) {
+				app.Variables.PanelsVariables.Inspect.LastInspect = "NPC"
+				app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdInspectNpc + " " + npc_name}
+				app.Variables.PanelsVariables.Inspect.Open = true
+			},
+		}
+
+		npcs = append(npcs, npc)
+	}
+
+	return npcs
+}
+
+func (app *App) isTileOccupiedByNpc(x, y float32) bool {
+	if app.Variables.NpcPositions == nil {
+		return false
+	}
+	for _, pos := range *app.Variables.NpcPositions {
+		if pos.X == x && pos.Y == y {
+			return true
+		}
+	}
+	return false
+}
+
+func get_npc_datas(npc string, frame_duration int) (string, []*ui.EmoteFrame) {
+	frames := make([]*ui.EmoteFrame, 0)
+
+	// Define needed datas
+	var texture string
+	var ratioX, ratioY float32
+	var indXs, indYs []float32
+
+	// Get datas depending on npc
+	if d, ok := vars.NpcConvertor[npc]; ok {
+		texture = d.Texture
+		indXs = d.IndXs
+		indYs = d.IndYs
+		ratioX = d.RatioX
+		ratioY = d.RatioY
+
+	} else {
+		texture = vars.NPC_TEXTURE
+		indXs = []float32{4, 5, 6, 7, 0, 1, 2, 3}
+		indYs = []float32{0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5}
+		ratioX = 1
+		ratioY = 1.5
+	}
+
+	// Create emote frames
+	for index := range indXs {
+		frame := &ui.EmoteFrame{
+			Frame:    &ui.Frame{IndX: indXs[index], IndY: indYs[index], RatioX: ratioX, RatioY: ratioY},
+			Duration: frame_duration,
+		}
+
+		frames = append(frames, frame)
+	}
+
+	return texture, frames
+}

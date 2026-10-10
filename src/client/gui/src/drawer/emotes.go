@@ -1,0 +1,60 @@
+package drawer
+
+func (dr *Drawer) DrawConnectEmotes() {
+	e := dr.app.Manager.Emotes("Connect")[dr.app.Variables.Player.EmoteIndex]
+	frame := e.CurrentFrame(dr.app.Variables.StartTime)
+	dr.DrawImage(
+		e.Texture,
+		e.X, e.Y,
+		frame.IndX, frame.IndY,
+		frame.RatioX, frame.RatioY,
+		e.Zoom,
+		e.Rotation,
+	)
+}
+
+func (dr *Drawer) DrawGameEmotes() {
+	e := dr.app.Manager.Emotes("Game")[dr.app.Variables.Player.EmoteIndex]
+	frame := e.CurrentFrame(dr.app.Variables.StartTime)
+	dr.DrawImage(
+		e.Texture,
+		e.X, e.Y,
+		frame.IndX, frame.IndY,
+		frame.RatioX, frame.RatioY,
+		e.Zoom,
+		e.Rotation,
+	)
+
+	start_ind := 15
+	for start_ind < len(dr.app.Manager.Emotes("Game")) {
+		e = dr.app.Manager.Emotes("Game")[start_ind]
+		frame = e.CurrentFrame(dr.app.Variables.StartTime)
+		dr.DrawImage(
+			e.Texture,
+			e.X, e.Y,
+			frame.IndX, frame.IndY,
+			frame.RatioX, frame.RatioY,
+			e.Zoom,
+			e.Rotation,
+		)
+		start_ind++
+	}
+}
+
+func (dr *Drawer) DrawChatEmotes() {
+
+}
+
+func (dr *Drawer) DrawInventoryEmotes() {
+	for _, e := range dr.app.Manager.Emotes("Inventory") {
+		frame := e.CurrentFrame(dr.app.Variables.StartTime)
+		dr.DrawImage(
+			e.Texture,
+			e.X, e.Y,
+			frame.IndX, frame.IndY,
+			frame.RatioX, frame.RatioY,
+			e.Zoom,
+			e.Rotation,
+		)
+	}
+}
