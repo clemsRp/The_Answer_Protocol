@@ -6,7 +6,7 @@ The Graphical User Interface (GUI) component provides a 2D visual visual client 
 
 ## Architectural Structure
 
-The GUI codebase is organized into modular packages under `client/gui/src/`:
+The GUI codebase is organized into modular packages under `src/client/gui/src/`:
 
 - **Core Package (`core/`)**: Coordinates application initialization (`app.go`), state updates (`update.go`), combat flow management (`combat.go`), item/inventory data synchronization (`items.go`), NPC interactions (`npcs.go`), and configuration options (`options.go`).
 - **Drawer Package (`drawer/`)**: Implements the rendering pipeline, handling tilemap rendering, sprite animations, HUD elements, combat overlays, chat boxes, and dialogue menus.
@@ -21,7 +21,7 @@ The GUI codebase is organized into modular packages under `client/gui/src/`:
 The main draw loop in `drawer/draw.go` executes render passes in a strict sequence:
 
 1. **Clear Screen & Camera Matrix**: Clears the frame buffer and applies the 2D world camera transform.
-2. **Tilemap & Environment Layer (`drawer/map.go`)**: Renders ground tiles, background decorations, and wall structures loaded from JSON map assets (`client/gui/maps/`).
+2. **Tilemap & Environment Layer (`drawer/map.go`)**: Renders ground tiles, background decorations, and wall structures loaded from JSON map assets (`src/client/gui/maps/`).
 3. **Entities & Sprites Layer (`drawer/player.go` & `drawer/selects.go`)**:
    - Renders player avatars with animated walking cycles and directional sprite orientations.
    - Renders nearby NPCs, enemies, and ground items.

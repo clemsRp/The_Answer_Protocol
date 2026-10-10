@@ -13,6 +13,12 @@ import (
 )
 
 func (up *Updater) UpdatePlayer() {
+	if time.Since(up.app.Variables.LastRoomSpanwTime) <= time.Second/6 {
+		up.app.Variables.Player.Direction.X = 0
+		up.app.Variables.Player.Direction.Y = 0
+		return
+	}
+
 	current_room := up.app.Rooms[up.app.Variables.Current_room]
 	if current_room == nil || len(current_room.Collisions) == 0 || len(current_room.Collisions[0]) == 0 {
 		return

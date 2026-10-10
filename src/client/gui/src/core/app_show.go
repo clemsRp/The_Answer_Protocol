@@ -13,6 +13,7 @@ func (app *App) ShowConnectPage() {
 }
 
 func (app *App) ShowGamePage() {
+	app.Variables.LastRoomSpanwTime = time.Now()
 	app.EndTalk()
 	app.Variables.Current_view = "Game"
 	app.Variables.PanelsVariables.Chat.CurrentScope = "GLOBAL"

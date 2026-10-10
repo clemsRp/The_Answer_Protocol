@@ -17,7 +17,7 @@ The Engine uses a single-threaded broadcaster event-loop model to eliminate race
 ## Core Systems
 
 ### 1. World & Navigation
-- Loads world definitions from `world.json` into room, item, NPC, and quest lookup tables (`Map`).
+- Loads world definitions from `src/world.json` into room, item, NPC, and quest lookup tables (`Map`).
 - Validates directional movements (`MOVE north`, `MOVE east`, etc.) and enforces room availability.
 
 ### 2. Turn-Based Combat Engine (`combat_system.go`)

@@ -100,16 +100,6 @@ func (e *Engine) getValidTarget(player *Player, targetName string) (*Npc, error)
 		return nil, errors.New(pr.ErrNpcNotFound)
 	}
 
-	// If player is NOT in combat, check if NPC is already in an active combat in the room
-	for _, cs := range e.activeCombats {
-		if cs.RoomId == player.room.Id {
-			for _, n := range cs.Npcs {
-				if strings.EqualFold(n.Id, targetName) || strings.EqualFold(n.Name, targetName) {
-					return n, nil
-				}
-			}
-		}
-	}
 
 	room, ok := e.world.Rooms[player.room.Id]
 	if !ok {

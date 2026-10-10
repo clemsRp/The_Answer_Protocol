@@ -247,6 +247,8 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 			})
 			c.sendToNetwork(pr.CmdLook)
 			c.sendToNetwork(pr.CmdInventory)
+			c.sendToNetwork(pr.CmdGetPlayerPositions)
+			c.sendToNetwork(pr.CmdGetItemPositions)
 		} else if strings.HasPrefix(trimmed, pr.CategoryCombat+" ALLY_LEAVE_COMBAT") {
 			leftUser := strings.TrimSpace(strings.TrimPrefix(trimmed, pr.CategoryCombat+" ALLY_LEAVE_COMBAT"))
 			playerSnap := c.gameState.GetPlayerSnapshot()
@@ -258,6 +260,8 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 					c.ui.ShowGamePage()
 				})
 				c.sendToNetwork(pr.CmdLook)
+				c.sendToNetwork(pr.CmdGetPlayerPositions)
+				c.sendToNetwork(pr.CmdGetItemPositions)
 			} else {
 				c.gameState.UpdateCombatState(func(cs *state.CombatState) {
 					delete(cs.Team, leftUser)
@@ -317,6 +321,7 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 			c.ui.QueueUpdate(func() {
 				c.ui.UpdateDatas(parts[1])
 			})
+			c.sendToNetwork(pr.CmdUnGrouped)
 		}
 	case strings.HasPrefix(trimmed, pr.TypePlayerPosition):
 		donneesJSON, err := json.Marshal(res.Datas)

@@ -19,9 +19,10 @@ type Variables struct {
 	Tileset_size       float32
 	LastRoomChange     time.Time
 
-	Current_room    string
-	Current_view    string
-	PanelsVariables *PanelVariables
+	Current_room      string
+	LastRoomSpanwTime time.Time
+	Current_view      string
+	PanelsVariables   *PanelVariables
 
 	Npcs          map[string]*NpcDatas
 	Items         map[string]*ItemDatas

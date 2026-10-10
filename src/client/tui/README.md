@@ -12,7 +12,7 @@ The TUI architecture separates visual presentation from game logic:
 - **View Factory (`view_factory.go`)**: Instantiates widgets, configures grid/flex layout hierarchies, and binds UI panels to the central layout manager.
 - **Focus Manager (`move_focus.go`)**: Handles panel focus transitions using keyboard controls (`Tab`, `Shift+Tab`, directional keys).
 - **Theme Manager (`theme.go` & `style_utils.go`)**: Defines color palettes, box borders, highlight styles, and typography settings across all terminal widgets.
-- **Controller Binding (`tui_client.go`)**: Connects the TUI front-end to `client/controller`, registering asynchronous event callbacks that trigger UI redraws (`app.Draw()`).
+- **Controller Binding (`tui_client.go`)**: Connects the TUI front-end to `src/client/controller`, registering asynchronous event callbacks that trigger UI redraws (`app.Draw()`).
 
 ---
 

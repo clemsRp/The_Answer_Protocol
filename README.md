@@ -40,7 +40,7 @@ The server architecture decouples network connection handling from game state pr
 - **Single-Threaded Engine Loop**: The game `Engine` runs a single-threaded event loop (`broadcaster`). By processing requests sequentially from `ServerInput`, state updates (combat turns, room movement, inventory modifications) occur without needing global mutex locks.
 
 ### Client Architecture
-Clients use a decoupled Controller pattern (`client/controller`):
+Clients use a decoupled Controller pattern (`src/client/controller`):
 - **Controller**: Maintains client-side state caches, parses incoming server responses/events (`EVT`), and serializes outgoing protocol commands.
 - **Presenters (TUI & GUI)**: Interchangeable frontends (`tview`/`tcell` for TUI, `raylib` for GUI) bind to controller events to render terminal panels or 2D tilemaps.
 
@@ -103,7 +103,7 @@ TAP implements and extends the **RFC 42TAP** specification:
 ## Quest System
 
 ### Mechanics & Validation
-- Quests are defined in `world.json` with clear descriptions, progress metrics, targets, and rewards.
+- Quests are defined in `src/world.json` with clear descriptions, progress metrics, targets, and rewards.
 - **States**: `not_started`, `in_progress`, `completed`.
 - **Validation (`refreshQuestProgress`)**: Automatically checks player progress against requirements:
   - *Target Defeat*: Verifies if required target NPC ID exists in `player.DefeatedNpcs`.
@@ -114,7 +114,7 @@ TAP implements and extends the **RFC 42TAP** specification:
 
 ## World Design
 
-The game world is configured via `world.json` and structured as an interconnected room graph:
+The game world is configured via `src/world.json` and structured as an interconnected room graph:
 
 ```
                       [fromagerie] <---> [fontaneilles] <---> [lac_du_barrage]
@@ -201,7 +201,7 @@ Server logs utilize Go's structured `log/slog` library:
    make build
    ```
    *Binaries are compiled to the `exec/` directory (`exec/server`, `exec/tui`, `exec/gui`).*
-   *Note: All graphical assets and configuration files are embedded within the binaries using `//go:embed`. You can safely distribute and run the executables standalone without sending the `assets`, `maps`, or `world.json` files!*
+   *Note: All graphical assets and configuration files are embedded within the binaries using `//go:embed`. You can safely distribute and run the executables standalone without sending the `assets`, `maps`, or `src/world.json` files!*
 
 3. **Running the Server**:
    ```bash
@@ -236,16 +236,16 @@ make test
 ```
 Or directly using `go test`:
 ```bash
-go test ./tests/network/... ./tests/scenarios/... -count=1
+go test ./src/tests/network/... ./src/tests/scenarios/... -count=1
 ```
 
 ### Test Suite Coverage
-- **Network Resilience (`tests/network/`)**:
+- **Network Resilience (`src/tests/network/`)**:
   - Connection acceptance & max connection limits (`max_player_limit_test.go`).
   - Rate limiting & anti-flood detection (`anti_flood_test.go`).
   - TCP payload fragmentation & coalescing (`tcp_fragment_coalescing_test.go`).
   - Zombie client timeouts & graceful server shutdowns.
-- **Scenario Integration (`tests/scenarios/`)**:
+- **Scenario Integration (`src/tests/scenarios/`)**:
   - Combat initiation, turn processing, and victory/defeat resolution (`attack_scenarios.go`).
   - Multi-user concurrency and movement race condition prevention (`concurrency_scenarios.go`).
   - Group creation, invitations, kicks, and leadership promotions (`group_scenarios.go`).

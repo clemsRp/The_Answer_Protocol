@@ -55,7 +55,7 @@ func (dr *Drawer) DrawCombatActionsZone() {
 
 		rl.DrawText(
 			text,
-			int32(centerX)-rl.MeasureText(text, font)/2,
+			int32(centerX)-rl.MeasureText(text, font)/2-int32(tile),
 			int32(centerY)-font/2,
 			font, dr.app.Colors["pseudo_text"],
 		)

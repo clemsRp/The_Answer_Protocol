@@ -205,34 +205,39 @@ func (app *App) GetNewCombatInventory(inventory []string) []*ui.Button {
 	start_x -= 0.1 * app.Variables.Tileset_size
 	start_y := app.Variables.Tileset_size
 
-	usableIndex := 0
-	for ind, it := range inventory {
-		if !app.IsItemUsable(it) {
-			continue
+	curTurn := app.Variables.PanelsVariables.CombatState.CurrentTurn
+
+	if curTurn == pseudo {
+
+		usableIndex := 0
+		for ind, it := range inventory {
+			if !app.IsItemUsable(it) {
+				continue
+			}
+			itemName := it
+			item_btn := &ui.Button{
+				ID:       "combat_use_" + itemName + "_" + strconv.Itoa(ind),
+				Texture:  vars.UI_SPRITE_TEXTURE,
+				X:        start_x + app.Variables.Tileset_size*(float32(ind)+0.645),
+				Y:        0.2*app.Variables.Tileset_size + start_y,
+				Rotation: 0,
+				Zoom:     app.Variables.Zoom / 5,
+				Normal:   ui.Frame{IndX: 52, IndY: 8, RatioX: 2, RatioY: 2},
+				Hover:    ui.Frame{IndX: 52, IndY: 8, RatioX: 2, RatioY: 2},
+				Pressed:  ui.Frame{IndX: 54, IndY: 8, RatioX: 2, RatioY: 2},
+				OnClick: func() {
+					app.ActionsChan <- panel.Action{
+						Type:    panel.ActionSendServer,
+						Payload: fmt.Sprintf("%s %s", pr.CmdUseItem, itemName),
+					}
+					if app.IsItemWeapon(it) {
+						app.Variables.Player.EquipedItems = append(app.Variables.Player.EquipedItems, it)
+					}
+				},
+			}
+			use_buttons = append(use_buttons, item_btn)
+			usableIndex++
 		}
-		itemName := it
-		item_btn := &ui.Button{
-			ID:       "combat_use_" + itemName + "_" + strconv.Itoa(ind),
-			Texture:  vars.UI_SPRITE_TEXTURE,
-			X:        start_x + app.Variables.Tileset_size*(float32(ind)+0.645),
-			Y:        0.2*app.Variables.Tileset_size + start_y,
-			Rotation: 0,
-			Zoom:     app.Variables.Zoom / 5,
-			Normal:   ui.Frame{IndX: 52, IndY: 8, RatioX: 2, RatioY: 2},
-			Hover:    ui.Frame{IndX: 52, IndY: 8, RatioX: 2, RatioY: 2},
-			Pressed:  ui.Frame{IndX: 54, IndY: 8, RatioX: 2, RatioY: 2},
-			OnClick: func() {
-				app.ActionsChan <- panel.Action{
-					Type:    panel.ActionSendServer,
-					Payload: fmt.Sprintf("%s %s", pr.CmdUseItem, itemName),
-				}
-				if app.IsItemWeapon(it) {
-					app.Variables.Player.EquipedItems = append(app.Variables.Player.EquipedItems, it)
-				}
-			},
-		}
-		use_buttons = append(use_buttons, item_btn)
-		usableIndex++
 	}
 
 	return use_buttons
