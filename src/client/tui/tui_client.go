@@ -17,7 +17,6 @@ type TuiClient struct {
 	controller  *controller.Controller
 	gameState   *state.GameState
 	actionsChan chan panel.Action
-	wg          sync.WaitGroup
 	ctx         context.Context
 	cancelFunc  context.CancelFunc
 }

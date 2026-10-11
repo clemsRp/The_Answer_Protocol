@@ -3,17 +3,17 @@
         "rooms": {
             "ferme_charbonneau": {
                 "name": "La ferme des Légumes Charbonneau",
-                "description": "Une ferme, dirige par Thomas Charbonneau, où on peut trouver de savoureux et juteux légumes",
+                "description": "Une ferme dirigée par Thomas Charbonneau, où l'on peut trouver de savoureux et juteux légumes.",
                 "exits": {
                     "north": "verger_de_la_savane",
                     "east": "place_du_village"
                 },
                 "items": ["mais_sucre"],
-                "npcs": ["thomas_charbonneau", "maelis"]
+                "npcs": ["maelis"]
             },
             "ferme_uzoloise": {
-                "name": "La ferme Royale",
-                "description": "La ferme royale de la principaute d'Uzols, où on peut trouver de la viande de qualité",
+                "name": "La ferme Uzoloise",
+                "description": "La ferme royale de la principauté d'Uzols, où l'on peut trouver de la viande de qualité.",
                 "exits": {
                     "east": "verger_de_la_savane"
                 },
@@ -21,8 +21,8 @@
                 "npcs": ["le_prince"]
             },
             "fontaneilles": {
-                "name": "Capitale du roquefort",
-                "description": "Une ville qui sent étonnement fort le fromage",
+                "name": "Fontaneilles",
+                "description": "Une ville qui sent étonnamment fort le fromage.",
                 "exits": {
                     "west": "fromagerie",
                     "south": "foret_malicieuse",
@@ -33,7 +33,7 @@
             },
             "verger_de_la_savane": {
                 "name": "Le verger de la Savane",
-                "description": "Une verger où on trouve les meilleurs fruits du Canada",
+                "description": "Un verger où l'on trouve les meilleurs fruits du Canada.",
                 "exits": {
                     "west": "ferme_uzoloise",
                     "north": "fromagerie",
@@ -44,30 +44,30 @@
                 "npcs": ["bernard", "maya"]
             },
             "fromagerie": {
-                "name": "La fromagerie de St Julien",
+                "name": "La fromagerie de Saint-Julien",
                 "description": "La fromagerie où l'on fait la meilleure cancoillotte",
                 "exits": {
                     "south": "verger_de_la_savane",
                     "east": "fontaneilles"
                 },
-                "items": ["cancoillotte"],
+                "items": [],
                 "npcs": ["franck"]
             },
             "place_du_village": {
                 "name": "La place de l'An 2000",
-                "description": "Une petite place conciviale où se retrouve les habitants et commercants",
+                "description": "Une petite place conviviale où se retrouvent les habitants et les commerçants.",
                 "exits": {
                     "west": "ferme_charbonneau",
                     "north": "foret_malicieuse",
                     "east": "riviere",
                     "south": "jardin"
                 },
-                "items": ["pioche", "canne_a_peche"],
-                "npcs": ["thomas_charbonneau", "guide"]
+                "items": ["pioche"],
+                "npcs": ["guide", "thomas_charbonneau"]
             },
             "lac_du_barrage": {
-                "name": "Le lac de St Etienne de Cantales",
-                "description": "Un lac artificiel où l'on peut se ressourcer",
+                "name": "Le lac de Saint-Étienne-Cantalès",
+                "description": "Un lac artificiel où l'on peut se ressourcer.",
                 "exits": {
                     "west": "fontaneilles",
                     "south": "barrage"
@@ -76,19 +76,19 @@
                 "npcs": []
             },
             "barrage": {
-                "name": "Le barrage de St Etienne de Cantales",
-                "description": "Un barrage hydroélectrique qui fournit le village en énergie",
+                "name": "Le barrage de Saint-Étienne-Cantalès",
+                "description": "Un barrage hydroélectrique qui fournit le village en énergie.",
                 "exits": {
                     "west": "foret_malicieuse",
                     "north": "lac_du_barrage",
                     "south": "riviere"
                 },
-                "items": ["engrenage"],
+                "items": ["acier"],
                 "npcs": ["roger"]
             },
             "foret_malicieuse": {
-                "name": "La foret malicieuse",
-                "description": "Une foret un peu particuliaire, qui abrite des créatures étranges",
+                "name": "La forêt malicieuse",
+                "description": "Une forêt un peu particulière, qui abrite des créatures étranges.",
                 "exits": {
                     "west": "verger_de_la_savane",
                     "north": "fontaneilles",
@@ -99,17 +99,17 @@
                 "npcs": ["bob"]
             },
             "camping": {
-                "name": "Le camping des 3 chenes",
-                "description": "Un paisible camping sans histoires où se repose les gens du troisieme age",
+                "name": "Le camping des 3 chênes",
+                "description": "Un paisible camping sans histoires où se reposent les personnes du troisième âge.",
                 "exits": {
                     "north": "riviere"
                 },
-                "items": [],
+                "items": ["marshmallow"],
                 "npcs": []
             },
             "riviere": {
-                "name": "La riviere",
-                "description": "Une riviere",
+                "name": "La rivière",
+                "description": "Une rivière",
                 "exits": {
                     "west": "place_du_village",
                     "north": "barrage",
@@ -120,7 +120,7 @@
             },
             "jardin": {
                 "name": "Le jardin",
-                "description": "Une jardin communautaire dont les habitants prennent grand soin",
+                "description": "Un jardin communautaire dont les habitants prennent grand soin.",
                 "exits": {
                     "north": "place_du_village"
                 },
@@ -131,7 +131,18 @@
         "items": {
             "mais_sucre": {
                 "name": "Maïs sucré",
-                "description": "Du maïs si sucre qu on dirait une glace",
+                "description": "Du maïs si sucré qu'on dirait une glace.",
+                "obtainable": true,
+                "type": "consumable",
+                "target_stat": "hp",
+                "amount": 25,
+                "effect_type": "heal",
+                "charges": 1,
+                "duration": 1
+            },
+            "carotte_salee": {
+                "name": "Carotte salée",
+                "description": "Une carotte si salée qu'on dirait des cacahuètes",
                 "obtainable": true,
                 "type": "consumable",
                 "target_stat": "hp",
@@ -142,7 +153,7 @@
             },
             "pioche": {
                 "name": "Pioche",
-                "description": "Une pioche de la ferme Charbonneau qui sert a cultiver le bon maïs sucré",
+                "description": "Une pioche de la ferme Charbonneau qui sert à cultiver le bon maïs sucré.",
                 "obtainable": true,
                 "type": "weapon",
                 "worth": 3,
@@ -155,8 +166,8 @@
                 "type": "ressource"
             },
             "cancoillotte": {
-                "name": "Cancoillotte crèmeuse",
-                "description": "En cas de coup de mou, reprennez des forces en dégustant ce magnifique pot de cancoillotte",
+                "name": "Cancoillotte crémeuse",
+                "description": "En cas de coup de mou, reprenez des forces en dégustant ce magnifique pot de cancoillotte.",
                 "obtainable": true,
                 "type": "consumable",
                 "target_stat": "hp",
@@ -178,21 +189,21 @@
             },
             "branche_solide": {
                 "name": "Une branche solide",
-                "description": "Une branche solide tombé d'un arbre. Un bouleau je crois ...",
+                "description": "Une branche solide tombée d'un arbre. Un bouleau, je crois…",
                 "obtainable": true,
                 "type": "weapon",
                 "worth": 12,
                 "damage": 8
             },
-            "engrenage": {
-                "name": "Engrenage en acier",
-                "description": "Un engrenage proche d'un barrage, je me demande à quoi ça peut bien servir ...",
+            "acier": {
+                "name": "Barre d'acier",
+                "description": "De l'acier près d'un barrage. Je me demande à quoi ça peut bien servir…",
                 "obtainable": true,
                 "type": "ressource"
             },
             "fricadelle": {
                 "name": "Fricadelle",
-                "description": "Un plat reconfortant, bien connu dans le nord",
+                "description": "Un plat réconfortant, bien connu dans le Nord.",
                 "obtainable": true,
                 "type": "consumable",
                 "target_stat": "hp",
@@ -202,7 +213,7 @@
                 "duration": 1
             },
             "canne_a_peche": {
-                "name": "Une canne a peche",
+                "name": "Une canne à pêche",
                 "description": "Parfaite pour passer le temps et se reposer, elle vous sera utile à la rivière ou au lac",
                 "obtainable": true,
                 "type": "weapon",
@@ -211,47 +222,14 @@
             },
             "marshmallow": {
                 "name": "Un paquet de marshmallow",
-                "description": "Un succulent paquet de marshmallow a déguster autour d'un feu de camps",
+                "description": "Un succulent paquet de marshmallows à déguster autour d'un feu de camp.",
                 "obtainable": true,
                 "type": "consumable",
                 "target_stat": "hp",
-                "amount": 30,
+                "amount": 45,
                 "effect_type": "heal",
                 "charges": 1,
                 "duration": 1
-            },
-            "old_fishing_rod": {
-                "name": "Old Fishing Rod",
-                "description": "A worn bamboo fishing rod. The hook end is surprisingly sharp when swung.",
-                "obtainable": true,
-                "type": "weapon",
-                "worth": 6,
-                "damage": 5
-            },
-            "wool_scarf": {
-                "name": "Wool Scarf",
-                "description": "A thick, hand-knit scarf. Wrapping it around you offers a bit of protection from the cold and from claws.",
-                "obtainable": true,
-                "type": "consumable",
-                "target_stat": "shield",
-                "amount": 8,
-                "effect_type": "buff",
-                "charges": 1,
-                "duration": 2
-            },
-            "windmill_gear": {
-                "name": "Windmill Gear",
-                "description": "A heavy wooden cog fallen from the windmill's mechanism. Miller Greta might want it back.",
-                "obtainable": true,
-                "type": "ressource"
-            },
-            "golden_shears": {
-                "name": "Golden Shears",
-                "description": "Ornate shears with a gilded edge, awarded to those brave enough to drive off the forest boar.",
-                "obtainable": true,
-                "type": "weapon",
-                "worth": 10,
-                "damage": 6
             }
         },
         "npcs": {
@@ -259,11 +237,13 @@
                 "name": "Guide du Village",
                 "description": "Un sage villageois qui accueille les nouveaux arrivants et leur explique les règles du monde.",
                 "dialogue": [
-                    "Bienvenue dans The Answer Protocol, aventurier !",
-                    "Pour te déplacer, utilise les flèches du clavier. Franchir les bords de l'écran te fera changer de région.",
-                    "Tu trouveras des objets au sol : clique sur l'icône au-dessus d'eux pour les ramasser dans ton inventaire.",
-                    "En bas de ton écran, ton inventaire te permet d'inspecter tes objets ou de les lâcher avec le bouton rouge.",
-                    "Parle aux habitants pour obtenir des quêtes. Tu peux inspecter leur statut en cliquant sur leur bulle.",
+                    "Bienvenue dans Grow Harvest, aventurier !",
+                    "Pour te déplacer, utilise les flèches du clavier.",
+                    "Tu trouveras des objets au sol.",
+                    "Clique sur l'icône au-dessus d'eux pour les ramasser dans ton inventaire.",
+                    "En bas de ton écran, ton inventaire te permet d'inspecter tes objets ou de les lâcher avec le bouton '-'.",
+                    "Parle aux habitants en te plaçant à côté d'eux et en cliquant sur la bulle de discussion pour obtenir des quêtes.",
+                    "Tu peux inspecter leur statut en cliquant sur eux et le fermer en appuyant sur Échap.",
                     "Attention aux créatures hostiles : le combat est au tour par tour, équipe-toi bien avant de t'aventurer dans la forêt !",
                     "En haut de ton écran, ouvre les panneaux pour discuter dans le chat, former un groupe ou voir tes statistiques."
                 ],
@@ -273,13 +253,13 @@
             },
             "thomas_charbonneau": {
                 "name": "Thomas Charbonneau",
-                "description": "Le patron de la ferme des Légumes Charbonneau",
+                "description": "Le patron de la ferme des Légumes Charbonneau.",
                 "dialogue": [
                     "Salut salut",
                     "Tabarouette",
-                    "J'ai panier quelque chose de gros ...",
-                    "Tabarouette, il nous reste encore du maïs sucré",
-                    "Passez nous voir au 133 chemin du Vide à Sainte-Angèle-de-Monnoir"
+                    "J'ai pêché quelque chose de gros…",
+                    "Tabarouette, il nous reste encore du maïs sucré !",
+                    "Passez nous voir au 133, chemin du Vide, à Sainte-Angèle-de-Monnoir."
                 ],
                 "role": "quest",
                 "quest_id": "effraye_maelis",
@@ -289,11 +269,11 @@
                 "name": "Le Prince",
                 "description": "Le prince Uzolois, il est TRÈS fier de sa ferme",
                 "dialogue": [
-                    "Approchez approchez voyons ...",
-                    "Regardez moi comment elle est belle cette Salers",
+                    "Approchez, approchez, voyons…",
+                    "Regardez-moi comme elle est belle, cette Salers !",
                     "QUOIIII !!!",
-                    "VOUS OSEZ DIRE QU'ELLE N'EN VAUT PAS LE COUT ???",
-                    "Me dire ca a MOII ? Le PRINCEEEE !!!"
+                    "VOUS OSEZ DIRE QU'ELLE N'EN VAUT PAS LE COÛT ???",
+                    "Me dire ça à MOI ? Le PRINCEEEE !!!"
                 ],
                 "role": "enemy",
                 "quest_id": "",
@@ -307,8 +287,8 @@
                 "hostile": true
             },
             "maelis": {
-                "name": "Maelis la Chauve souris",
-                "description": "Maelis raffole, du maïs, surtout s'il est sucré",
+                "name": "Maelis la chauve-souris",
+                "description": "Maelis raffole du maïs, surtout s'il est sucré.",
                 "dialogue": [
                     "*Skriik !* (Elle fond sur toi en battant frénétiquement des ailes !)",
                     "*SKRIIIIIIIIK !!!*"
@@ -326,7 +306,7 @@
             },
             "gabinap": {
                 "name": "HardcoreLevelingWarrior",
-                "description": "Un jeune palefrenier qui flex en calisthenie",
+                "description": "Un jeune palefrenier qui flexe en callisthénie.",
                 "dialogue": [
                     "298...",
                     "299...",
@@ -334,7 +314,7 @@
                     "DAMNNNN",
                     "Tema le bibiii !!!",
                     "Ushh ushh",
-                    "Allez viens que je te battes en pompes"
+                    "Allez, viens que je te batte aux pompes !"
                 ],
                 "role": "enemy",
                 "quest_id": "",
@@ -349,10 +329,10 @@
             },
             "bernard": {
                 "name": "Bernard",
-                "description": "Patron du Verger de la savane, il coopere avbec les Légumes Charbonneau",
+                "description": "Patron du verger de la Savane, il coopère avec les Légumes Charbonneau.",
                 "dialogue": [
                     "Venez découvrir notre beau verger en autocueillette",
-                    "Rendez vous au 8000 Chemin de la Savane à Saint-Hubert"
+                    "Rendez-vous au 8000, chemin de la Savane, à Saint-Hubert."
                 ],
                 "role": "dialogue",
                 "quest_id": "",
@@ -362,8 +342,8 @@
                 "name": "Maya l'abeille",
                 "description": "Maya adore butiner au verger de la Savane",
                 "dialogue": [
-                    "Miam miam, je me regale ici",
-                    "Seulement, il y a des moins en moins de fruit à butiner"
+                    "Miam miam, je me régale ici !",
+                    "Seulement, il y a de moins en moins de fruits à butiner."
                 ],
                 "role": "quest",
                 "quest_id": "trouve_graines",
@@ -378,13 +358,21 @@
                     "...",
                     "..."
                 ],
-                "role": "dialogue",
+                "role": "enemy",
                 "quest_id": "",
-                "hostile": false
+                "stats": {
+                    "hp": 25,
+                    "max_hp": 25,
+                    "status": "healthy",
+                    "initiative": 90,
+                    "damage": 15
+                },
+                "hostile": true,
+                "items_reward": ["cancoillotte"]
             },
             "salomon": {
                 "name": "Salomon le saumon",
-                "description": "Ben c'est un saumon quoi ...",
+                "description": "Ben, c'est un saumon, quoi…",
                 "dialogue": [
                     "Gloup",
                     "..."
@@ -413,35 +401,35 @@
                     "Bin alors min garchon ...",
                     "Approche donc tin, ai pô peur"
                 ],
-                "role": "dialogue",
+                "role": "quest",
                 "quest_id": "repare_barrage",
                 "hostile": false
             }
         },
         "quests": {
             "effraye_maelis": {
-                "description": "Effraye Maelis la Chauve souris pour qu'elle arrete de manger tout le maïs sucre",
+                "description": "Effraie Maelis la chauve-souris pour qu'elle arrête de manger tout le maïs sucré.",
                 "reward": "graines",
                 "status": "available",
                 "target_npc": "maelis"
             },
             "trouve_graines": {
-                "description": "Trouve des graines et rapporte les à Maya pour qu'elle puisse butiner de nouveaux le plus rapidemment possible",
-                "reward": "TODO",
+                "description": "Trouve des graines et rapporte-les à Maya pour qu'elle puisse butiner de nouveau le plus rapidement possible.",
+                "reward": "carotte_salee",
                 "status": "available",
                 "target_item": "graines"
             },
             "bas_bob": {
-                "description": "Ramene la, fameuse (et surtout crémeuse), cancoillotte, à Franck, en battant Bob.",
-                "reward": "cancoillotte",
+                "description": "Ramène la fameuse (et surtout crémeuse) cancoillotte à Franck en battant Bob.",
+                "reward": "flocons_d_avoine",
                 "status": "available",
-                "target_npc": "bob"
+                "target_item": "cancoillotte"
             },
             "repare_barrage": {
-                "description": "Trouve l'engrenage manquant au barrage pour le réparer",
+                "description": "Trouve l'acier manquant au barrage pour le réparer",
                 "reward": "fricadelle",
                 "status": "available",
-                "target_item": "engrenage"
+                "target_item": "acier"
             }
         }
     }

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"tap/src/protocol"
 	pr "tap/src/protocol"
 )
 
@@ -20,13 +19,13 @@ func (c *Controller) handleInspectResponse(res pr.ServerResponse) {
 
 	switch entityType {
 	case pr.EntityTypeRoom:
-		var roomData protocol.InspectRoomData
+		var roomData pr.InspectRoomData
 		raw, err := json.Marshal(res.Datas)
 		if err != nil || json.Unmarshal(raw, &roomData) != nil {
 			return
 		}
 
-		npcs := make(map[string]protocol.InspectNPCData, len(roomData.Npcs))
+		npcs := make(map[string]pr.InspectNPCData, len(roomData.Npcs))
 		for _, n := range roomData.Npcs {
 			npcs[n.Id] = n
 		}
@@ -39,7 +38,7 @@ func (c *Controller) handleInspectResponse(res pr.ServerResponse) {
 		})
 
 	case pr.EntityTypeSelf:
-		var playerData protocol.InspectPlayerData
+		var playerData pr.InspectPlayerData
 		raw, err := json.Marshal(res.Datas)
 		if err == nil && json.Unmarshal(raw, &playerData) == nil {
 			formatted := formatPlayer(playerData)
@@ -49,7 +48,7 @@ func (c *Controller) handleInspectResponse(res pr.ServerResponse) {
 		}
 
 	case pr.EntityTypeNpc:
-		var npcData protocol.InspectNPCData
+		var npcData pr.InspectNPCData
 		raw, err := json.Marshal(res.Datas)
 		if err == nil && json.Unmarshal(raw, &npcData) == nil {
 			c.cacheNpc(npcData)
@@ -61,7 +60,7 @@ func (c *Controller) handleInspectResponse(res pr.ServerResponse) {
 			})
 		}
 	case pr.EntityTypeItem, pr.EntityTypeInventoryItem:
-		var itemData protocol.InspectItemData
+		var itemData pr.InspectItemData
 		raw, err := json.Marshal(res.Datas)
 		if err == nil && json.Unmarshal(raw, &itemData) == nil {
 			formatted := formatItem(itemData)
@@ -70,7 +69,7 @@ func (c *Controller) handleInspectResponse(res pr.ServerResponse) {
 			})
 		}
 	case pr.EntityTypePlayer:
-		var playerData protocol.InspectPlayerData
+		var playerData pr.InspectPlayerData
 		raw, err := json.Marshal(res.Datas)
 		if err == nil && json.Unmarshal(raw, &playerData) == nil {
 			formatted := formatPlayer(playerData)
@@ -81,7 +80,7 @@ func (c *Controller) handleInspectResponse(res pr.ServerResponse) {
 	}
 }
 
-func formatRoom(data protocol.InspectRoomData) string {
+func formatRoom(data pr.InspectRoomData) string {
 	sb := &StatBuilder{}
 	sb.WriteString("[blue]ROOM OVERVIEW[-]\n\n")
 
@@ -150,7 +149,7 @@ func (sb *StatBuilder) AddBool(label string, val bool) {
 	}
 }
 
-func formatNPC(data protocol.InspectNPCData) string {
+func formatNPC(data pr.InspectNPCData) string {
 	sb := &StatBuilder{}
 	name := data.Name
 	if name == "" && data.Id != "" {
@@ -182,7 +181,7 @@ func formatNPC(data protocol.InspectNPCData) string {
 	return strings.TrimSpace(sb.String())
 }
 
-func formatItem(data protocol.InspectItemData) string {
+func formatItem(data pr.InspectItemData) string {
 	sb := &StatBuilder{}
 	sb.AddString("NAME", data.Name)
 
@@ -206,7 +205,7 @@ func formatItem(data protocol.InspectItemData) string {
 	return strings.TrimSpace(sb.String())
 }
 
-func formatPlayer(data protocol.InspectPlayerData) string {
+func formatPlayer(data pr.InspectPlayerData) string {
 	sb := &StatBuilder{}
 	sb.AddString("NAME", data.Name)
 

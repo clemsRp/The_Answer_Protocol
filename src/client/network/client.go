@@ -9,7 +9,6 @@ import (
 	"net"
 	"strings"
 	"sync"
-	"tap/src/protocol"
 	pr "tap/src/protocol"
 	"time"
 )
@@ -110,7 +109,7 @@ func (c *Client) listenResponses() {
 		}
 
 		res := convertServerResponse(line)
-		if res.Msg == protocol.ErrSpam {
+		if res.Msg == pr.ErrSpam {
 			c.DisconnectMsg = "Disconnected from server due to continuous SPAM."
 		}
 		select {

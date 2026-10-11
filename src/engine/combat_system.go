@@ -146,7 +146,7 @@ func (e *Engine) initiateCombat(player *Player, npc_copy *Npc) (*CombatSession, 
 				if p.name != player.name && !slices.Contains(p.DefeatedNpcs, npc_copy.Id) {
 					e.inform_user(p, "EVT COMBAT FIGHT_STARTED")
 				}
-				if !slices.Contains(p.DefeatedNpcs, npc_copy.Id) {
+				if !slices.Contains(p.DefeatedNpcs, npc_copy.Id) && !p.inCombat {
 					cs.addPlayerToCombat(p)
 				}
 			} else {
@@ -181,7 +181,11 @@ func (e *Engine) initiateCombat(player *Player, npc_copy *Npc) (*CombatSession, 
 	cs.processNpcsTurn()
 
 	if cs.State == StateOngoing && cs.isFighterTurn(player) {
+		initialNpcReactions := cs.TurnResponse.NpcReactions
 		res, full_turn_res := cs.processCombatTurn(player, npc_copy)
+		if full_turn_res != nil {
+			full_turn_res.NpcReactions = append(initialNpcReactions, full_turn_res.NpcReactions...)
+		}
 		return cs, res, full_turn_res
 	}
 
@@ -270,7 +274,7 @@ func (cs *CombatSession) processNpcsTurn() {
 }
 
 func (cs *CombatSession) sortTurnsOrderByInitiative() {
-	sort.Slice(cs.Fighters, func(i, j int) bool {
+	sort.SliceStable(cs.Fighters, func(i, j int) bool {
 		initiativeI := cs.Fighters[i].getInitiative()
 		initiativeJ := cs.Fighters[j].getInitiative()
 		return initiativeI > initiativeJ
@@ -402,7 +406,19 @@ func (e *Engine) end_combat(cs *CombatSession) {
 
 		// Add items to inventory: only for the first player/leader, with cloned instances
 		if len(rewards) > 0 && len(cs.Players) > 0 {
-			winner := cs.Players[0]
+			// Get winner
+			var winner *Player
+			for _, player := range cs.Players {
+				if player.inCombat {
+					winner = player
+					break
+				}
+			}
+
+			if winner == nil {
+				return
+			}
+
 			for _, itemId := range rewards {
 				if itemObject, exists := e.world.Items[itemId]; exists {
 					winner.inventory = append(winner.inventory, itemObject.Clone())

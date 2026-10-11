@@ -8,9 +8,9 @@ The **Server** component manages TCP connection lifecycles, network I/O, client 
 
 The server operates concurrently using Go's lightweight goroutines:
 - **Listener Thread**: Listens on incoming TCP sockets and accepts client connections up to a configured max slot limit (`playerSlots`).
-- **Client Handler Goroutines (`handleClient`)**: Each active client connection receives dedicated reader and writer goroutines to handle bidirectional TCP stream buffering and non-blocking socket I/O.
+- **Client Handler Goroutines (`handleClient`)**: Dedicated reader and writer goroutines per client socket to manage non-blocking stream I/O.
 - **Rate Limiter (`RateLimiter`)**: Implements a Token Bucket algorithm per client connection to protect the server from spam and denial-of-service attempts.
-- **Log Streamer**: Collects structured JSON log entries asynchronously over a dedicated log channel and emits them to configured outputs.
+- **Structured Logger**: Emits structured JSON logs directly using Go's standard `log/slog` library via `slog.NewJSONHandler(os.Stdout, ...)`.
 
 ---
 
@@ -35,15 +35,24 @@ The server does **not** process game logic directly. Instead, it delegates all b
 
 ## Log Format
 
-Server logs follow structured JSON formatting using Go's `log/slog`:
+Server logs follow structured JSON formatting using Go's `log/slog` (`slog.NewJSONHandler(os.Stdout, ...)`):
 ```json
 {
-  "timestamp": "2026-09-27T16:00:00Z",
+  "time": "2026-09-27T16:00:00.123456789Z",
   "level": "INFO",
-  "message": "CLIENT_CONNECTED",
-  "datas": {
-    "client_id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
-    "ip": "127.0.0.1:54321"
-  }
+  "msg": "CLIENT_CONNECTED",
+  "client_id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+  "ip": "127.0.0.1:54321"
+}
+```
+Command execution log:
+```json
+{
+  "time": "2026-09-27T16:00:01.123456789Z",
+  "level": "INFO",
+  "msg": "Server response",
+  "name": "alice",
+  "response": "OK",
+  "command": "MOVE north"
 }
 ```

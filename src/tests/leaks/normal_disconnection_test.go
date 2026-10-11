@@ -12,6 +12,12 @@ import (
 )
 
 func TestTUINormalDisconnection(t *testing.T) {
+	if f, err := os.OpenFile("/dev/tty", os.O_RDWR, 0); err != nil {
+		t.Skip("Skipping TUI test: no terminal /dev/tty available (headless environment)")
+	} else {
+		f.Close()
+	}
+
 	s, e := utils.SetupTestServerEngine(t)
 
 	conn, err := net.Dial("tcp", s.GetAddress())

@@ -16,7 +16,6 @@ type Position struct {
 	Y float32
 }
 
-const emoteDuration = 5 * time.Second
 const nbPlayerEmotes = 6
 
 type playerEmote struct {
@@ -51,10 +50,7 @@ type Group struct {
 }
 
 func (p *Player) isDead() bool {
-	if p.stats.Hp <= 0 {
-		return true
-	}
-	return false
+	return p.stats.Hp <= 0
 }
 
 func (p *Player) getHp() int {
@@ -73,7 +69,11 @@ func (p *Player) takeDamage(amount int) int {
 }
 
 func (p *Player) getDamage() int {
-	return p.equippedWeapon.Damage + p.stats.Damage
+	dmg := p.stats.Damage
+	if p.equippedWeapon != nil {
+		dmg += p.equippedWeapon.Damage
+	}
+	return dmg
 }
 
 func (p *Player) getName() string {

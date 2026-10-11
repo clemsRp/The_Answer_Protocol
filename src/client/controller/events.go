@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 	"tap/src/client/state"
-	"tap/src/protocol"
 	pr "tap/src/protocol"
 )
 
@@ -28,7 +27,7 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 	case strings.HasPrefix(trimmed, pr.CategoryRoom+" "+pr.TypePresenceEnter):
 		target := strings.TrimSpace(strings.TrimPrefix(trimmed, pr.CategoryRoom+" "+pr.TypePresenceEnter))
 		if target != "" {
-			c.gameState.UpdateRoom(func(r *protocol.LookCommandData) {
+			c.gameState.UpdateRoom(func(r *pr.LookCommandData) {
 				for _, p := range r.Players {
 					if p == target {
 						return
@@ -48,7 +47,7 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 	case strings.HasPrefix(trimmed, pr.CategoryRoom+" "+pr.TypePresenceLeave):
 		target := strings.TrimSpace(strings.TrimPrefix(trimmed, pr.CategoryRoom+" "+pr.TypePresenceLeave))
 		if target != "" {
-			c.gameState.UpdateRoom(func(r *protocol.LookCommandData) {
+			c.gameState.UpdateRoom(func(r *pr.LookCommandData) {
 				for i, p := range r.Players {
 					if p == target && i < len(r.Players) {
 						r.Players = append(r.Players[:i], r.Players[i+1:]...)
@@ -68,7 +67,7 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 	case strings.HasPrefix(trimmed, pr.TypeItemDropped):
 		target := strings.SplitN(trimmed, pr.TypeItemDropped+" ", 2)[1]
 		if target != "" {
-			c.gameState.UpdateRoom(func(r *protocol.LookCommandData) {
+			c.gameState.UpdateRoom(func(r *pr.LookCommandData) {
 				r.Items = append(r.Items, target)
 			})
 			c.refreshUI()
@@ -77,7 +76,7 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 	case strings.HasPrefix(trimmed, pr.TypeItemTook):
 		target := strings.SplitN(trimmed, pr.TypeItemTook+" ", 2)[1]
 		if target != "" {
-			c.gameState.UpdateRoom(func(r *protocol.LookCommandData) {
+			c.gameState.UpdateRoom(func(r *pr.LookCommandData) {
 				for i, it := range r.Items {
 					if it == target {
 						r.Items = append(r.Items[:i], r.Items[i+1:]...)
@@ -91,7 +90,7 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 	case strings.HasPrefix(trimmed, pr.TypeItemRemoved):
 		target := strings.SplitN(trimmed, pr.TypeItemRemoved+" ", 2)[1]
 		if target != "" {
-			c.gameState.UpdateRoom(func(r *protocol.LookCommandData) {
+			c.gameState.UpdateRoom(func(r *pr.LookCommandData) {
 				for i, it := range r.Items {
 					if it == target {
 						r.Items = append(r.Items[:i], r.Items[i+1:]...)
@@ -282,7 +281,7 @@ func (c *Controller) handleEvents(res pr.ServerResponse) {
 		} else if strings.HasPrefix(trimmed, pr.CategoryCombat+" FIGHT_STARTED") || strings.HasPrefix(trimmed, pr.CategoryCombat+" UPDATE") {
 			c.sendToNetwork(pr.CmdCombatStats)
 		} else if res.Datas != nil {
-			var combatData protocol.CombatStatsCommandData
+			var combatData pr.CombatStatsCommandData
 			raw, err := json.Marshal(res.Datas)
 			if err == nil && json.Unmarshal(raw, &combatData) == nil {
 				c.gameState.UpdateCombatState(func(cs *state.CombatState) {

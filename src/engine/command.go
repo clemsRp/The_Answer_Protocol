@@ -8,7 +8,20 @@ import (
 	"strings"
 	pr "tap/src/protocol"
 	"time"
+	"unicode"
 )
+
+func isValidName(name string) bool {
+	if len(name) < 1 {
+		return false
+	}
+	for _, r := range name {
+		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != '_' && r != '-' {
+			return false
+		}
+	}
+	return true
+}
 
 func (e *Engine) handleCmdConnect(id string, req []string) (string, any, error) {
 	if len(req) != 2 {
@@ -20,8 +33,11 @@ func (e *Engine) handleCmdConnect(id string, req []string) (string, any, error) 
 		return "", "", errors.New(pr.ErrAlreadyConnected)
 	}
 	pseudo := req[1]
-	if len(pseudo) > 35 {
+	if len(pseudo) > 32 {
 		return "", "", errors.New(pr.ErrNameTooLong)
+	}
+	if !isValidName(pseudo) {
+		return "", "", errors.New(pr.ErrInvalidName)
 	}
 	if _, exists := e.players[pseudo]; exists {
 		return "", "", errors.New(pr.ErrNameInUse)
@@ -44,6 +60,7 @@ func (e *Engine) handleCmdConnect(id string, req []string) (string, any, error) 
 func (e *Engine) playerQuits(player *Player) {
 	e.removePlayerFromCombat(player)
 	delete(e.players, player.name)
+	delete(e.sessions, player.id)
 	e.inform_room(player, player.room, "EVT ROOM PRESENCE LEAVE "+player.name)
 	e.inform_all(player, fmt.Sprintf("EVT STATS players=%d", len(e.players)))
 	e.leave_group(player)
@@ -245,17 +262,22 @@ func (e *Engine) handleCmdChat(player *Player, req []string) (string, any, error
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
-	for pseudo, p := range e.players {
-		if pseudo != player.name {
-			is_global := scope == pr.GlobalChat
-			is_group := scope == pr.GroupChat && player.group != "" && p.group == player.group
-			is_room := scope == pr.RoomChat && p.room == player.room
-			is_combat := scope == pr.CombatChat && player.group != "" && p.group == player.group && p.inCombat
+	if scope == pr.GroupChat && player.group == "" {
+		return "", "", errors.New(pr.ErrNotInGroup)
+	}
+	if scope == pr.CombatChat && !player.inCombat {
+		return "", "", errors.New(pr.ErrNotInCombat)
+	}
 
-			if is_global || is_group || is_room || is_combat {
-				chat = fmt.Sprintf("EVT %s CHAT %s %s", scope, player.name, msg)
-				e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: chat}
-			}
+	for _, p := range e.players {
+		is_global := scope == pr.GlobalChat
+		is_group := scope == pr.GroupChat && p.group == player.group
+		is_room := scope == pr.RoomChat && p.room == player.room
+		is_combat := scope == pr.CombatChat && p.group == player.group && p.inCombat
+
+		if is_global || is_group || is_room || is_combat {
+			chat = fmt.Sprintf("EVT %s CHAT %s %s", scope, player.name, msg)
+			e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: chat}
 		}
 	}
 	return "OK", "", nil
@@ -347,10 +369,15 @@ func (e *Engine) handleCmdStatus(player *Player, req []string) (string, any, err
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
+	statusStr := player.stats.Status
+	if player.inCombat {
+		statusStr = "combat"
+	}
+
 	res := pr.StatusCommandData{
 		Hp:     player.stats.Hp,
 		MaxHp:  player.stats.HpMax,
-		Status: player.stats.Status,
+		Status: statusStr,
 	}
 	return "OK", res, nil
 }
@@ -367,7 +394,7 @@ func (e *Engine) handleCmdTake(player *Player, req []string) (string, any, error
 
 	for obj_index, item_name := range player.room.Items {
 		item := e.world.Items[item_name]
-		if matchItem(item_name, item, target) {
+		if matchItem(item_name, item, target) && item.Obtainable {
 			itemToTake := item
 			if itemToTake != nil {
 				itemToTake = itemToTake.Clone()
@@ -398,6 +425,14 @@ func (e *Engine) handleCmdDrop(player *Player, req []string) (string, any, error
 	for obj_index, obj := range player.inventory {
 		if matchItem(obj.Id, obj, target) {
 			player.inventory = append(player.inventory[:obj_index], player.inventory[obj_index+1:]...)
+			if player.equippedWeapon != nil && (player.equippedWeapon.Id == obj.Id || player.equippedWeapon.Name == obj.Name) {
+				base_item := e.world.Items[pr.DefaultItem]
+				if base_item != nil {
+					start_copy := base_item.Clone()
+					start_copy.Damage = 0
+					player.equippedWeapon = start_copy.ConvertToWeapon()
+				}
+			}
 			player.room.Items = append(player.room.Items, obj.Id)
 			e.inform_room(player, player.room, "EVT ITEM DROPPED "+obj.Id)
 			e.refreshQuestProgress(player)
@@ -567,20 +602,9 @@ func removeItemFromInventory(player *Player, target string) {
 	}
 }
 
-func (e *Engine) removeItemFromWorld(itemId string) {
-	for _, room := range e.world.Rooms {
-		for i, it := range room.Items {
-			if it == itemId {
-				room.Items = append(room.Items[:i], room.Items[i+1:]...)
-				break
-			}
-		}
-	}
-}
-
 func (e *Engine) refreshQuestProgress(player *Player) {
 	for _, q := range player.quests {
-		if q.Status != "available" {
+		if q.Status != "progress" {
 			continue
 		}
 
@@ -777,10 +801,9 @@ func (e *Engine) handleCmdUse(player *Player, req []string) (string, any, error)
 			player.stats.Shield += itemToUse.Amount
 			logAmount = itemToUse.Amount
 		}
+		// Remove consumable from inventory
+		player.inventory = append(player.inventory[:itemIdx], player.inventory[itemIdx+1:]...)
 	}
-
-	// Remove from inventory
-	player.inventory = append(player.inventory[:itemIdx], player.inventory[itemIdx+1:]...)
 
 	if player.inCombat && cs != nil {
 		cs.TurnResponse = &FullTurnResponse{
@@ -902,7 +925,7 @@ func (e *Engine) handleCmdNotifyPlayerEmote(player *Player, req []string) (strin
 		return "", nil, errors.New(pr.ErrInvalidCommand)
 	}
 	emote, err := strconv.Atoi(req[1])
-	if err != nil || emote < 0 || emote >= 6 {
+	if err != nil || emote < 0 || emote >= nbPlayerEmotes {
 		return "", nil, errors.New(pr.ErrInvalidEmoteType)
 	}
 

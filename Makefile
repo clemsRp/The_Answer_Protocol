@@ -41,7 +41,7 @@ MAP_FILE := $(SRC_DIR)/world.json
 GUI_UTILS := $(MAPS_DIR) $(TILESETS_DIR) $(GUI_ASSETS_DIR) $(SHADER_DIR)
 
 # Source files
-COMMON_FILES := $(shell find $(ENGINE_DIR) $(PROTOCOL_DIR) $(MAP_FILE) -type f -name '*.go' 2>/dev/null)
+COMMON_FILES := $(shell find $(ENGINE_DIR) $(PROTOCOL_DIR) -type f -name '*.go' 2>/dev/null) $(MAP_FILE)
 SERVER_FILES := $(shell find $(SERVER_DIR) $(SERVER_CMD_DIR) -type f -name '*.go' 2>/dev/null) $(COMMON_FILES)
 CLIENT_FILES := $(shell find $(NETWORK_DIR) $(CONTROLLER_DIR) $(STATE_DIR) -type f -name '*.go' 2>/dev/null)
 GUI_FILES := $(shell find $(GUI_DIR) $(GUI_CMD_DIR) -type f -name '*.go' 2>/dev/null) $(COMMON_FILES) $(CLIENT_FILES) $(GUI_UTILS)
@@ -108,21 +108,20 @@ test-strict:
 	@echo "All tests passed successfully...."
 
 # Manage project
-format:
-	@echo "Formatting code..."
-	@go fmt ./...
-
 re:
 	@$(MAKE) clean
 	@$(MAKE) build
 
 lint:
+	@echo "Format code..."
+	@go fmt ./...
 	@echo "Linting code..."
 	@go vet ./...
+	@echo "Static check code..."
+	@PATH="$$PATH:$$(go env GOPATH)/bin" which staticcheck >/dev/null 2>&1 && PATH="$$PATH:$$(go env GOPATH)/bin" staticcheck ./... || true
 
 check:
 	@echo "Running full project check..."
-	@$(MAKE) format
 	@$(MAKE) lint
 	@$(MAKE) re
 	@$(MAKE) test-strict
@@ -135,4 +134,4 @@ clean:
 	@rm -rf $(EXEC_DIR)
 
 
-.PHONY: install build run-server run-client run-client-gui test test-race format clean re lint check
+.PHONY: install build run-server run-client run-client-gui test test-race clean re lint check

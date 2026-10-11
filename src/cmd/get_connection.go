@@ -29,7 +29,7 @@ func GetConnection(allowIP bool) (string, string, error) {
 			}
 			return ip, port, nil
 		default:
-			return "", "", errors.New("Invalid format: [--ip <ip_address>] [--port <port>]")
+			return "", "", errors.New("invalid format: [--ip <ip_address>] [--port <port>]")
 		}
 	} else {
 		switch argc {
@@ -42,7 +42,7 @@ func GetConnection(allowIP bool) (string, string, error) {
 			}
 			return ip, port, nil
 		default:
-			return "", "", errors.New("Invalid format: [--port <port>]")
+			return "", "", errors.New("invalid format: [--port <port>]")
 		}
 	}
 }
@@ -58,38 +58,38 @@ func ChangeConnectionDatas(argv []string, ip, port *string, num int, allowIP boo
 		switch key {
 		case "--ip":
 			if !allowIP {
-				return errors.New("Invalid parameter: '--ip' is not allowed")
+				return errors.New("invalid parameter: '--ip' is not allowed")
 			}
 			// Check ip isn't already defined
 			if slices.Contains(updated, "--ip") {
-				return errors.New("Invalid parameter: '--ip' already redefined")
+				return errors.New("invalid parameter: '--ip' already redefined")
 			}
 
 			// Check ip is valid
 			parsedIP := net.ParseIP(value)
 			if parsedIP == nil || parsedIP.To4() == nil {
-				return errors.New("Invalid parameter: invalid IP format")
+				return errors.New("invalid parameter: invalid IP format")
 			}
 			*ip = value
 
 		case "--port":
 			// Check port isn't already defined
 			if slices.Contains(updated, "--port") {
-				return errors.New("Invalid parameter: '--port' already redefined")
+				return errors.New("invalid parameter: '--port' already redefined")
 			}
 
 			// Check port is valid
 			portNum, err := strconv.ParseInt(value, 10, 32)
 			if err != nil || portNum < 1 || portNum > 65535 {
-				return errors.New("Invalid parameter: invalid port number")
+				return errors.New("invalid parameter: invalid port number")
 			}
 			*port = value
 
 		default:
 			if allowIP {
-				return errors.New("Invalid parameter: need '--ip' or '--port'")
+				return errors.New("invalid parameter: need '--ip' or '--port'")
 			} else {
-				return errors.New("Invalid parameter: need '--port'")
+				return errors.New("invalid parameter: need '--port'")
 			}
 		}
 

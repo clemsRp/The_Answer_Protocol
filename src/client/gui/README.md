@@ -36,7 +36,7 @@ The main draw loop in `drawer/draw.go` executes render passes in a strict sequen
 6. **Combat Overlay (`drawer/combat*.go`)**: When entering combat, renders a specialized battle interface:
    - Fighter status cards for team members and opponents (`combat_fighters.go`).
    - Turn order carousel and current turn timer indicator (`combat.go`).
-   - Action command buttons: Attack, Defend, Flee, Use Item (`combat_actions.go`).
+   - Action command buttons: Attack, Flee, Use Item (`combat_actions.go`).
    - Dedicated combat event chat log (`combat_chat.go`).
 
 ---

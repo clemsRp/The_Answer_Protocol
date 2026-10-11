@@ -26,18 +26,18 @@ func Get_map(file []byte) (*Map, error) {
 	var worlds []Map
 
 	if err := checkDuplicates(file); err != nil {
-		return nil, fmt.Errorf("Invalid file: %w", err)
+		return nil, fmt.Errorf("invalid file: %w", err)
 	}
 
 	reader := bytes.NewReader(file)
 	dec := json.NewDecoder(reader)
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(&worlds); err != nil {
-		return nil, fmt.Errorf("Invalid file: JSON file must be parsable:\n%w", err)
+		return nil, fmt.Errorf("invalid file: JSON file must be parsable:\n%w", err)
 	}
 
 	if len(worlds) == 0 {
-		return nil, errors.New("Invalid file: no map found in file")
+		return nil, errors.New("invalid file: no map found in file")
 	}
 
 	world := &worlds[0]
@@ -76,6 +76,36 @@ func Get_map(file []byte) (*Map, error) {
 }
 
 func validateMapConsistency(m *Map) error {
+	if _, exists := m.Rooms[RoomPlaceDuVillage]; !exists {
+		return fmt.Errorf("invalid map: start room '%s' does not exist", RoomPlaceDuVillage)
+	}
+
+	for questId, q := range m.Quests {
+		if q.TargetItem != "" {
+			if _, exists := m.Items[q.TargetItem]; !exists {
+				return fmt.Errorf("invalid map: quest '%s' targets non-existent item '%s'", questId, q.TargetItem)
+			}
+		}
+		if q.TargetNpc != "" {
+			if _, exists := m.Npcs[q.TargetNpc]; !exists {
+				return fmt.Errorf("invalid map: quest '%s' targets non-existent npc '%s'", questId, q.TargetNpc)
+			}
+		}
+		if q.Reward != "" {
+			if _, exists := m.Items[q.Reward]; !exists {
+				return fmt.Errorf("invalid map: quest '%s' rewards non-existent item '%s'", questId, q.Reward)
+			}
+		}
+	}
+
+	for npcId, n := range m.Npcs {
+		for _, loot := range n.ItemsReward {
+			if _, exists := m.Items[loot]; !exists {
+				return fmt.Errorf("invalid map: npc '%s' drops non-existent item '%s'", npcId, loot)
+			}
+		}
+	}
+
 	for room_id, room := range m.Rooms {
 		for exit_dir, exit_room_id := range room.Exits {
 			opposite_dir, ok := Directions[exit_dir]
@@ -88,7 +118,7 @@ func validateMapConsistency(m *Map) error {
 			}
 			if target_room.Exits[opposite_dir] != room_id {
 				return fmt.Errorf(
-					"Invalid map: exits aren't consistent between '%s' and '%s'",
+					"invalid map: exits aren't consistent between '%s' and '%s'",
 					room_id, exit_room_id,
 				)
 			}
@@ -102,21 +132,24 @@ func formatValidationError(err error) error {
 	if errors.As(err, &validationErrs) {
 		fe := validationErrs[0]
 		return fmt.Errorf(
-			"Invalid map: '%s' failed validation '%s' (valeur reçue: '%v')",
+			"invalid map: '%s' failed validation '%s' (valeur reçue: '%v')",
 			fe.Namespace(),
 			fe.Tag(),
 			fe.Value(),
 		)
 	}
-	return fmt.Errorf("Invalid map: %w", err)
+	return fmt.Errorf("invalid map: %s", err.Error())
 }
 
 func checkDuplicates(data []byte) error {
 	d := json.NewDecoder(bytes.NewReader(data))
 	for {
 		err := decodeAndCheck(d)
-		if err == io.EOF {
-			break
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
 		}
 	}
 	return nil

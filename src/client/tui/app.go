@@ -6,7 +6,6 @@ import (
 	"sync"
 	"tap/src/client/state"
 	panel "tap/src/client/tui/panels"
-	"tap/src/protocol"
 	pr "tap/src/protocol"
 
 	"github.com/gdamore/tcell/v2"
@@ -85,7 +84,7 @@ func (m *MyApp) setupComponents() {
 	m.Group = panel.NewGroupComponent(m.app, m.popup, panel.GroupDatas{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
 	m.Navigation = panel.NewNavigationComponent(m.app, m.popup, "", map[string]string{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
 	m.Items = panel.NewItemsComponent(m.app, m.popup, []string{}, []string{}, m.actionsChan, m.OnOpenPopup, m.ShowGamePage)
-	m.Interaction = panel.NewInteractionComponent(m.app, m.popup, []string{}, []string{}, map[string]protocol.InspectNPCData{}, map[string]string{}, []string{}, 0, m.actionsChan, m.OnOpenPopup, m.ShowGamePage, nil, []string{})
+	m.Interaction = panel.NewInteractionComponent(m.app, m.popup, []string{}, []string{}, map[string]pr.InspectNPCData{}, map[string]string{}, []string{}, 0, m.actionsChan, m.OnOpenPopup, m.ShowGamePage, nil, []string{})
 	m.Inspector = panel.NewInspectorComponent(m.app, m.actionsChan)
 	m.Quest = panel.NewQuestComponent(m.app)
 
@@ -299,7 +298,7 @@ func (m *MyApp) ShowQuestCompletedPopup(questID, reward string) {
 
 func (m *MyApp) UpdateRoom() {}
 
-func (m *MyApp) UpdateNavigation(room *protocol.LookCommandData) {
+func (m *MyApp) UpdateNavigation(room *pr.LookCommandData) {
 	m.grid.RemoveItem(m.Navigation.Layout)
 
 	roomName := ""
@@ -357,10 +356,10 @@ func (m *MyApp) UpdateItems(roomItems, inventory []string) {
 func (m *MyApp) UpdateInteraction(
 	npcs,
 	players []string,
-	npcData map[string]protocol.InspectNPCData,
+	npcData map[string]pr.InspectNPCData,
 	npcDialogue map[string]string,
 	groupMembers []string,
-	quests []protocol.TrackedQuestData,
+	quests []pr.TrackedQuestData,
 	completed_quests []string,
 ) {
 	panelWidth := 0
@@ -432,7 +431,7 @@ func (m *MyApp) UpdateCombat(combatState state.CombatState) {
 
 	lastCombatChat := combatState.LastCombatChat
 
-	playerInv := make([]string, 0)
+	var playerInv []string
 	if myData, ok := combatState.Team[m.pseudo]; ok {
 		playerInv = append([]string{}, myData.Inventory...)
 		m.inventory = append([]string{}, myData.Inventory...)
@@ -488,7 +487,7 @@ func (m *MyApp) UpdateCombat(combatState state.CombatState) {
 
 func (m *MyApp) UpdateDatas(text string) {}
 
-func (m *MyApp) UpdateQuests(quests []protocol.TrackedQuestData) {
+func (m *MyApp) UpdateQuests(quests []pr.TrackedQuestData) {
 	if m.Quest != nil {
 		m.Quest.SetQuests(quests)
 	}

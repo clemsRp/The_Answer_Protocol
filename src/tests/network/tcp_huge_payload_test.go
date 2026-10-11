@@ -2,7 +2,6 @@ package network
 
 import (
 	"bytes"
-	"net"
 	"strings"
 	"tap/src/server"
 	"tap/src/tests/utils"

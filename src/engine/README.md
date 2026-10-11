@@ -23,13 +23,13 @@ The Engine uses a single-threaded broadcaster event-loop model to eliminate race
 ### 2. Turn-Based Combat Engine (`combat_system.go`)
 - Initiates combat sessions (`CombatSession`) when a player attacks a hostile NPC or when allies in the same room participate.
 - Calculates turn order by sorting fighters' initiative attributes (`sortTurnsOrderByInitiative`).
-- Executes combat turns (attacks, defend stance, flee attempts) and processes turn timeout callbacks via system channels.
-- Resolves victory (rewards & quest updates; players who fled receive no rewards) or defeat (respawning at entrance with 50% max HP).
+- Executes combat turns (attacks, item consumption via `USE`, flee attempts via `FLEE`, combat stats) and processes a 100-second turn timeout callback via system channels.
+- Resolves victory (rewards granted to leader & quest updates; players who fled receive no rewards) or defeat (respawning at `place_du_village` with 50% max HP).
 
 ### 3. Quest Engine (`handle_commands.go`)
-- Tracks active player quests and objectives (NPC target defeat or item possession).
-- Auto-evaluates completion criteria via `refreshQuestProgress` upon quest commands or combat victory.
-- Grants rewards (items, key items) directly to player inventory.
+- Manages quest lifecycle states: `available` (world registry), `progress` (in player log), and `unavailable` (completed).
+- Auto-evaluates completion criteria via `refreshQuestProgress` upon quest queries or combat victory.
+- Validates completion and distributes rewards to player inventory upon receiving `COMPLETE_QUEST <quest_id>`.
 
 ### 4. Group Engine (`group.go`)
 - Allows players to form adventuring parties (`GROUP CREATE`, `INVITE`, `JOIN`, `KICK`, `PROMOTE`, `LEAVE`).

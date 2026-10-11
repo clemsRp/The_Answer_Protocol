@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 	"tap/src/client/state"
-	"tap/src/protocol"
 	pr "tap/src/protocol"
 	"time"
 	"unicode/utf8"
@@ -14,11 +13,11 @@ import (
 	vars "tap/src/client/gui/src/variables"
 )
 
-func (app *App) UpdateNavigation(room *protocol.LookCommandData) {
+func (app *App) UpdateNavigation(room *pr.LookCommandData) {
 	app.Variables.LastRoomSpanwTime = time.Now()
 	app.Variables.PanelsVariables.Room = room
 
-	new_room := strings.SplitN(room.Room.Id, "room.", 2)[1]
+	new_room := strings.TrimPrefix(room.Room.Id, "room.")
 	if app.Variables.Current_room != "" && app.Variables.Current_room != new_room {
 		app.ResetRemotePlayers()
 	}
@@ -104,7 +103,7 @@ func (app *App) UpdateNpcPosition(name string, x, y float32) {
 	}
 }
 
-func (app *App) UpdateInteraction(roomNpcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string, quests []protocol.TrackedQuestData, completed_quests []string) {
+func (app *App) UpdateInteraction(roomNpcs, players []string, npcData map[string]pr.InspectNPCData, npcDialogues map[string]string, groupMembers []string, quests []pr.TrackedQuestData, completed_quests []string) {
 	npcs := app.GetNewRoomNpcs(roomNpcs)
 	app.Manager.SetViewInteractions("Npcs", npcs)
 }
@@ -114,7 +113,7 @@ func (app *App) UpdateCombat(combatState state.CombatState) {
 	app.RebuildCombatInteractions()
 }
 
-func (app *App) UpdateQuests(quests []protocol.TrackedQuestData) {
+func (app *App) UpdateQuests(quests []pr.TrackedQuestData) {
 	app.Variables.PanelsVariables.Quests = &quests
 	for _, datas := range app.Variables.Npcs {
 		app.syncNpcQuest(datas)
@@ -325,7 +324,7 @@ func (app *App) SetConnectionError(message string) {
 	app.Variables.ConnectionError = message
 }
 
-func (app *App) UpdateDatas(text string)                          {}
-func (app *App) AppendServerResponse(res protocol.ServerResponse) {}
-func (app *App) AppendCliMessage(text string)                     {}
-func (app *App) AppendCliResponse(res protocol.ServerResponse)    {}
+func (app *App) UpdateDatas(text string)                    {}
+func (app *App) AppendServerResponse(res pr.ServerResponse) {}
+func (app *App) AppendCliMessage(text string)               {}
+func (app *App) AppendCliResponse(res pr.ServerResponse)    {}

@@ -36,9 +36,7 @@ func buildInspectNpcData(n *Npc) pr.InspectNPCData {
 		data.Damage = n.Stats.Damage
 	}
 
-	for _, reward := range n.ItemsReward {
-		data.ItemsReward = append(data.ItemsReward, reward)
-	}
+	data.ItemsReward = append(data.ItemsReward, n.ItemsReward...)
 
 	return data
 }

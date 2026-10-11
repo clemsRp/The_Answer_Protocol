@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 	"tap/src/client/state"
-	"tap/src/protocol"
 	pr "tap/src/protocol"
 )
 
@@ -47,7 +46,7 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 		c.sendToNetwork(pr.CmdGetPlayerPositions)
 
 	case lastCmdBase == pr.CmdLook && res.Datas != nil:
-		var lookData protocol.LookCommandData
+		var lookData pr.LookCommandData
 		raw, err := json.Marshal(res.Datas)
 		if err == nil && json.Unmarshal(raw, &lookData) == nil {
 			c.gameState.UpdateRoomLook(&lookData)
@@ -76,7 +75,7 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 		}
 
 	case (lastCmd == pr.CmdCombatStats || strings.EqualFold(strings.TrimSpace(lastCmd), pr.CmdCombatStats)) && res.Datas != nil:
-		var combatData protocol.CombatStatsCommandData
+		var combatData pr.CombatStatsCommandData
 		raw, err := json.Marshal(res.Datas)
 		if err == nil && json.Unmarshal(raw, &combatData) == nil {
 			c.gameState.UpdateCombatState(func(cs *state.CombatState) {
@@ -197,29 +196,10 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 		c.sendToNetwork(pr.CmdQuests)
 
 	case strings.HasPrefix(lastCmd, pr.CmdChatCombat) && res.Msg == pr.MsgOK:
-		chatMsg := strings.TrimSpace(strings.TrimPrefix(lastCmd, pr.CmdChatCombat))
-		pseudo := c.ui.GetPseudo()
-		c.gameState.UpdateCombatState(func(cs *state.CombatState) {
-			cs.LastCombatChat = chatMsg
-			cs.Chats = append(cs.Chats, state.CombatChat{Pseudo: pseudo, Msg: chatMsg})
-		})
-		c.ui.QueueUpdate(func() {
-			c.ui.AppendCombatChat(pseudo, chatMsg)
-		})
+		// Chat is broadcast back by the server as an EVT and appended in events.go
 
 	case strings.HasPrefix(lastCmd, pr.CmdChat+" ") && res.Msg == pr.MsgOK:
-		parts := strings.SplitN(lastCmd, " ", 3)
-		if len(parts) >= 2 {
-			scope := parts[1]
-			chatMsg := ""
-			if len(parts) >= 3 {
-				chatMsg = parts[2]
-			}
-			pseudo := c.ui.GetPseudo()
-			c.ui.QueueUpdate(func() {
-				c.ui.AppendChat(scope, pseudo, chatMsg)
-			})
-		}
+		// Chat is broadcast back by the server as an EVT and appended in events.go
 
 	case strings.HasPrefix(lastCmd, pr.CmdTake) && strings.HasPrefix(res.Msg, pr.MsgOK):
 		c.sendToNetwork(pr.CmdLook)
@@ -360,7 +340,7 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 				questID = strings.Fields(lastCmd)[1]
 			}
 			if res.Datas != nil {
-				var questData protocol.QuestData
+				var questData pr.QuestData
 				raw, err := json.Marshal(res.Datas)
 				if err == nil && json.Unmarshal(raw, &questData) == nil {
 					reward = questData.Reward
@@ -382,7 +362,7 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 			c.sendToNetwork(pr.CmdQuests)
 
 		case lastCmdBase == pr.CmdQuests:
-			var data []protocol.TrackedQuestData
+			var data []pr.TrackedQuestData
 			raw, err := json.Marshal(res.Datas)
 			if err == nil && json.Unmarshal(raw, &data) == nil {
 				c.gameState.UpdatePlayer(func(p *state.Player) {
@@ -396,7 +376,7 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 			c.refreshUI()
 		case lastCmdBase == pr.CmdGetPlayerPositions && res.Msg == "OK":
 
-			var data []protocol.NotifyPlayerPositionData
+			var data []pr.NotifyPlayerPositionData
 			raw, err := json.Marshal(res.Datas)
 			if err == nil && json.Unmarshal(raw, &data) == nil {
 				for _, notif := range data {
@@ -408,7 +388,7 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 
 		case lastCmdBase == pr.CmdGetPlayerEmotes && res.Msg == "OK":
 
-			var data []protocol.NotifyPlayerEmotesData
+			var data []pr.NotifyPlayerEmotesData
 			raw, err := json.Marshal(res.Datas)
 			if err == nil && json.Unmarshal(raw, &data) == nil {
 				for _, notif := range data {
@@ -420,7 +400,7 @@ func (c *Controller) handleCommandResponses(res pr.ServerResponse) {
 
 		case lastCmdBase == pr.CmdGetItemPositions && res.Msg == "OK":
 
-			var data []protocol.NotifyItemPositionData
+			var data []pr.NotifyItemPositionData
 			raw, err := json.Marshal(res.Datas)
 			if err == nil && json.Unmarshal(raw, &data) == nil {
 				for _, notif := range data {

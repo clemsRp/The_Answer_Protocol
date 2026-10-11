@@ -120,18 +120,6 @@ func (app *App) GetNewRoomNpcs(roomNpcs []string) []*ui.Interaction {
 	return npcs
 }
 
-func (app *App) isTileOccupiedByNpc(x, y float32) bool {
-	if app.Variables.NpcPositions == nil {
-		return false
-	}
-	for _, pos := range *app.Variables.NpcPositions {
-		if pos.X == x && pos.Y == y {
-			return true
-		}
-	}
-	return false
-}
-
 func get_npc_datas(npc string, frame_duration int) (string, []*ui.EmoteFrame) {
 	frames := make([]*ui.EmoteFrame, 0)
 

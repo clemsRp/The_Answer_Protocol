@@ -22,19 +22,26 @@ func (e *Engine) validateSession(id string, cmd string) (string, error) {
 	return pseudo, nil
 }
 
-func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
+func (e *Engine) handleCommands(request pr.ServerRequest) (res string, datas any, err error) {
+	defer func() {
+		name := e.sessions[request.Id]
+		if err != nil {
+			slog.Error("Server response", "name", name, "response", err.Error(), "command", request.Msg)
+		} else if datas != nil && datas != "" {
+			slog.Info("Server response", "name", name, "response", res, "datas", datas, "command", request.Msg)
+		} else {
+			slog.Info("Server response", "name", name, "response", res, "command", request.Msg)
+		}
+	}()
+
 	trimmedMsg := strings.TrimSpace(request.Msg)
 	if trimmedMsg == "" {
 		return "", nil, errors.New(pr.ErrInvalidCommand)
 	}
-	req := strings.Split(trimmedMsg, " ")
+	req := strings.Fields(trimmedMsg)
 	cmd := strings.ToUpper(req[0])
 
 	var pseudo string
-	var res string
-	var datas any
-	var err error
-
 	pseudo, err = e.validateSession(request.Id, cmd)
 	if err != nil {
 		return "", nil, err
@@ -44,6 +51,9 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
 		return e.handleCmdConnect(request.Id, req)
 	}
 	player := e.players[pseudo]
+	if player == nil {
+		return "", nil, errors.New(pr.ErrNotConnected)
+	}
 
 	switch cmd {
 	case pr.CmdQuit:
@@ -102,19 +112,6 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (string, any, error) {
 		res, datas, err = e.handleCmdGetItemPositions(player, req)
 
 	default:
-		res, datas, err = "", nil, errors.New(pr.ErrInvalidCommand)
-	}
-
-	name := e.sessions[request.Id]
-	if err != nil {
-		res = err.Error()
-		slog.Error("Server response", "name", name, "response", res, "command", request.Msg)
-
-	} else if datas != "" {
-		slog.Info("Server response", "name", name, "response", res, "datas", datas, "command", request.Msg)
-
-	} else {
-		slog.Info("Server response", "name", name, "response", res, "command", request.Msg)
 	}
 
 	return res, datas, err

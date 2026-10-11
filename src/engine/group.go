@@ -120,6 +120,9 @@ func (e *Engine) kick_user_in_group(player *Player, user_name string) (string, e
 			groupSlice = e.remove_user_in_group(targetPlayer, groupSlice)
 			e.groups[player.group] = groupSlice
 
+			if targetPlayer.promotion {
+				player.send_promotion = false
+			}
 			targetPlayer.group = ""
 			targetPlayer.promotion = false
 			targetPlayer.send_promotion = false
@@ -153,11 +156,11 @@ func (e *Engine) join_group(player *Player, leader_name string) (string, error) 
 
 			// Handle non existant groups
 			if group_name == "" {
-				return "", errors.New(pr.ErrInternalServer)
+				return "", errors.New(pr.ErrGroupDoesNotExist)
 			}
 			group, ok := e.groups[group_name]
 			if !ok {
-				return "", errors.New(pr.ErrInternalServer)
+				return "", errors.New(pr.ErrGroupDoesNotExist)
 			}
 
 			// Check that user is invited
@@ -224,10 +227,14 @@ func (e *Engine) leave_group(player *Player) (string, error) {
 	} else if was_leader {
 		group.leader = group.players[0]
 		e.inform_group(player, player.group, "EVT new_leader="+e.groups[player.group].players[0].name)
+	} else if group.leader != nil && player.promotion {
+		group.leader.send_promotion = false
 	}
 
 	// Re initialize his group value
 	player.group = ""
+	player.promotion = false
+	player.send_promotion = false
 
 	return "OK", nil
 }

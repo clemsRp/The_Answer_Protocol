@@ -73,7 +73,7 @@ func (e *Engine) inform_group_invitations(player *Player, group string, msg stri
 
 func (e *Engine) inform_all(player *Player, msg string) {
 	for pseudo, p := range e.players {
-		if pseudo != player.name {
+		if player == nil || pseudo != player.name {
 			e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: msg}
 		}
 	}

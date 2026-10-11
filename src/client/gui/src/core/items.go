@@ -6,7 +6,6 @@ import (
 	"tap/src/client/gui/src/ui"
 	vars "tap/src/client/gui/src/variables"
 	panel "tap/src/client/tui/panels"
-	"tap/src/protocol"
 	pr "tap/src/protocol"
 )
 
@@ -155,8 +154,12 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 							Type:    panel.ActionSendServer,
 							Payload: pr.CmdUseItem + " " + it,
 						}
+						app.ActionsChan <- panel.Action{
+							Type:    panel.ActionSendServer,
+							Payload: pr.CmdInventory,
+						}
 						if app.IsItemWeapon(it) {
-							app.Variables.Player.EquipedItems = append(app.Variables.Player.EquipedItems, it)
+							app.Variables.Player.EquipedItems = []string{it}
 						}
 					})
 				},
@@ -231,7 +234,7 @@ func (app *App) GetNewCombatInventory(inventory []string) []*ui.Button {
 						Payload: fmt.Sprintf("%s %s", pr.CmdUseItem, itemName),
 					}
 					if app.IsItemWeapon(it) {
-						app.Variables.Player.EquipedItems = append(app.Variables.Player.EquipedItems, it)
+						app.Variables.Player.EquipedItems = []string{it}
 					}
 				},
 			}
@@ -276,7 +279,15 @@ func (app *App) DropItem(item string) {
 	newTileX := newPosX / app.Variables.Tileset_size
 	newTileY := newPosY / app.Variables.Tileset_size
 
-	payload := fmt.Sprintf("%s %f %f %f %f %s", protocol.CmdNotifyItemPosition, newPosX, newPosY, newTileX, newTileY, item)
+	payload := fmt.Sprintf("%s %f %f %f %f %s", pr.CmdNotifyItemPosition, newPosX, newPosY, newTileX, newTileY, item)
+
+	// Remove from EquipedItems if present
+	for i, eq := range app.Variables.Player.EquipedItems {
+		if eq == item {
+			app.Variables.Player.EquipedItems = append(app.Variables.Player.EquipedItems[:i], app.Variables.Player.EquipedItems[i+1:]...)
+			break
+		}
+	}
 
 	// Send notifs
 	app.ActionsChan <- panel.Action{Type: panel.ActionSendServer, Payload: pr.CmdDrop + " " + item}

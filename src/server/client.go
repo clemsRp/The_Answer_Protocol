@@ -10,6 +10,7 @@ import (
 	"strings"
 	pr "tap/src/protocol"
 	"time"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
 )
@@ -99,7 +100,29 @@ func (s *Server) readClientInput(cli *Client) {
 	}
 }
 
+func hasDangerousControlChars(s string) bool {
+	for _, r := range s {
+		if r == '\t' {
+			continue
+		}
+		if (r >= 0 && r < 32) || r == 127 || (r >= 0x80 && r <= 0x9F) {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *Server) HandleInput(cli *Client, limiter *RateLimiter, msg string) bool {
+	if !utf8.ValidString(msg) || hasDangerousControlChars(msg) {
+		select {
+		case cli.ch <- pr.ServerResponse{Msg: pr.ErrInvalidCommand}:
+		case <-s.quit:
+			return true
+		default:
+		}
+		return false
+	}
+
 	if limiter.Allow(msg) {
 		cli.spamWarning = 0
 		select {

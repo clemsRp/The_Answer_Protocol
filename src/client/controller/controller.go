@@ -7,7 +7,6 @@ import (
 	"tap/src/client/network"
 	"tap/src/client/state"
 	panel "tap/src/client/tui/panels"
-	"tap/src/protocol"
 	pr "tap/src/protocol"
 )
 
@@ -20,10 +19,10 @@ type UIApp interface {
 	ClosePopup()
 	ShowCombatResultPopup(result string, rewards []string)
 	ShowQuestCompletedPopup(questID, reward string)
-	UpdateNavigation(room *protocol.LookCommandData)
+	UpdateNavigation(room *pr.LookCommandData)
 	UpdateItems(roomItems, inventory []string)
-	UpdateInteraction(npcs, players []string, npcData map[string]protocol.InspectNPCData, npcDialogues map[string]string, groupMembers []string, quests []protocol.TrackedQuestData, completed_quests []string)
-	UpdateQuests(quests []protocol.TrackedQuestData)
+	UpdateInteraction(npcs, players []string, npcData map[string]pr.InspectNPCData, npcDialogues map[string]string, groupMembers []string, quests []pr.TrackedQuestData, completed_quests []string)
+	UpdateQuests(quests []pr.TrackedQuestData)
 	UpdateGroup(groupState state.GroupState)
 	UpdateCombat(combatState state.CombatState)
 	UpdateDatas(text string)
@@ -33,9 +32,9 @@ type UIApp interface {
 	OnTalkResponse(npcName, dialogue string)
 	AppendChat(scope, user, msg string)
 	AppendCombatChat(user, msg string)
-	AppendServerResponse(res protocol.ServerResponse)
+	AppendServerResponse(res pr.ServerResponse)
 	AppendCliMessage(text string)
-	AppendCliResponse(res protocol.ServerResponse)
+	AppendCliResponse(res pr.ServerResponse)
 	SetConnectionError(message string)
 	GetPseudo() string
 	SetPseudo(pseudo string)
@@ -58,7 +57,7 @@ type Controller struct {
 	lastCommands []string
 	cmdMu        sync.Mutex
 
-	npcCache   map[string]protocol.InspectNPCData
+	npcCache   map[string]pr.InspectNPCData
 	npcCacheMu sync.RWMutex
 }
 
@@ -196,7 +195,7 @@ func (c *Controller) handleServerResponses(res pr.ServerResponse) {
 
 func (c *Controller) refreshUI() {
 	playerSnap := c.gameState.GetPlayerSnapshot()
-	var roomCopy protocol.LookCommandData
+	var roomCopy pr.LookCommandData
 	c.gameState.Read(func(s *state.GameState) {
 		if s.Player != nil && s.Player.Room != nil {
 			roomCopy = *s.Player.Room
@@ -219,25 +218,25 @@ func (c *Controller) refreshUI() {
 	})
 }
 
-func (c *Controller) setNpcCache(data map[string]protocol.InspectNPCData) {
+func (c *Controller) setNpcCache(data map[string]pr.InspectNPCData) {
 	c.npcCacheMu.Lock()
 	defer c.npcCacheMu.Unlock()
 	c.npcCache = data
 }
 
-func (c *Controller) cacheNpc(n protocol.InspectNPCData) {
+func (c *Controller) cacheNpc(n pr.InspectNPCData) {
 	c.npcCacheMu.Lock()
 	defer c.npcCacheMu.Unlock()
 	if c.npcCache == nil {
-		c.npcCache = make(map[string]protocol.InspectNPCData)
+		c.npcCache = make(map[string]pr.InspectNPCData)
 	}
 	c.npcCache[n.Id] = n
 }
 
-func (c *Controller) getNpcCache() map[string]protocol.InspectNPCData {
+func (c *Controller) getNpcCache() map[string]pr.InspectNPCData {
 	c.npcCacheMu.RLock()
 	defer c.npcCacheMu.RUnlock()
-	cp := make(map[string]protocol.InspectNPCData, len(c.npcCache))
+	cp := make(map[string]pr.InspectNPCData, len(c.npcCache))
 	for k, v := range c.npcCache {
 		cp[k] = v
 	}

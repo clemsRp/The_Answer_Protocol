@@ -19,10 +19,7 @@ type Npc struct {
 }
 
 func (n *Npc) isDead() bool {
-	if n.Stats.Hp <= 0 {
-		return true
-	}
-	return false
+	return n.Stats.Hp <= 0
 }
 
 func (n *Npc) takeDamage(amount int) int {

@@ -69,13 +69,13 @@ func main() {
 
 	go func() {
 		if err := e.Start(); err != nil {
-			errChan <- fmt.Errorf("Engine crash: %w", err)
+			errChan <- fmt.Errorf("engine crash: %w", err)
 		}
 	}()
 
 	go func() {
 		if err := s.Start(); err != nil {
-			errChan <- fmt.Errorf("Server crash: %w", err)
+			errChan <- fmt.Errorf("server crash: %w", err)
 		}
 	}()
 

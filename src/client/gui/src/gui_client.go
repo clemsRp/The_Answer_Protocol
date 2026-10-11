@@ -3,7 +3,6 @@ package gui
 import (
 	"context"
 	"net"
-	"sync"
 	"tap/src/client/controller"
 	"tap/src/client/network"
 	"tap/src/client/state"
@@ -16,7 +15,6 @@ type GuiClient struct {
 	controller  *controller.Controller
 	gameState   *state.GameState
 	actionsChan chan panel.Action
-	wg          sync.WaitGroup
 	ctx         context.Context
 	cancelFunc  context.CancelFunc
 }

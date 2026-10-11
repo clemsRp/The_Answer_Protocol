@@ -52,7 +52,7 @@ func (s *Server) broadcaster() {
 	for {
 		select {
 		case req := <-s.requests:
-			slog.Info("Client request", "command", req.msg)
+			slog.Info("Client request", "client_id", req.id, "command", req.msg)
 			s.exchanger.ServerInput <- pr.ServerRequest{Id: req.id, Msg: req.msg}
 
 		case cli := <-s.entering:
