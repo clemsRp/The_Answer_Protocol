@@ -27,6 +27,7 @@ func (n *Npc) isDead() bool {
 
 func (n *Npc) takeDamage(amount int) int {
 	n.Stats.Hp -= amount
+	n.Stats.Hp = max(n.Stats.Hp, 0)
 	return amount
 }
 func (n *Npc) getHp() int {

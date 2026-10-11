@@ -397,7 +397,7 @@ func (e *Engine) end_combat(cs *CombatSession) {
 			e.inform_user(p, "EVT COMBAT VICTORY "+result)
 
 			// Add items to inventory
-			is_leader := p.group == "" || e.groups[p.group].leader.name == p.name
+			is_leader := p.group == "" || cs.Players[0].name == p.name
 
 			if is_leader {
 				for _, itemObject := range e.world.Items {
@@ -462,6 +462,14 @@ func (cs *CombatSession) leaveCombat(player *Player) error {
 			break
 		}
 	}
+
+	new_players := make([]*Player, 0)
+	for _, p := range cs.Players {
+		if p.name != player.name {
+			new_players = append(new_players, p)
+		}
+	}
+	cs.Players = new_players
 
 	if !playersLeft {
 		cs.State = StateCancelled

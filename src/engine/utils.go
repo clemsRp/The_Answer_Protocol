@@ -62,7 +62,7 @@ func (e *Engine) inform_combat_players(cs *CombatSession, player *Player, msg st
 
 func (e *Engine) inform_group_invitations(player *Player, group string, msg string) {
 	for pseudo, p := range e.players {
-		if slices.Contains(player.invitations, group) && pseudo != player.name {
+		if slices.Contains(p.invitations, group) && pseudo != player.name {
 			e.exchanger.ServerOutput <- pr.EngineResponse{Id: p.id, Msg: msg}
 		}
 	}
