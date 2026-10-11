@@ -107,7 +107,6 @@ func (s *Server) sendToClient(output pr.EngineResponse) {
 
 func (s *Server) shutdown() {
 	for _, c := range s.clients {
-		close(c.ch)
 		c.conn.Close()
 	}
 }

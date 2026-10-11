@@ -43,6 +43,7 @@ type MyApp struct {
 	combatVisible  bool
 	selectedPerson string
 	inventory      []string
+	stopOnce       sync.Once
 }
 
 func NewMyApp(ctx context.Context, wg *sync.WaitGroup, actionsChan chan panel.Action) *MyApp {
@@ -574,7 +575,9 @@ func (m *MyApp) Run() error {
 }
 
 func (m *MyApp) Stop() {
-	m.app.Stop()
+	m.stopOnce.Do(func() {
+		m.app.Stop()
+	})
 }
 
 func (m *MyApp) Draw() {

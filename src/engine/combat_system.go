@@ -377,34 +377,42 @@ func (e *Engine) end_combat(cs *CombatSession) {
 		}
 
 	} else if cs.State == StateVictory {
+		rewards := []string{}
+		if len(cs.Npcs) > 0 && len(cs.Npcs[0].ItemsReward) > 0 {
+			rewards = slices.Clone(cs.Npcs[0].ItemsReward)
+		}
+
+		type evtData struct {
+			ItemsReward []string `json:"items_reward,omitempty"`
+		}
+		data := evtData{
+			ItemsReward: rewards,
+		}
+		bytes, err := json.Marshal(data)
+		result := ""
+		if err == nil {
+			result = string(bytes)
+		}
+
 		for _, p := range cs.Players {
 			if !p.inCombat {
 				continue
 			}
-			// Cast datas
-			type evtData struct {
-				ItemsReward []string `json:"items_reward,omitempty"`
-			}
-			data := evtData{
-				ItemsReward: cs.Npcs[0].ItemsReward,
-			}
-			bytes, err := json.Marshal(data)
-			result := ""
-			if err == nil {
-				result = string(bytes)
-			}
-
 			e.inform_user(p, "EVT COMBAT VICTORY "+result)
+		}
 
-			// Add items to inventory
-			is_leader := p.group == "" || cs.Players[0].name == p.name
-
-			if is_leader {
-				for _, itemObject := range e.world.Items {
-					if slices.Contains(cs.Npcs[0].ItemsReward, itemObject.Id) {
-						p.inventory = append(p.inventory, itemObject)
-					}
+		// Add items to inventory: only for the first player/leader, with cloned instances
+		if len(rewards) > 0 && len(cs.Players) > 0 {
+			winner := cs.Players[0]
+			for _, itemId := range rewards {
+				if itemObject, exists := e.world.Items[itemId]; exists {
+					winner.inventory = append(winner.inventory, itemObject.Clone())
 				}
+			}
+			// Clear NPC reward so neither other combatants nor future kills can duplicate it
+			cs.Npcs[0].ItemsReward = []string{}
+			if baseNpc, exists := e.world.Npcs[cs.Npcs[0].Id]; exists {
+				baseNpc.ItemsReward = []string{}
 			}
 		}
 	}
@@ -436,6 +444,9 @@ func (e *Engine) end_combat(cs *CombatSession) {
 			}
 			e.refreshQuestProgress(player)
 		}
+	}
+	if cs.Timer != nil {
+		cs.Timer.Stop()
 	}
 	delete(e.activeCombats, cs.Id)
 }
@@ -472,12 +483,109 @@ func (cs *CombatSession) leaveCombat(player *Player) error {
 	cs.Players = new_players
 
 	if !playersLeft {
+		if cs.Timer != nil {
+			cs.Timer.Stop()
+		}
 		cs.State = StateCancelled
 		cs.TurnResponse.CombatState = cs.State
+		for _, npc := range cs.Npcs {
+			npc.InCombat = false
+			npc.Stats.CombatId = ""
+		}
 		return nil
 	}
 
 	cs.nextTurn()
 	cs.processNpcsTurn()
 	return nil
+}
+
+func (e *Engine) removePlayerFromCombat(player *Player) {
+	if player == nil || !player.inCombat || player.stats == nil || player.stats.CombatId == "" {
+		return
+	}
+
+	cs, exists := e.activeCombats[player.stats.CombatId]
+	if !exists {
+		player.inCombat = false
+		player.stats.CombatId = ""
+		return
+	}
+
+	wasTurn := cs.isFighterTurn(player)
+
+	player.inCombat = false
+	player.stats.CombatId = ""
+
+	newPlayers := make([]*Player, 0)
+	for _, p := range cs.Players {
+		if p.name != player.name {
+			newPlayers = append(newPlayers, p)
+		}
+	}
+	cs.Players = newPlayers
+
+	newFighters := make([]Fighter, 0)
+	removedIndex := -1
+	for i, f := range cs.Fighters {
+		if f.getName() == player.getName() {
+			removedIndex = i
+			continue
+		}
+		newFighters = append(newFighters, f)
+	}
+	cs.Fighters = newFighters
+
+	playersLeft := false
+	for _, p := range cs.Players {
+		if p.inCombat && !p.isDead() {
+			playersLeft = true
+			break
+		}
+	}
+
+	if !playersLeft {
+		if cs.Timer != nil {
+			cs.Timer.Stop()
+		}
+		cs.State = StateCancelled
+		for _, npc := range cs.Npcs {
+			npc.InCombat = false
+			npc.Stats.CombatId = ""
+		}
+		delete(e.activeCombats, cs.Id)
+		return
+	}
+
+	if removedIndex != -1 && cs.CurrentTurn > removedIndex {
+		cs.CurrentTurn--
+	}
+
+	if wasTurn {
+		if cs.Timer != nil {
+			cs.Timer.Stop()
+		}
+		if cs.TurnResponse == nil {
+			cs.TurnResponse = &FullTurnResponse{
+				NpcReactions: []ActionLog{},
+				CombatState:  cs.State,
+			}
+		}
+		if removedIndex != -1 {
+			cs.CurrentTurn = (removedIndex - 1 + len(cs.Fighters)) % len(cs.Fighters)
+		}
+		cs.nextTurn()
+		if cs.State == StateOngoing {
+			cs.processNpcsTurn()
+		}
+		if cs.TurnResponse != nil {
+			eventMsg, err := convertObjectToJson("EVT COMBAT UPDATE", cs.TurnResponse)
+			if err == nil {
+				e.inform_combat_players(cs, nil, eventMsg)
+			}
+		}
+		if cs.State != StateOngoing {
+			e.end_combat(cs)
+		}
+	}
 }

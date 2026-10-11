@@ -13,7 +13,7 @@ type Npc struct {
 	QuestId     string       `json:"quest_id" validate:"omitempty,quest_exists"`
 	Stats       *CombatStats `json:"stats,omitempty" validate:"required_if=Hostile true"`
 	Hostile     bool         `json:"hostile"`
-	InCombat    bool         `json:"omitempty"`
+	InCombat    bool         `json:"in_combat,omitempty"`
 	ItemsReward []string     `json:"items_reward,omitempty"`
 	Fighter     `validate:"-"`
 }
@@ -54,6 +54,7 @@ func (n *Npc) Clone() *Npc {
 	// copies deep all elements like slices, objects CombatStats custom Clone method
 	cp.Stats = n.Stats.Clone()
 	cp.Dialogue = slices.Clone(n.Dialogue)
+	cp.ItemsReward = slices.Clone(n.ItemsReward)
 	return &cp
 }
 

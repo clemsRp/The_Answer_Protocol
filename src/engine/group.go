@@ -75,7 +75,7 @@ func (e *Engine) invite_user_in_group(player *Player, user_name string) (string,
 	// Check that invitations isn't already present
 	for _, invite := range targetPlayer.invitations {
 		if invite == player.group {
-			return "", errors.New("ERR Invitation already send")
+			return "", errors.New(pr.ErrInvitationAlreadySend)
 		}
 	}
 
@@ -99,6 +99,11 @@ func (e *Engine) kick_user_in_group(player *Player, user_name string) (string, e
 		return "", errors.New(pr.ErrNoPermission)
 	}
 
+	// Handle self kick
+	if player.name == user_name {
+		return "", errors.New(pr.ErrCantKickLeader)
+	}
+
 	// Handle users not in group
 	for _, user := range e.groups[player.group].players {
 		if user.name == user_name {
@@ -116,6 +121,8 @@ func (e *Engine) kick_user_in_group(player *Player, user_name string) (string, e
 			e.groups[player.group] = groupSlice
 
 			targetPlayer.group = ""
+			targetPlayer.promotion = false
+			targetPlayer.send_promotion = false
 
 			return "OK", nil
 		}
@@ -127,60 +134,68 @@ func (e *Engine) kick_user_in_group(player *Player, user_name string) (string, e
 func (e *Engine) join_group(player *Player, leader_name string) (string, error) {
 	group_name := ""
 
-	// Handle users already in group
-	for group_id, group := range e.groups {
-		// Find leader group
-		if group.leader.name == leader_name {
-			group_name = group_id
-		}
+	// Check group exist
+	for _, p := range e.players {
+		if p.name == leader_name {
+			// Handle users already in group
+			for group_id, group := range e.groups {
+				// Find leader group
+				if group.leader.name == leader_name {
+					group_name = group_id
+				}
 
-		for _, user := range group.players {
-			if user.name == player.name {
-				return "", errors.New(pr.ErrAlreadyInGroup)
+				for _, user := range group.players {
+					if user.name == player.name {
+						return "", errors.New(pr.ErrAlreadyInGroup)
+					}
+				}
 			}
+
+			// Handle non existant groups
+			if group_name == "" {
+				return "", errors.New(pr.ErrInternalServer)
+			}
+			group, ok := e.groups[group_name]
+			if !ok {
+				return "", errors.New(pr.ErrInternalServer)
+			}
+
+			// Check that user is invited
+			invited := false
+			for _, invite := range player.invitations {
+				if invite == group_name {
+					invited = true
+					break
+				}
+			}
+			if !invited {
+				return "", errors.New(pr.ErrNotInvitedToGroup)
+			}
+
+			// Add user in group
+			group.players = append(group.players, player)
+			player.group = group_name
+			e.inform_group(player, group.id, "EVT GROUP JOIN "+player.name)
+
+			// Delete invitations
+			invite_index := -1
+			for i, invite := range player.invitations {
+				if invite == group_name {
+					invite_index = i
+					break
+				}
+			}
+
+			if invite_index != -1 {
+				player.invitations = append(player.invitations[:invite_index], player.invitations[invite_index+1:]...)
+			}
+
+			return "OK group=" + group_name, nil
 		}
 	}
 
-	// Handle non existant groups
-	if group_name == "" {
-		return "", errors.New(pr.ErrInternalServer)
-	}
-	group, ok := e.groups[group_name]
-	if !ok {
-		return "", errors.New(pr.ErrInternalServer)
-	}
-
-	// Check that user is invited
-	invited := false
-	for _, invite := range player.invitations {
-		if invite == group_name {
-			invited = true
-			break
-		}
-	}
-	if !invited {
-		return "", errors.New(pr.ErrNotInvitedToGroup)
-	}
-
-	// Add user in group
-	group.players = append(group.players, player)
-	player.group = group_name
-	e.inform_group(player, group.id, "EVT GROUP JOIN "+player.name)
-
-	// Delete invitations
-	invite_index := -1
-	for i, invite := range player.invitations {
-		if invite == group_name {
-			invite_index = i
-			break
-		}
-	}
-
-	if invite_index != -1 {
-		player.invitations = append(player.invitations[:invite_index], player.invitations[invite_index+1:]...)
-	}
-
-	return "OK group=" + group_name, nil
+	// Group doesn't exist
+	return "", errors.New(pr.ErrGroupDoesNotExist)
 }
 
 func (e *Engine) leave_group(player *Player) (string, error) {

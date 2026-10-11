@@ -3,9 +3,11 @@ package server
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
+	"strings"
 	pr "tap/src/protocol"
 	"time"
 
@@ -71,28 +73,66 @@ func (s *Server) readClientInput(cli *Client) {
 		cli.conn.SetReadDeadline(time.Now().Add(s.IdleTimeout))
 
 		if !input.Scan() {
+			if errors.Is(input.Err(), bufio.ErrTooLong) {
+				select {
+				case cli.ch <- pr.ServerResponse{Msg: pr.ErrInvalidCommand}:
+				case <-s.quit:
+				default:
+				}
+			}
 			break
 		}
-		if limiter.Allow(input.Text()) {
-			cli.spamWarning = 0
-			s.requests <- ClientRequest{id: cli.id, msg: input.Text()}
+
+		if strings.Contains(input.Text(), "\\n") {
+			msgs := strings.Split(input.Text(), "\\n")
+			for _, msg := range msgs {
+				if s.HandleInput(cli, limiter, msg) {
+					break
+				}
+			}
+
 		} else {
-			if s.handleSpam(cli) {
+			if s.HandleInput(cli, limiter, input.Text()) {
 				break
 			}
 		}
 	}
 }
 
+func (s *Server) HandleInput(cli *Client, limiter *RateLimiter, msg string) bool {
+	if limiter.Allow(msg) {
+		cli.spamWarning = 0
+		select {
+		case s.requests <- ClientRequest{id: cli.id, msg: msg}:
+		case <-s.quit:
+			return true
+		}
+	} else if s.handleSpam(cli) {
+		return true
+	}
+
+	return false
+}
+
 func (s *Server) handleSpam(cli *Client) bool {
 	cli.spamWarning++
+	msg := pr.WarnSpam
+	if cli.spamWarning >= 5 {
+		msg = pr.ErrSpam
+	}
+
+	select {
+	case cli.ch <- pr.ServerResponse{Msg: msg}:
+	case <-s.quit:
+		return true
+	default:
+	}
+
 	if cli.spamWarning < 5 {
-		cli.ch <- pr.ServerResponse{Msg: pr.WarnSpam}
-		slog.Warn("Command spam", "name", s.clients[cli.id], "result", pr.WarnSpam)
+		slog.Warn("Command spam", "client_id", cli.id, "ip", cli.ip, "result", pr.WarnSpam)
 		return false
 	}
-	slog.Error("Command spam", "name", s.clients[cli.id], "result", pr.ErrSpam)
-	cli.ch <- pr.ServerResponse{Msg: pr.ErrSpam}
+	slog.Error("Command spam", "client_id", cli.id, "ip", cli.ip, "result", pr.ErrSpam)
 	return true
 }
 

@@ -33,14 +33,19 @@ SERVER_CMD_DIR := $(CMD_DIR)/server
 # Utils
 MAPS_DIR := $(GUI_DIR)/maps
 TILESETS_DIR := $(GUI_DIR)/tilesets
-ASSETS_DIR := $(GUI_DIR)/assets
+GUI_ASSETS_DIR := $(GUI_DIR)/assets
+TUI_ASSETS_DIR := $(TUI_DIR)/assets
+SHADER_DIR := $(GUI_DIR)/src/drawer/SHADER_DIR
+MAP_FILE := $(SRC_DIR)/world.json
+
+GUI_UTILS := $(MAPS_DIR) $(TILESETS_DIR) $(GUI_ASSETS_DIR) $(SHADER_DIR)
 
 # Source files
-COMMON_FILES := $(shell find $(ENGINE_DIR) $(PROTOCOL_DIR) -type f -name '*.go' 2>/dev/null)
+COMMON_FILES := $(shell find $(ENGINE_DIR) $(PROTOCOL_DIR) $(MAP_FILE) -type f -name '*.go' 2>/dev/null)
 SERVER_FILES := $(shell find $(SERVER_DIR) $(SERVER_CMD_DIR) -type f -name '*.go' 2>/dev/null) $(COMMON_FILES)
 CLIENT_FILES := $(shell find $(NETWORK_DIR) $(CONTROLLER_DIR) $(STATE_DIR) -type f -name '*.go' 2>/dev/null)
-GUI_FILES := $(shell find $(GUI_DIR) $(GUI_CMD_DIR) -type f -name '*.go' 2>/dev/null) $(COMMON_FILES) $(CLIENT_FILES)
-TUI_FILES := $(shell find $(TUI_DIR) $(TUI_CMD_DIR) -type f -name '*.go' 2>/dev/null) $(COMMON_FILES) $(CLIENT_FILES)
+GUI_FILES := $(shell find $(GUI_DIR) $(GUI_CMD_DIR) -type f -name '*.go' 2>/dev/null) $(COMMON_FILES) $(CLIENT_FILES) $(GUI_UTILS)
+TUI_FILES := $(shell find $(TUI_DIR) $(TUI_CMD_DIR) -type f -name '*.go' 2>/dev/null) $(COMMON_FILES) $(CLIENT_FILES) $(TUI_ASSETS_DIR)
 
 # Build
 install:
@@ -89,6 +94,13 @@ test:
 			 $(TESTS_DIR)/leaks/... \
 			 -count=1
 
+test-race:
+	@echo "Running tests..."
+	@go test -race $(TESTS_DIR)/network/... \
+			 $(TESTS_DIR)/scenarios/... \
+			 $(TESTS_DIR)/leaks/... \
+			 -count=1
+
 # Manage project
 format:
 	@echo "Formatting code..."
@@ -107,6 +119,7 @@ check:
 	@$(MAKE) re
 	@$(MAKE) lint
 	@$(MAKE) test
+	@$(MAKE) test-race
 	@$(MAKE) clean
 	@echo "All checks passed successfully."
 
@@ -116,4 +129,4 @@ clean:
 	@rm -rf $(EXEC_DIR)
 
 
-.PHONY: install build run-server run-client run-client-gui test format clean re lint check
+.PHONY: install build run-server run-client run-client-gui test test-race format clean re lint check

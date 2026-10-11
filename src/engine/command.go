@@ -20,6 +20,9 @@ func (e *Engine) handleCmdConnect(id string, req []string) (string, any, error) 
 		return "", "", errors.New(pr.ErrAlreadyConnected)
 	}
 	pseudo := req[1]
+	if len(pseudo) > 35 {
+		return "", "", errors.New(pr.ErrNameTooLong)
+	}
 	if _, exists := e.players[pseudo]; exists {
 		return "", "", errors.New(pr.ErrNameInUse)
 	}
@@ -39,6 +42,7 @@ func (e *Engine) handleCmdConnect(id string, req []string) (string, any, error) 
 }
 
 func (e *Engine) playerQuits(player *Player) {
+	e.removePlayerFromCombat(player)
 	delete(e.players, player.name)
 	e.inform_room(player, player.room, "EVT ROOM PRESENCE LEAVE "+player.name)
 	e.inform_all(player, fmt.Sprintf("EVT STATS players=%d", len(e.players)))
@@ -209,6 +213,11 @@ func (e *Engine) handleCmdMove(player *Player, req []string) (string, any, error
 		return "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
+	// Handle combat state
+	if player.inCombat {
+		return "", "", errors.New(pr.ErrInCombat)
+	}
+
 	direction := strings.ToLower(req[1])
 	nextRoomName, exists := player.room.Exits[direction]
 	if !exists {
@@ -360,7 +369,9 @@ func (e *Engine) handleCmdTake(player *Player, req []string) (string, any, error
 		item := e.world.Items[item_name]
 		if matchItem(item_name, item, target) {
 			itemToTake := item
-			if itemToTake == nil {
+			if itemToTake != nil {
+				itemToTake = itemToTake.Clone()
+			} else {
 				itemToTake = &Item{Id: item_name, Name: item_name}
 			}
 			player.inventory = append(player.inventory, itemToTake)
@@ -519,8 +530,15 @@ func (e *Engine) handleCmdCompleteQuest(player *Player, req []string) (string, a
 	playerQuest.Progress = "1/1"
 
 	if playerQuest.Reward != "" {
-		if item, exists := e.world.Items[playerQuest.Reward]; exists {
-			player.inventory = append(player.inventory, item)
+		if worldQuest, exists := e.world.Quests[playerQuest.Id]; exists {
+			if worldQuest.Reward != "" {
+				if item, itemExists := e.world.Items[worldQuest.Reward]; itemExists {
+					player.inventory = append(player.inventory, item.Clone())
+				}
+				worldQuest.Reward = ""
+			}
+		} else if item, exists := e.world.Items[playerQuest.Reward]; exists {
+			player.inventory = append(player.inventory, item.Clone())
 		}
 	}
 
@@ -807,7 +825,7 @@ func (e *Engine) handleCmdNotifyPlayerPosition(player *Player, req []string) (st
 	emoteIndex, errEmoteIndex := strconv.ParseInt(req[7], 10, 32)
 
 	if errX != nil || errY != nil || errTileX != nil || errTileY != nil || errDirX != nil || errDirY != nil || errEmoteIndex != nil {
-		return "", nil, errors.New("invalid coordinate format")
+		return "", nil, errors.New(pr.ErrInvalidCoordinateFormat)
 	}
 
 	player.Position.X = float32(x)
@@ -850,7 +868,12 @@ func (e *Engine) handleCmdNotifyItemPosition(player *Player, req []string) (stri
 	tile_y, errTileY := strconv.ParseFloat(req[4], 32)
 
 	if errX != nil || errY != nil || errTileX != nil || errTileY != nil {
-		return "", nil, errors.New("invalid coordinate format")
+		return "", nil, errors.New(pr.ErrInvalidCoordinateFormat)
+	}
+
+	// Handle inexistant items
+	if _, ok := e.world.Items[req[5]]; !ok {
+		return "", "", errors.New(pr.ErrItemNotFound)
 	}
 
 	broadcastData := pr.NotifyItemPositionData{
@@ -880,7 +903,7 @@ func (e *Engine) handleCmdNotifyPlayerEmote(player *Player, req []string) (strin
 	}
 	emote, err := strconv.Atoi(req[1])
 	if err != nil || emote < 0 || emote >= 6 {
-		return "", nil, errors.New("invalid emote type")
+		return "", nil, errors.New(pr.ErrInvalidEmoteType)
 	}
 
 	broadcastData := pr.NotifyPlayerEmotesData{Pseudo: player.name, Emote: emote}

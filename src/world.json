@@ -401,7 +401,7 @@
                     "Bin alors min garchon ...",
                     "Approche donc tin, ai pô peur"
                 ],
-                "role": "dialogue",
+                "role": "quest",
                 "quest_id": "repare_barrage",
                 "hostile": false
             }
