@@ -41,7 +41,7 @@ func NewDrawer(app *core.App) *Drawer {
 	if errBlur != nil {
 		fmt.Println("Warning: Failed to load blur shader from embed:", errBlur)
 	}
-	
+
 	darkenBytes, errDarken := shadersFS.ReadFile("shader/darken.fs")
 	if errDarken != nil {
 		fmt.Println("Warning: Failed to load darken shader from embed:", errDarken)

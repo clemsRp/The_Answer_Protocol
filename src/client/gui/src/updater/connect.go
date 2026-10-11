@@ -1,7 +1,6 @@
 package updater
 
 import (
-
 	panel "tap/src/client/tui/panels"
 	pr "tap/src/protocol"
 	"time"

@@ -35,7 +35,7 @@ MAPS_DIR := $(GUI_DIR)/maps
 TILESETS_DIR := $(GUI_DIR)/tilesets
 GUI_ASSETS_DIR := $(GUI_DIR)/assets
 TUI_ASSETS_DIR := $(TUI_DIR)/assets
-SHADER_DIR := $(GUI_DIR)/src/drawer/SHADER_DIR
+SHADER_DIR := $(GUI_DIR)/src/drawer/shader
 MAP_FILE := $(SRC_DIR)/world.json
 
 GUI_UTILS := $(MAPS_DIR) $(TILESETS_DIR) $(GUI_ASSETS_DIR) $(SHADER_DIR)
@@ -101,6 +101,12 @@ test-race:
 			 $(TESTS_DIR)/leaks/... \
 			 -count=1
 
+test-strict:
+	@echo "Test eveything..."
+	@$(MAKE) test
+	@$(MAKE) test-race
+	@echo "All tests passed successfully...."
+
 # Manage project
 format:
 	@echo "Formatting code..."
@@ -116,10 +122,10 @@ lint:
 
 check:
 	@echo "Running full project check..."
-	@$(MAKE) re
+	@$(MAKE) format
 	@$(MAKE) lint
-	@$(MAKE) test
-	@$(MAKE) test-race
+	@$(MAKE) re
+	@$(MAKE) test-strict
 	@$(MAKE) clean
 	@echo "All checks passed successfully."
 

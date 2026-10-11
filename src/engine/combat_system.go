@@ -100,7 +100,6 @@ func (e *Engine) getValidTarget(player *Player, targetName string) (*Npc, error)
 		return nil, errors.New(pr.ErrNpcNotFound)
 	}
 
-
 	room, ok := e.world.Rooms[player.room.Id]
 	if !ok {
 		return nil, errors.New(pr.ErrInternalServer)

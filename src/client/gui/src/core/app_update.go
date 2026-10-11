@@ -17,7 +17,7 @@ import (
 func (app *App) UpdateNavigation(room *protocol.LookCommandData) {
 	app.Variables.LastRoomSpanwTime = time.Now()
 	app.Variables.PanelsVariables.Room = room
-	
+
 	new_room := strings.SplitN(room.Room.Id, "room.", 2)[1]
 	if app.Variables.Current_room != "" && app.Variables.Current_room != new_room {
 		app.ResetRemotePlayers()
