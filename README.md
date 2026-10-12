@@ -406,16 +406,16 @@ make check
 ## Group Contributions
 
 - **`crappo` (Clément Rappo)**:
-  - Architecture and core game engine design (decoupled dispatcher, broadcaster event loop).
-  - Combat system implementation (turn-based engine, initiative sorting, flee handling, turn timers).
-  - GUI client design and Raylib graphics implementation (map tilesets, animations, camera system, combat interface).
-  - Protocol specifications, test suites (network, scenarios, race conditions), and bug fixes.
+  - Server architecture Implementation
+  - Adaptive TUI interface
+  - GUI interface system using Tiled application
+  - Embed system to add utils/assets files to binary files
 
 - **`aluslu` (Ali Uslu)**:
-  - TCP server gateway and network connection handling (reader/writer goroutines, exchanger channels).
-  - Rate-limiting (token bucket algorithm) and security abuse prevention.
-  - TUI client development using `tview` and `tcell` (panel layout hierarchy, navigation, chat channels).
-  - World building configuration (`world.json`), NPC dialogue, and quest progression setups.
+  - Complete organization of the project test
+  - Rework of the Client logic allowing multiple interfaces for a unique client logic
+  - Implementation of many systems (rate limiter, GUI notify system...)
+  - Protocol package implementation defining common datas structures, commands...
 
 ---
 
