@@ -262,7 +262,7 @@ func (e *Engine) promote_user(player *Player, new_leader string) (string, error)
 	// Find new_leader in e.players
 	targetPlayer, exists := e.players[new_leader]
 	if !exists {
-		return "", fmt.Errorf(pr.ErrInternalServer)
+		return "", fmt.Errorf(pr.ErrUnknownUser)
 	}
 
 	// Check new_leader is inside group

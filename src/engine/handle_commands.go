@@ -112,6 +112,7 @@ func (e *Engine) handleCommands(request pr.ServerRequest) (res string, datas any
 		res, datas, err = e.handleCmdGetItemPositions(player, req)
 
 	default:
+		res, datas, err = "", "", errors.New(pr.ErrInvalidCommand)
 	}
 
 	return res, datas, err

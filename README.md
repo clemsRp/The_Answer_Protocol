@@ -419,6 +419,99 @@ make check
 
 ---
 
+## Building and Running
+
+The project is built with **GNU Make** and the Go toolchain. Every build output is written to the `exec/` directory.
+
+### Prerequisites
+
+- **Go 1.26** or newer (see `go.mod`)
+- **GNU Make**
+- A terminal that supports colors for the TUI client
+- For the GUI client (raylib), an OpenGL-capable environment. On Linux you may need the usual OpenGL/X11 development libraries.
+
+### Quick start
+
+```bash
+make build          # download dependencies and build the server, TUI and GUI
+make run-server     # terminal 1: start the server
+make run-client     # terminal 2: start the TUI client (or: make run-client-gui)
+```
+
+By default the server listens on port `8080` and the clients connect to `localhost:8080`. Start the server **before** any client. See [Command-line options](#command-line-options) to change the address or the port.
+
+### Building
+
+| Command | Description |
+|---|---|
+| `make install` | Download and tidy the Go dependencies (`go mod download` and `go mod tidy`) |
+| `make build` | Run `install`, then build the server, the TUI client and the GUI client |
+| `make exec/server` | Build only the server |
+| `make exec/tui` | Build only the TUI client |
+| `make exec/gui` | Build only the GUI client |
+
+Binaries are produced in:
+
+```
+exec/
+├── server
+├── tui
+└── gui
+```
+
+The Makefile tracks source files (`engine`, `protocol`, `server`, `client`, the GUI assets and `src/world.json`), so a binary is rebuilt only when one of its dependencies has changed. After changing the world file, run `make build` again, or `make re` for a clean rebuild.
+
+### Running
+
+Each component has its own target, which builds the binary first if needed.
+
+### Command-line options
+
+| Component | Option | Description | Default |
+|---|---|---|---|
+| Server | `--port <port>` | Port the server listens on | `8080` |
+| TUI / GUI clients | `--ip <address>` | IP address of the server to connect to | `localhost` |
+| TUI / GUI clients | `--port <port>` | Port of the server to connect to | `8080` |
+
+With `make`, options are forwarded to the executable through the `ARGS` variable:
+
+```bash
+make run-server ARGS="--port 9000"
+make run-client ARGS="--ip 192.168.1.42 --port 9000"
+make run-client-gui ARGS="--ip 192.168.1.42 --port 9000"
+```
+
+Or directly with the binaries:
+
+```bash
+./exec/server --port 9000
+./exec/tui --ip 192.168.1.42 --port 9000
+./exec/gui --ip 192.168.1.42 --port 9000
+```
+
+The client `--port` must match the port the server was started with.
+
+Several clients can connect to the same server at once. Run each one in its own terminal, or run the GUI and the TUI side by side. On the connection screen, enter a pseudo that is not already used by another connected player.
+
+---
+
+### Tests
+
+| Command | Description |
+|---|---|
+| `make test` | Run the network, scenario and leak tests |
+| `make test-race` | Run the same tests with the Go race detector |
+| `make test-strict` | Run `test`, then `test-race` |
+
+### Maintenance
+
+| Command | Description |
+|---|---|
+| `make lint` | Format the code (`go fmt`), run `go vet`, and run `staticcheck` if it is installed |
+| `make clean` | Remove the `exec/` directory |
+| `make re` | `clean` followed by `build` |
+| `make check` | Full check: lint, clean rebuild, strict tests, then clean |
+
 ## Resources
 
 ### References

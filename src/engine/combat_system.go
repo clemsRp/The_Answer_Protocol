@@ -451,14 +451,14 @@ func (e *Engine) end_combat(cs *CombatSession) {
 			} else if newRoom != nil {
 				player.room = newRoom
 			}
-		} else if cs.State == StateVictory {
-			for _, npc := range cs.Npcs {
-				if !slices.Contains(player.DefeatedNpcs, npc.Id) {
-					player.DefeatedNpcs = append(player.DefeatedNpcs, npc.Id)
-				}
-			}
-			e.refreshQuestProgress(player)
 		}
+
+		for _, npc := range cs.Npcs {
+			if !slices.Contains(player.DefeatedNpcs, npc.Id) {
+				player.DefeatedNpcs = append(player.DefeatedNpcs, npc.Id)
+			}
+		}
+		e.refreshQuestProgress(player)
 	}
 	if cs.Timer != nil {
 		cs.Timer.Stop()
@@ -496,6 +496,14 @@ func (cs *CombatSession) leaveCombat(player *Player) error {
 		}
 	}
 	cs.Players = new_players
+
+	new_fighters := make([]Fighter, 0)
+	for _, p := range cs.Fighters {
+		if p.getName() != player.name {
+			new_fighters = append(new_fighters, p)
+		}
+	}
+	cs.Fighters = new_fighters
 
 	if !playersLeft {
 		if cs.Timer != nil {

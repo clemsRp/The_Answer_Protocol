@@ -192,7 +192,7 @@ func (e *Engine) handleCmdLook(player *Player, req []string) (string, any, error
 	}
 	res := pr.LookCommandData{
 		Room: pr.RoomDatas{
-			Id:          "room." + player.room.Id,
+			Id:          player.room.Id,
 			Name:        player.room.Name,
 			Description: player.room.Description,
 			Exits:       exits,
@@ -271,9 +271,9 @@ func (e *Engine) handleCmdChat(player *Player, req []string) (string, any, error
 
 	for _, p := range e.players {
 		is_global := scope == pr.GlobalChat
-		is_group := scope == pr.GroupChat && p.group == player.group
+		is_group := scope == pr.GroupChat && p.group == player.group && p.group != ""
 		is_room := scope == pr.RoomChat && p.room == player.room
-		is_combat := scope == pr.CombatChat && p.group == player.group && p.inCombat
+		is_combat := scope == pr.CombatChat && p.group == player.group && p.inCombat && p.group != ""
 
 		if is_global || is_group || is_room || is_combat {
 			chat = fmt.Sprintf("EVT %s CHAT %s %s", scope, player.name, msg)
