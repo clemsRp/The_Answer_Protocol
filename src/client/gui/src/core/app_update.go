@@ -14,7 +14,6 @@ import (
 )
 
 func (app *App) UpdateNavigation(room *pr.LookCommandData) {
-	app.Variables.LastRoomSpanwTime = time.Now()
 	app.Variables.PanelsVariables.Room = room
 
 	new_room := room.Room.Id

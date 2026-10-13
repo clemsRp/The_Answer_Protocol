@@ -138,6 +138,8 @@ func (up *Updater) UpdateMove() {
 				Payload: pr.CmdMove + " " + t.direction,
 			}
 
+			up.app.Variables.LastRoomSpanwTime = time.Now()
+
 			coor_convertor := map[string]vars.Position{
 				"north": vars.Position{X: 0, Y: -1},
 				"south": vars.Position{X: 0, Y: 1},

@@ -452,13 +452,14 @@ func (e *Engine) end_combat(cs *CombatSession) {
 			} else if newRoom != nil {
 				player.room = newRoom
 			}
-		}
-
-		for _, npc := range cs.Npcs {
-			if !slices.Contains(player.DefeatedNpcs, npc.Id) {
-				player.DefeatedNpcs = append(player.DefeatedNpcs, npc.Id)
+		} else if cs.State == StateVictory || player.stats.Hp > 0 {
+			for _, npc := range cs.Npcs {
+				if !slices.Contains(player.DefeatedNpcs, npc.Id) {
+					player.DefeatedNpcs = append(player.DefeatedNpcs, npc.Id)
+				}
 			}
 		}
+
 		e.refreshQuestProgress(player)
 	}
 	if cs.Timer != nil {
