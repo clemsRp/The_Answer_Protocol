@@ -111,9 +111,9 @@ func (app *App) AddNpcPositions() {
 
 	positions["thomas_charbonneau"] = &vars.Position{X: 11, Y: 5}
 	positions["gabinap"] = &vars.Position{X: 21, Y: 6}
-	positions["bernard"] = &vars.Position{X: 8, Y: 12}
+	positions["hubert"] = &vars.Position{X: 8, Y: 12}
 	positions["franck"] = &vars.Position{X: 10, Y: 5}
-	positions["roger"] = &vars.Position{X: 4, Y: 5}
+	positions["hector"] = &vars.Position{X: 4, Y: 5}
 	positions["salomon"] = &vars.Position{X: 28, Y: 12}
 
 	// Scale positions to map size

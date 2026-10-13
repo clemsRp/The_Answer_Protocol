@@ -32,16 +32,15 @@ SERVER_CMD_DIR := $(CMD_DIR)/server
 
 # Utils
 MAPS_DIR := $(GUI_DIR)/maps
-TILESETS_DIR := $(GUI_DIR)/tilesets
 GUI_ASSETS_DIR := $(GUI_DIR)/assets
 TUI_ASSETS_DIR := $(TUI_DIR)/assets
 SHADER_DIR := $(GUI_DIR)/src/drawer/shader
 MAP_FILE := $(SRC_DIR)/world.json
 
-GUI_UTILS := $(MAPS_DIR) $(TILESETS_DIR) $(GUI_ASSETS_DIR) $(SHADER_DIR)
+GUI_UTILS := $(MAPS_DIR) $(GUI_ASSETS_DIR) $(SHADER_DIR)
 
 # Source files
-COMMON_FILES := $(shell find $(ENGINE_DIR) $(PROTOCOL_DIR) -type f -name '*.go' 2>/dev/null) $(MAP_FILE)
+COMMON_FILES := $(shell find $(ENGINE_DIR) $(PROTOCOL_DIR) -type f -name '*.go' 2>/dev/null) $(MAP_FILE) go.mod go.sum
 SERVER_FILES := $(shell find $(SERVER_DIR) $(SERVER_CMD_DIR) -type f -name '*.go' 2>/dev/null) $(COMMON_FILES)
 CLIENT_FILES := $(shell find $(NETWORK_DIR) $(CONTROLLER_DIR) $(STATE_DIR) -type f -name '*.go' 2>/dev/null)
 GUI_FILES := $(shell find $(GUI_DIR) $(GUI_CMD_DIR) -type f -name '*.go' 2>/dev/null) $(COMMON_FILES) $(CLIENT_FILES) $(GUI_UTILS)
@@ -53,17 +52,17 @@ install:
 	@go mod download
 	@go mod tidy
 
-$(EXEC_DIR)/server: $(SERVER_FILES) go.mod go.sum
+$(EXEC_DIR)/server: $(SERVER_FILES)
 	@mkdir -p $(EXEC_DIR)
 	@echo "Building server..."
 	@go build -o $@ $(SERVER_CMD_DIR)
 
-$(EXEC_DIR)/gui: $(GUI_FILES) go.mod go.sum
+$(EXEC_DIR)/gui: $(GUI_FILES)
 	@mkdir -p $(EXEC_DIR)
 	@echo "Building GUI client..."
 	@go build -o $@ $(GUI_CMD_DIR)
 
-$(EXEC_DIR)/tui: $(TUI_FILES) go.mod go.sum
+$(EXEC_DIR)/tui: $(TUI_FILES)
 	@mkdir -p $(EXEC_DIR)
 	@echo "Building TUI client..."
 	@go build -o $@ $(TUI_CMD_DIR)
@@ -112,21 +111,30 @@ re:
 	@$(MAKE) clean
 	@$(MAKE) build
 
-lint:
+format:
 	@echo "Format code..."
 	@go fmt ./...
 	@echo "Linting code..."
 	@go vet ./...
+
+lint:
 	@echo "Static check code..."
 	@PATH="$$PATH:$$(go env GOPATH)/bin" which staticcheck >/dev/null 2>&1 && PATH="$$PATH:$$(go env GOPATH)/bin" staticcheck ./... || true
+	@echo "Check lint..."
+	@test -z "$(gofmt -l src)" || (echo "Error: Incorrect lint !" && exit 1)
 
 check:
 	@echo "Running full project check..."
+	@$(MAKE) format
 	@$(MAKE) lint
 	@$(MAKE) re
 	@$(MAKE) test-strict
 	@$(MAKE) clean
 	@echo "All checks passed successfully."
+
+stats:
+	@echo "Go files: $$(find . -name "*.go" -type f | wc -l)"
+	@echo "Total lines: $$(find . -name "*.go" -type f -exec cat {} + | wc -l)"
 
 # Clean
 clean:
@@ -134,4 +142,4 @@ clean:
 	@rm -rf $(EXEC_DIR)
 
 
-.PHONY: install build run-server run-client run-client-gui test test-race clean re lint check
+.PHONY: install build run-server run-client run-client-gui test test-race stats clean re format lint check

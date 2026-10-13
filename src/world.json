@@ -1,6 +1,18 @@
 [
     {
         "rooms": {
+			"place_du_village": {
+                "name": "La place de l'An 2000",
+                "description": "Une petite place conviviale où se retrouvent les habitants et les commerçants.",
+                "exits": {
+                    "west": "ferme_charbonneau",
+                    "north": "foret_malicieuse",
+                    "east": "riviere",
+                    "south": "jardin"
+                },
+                "items": [],
+                "npcs": ["guide"]
+            },
             "ferme_charbonneau": {
                 "name": "La ferme des Légumes Charbonneau",
                 "description": "Une ferme dirigée par Thomas Charbonneau, où l'on peut trouver de savoureux et juteux légumes.",
@@ -41,7 +53,7 @@
                     "south": "ferme_charbonneau"
                 },
                 "items": [],
-                "npcs": ["bernard", "maya"]
+                "npcs": ["hubert", "maya"]
             },
             "fromagerie": {
                 "name": "La fromagerie de Saint-Julien",
@@ -52,18 +64,6 @@
                 },
                 "items": [],
                 "npcs": ["franck"]
-            },
-            "place_du_village": {
-                "name": "La place de l'An 2000",
-                "description": "Une petite place conviviale où se retrouvent les habitants et les commerçants.",
-                "exits": {
-                    "west": "ferme_charbonneau",
-                    "north": "foret_malicieuse",
-                    "east": "riviere",
-                    "south": "jardin"
-                },
-                "items": [],
-                "npcs": ["guide"]
             },
             "lac_du_barrage": {
                 "name": "Le lac de Saint-Étienne-Cantalès",
@@ -84,7 +84,7 @@
                     "south": "riviere"
                 },
                 "items": ["acier"],
-                "npcs": ["roger"]
+                "npcs": ["hector"]
             },
             "foret_malicieuse": {
                 "name": "La forêt malicieuse",
@@ -327,8 +327,8 @@
                 },
                 "hostile": true
             },
-            "bernard": {
-                "name": "Bernard",
+            "hubert": {
+                "name": "Hubert",
                 "description": "Patron du verger de la Savane, il coopère avec les Légumes Charbonneau.",
                 "dialogue": [
                     "Venez découvrir notre beau verger en autocueillette",
@@ -394,13 +394,19 @@
                 "quest_id": "bas_bob",
                 "hostile": false
             },
-            "roger": {
-                "name": "Roger le technicien",
-                "description": "Un honnête travailleur du nord qui s'occupe du barrage",
+            "hector": {
+                "name": "Hector le castor",
+                "description": "Un honnête castor qui s'occupe du barrage",
                 "dialogue": [
-                    "Bin alors min garchon ...",
-                    "Approche donc tin, ai pô peur"
-                ],
+				    "Salut ! Ça va ?",
+				    "Tu remarques rien ?",
+				    "Ben j'ai un nouveau collier en écorce et petites branches de saule ! Il est beau hein ?",
+				    "Bon en même temps c'est un petit truc tout simple, c'est pas non plus euh... un chef-d'œuvre de barrage, mais je l'aime bien, enfin je trouve qu'il me va, il me va bien !",
+				    "Tu veux le voir de plus près ?",
+				    "Attends je m'approche. Ah ! Ah zut, il... il est pris dans une bran...",
+				    "Ah. Oh. Non. Oh mon collier. Oh zuteuh. Oh. Oh zuteuh.",
+				    "Bon, attention tout le monde, je viens de casser mon collier et il y a sûrement des perles de résine un peu partout !"
+				],
                 "role": "quest",
                 "quest_id": "repare_barrage",
                 "hostile": false

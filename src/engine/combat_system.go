@@ -401,6 +401,7 @@ func (e *Engine) end_combat(cs *CombatSession) {
 			if !p.inCombat {
 				continue
 			}
+			p.stats.Hp = p.stats.HpMax
 			e.inform_user(p, "EVT COMBAT VICTORY "+result)
 		}
 

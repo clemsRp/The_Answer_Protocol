@@ -96,6 +96,10 @@ func validateMapConsistency(m *Map) error {
 				return fmt.Errorf("invalid map: quest '%s' rewards non-existent item '%s'", questId, q.Reward)
 			}
 		}
+
+		if q.TargetItem == "" && q.TargetNpc == "" {
+			return fmt.Errorf("invalid map: quest '%s' empty targets", questId)
+		}
 	}
 
 	for npcId, n := range m.Npcs {
@@ -103,6 +107,13 @@ func validateMapConsistency(m *Map) error {
 			if _, exists := m.Items[loot]; !exists {
 				return fmt.Errorf("invalid map: npc '%s' drops non-existent item '%s'", npcId, loot)
 			}
+		}
+
+		if n.QuestId != "" && n.Role != "quest" {
+			return fmt.Errorf("invalid map: npc '%s' has '%s' role but '%s' quest id", npcId, n.Role, n.QuestId)
+
+		} else if n.Role == "enemy" && !n.Hostile {
+			return fmt.Errorf("invalid map: npc '%s' has enemy role but isn't hostile", npcId)
 		}
 	}
 

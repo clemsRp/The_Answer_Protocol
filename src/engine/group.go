@@ -207,9 +207,6 @@ func (e *Engine) leave_group(player *Player) (string, error) {
 		return "", errors.New(pr.ErrNotInGroup)
 	}
 
-	// Delete promotion
-	player.promotion = false
-
 	// Check leader
 	was_leader := (e.groups[player.group].players[0].name == player.name)
 
@@ -220,8 +217,21 @@ func (e *Engine) leave_group(player *Player) (string, error) {
 
 	e.inform_group(player, group.id, "EVT GROUP LEAVE "+player.name)
 
+	// Update leader promotion variables
+	if player.promotion {
+		e.groups[player.group].players[0].send_promotion = false
+	}
+
+	// Delete promotion
+	player.promotion = false
+
 	// Remove group if needed
 	if len(group.players) == 0 {
+		for _, p := range e.players {
+			if slices.Contains(p.invitations, player.group) {
+				p.invitations = e.removeInvitation(p.invitations, player.group)
+			}
+		}
 		delete(e.groups, player.group)
 
 	} else if was_leader {
@@ -326,4 +336,15 @@ func (e *Engine) decline_promotion(player *Player) (string, error) {
 	e.inform_group_invitations(player, player.group, "EVT GROUP PROMOTE DECLINED "+player.name)
 
 	return "OK", nil
+}
+
+func (e *Engine) removeInvitation(invitations []string, group string) []string {
+	var new_invitations []string
+	for _, inv := range invitations {
+		if inv != group {
+			new_invitations = append(new_invitations, inv)
+		}
+	}
+
+	return new_invitations
 }

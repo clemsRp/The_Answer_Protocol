@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"tap/src/client/gui/src/ui"
 	vars "tap/src/client/gui/src/variables"
@@ -137,7 +138,7 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 		}
 
 		// Create the use button for the inventory item
-		if app.IsItemUsable(it) {
+		if app.IsItemUsable(it) && !slices.Contains(app.Variables.Player.EquipedItems, it) {
 			item_use_btn := &ui.Button{
 				ID:       "item_use_btn",
 				Texture:  vars.UI_SPRITE_TEXTURE,
@@ -159,7 +160,7 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 							Payload: pr.CmdInventory,
 						}
 						if app.IsItemWeapon(it) {
-							app.Variables.Player.EquipedItems = []string{it}
+							app.Variables.Player.EquipedItems = append(app.Variables.Player.EquipedItems, it)
 						}
 					})
 				},
@@ -168,22 +169,24 @@ func (app *App) GetNewInventory(inventory []string) ([]*ui.Button, []*ui.Emote) 
 		}
 
 		// Create the drop button for the inventory item
-		item_drop_btn := &ui.Button{
-			ID:       "item_drop_btn",
-			Texture:  vars.UI_SPRITE_TEXTURE,
-			X:        start_x + app.Variables.Tileset_size*(float32(ind)+0.645),
-			Y:        0.2*app.Variables.Tileset_size + start_y,
-			Rotation: 0,
-			Zoom:     app.Variables.Zoom / 5,
-			Normal:   ui.Frame{IndX: 52, IndY: 10, RatioX: 2, RatioY: 2},
-			Hover:    ui.Frame{IndX: 52, IndY: 10, RatioX: 2, RatioY: 2},
-			Pressed:  ui.Frame{IndX: 54, IndY: 10, RatioX: 2, RatioY: 2},
-			OnClick: func() {
-				app.DropItem(it)
-			},
+		if !slices.Contains(app.Variables.Player.EquipedItems, it) {
+			item_drop_btn := &ui.Button{
+				ID:       "item_drop_btn",
+				Texture:  vars.UI_SPRITE_TEXTURE,
+				X:        start_x + app.Variables.Tileset_size*(float32(ind)+0.645),
+				Y:        0.2*app.Variables.Tileset_size + start_y,
+				Rotation: 0,
+				Zoom:     app.Variables.Zoom / 5,
+				Normal:   ui.Frame{IndX: 52, IndY: 10, RatioX: 2, RatioY: 2},
+				Hover:    ui.Frame{IndX: 52, IndY: 10, RatioX: 2, RatioY: 2},
+				Pressed:  ui.Frame{IndX: 54, IndY: 10, RatioX: 2, RatioY: 2},
+				OnClick: func() {
+					app.DropItem(it)
+				},
+			}
+			invent_buttons = append(invent_buttons, item_drop_btn)
 		}
 
-		invent_buttons = append(invent_buttons, item_drop_btn)
 		invent_emotes = append(invent_emotes, item_emote)
 	}
 
@@ -214,7 +217,7 @@ func (app *App) GetNewCombatInventory(inventory []string) []*ui.Button {
 
 		usableIndex := 0
 		for ind, it := range inventory {
-			if !app.IsItemUsable(it) {
+			if !app.IsItemUsable(it) || slices.Contains(app.Variables.Player.EquipedItems, it) {
 				continue
 			}
 			itemName := it
@@ -234,7 +237,7 @@ func (app *App) GetNewCombatInventory(inventory []string) []*ui.Button {
 						Payload: fmt.Sprintf("%s %s", pr.CmdUseItem, itemName),
 					}
 					if app.IsItemWeapon(it) {
-						app.Variables.Player.EquipedItems = []string{it}
+						app.Variables.Player.EquipedItems = append(app.Variables.Player.EquipedItems, it)
 					}
 				},
 			}
