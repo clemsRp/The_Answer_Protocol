@@ -137,6 +137,17 @@ func (up *Updater) UpdateMove() {
 				Type:    panel.ActionSendServer,
 				Payload: pr.CmdMove + " " + t.direction,
 			}
+
+			coor_convertor := map[string]vars.Position{
+				"north": vars.Position{X: 0, Y: -1},
+				"south": vars.Position{X: 0, Y: 1},
+				"east":  vars.Position{X: 1, Y: 0},
+				"west":  vars.Position{X: -1, Y: 0},
+			}
+			coor := coor_convertor[t.direction]
+			up.app.Variables.PanelsVariables.MiniMapCoor.X += coor.X
+			up.app.Variables.PanelsVariables.MiniMapCoor.Y += coor.Y
+
 			t.updatePos()
 			up.app.ResetRemotePlayers()
 			break

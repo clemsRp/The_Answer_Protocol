@@ -303,4 +303,22 @@ func (dr *Drawer) DrawMiniMap() {
 	origin := rl.NewVector2(destW/2, destH/2)
 
 	rl.DrawTexturePro(texture, sourceRec, destRec, origin, 0, rl.White)
+
+	// Draw player
+	tile := dr.app.Variables.Tileset_size
+	unitX := 1.2 * tile
+	unitY := 0.8 * tile
+
+	indX := dr.app.Variables.PanelsVariables.MiniMapCoor.X
+	indY := dr.app.Variables.PanelsVariables.MiniMapCoor.Y
+
+	x := posX + (destW / 2) + 0.67*tile + indX*unitX
+	y := posY + (destH / 2) + 0.375*tile + indY*unitY
+
+	rl.DrawCircle(
+		int32(x),
+		int32(y),
+		5,
+		rl.Red,
+	)
 }

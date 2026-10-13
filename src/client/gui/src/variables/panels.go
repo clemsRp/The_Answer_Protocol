@@ -24,6 +24,7 @@ type PanelVariables struct {
 	Emotes       *EmotesPanel
 
 	MiniMapOpen bool
+	MiniMapCoor Position
 }
 
 var (
@@ -33,6 +34,7 @@ var (
 func GetPanelsVariables() *PanelVariables {
 	return &PanelVariables{
 		MiniMapOpen:    true,
+		MiniMapCoor:    Position{X: 0, Y: 0},
 		Room:           &protocol.LookCommandData{},
 		RoomItems:      &[]string{},
 		InventoryItems: &[]string{},
